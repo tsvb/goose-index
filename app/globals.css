@@ -237,6 +237,9 @@
   --type-display: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
   --type-body: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
   --type-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+  --gold: #6ba3b8;
+  --gold-soft: #4f8da3;
+  --gold-deep: #3c7387;
 }
 
 /* Minimal — flat, high-contrast, single look (ignores data-theme). */
@@ -261,6 +264,12 @@
   --type-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --type-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   color-scheme: light;
+}
+
+[data-experience="minimal"] a {
+  color: #1a4fa0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* Drop atmosphere + entrance motion outside Fancy. */
