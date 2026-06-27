@@ -64,15 +64,16 @@ DATABASE_URL='<neon-pooled-url>' npm run verify        # expect: VERIFY OK
 
 ### 5. Nightly data refresh (GitHub Action)
 
-A scheduled workflow re-runs `npm run sync` against Neon so the live site stays current
-without any server staying up. It needs the Neon URL as a repo secret:
+A scheduled workflow (`.github/workflows/sync.yml`) re-runs `npm run sync` + `npm run verify`
+against the database every day so the live site stays current without any server staying up.
+It reads the connection string from a repo secret — set to the **unpooled** (direct) Neon
+string, since a bulk job is happiest off PgBouncer:
 
 ```bash
-gh secret set DATABASE_URL --repo tsvb/goose-almanac --body '<neon-pooled-url>'
+gh secret set DATABASE_URL --repo tsvb/goose-almanac --body '<neon-UNPOOLED-url>'
 ```
 
-The workflow lives at `.github/workflows/sync.yml` and also has a **Run workflow** button
-(manual trigger) on the repo's Actions tab.
+The workflow also has a **Run workflow** button (manual trigger) on the repo's Actions tab.
 
 ### 6. Custom domain (optional, later)
 

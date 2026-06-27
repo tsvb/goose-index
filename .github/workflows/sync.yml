@@ -1,0 +1,37 @@
+name: Sync Goose data
+
+# Keeps the live site current by re-pulling elgoose.net into the database. The
+# web app only reads, so all writes happen here, out of band.
+
+on:
+  schedule:
+    # Daily at 09:12 UTC (early morning in the US). Off the top of the hour, as
+    # GitHub recommends, to avoid the cron stampede.
+    - cron: "12 9 * * *"
+  workflow_dispatch: {} # manual "Run workflow" button on the Actions tab
+
+# Never let two syncs overlap.
+concurrency:
+  group: sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Sync elgoose → database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ELGOOSE_USER_AGENT: "GooseAlmanac/1.0 (+https://github.com/tsvb/goose-almanac; nightly sync)"
+        run: npm run sync
+      - name: Verify integrity
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run verify
