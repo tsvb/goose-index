@@ -11,7 +11,8 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { id } = await params;
-  const venue = await getVenueMeta(parseInt(id, 10));
+  const venueId = parseInt(id, 10);
+  const venue = Number.isNaN(venueId) ? null : await getVenueMeta(venueId);
   if (!venue) return { title: "Venue not found" };
   return {
     title: venue.name,
@@ -22,6 +23,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function VenuePage({ params }: Params) {
   const { id } = await params;
   const venueId = parseInt(id, 10);
+  if (Number.isNaN(venueId)) notFound();
 
   const [venue, showsResult] = await Promise.all([
     getVenueMeta(venueId),

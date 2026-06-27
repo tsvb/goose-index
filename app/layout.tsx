@@ -27,6 +27,10 @@ export const metadata: Metadata = {
     "An almanac of every Goose show: full setlists with segues and jams, venues, tours, and the story of each night. Data from elgoose.net.",
 };
 
+// Pages read live DB data and `current_date` (e.g. "On This Day"), so render
+// per-request rather than freezing at build time.
+export const dynamic = "force-dynamic";
+
 // Set the saved theme before first paint to avoid a flash.
 const themeScript = `(function(){try{var t=localStorage.getItem('ga-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;
 

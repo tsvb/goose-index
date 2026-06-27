@@ -17,7 +17,14 @@ import {
 
 type Params = { params: Promise<{ date: string }>; searchParams: Promise<{ n?: string }> };
 
+function isValidShowDate(d: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return false;
+  const [, m, day] = d.split("-").map(Number);
+  return m >= 1 && m <= 12 && day >= 1 && day <= 31;
+}
+
 async function resolveShow(date: string, n?: string) {
+  if (!isValidShowDate(date)) return null;
   const details = await getShowDetails(date);
   if (details.length === 0) return null;
   const order = n ? parseInt(n, 10) : null;
@@ -39,6 +46,7 @@ export async function generateMetadata({ params, searchParams }: Params): Promis
 export default async function ShowPage({ params, searchParams }: Params) {
   const { date } = await params;
   const { n } = await searchParams;
+  if (!isValidShowDate(date)) notFound();
   const details = await getShowDetails(date);
   if (details.length === 0) notFound();
   const order = n ? parseInt(n, 10) : null;
