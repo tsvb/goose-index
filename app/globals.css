@@ -218,3 +218,50 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--gold-deep);
 }
+
+/* ============================================================
+   Experience modes — pivot the same tokens three ways.
+   ============================================================ */
+
+/* Functional — utilitarian: sans headers, no texture or motion. */
+:root[data-experience="functional"] {
+  --font-display: var(--font-body);
+}
+
+/* Minimal — flat, high-contrast, single look (ignores data-theme). */
+:root[data-experience="minimal"] {
+  --bg: #ffffff;
+  --bg-deep: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f6f6f4;
+  --ink: #141414;
+  --muted: #4a4a4a;
+  --faint: #6a6a6a;
+  --line: #e3e3e0;
+  --line-soft: #ededea;
+  --gold: #141414;
+  --gold-soft: #141414;
+  --gold-deep: #141414;
+  --sage: #1c5f4a;
+  --sage-deep: #164d3c;
+  --ember: #141414;
+  --shadow: rgba(0, 0, 0, 0.12);
+  --font-display: var(--font-body);
+  color-scheme: light;
+}
+
+/* Drop atmosphere + entrance motion outside Fancy. */
+[data-experience="functional"] .stage-glow,
+[data-experience="minimal"] .stage-glow {
+  display: none;
+}
+[data-experience="functional"] .rise,
+[data-experience="minimal"] .rise,
+[data-experience="functional"] .fade-in,
+[data-experience="minimal"] .fade-in {
+  animation: none;
+}
+[data-experience="minimal"] .eyebrow {
+  letter-spacing: 0.12em;
+  color: var(--faint);
+}
