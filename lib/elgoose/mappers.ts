@@ -1,4 +1,4 @@
-import { toBool, emptyToNull } from "../util";
+import { toBool, emptyToNull, decodeEntities } from "../util";
 import type {
   RawVenue, RawSong, RawShow, RawSetlistRow,
   VenueRow, SongRow, ShowRow, TourRow, PerformanceRow,
@@ -7,7 +7,7 @@ import type {
 export function mapVenue(r: RawVenue): VenueRow {
   return {
     venueId: r.venue_id,
-    name: r.venuename,
+    name: decodeEntities(r.venuename),
     slug: emptyToNull(r.slug),
     city: emptyToNull(r.city),
     state: emptyToNull(r.state),
@@ -20,7 +20,7 @@ export function mapVenue(r: RawVenue): VenueRow {
 export function mapSong(r: RawSong): SongRow {
   return {
     songId: r.id,
-    name: r.name,
+    name: decodeEntities(r.name),
     slug: emptyToNull(r.slug),
     isOriginal: toBool(r.isoriginal),
     originalArtist: emptyToNull(r.original_artist),
@@ -33,7 +33,7 @@ export function mapSong(r: RawSong): SongRow {
 export function mapSongFromSetlist(r: RawSetlistRow): SongRow {
   return {
     songId: r.song_id,
-    name: r.songname,
+    name: decodeEntities(r.songname),
     slug: emptyToNull(r.slug),
     isOriginal: toBool(r.isoriginal),
     originalArtist: emptyToNull(r.original_artist),
@@ -43,7 +43,7 @@ export function mapSongFromSetlist(r: RawSetlistRow): SongRow {
 export function mapTour(r: {
   tour_id: number; tourname: string; show_year?: number; showyear?: number;
 }): TourRow {
-  return { tourId: r.tour_id, name: r.tourname, year: r.show_year ?? r.showyear ?? null };
+  return { tourId: r.tour_id, name: decodeEntities(r.tourname), year: r.show_year ?? r.showyear ?? null };
 }
 
 export function mapShow(r: RawShow, notes: string | null): ShowRow {
@@ -56,7 +56,7 @@ export function mapShow(r: RawShow, notes: string | null): ShowRow {
     title: emptyToNull(r.showtitle),
     permalink: emptyToNull(r.permalink),
     showOrder: r.showorder ?? null,
-    notes,
+    notes: notes == null ? null : decodeEntities(notes),
     createdAt: emptyToNull(r.created_at),
     updatedAt: emptyToNull(r.updated_at),
   };
