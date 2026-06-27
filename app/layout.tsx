@@ -3,6 +3,7 @@ import { Fraunces, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "./_components/site-header";
 import { SiteFooter } from "./_components/site-footer";
+import { getExperience } from "@/lib/experience.server";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -34,11 +35,13 @@ export const dynamic = "force-dynamic";
 // Set the saved theme before first paint to avoid a flash.
 const themeScript = `(function(){try{var t=localStorage.getItem('ga-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const experience = await getExperience();
   return (
     <html
       lang="en"
       data-theme="dark"
+      data-experience={experience}
       className={`${fraunces.variable} ${hanken.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
@@ -46,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="flex min-h-screen flex-col">
-        <div className="grain-overlay" aria-hidden />
+        {experience === "fancy" && <div className="grain-overlay" aria-hidden />}
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
