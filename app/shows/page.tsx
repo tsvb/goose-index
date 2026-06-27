@@ -1,11 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
-import { ShowRow } from "@/app/_components/show-card";
+import { ShowList } from "@/app/_components/show-list";
 import { ArrowLeft, ArrowRight } from "@/app/_components/marks";
 import { listShows } from "@/lib/queries/shows";
 import { listYears } from "@/lib/queries/dimensions";
 import { compact } from "@/lib/queries/format";
+import { getExperience } from "@/lib/experience.server";
 
 type SearchParams = Promise<{ year?: string; dir?: string; page?: string }>;
 
@@ -39,6 +40,7 @@ export default async function ShowsBrowsePage({
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const experience = await getExperience();
 
   // Build query-string helpers
   function buildHref(overrides: { year?: number | null; dir?: string; page?: number }) {
@@ -137,13 +139,7 @@ export default async function ShowsBrowsePage({
               </Link>
             </div>
           ) : (
-            <ul className="surface-card divide-y divide-line-soft">
-              {rows.map((show) => (
-                <li key={show.showId}>
-                  <ShowRow show={show} />
-                </li>
-              ))}
-            </ul>
+            <ShowList rows={rows} experience={experience} />
           )}
         </div>
 
