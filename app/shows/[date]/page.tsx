@@ -5,6 +5,7 @@ import { Container } from "@/app/_components/container";
 import { Setlist } from "@/app/_components/setlist";
 import { ArrowLeft, ArrowRight, MapPin } from "@/app/_components/marks";
 import { getShowDetails, getSetlist, getShowNeighbors } from "@/lib/queries/shows";
+import { getExperience } from "@/lib/experience.server";
 import {
   dateParts,
   formatLongDate,
@@ -56,6 +57,8 @@ export default async function ShowPage({ params, searchParams }: Params) {
     getSetlist(show.showId),
     getShowNeighbors(date, show.order),
   ]);
+
+  const experience = await getExperience();
 
   const dp = dateParts(date);
   const loc = locationLine(show.city, show.state, show.country);
@@ -187,7 +190,7 @@ export default async function ShowPage({ params, searchParams }: Params) {
           </aside>
         )}
 
-        <Setlist entries={setlist} />
+        <Setlist entries={setlist} experience={experience} />
       </Container>
 
       {/* Prev / next */}
