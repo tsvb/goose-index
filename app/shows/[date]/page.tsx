@@ -10,7 +10,6 @@ import { getExperience } from "@/lib/experience.server";
 import { JsonLd } from "@/app/_components/json-ld";
 import { showJsonLd } from "@/lib/jsonld";
 import {
-  dateParts,
   formatLongDate,
   formatShortDate,
   locationLine,
@@ -62,8 +61,6 @@ export default async function ShowPage({ params, searchParams }: Params) {
   const experience = await getExperience();
   const ld = showJsonLd(show, setlist);
 
-  const dp = dateParts(date);
-  const loc = locationLine(show.city, show.state, show.country);
   const siblings = details.filter((d) => d.showId !== show.showId);
 
   return (
