@@ -1,6 +1,6 @@
 # Experience Modes — Divergent Layouts (addendum)
 
-_Date: 2026-06-27 · Status: proposed · Builds on `2026-06-27-experience-modes-design.md`_
+_Date: 2026-06-27 · Status: built 2026-06-27 · Builds on `2026-06-27-experience-modes-design.md`_
 
 ## Why
 
