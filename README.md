@@ -17,6 +17,11 @@ the modern live-performance record maintained at [elgoose.net](https://elgoose.n
 | 3 | Jam & Set-Flow Analytics — jam charts, segue networks, era-aware analysis | planned |
 | 4 | Personal Fan Tracking — "shows I've seen", personal stats, song life-list | planned |
 
+**Experience modes** (cross-cutting, ✅ shipped): every page renders in your choice of
+**Fancy** (the immersive default), **Functional** (dense, utility-first), or **Minimal**
+(plain semantic markup with embedded `schema.org` JSON-LD). Pick from the header — the
+choice is remembered per visitor, independent of light/dark.
+
 Each phase has its own design spec under [`docs/superpowers/specs/`](docs/superpowers/specs/).
 
 ## Live site & deployment

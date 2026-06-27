@@ -1,6 +1,6 @@
 # Design — Experience Modes
 
-_Date: 2026-06-27 · Status: approved — ready for implementation plan_
+_Date: 2026-06-27 · Status: built 2026-06-27_
 
 ## Summary
 
