@@ -30,9 +30,9 @@ describe("checkSpotShow", () => {
 });
 
 describe("checkEarliestShow", () => {
-  it("expects 2012-01-12", () => {
-    expect(checkEarliestShow("2012-01-12").pass).toBe(true);
-    expect(checkEarliestShow("2014-01-01").pass).toBe(false);
+  it("expects 2014-09-27 (Goose's earliest show)", () => {
+    expect(checkEarliestShow("2014-09-27").pass).toBe(true);
+    expect(checkEarliestShow("2012-01-12").pass).toBe(false);
   });
 });
 

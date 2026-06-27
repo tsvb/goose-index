@@ -11,7 +11,7 @@ async function seedMinimal(db: AppDb) {
   await upsertVenues(db, [{ venueId: 290, name: "Radio City Music Hall", slug: "rcmh",
     city: "New York", state: "NY", country: "USA", zip: null, capacity: 6000 }]);
   await upsertSongs(db, [{ songId: 1, name: "S", slug: "s", isOriginal: true, originalArtist: null }]);
-  await upsertShows(db, [{ showId: 1, showDate: "2012-01-12", artistId: 1, venueId: 290, tourId: null,
+  await upsertShows(db, [{ showId: 1, showDate: "2014-09-27", artistId: 1, venueId: 290, tourId: null,
     title: null, permalink: "p", showOrder: 1, notes: null, createdAt: null, updatedAt: null }]);
   await upsertPerformances(db, [{ uniqueId: "a", showId: 1, songId: 1, setType: "Set", setNumber: "1",
     position: 1, trackTime: null, transition: ", ", transitionId: 1, isJamchart: false,
@@ -28,7 +28,7 @@ describe("runVerify", () => {
     expect(byName["performances reference a show"]).toBe(true);
     expect(byName["performances reference a song"]).toBe(true);
     expect(byName["no duplicate (show,set,position)"]).toBe(true);
-    expect(byName["earliest show is 2012-01-12"]).toBe(true);
+    expect(byName["earliest show is 2014-09-27"]).toBe(true);
     // Floors fail because this dataset is tiny:
     expect(byName["shows floor"]).toBe(false);
     await ctx.close();

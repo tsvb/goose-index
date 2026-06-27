@@ -28,7 +28,15 @@ const setlists = [{ uniqueid: "12301", show_id: 1, showdate: "2022-06-24", song_
                     isjamchart: 0, jamchart_notes: null, venue_id: 290,
                     shownotes: "The entire first set was played acoustic.", tour_id: 29,
                     tourname: "Dripfield Summer Tour 2022", showyear: 2022, isverified: 1,
-                    isoriginal: 1, original_artist: "", isreprise: 0, isjam: 0 }];
+                    isoriginal: 1, original_artist: "", isreprise: 0, isjam: 0 },
+                   // song_id 1 ("Foxy Lady") is NOT in `songs` above — must be backfilled from setlists:
+                   { uniqueid: "12303", show_id: 1, showdate: "2022-06-24", song_id: 1,
+                    songname: "Foxy Lady", slug: "foxy-lady", artist_id: 1, settype: "Encore",
+                    setnumber: "E", position: 1, tracktime: "4:00", transition_id: 1, transition: ", ",
+                    footnote: "", isjamchart: 0, jamchart_notes: null, venue_id: 290,
+                    shownotes: "The entire first set was played acoustic.", tour_id: 29,
+                    tourname: "Dripfield Summer Tour 2022", showyear: 2022, isverified: 1,
+                    isoriginal: 0, original_artist: "Jimi Hendrix", isreprise: 0, isjam: 0 }];
 
 const fakeClient: ElgooseClient = {
   async fetchMethod<T>(method: string): Promise<T[]> {
@@ -43,7 +51,7 @@ afterAll(() => ctx.close());
 describe("runSync", () => {
   it("populates the db, filters to Goose, derives tours + show notes", async () => {
     const summary = await runSync({ client: fakeClient, db: ctx.db });
-    expect(summary).toEqual({ venues: 1, tours: 1, songs: 2, shows: 1, performances: 2 });
+    expect(summary).toEqual({ venues: 1, tours: 1, songs: 3, shows: 1, performances: 3 });
 
     const showRows = await ctx.db.select().from(schema.shows);
     expect(showRows.length).toBe(1); // artist_id 7 filtered out
@@ -51,11 +59,15 @@ describe("runSync", () => {
     expect(showRows[0].tourId).toBe(29);
 
     const perf = await ctx.db.select().from(schema.performances);
-    expect(perf.length).toBe(2);
+    expect(perf.length).toBe(3);
+
+    // "Foxy Lady" (song_id 1) was absent from `songs` but backfilled from the setlist:
+    const foxy = (await ctx.db.select().from(schema.songs)).find((s) => s.songId === 1);
+    expect(foxy?.name).toBe("Foxy Lady");
   });
 
   it("is idempotent on a second run", async () => {
     await runSync({ client: fakeClient, db: ctx.db });
-    expect((await ctx.db.select().from(schema.performances)).length).toBe(2);
+    expect((await ctx.db.select().from(schema.performances)).length).toBe(3);
   });
 });

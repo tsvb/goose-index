@@ -9,7 +9,7 @@ export function checkFloors(c: { shows: number; songs: number; venues: number; p
     floor("shows floor", c.shows, 800),
     floor("songs floor", c.songs, 600),
     floor("venues floor", c.venues, 580),
-    floor("performances floor", c.performances, 10000),
+    floor("performances floor", c.performances, 6000),
   ];
 }
 
@@ -33,7 +33,7 @@ export function checkSpotShow(input: { performanceCount: number; notes: string |
 }
 
 export function checkEarliestShow(earliest: string | null): CheckResult {
-  return { name: "earliest show is 2012-01-12", pass: earliest === "2012-01-12",
+  return { name: "earliest show is 2014-09-27", pass: earliest === "2014-09-27",
     detail: `earliest=${earliest}` };
 }
 

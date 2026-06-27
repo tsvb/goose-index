@@ -46,6 +46,7 @@ export interface RawSetlistRow {
   showdate: string;
   song_id: number;
   songname: string;
+  slug?: string;          // present on live rows; used to backfill songs missing from songs.json
   artist_id: number;
   settype: string;        // "Set" | "Encore" | "Soundcheck" | ...
   setnumber: string;      // "1", "2", ...

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mapVenue, mapSong, mapShow, mapTour, mapPerformance } from "./mappers";
+import { mapVenue, mapSong, mapSongFromSetlist, mapShow, mapTour, mapPerformance } from "./mappers";
 import type { RawVenue, RawSong, RawShow, RawSetlistRow } from "./types";
 
 describe("mapVenue", () => {
@@ -23,6 +23,15 @@ describe("mapSong", () => {
       original_artist: "moe." };
     expect(mapSong(raw).isOriginal).toBe(false);
     expect(mapSong(raw).originalArtist).toBe("moe.");
+  });
+});
+
+describe("mapSongFromSetlist", () => {
+  it("builds a SongRow from a setlist row (for songs missing from songs.json)", () => {
+    const raw = { song_id: 1, songname: "Foxy Lady", slug: "foxy-lady",
+      isoriginal: 0, original_artist: "Jimi Hendrix" } as RawSetlistRow;
+    expect(mapSongFromSetlist(raw)).toEqual({ songId: 1, name: "Foxy Lady", slug: "foxy-lady",
+      isOriginal: false, originalArtist: "Jimi Hendrix" });
   });
 });
 

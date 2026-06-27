@@ -27,6 +27,19 @@ export function mapSong(r: RawSong): SongRow {
   };
 }
 
+// Build a SongRow from a setlist row. Used to backfill songs that appear in
+// setlists but are absent from songs.json (e.g. legacy ids like "Foxy Lady"=1),
+// guaranteeing every performance's song_id resolves to a song.
+export function mapSongFromSetlist(r: RawSetlistRow): SongRow {
+  return {
+    songId: r.song_id,
+    name: r.songname,
+    slug: emptyToNull(r.slug),
+    isOriginal: toBool(r.isoriginal),
+    originalArtist: emptyToNull(r.original_artist),
+  };
+}
+
 export function mapTour(r: {
   tour_id: number; tourname: string; show_year?: number; showyear?: number;
 }): TourRow {
