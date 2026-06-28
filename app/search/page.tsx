@@ -27,6 +27,38 @@ export default async function SearchPage({ searchParams }: Props) {
   const { q } = await searchParams;
   const term = q?.trim() ?? "";
 
+  const experience = await getExperience();
+  if (experience === "minimal") {
+    if (!term) {
+      return (
+        <Container className="py-8">
+          <Doc>
+            <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Search" }]} />
+            <h1>Search</h1>
+            <p>Enter a query in the address bar, e.g. <code>/search?q=red+rocks</code>.</p>
+          </Doc>
+        </Container>
+      );
+    }
+    const [shows, venues, tours] = await Promise.all([
+      searchShows(term, 24),
+      searchVenues(term, 12),
+      searchTours(term, 8),
+    ]);
+    return (
+      <Container className="py-8">
+        <Doc>
+          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Search" }]} />
+          <h1>Search: {term}</h1>
+          {shows.length > 0 && <DocSection title="Shows"><ShowTable shows={shows} /></DocSection>}
+          {venues.length > 0 && <DocSection title="Venues"><EntityTable rows={venues.map((v) => ({ href: `/venues/${v.venueId}`, name: v.name, sub: locationLine(v.city, v.state, v.country), count: v.shows }))} /></DocSection>}
+          {tours.length > 0 && <DocSection title="Tours"><EntityTable rows={tours.map((t) => ({ href: `/tours/${t.tourId}`, name: t.name, count: t.shows }))} /></DocSection>}
+          {shows.length === 0 && venues.length === 0 && tours.length === 0 && <p>No results for &ldquo;{term}&rdquo;.</p>}
+        </Doc>
+      </Container>
+    );
+  }
+
   if (!term) {
     return (
       <div className="relative overflow-hidden border-b border-line">
@@ -56,26 +88,6 @@ export default async function SearchPage({ searchParams }: Props) {
   ]);
 
   const total = shows.length + venues.length + tours.length;
-  const experience = await getExperience();
-
-  if (experience === "minimal") {
-    return (
-      <Container className="py-8">
-        <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Search" }]} />
-          <h1>{term ? `Search: ${term}` : "Search"}</h1>
-          {!term ? <p>Enter a query in the address bar: <code>/search?q=red+rocks</code></p> : (
-            <>
-              {shows.length > 0 && <DocSection title="Shows"><ShowTable shows={shows} /></DocSection>}
-              {venues.length > 0 && <DocSection title="Venues"><EntityTable rows={venues.map((v) => ({ href: `/venues/${v.venueId}`, name: v.name, sub: locationLine(v.city, v.state, v.country), count: v.shows }))} /></DocSection>}
-              {tours.length > 0 && <DocSection title="Tours"><EntityTable rows={tours.map((t) => ({ href: `/tours/${t.tourId}`, name: t.name, count: t.shows }))} /></DocSection>}
-              {shows.length === 0 && venues.length === 0 && tours.length === 0 && <p>No results for &ldquo;{term}&rdquo;.</p>}
-            </>
-          )}
-        </Doc>
-      </Container>
-    );
-  }
 
   return (
     <>
