@@ -23,9 +23,9 @@ describe("resolveExperience", () => {
 });
 
 describe("allowsTheme", () => {
-  it("is true except in minimal", () => {
+  it("is true only for fancy", () => {
     expect(allowsTheme("fancy")).toBe(true);
-    expect(allowsTheme("functional")).toBe(true);
+    expect(allowsTheme("functional")).toBe(false);
     expect(allowsTheme("minimal")).toBe(false);
   });
 });

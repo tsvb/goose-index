@@ -16,7 +16,7 @@ export function resolveExperience(value: string | null | undefined): Experience 
 }
 
 export function allowsTheme(experience: Experience): boolean {
-  return experience !== "minimal";
+  return experience === "fancy";
 }
 
 export function serializeExperienceCookie(experience: Experience): string {

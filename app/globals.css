@@ -232,15 +232,100 @@
    Experience modes — pivot the same tokens three ways.
    ============================================================ */
 
-/* Functional — utilitarian: one grotesque for everything, mono for figures. */
+/* Functional — mid-2000s Web 2.0: glossy panels, gel buttons, zebra tables. */
 :root[data-experience="functional"] {
-  --type-display: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --type-body: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --type-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
-  --gold: #6ba3b8;
-  --gold-soft: #4f8da3;
-  --gold-deep: #3c7387;
+  --bg: #e7f0f9;
+  --bg-deep: #d6e6f4;
+  --surface: #ffffff;
+  --surface-2: #f1f7fc;
+  --ink: #2a3a47;
+  --muted: #5f7282;
+  --faint: #8194a4;
+  --line: #c4d4e2;
+  --line-soft: #e7eef5;
+  --gold: #2f86cf;
+  --gold-soft: #2c7cc4;
+  --gold-deep: #1f5e93;
+  --sage: #5fa928;
+  --sage-deep: #4d8c20;
+  --ember: #f4a72b;
+  --shadow: rgba(40, 70, 110, 0.18);
+  --type-display: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  --type-body: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  --type-mono: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color-scheme: light;
 }
+[data-experience="functional"] body {
+  background: linear-gradient(#eef5fb, #d6e6f4) fixed;
+}
+[data-experience="functional"] h1, [data-experience="functional"] h2, [data-experience="functional"] h3 {
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+[data-experience="functional"] .eyebrow { color: #2c7cc4; }
+/* Glossy panels — reskins the shared .surface-card used across listing/home bodies. */
+[data-experience="functional"] .surface-card {
+  background: linear-gradient(#ffffff, #f1f7fc);
+  border: 1px solid #c4d4e2;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(40, 70, 110, 0.18);
+}
+[data-experience="functional"] .surface-card > li:nth-child(even) { background: #eef5fb; }
+[data-experience="functional"] .surface-card > li:hover { background: #fff7e0; }
+/* Gel button (used by functional components). */
+[data-experience="functional"] .gel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #2c7cc4;
+  border-radius: 8px;
+  background: linear-gradient(#5aa9e6, #2f86cf);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.22);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.22);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+[data-experience="functional"] .gel.green { border-color: #5fa928; background: linear-gradient(#9fd95f, #5fa928); }
+/* App bar. */
+[data-experience="functional"] .w2-appbar {
+  background: linear-gradient(#4a9be0, #2c7cc4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 5px rgba(0, 0, 0, 0.18);
+}
+[data-experience="functional"] .w2-brand { color: #fff; font-weight: 800; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.28); }
+[data-experience="functional"] .w2-beta {
+  display: inline-block; margin-left: 6px; transform: rotate(-4deg);
+  background: linear-gradient(#ff9a4d, #f06a1a); border: 1px solid #d65510; border-radius: 4px;
+  color: #fff; font-size: 9px; font-weight: 800; padding: 1px 5px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+[data-experience="functional"] .w2-navlink { color: #fff; font-weight: 700; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2); border-radius: 6px; padding: 4px 10px; }
+[data-experience="functional"] .w2-navlink:hover { background: rgba(255, 255, 255, 0.22); }
+/* Glossy panel + badges (show header). */
+[data-experience="functional"] .w2-panel {
+  background: linear-gradient(#ffffff, #f1f7fc); border: 1px solid #c4d4e2; border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(40, 70, 110, 0.18); padding: 14px 16px;
+}
+[data-experience="functional"] .w2-badge {
+  display: inline-flex; align-items: center; gap: 4px; border: 1px solid #aac6e0; border-radius: 18px;
+  background: linear-gradient(#eaf4fd, #cfe6f8); color: #1f5e93; font-weight: 700; font-size: 11px;
+  padding: 3px 11px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+[data-experience="functional"] .w2-badge.gold { border-color: #d9b24e; background: linear-gradient(#fff0c4, #f7d271); color: #7a560a; }
+/* Zebra data table (setlist). */
+[data-experience="functional"] table.w2-table { border-collapse: collapse; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #c4d4e2; box-shadow: 0 1px 4px rgba(40, 70, 110, 0.18); }
+[data-experience="functional"] table.w2-table thead th { background: linear-gradient(#4a9be0, #2c7cc4); color: #fff; text-align: left; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; padding: 8px 12px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.22); }
+[data-experience="functional"] table.w2-table tbody td { padding: 7px 12px; border-bottom: 1px solid #e7eef5; background: #fff; }
+[data-experience="functional"] table.w2-table tbody tr:nth-child(even) td { background: #eef5fb; }
+[data-experience="functional"] table.w2-table tbody tr:hover td { background: #fff7e0; }
+[data-experience="functional"] .w2-star {
+  display: inline-block; background: linear-gradient(#ffd86b, #f4a72b); border: 1px solid #d9952a; border-radius: 5px;
+  color: #7a4e06; font-size: 10px; font-weight: 800; padding: 1px 5px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+/* Gel-ify the experience switcher chrome inside functional. */
+[data-experience="functional"] [aria-label="Experience mode"] { background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.4); }
+[data-experience="functional"] [aria-label="Experience mode"] button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.3); color: #fff; }
+[data-experience="functional"] [aria-label="Experience mode"] button { color: #eaf4fd; }
 
 /* Minimal — flat, high-contrast, single look (ignores data-theme). */
 :root[data-experience="minimal"] {
