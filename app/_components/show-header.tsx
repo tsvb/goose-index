@@ -49,26 +49,25 @@ export function ShowHeader({
 
   if (experience === "functional") {
     return (
-      <div className="border-b border-line">
-        <Container className="py-5">
-          <div className="flex flex-wrap items-start justify-between gap-3 rounded-md border border-line bg-surface px-4 py-3">
-            <div>
-              <div className="font-mono text-sm font-medium text-ink">
-                {date} · {show.venueId ? <Link href={`/venues/${show.venueId}`} className="text-gold hover:underline">{show.venue}</Link> : (show.venue ?? "Unknown venue")}
-              </div>
-              <div className="font-mono text-xs text-muted">
-                {loc || "—"}{show.tour ? ` · ${show.tour}` : ""}
-              </div>
+      <Container className="py-5">
+        <div className="w2-panel flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="text-[1.7rem] font-extrabold leading-none tracking-tight text-ink">
+              {dp.month} {dp.day}, {dp.year}
             </div>
-            <div className="flex flex-wrap justify-end gap-1.5 font-mono text-[0.7rem] text-faint">
-              <span className="rounded border border-line px-2 py-0.5">{setlist.length} songs</span>
-              <span className="rounded border border-line px-2 py-0.5">{setCount} {setCount === 1 ? "set" : "sets"}</span>
-              {encores > 0 && <span className="rounded border border-line px-2 py-0.5">{encores} enc</span>}
-              {durationLogged && <span className="rounded border border-line px-2 py-0.5">{durationLogged}</span>}
+            <div className="mt-1 text-sm font-semibold text-muted">
+              {show.venueId ? <Link href={`/venues/${show.venueId}`} className="text-gold hover:underline">{show.venue}</Link> : (show.venue ?? "Unknown venue")}
+              {loc ? ` · ${loc}` : ""}{show.tour ? ` · ${show.tour}` : ""}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className="w2-badge">{setlist.length} songs</span>
+              <span className="w2-badge">{setCount} {setCount === 1 ? "set" : "sets"}</span>
+              {encores > 0 && <span className="w2-badge">{encores} enc</span>}
+              {durationLogged && <span className="w2-badge gold">{durationLogged}</span>}
             </div>
           </div>
-        </Container>
-      </div>
+        </div>
+      </Container>
     );
   }
 

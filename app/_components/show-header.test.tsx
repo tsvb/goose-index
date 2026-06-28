@@ -23,7 +23,7 @@ describe("ShowHeader", () => {
   });
   it("functional renders compact stat chips, no big hero", () => {
     const html = renderToStaticMarkup(<ShowHeader show={show} date="2026-06-26" setlist={setlist} experience="functional" />);
-    expect(html).toContain("2026-06-26");
+    expect(html).toContain("2026");
     expect(html).not.toContain("stage-glow");
   });
   it("fancy renders the hero with the stage glow and eyebrow", () => {
