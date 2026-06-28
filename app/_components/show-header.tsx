@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "./container";
 import { MapPin } from "./marks";
+import { Doc, Breadcrumb, MetaTable } from "./doc";
 import { dateParts, locationLine, formatDuration, trackSeconds } from "@/lib/queries/format";
 import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
 import type { Experience } from "@/lib/experience";
@@ -26,28 +27,22 @@ export function ShowHeader({
 
   if (experience === "minimal") {
     return (
-      <Container size="prose" className="pt-8">
-        <nav className="mb-5 text-sm text-muted">
-          <Link href="/">Goose Almanac</Link> / <Link href="/shows">Shows</Link> / {date}
-        </nav>
-        <h1 className="text-2xl font-medium text-ink">
-          {dp.month} {dp.day}, {dp.year} — {show.venue ?? "Unknown venue"}
-        </h1>
-        <dl className="mt-3 text-[0.95rem] leading-7 text-ink">
-          {loc && <div><span className="text-muted">Location:</span> {loc}</div>}
-          {show.tour && <div><span className="text-muted">Tour:</span> {show.tour}</div>}
-          <div>
-            <span className="text-muted">Songs:</span> {setlist.length} · {setCount} {setCount === 1 ? "set" : "sets"}
-            {encores > 0 ? ` + ${encores} encore${encores === 1 ? "" : "s"}` : ""}
-            {durationLogged ? ` · ${durationLogged}` : ""}
-          </div>
-          {show.permalink && (
-            <div>
-              <span className="text-muted">Source:</span>{" "}
-              <a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer">elgoose.net</a>
-            </div>
-          )}
-        </dl>
+      <Container className="py-8">
+        <Doc>
+          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { href: "/shows", label: "Shows" }, { label: date }]} />
+          <h1>{show.venue ? `Goose at ${show.venue}` : "Goose"}</h1>
+          <p className="doc-crumb">{dp.weekday}, {dp.month} {dp.day}, {dp.year}{loc ? ` · ${loc}` : ""}</p>
+          <MetaTable
+            rows={[
+              { k: "Date", v: `${dp.weekday}, ${dp.month} ${dp.day}, ${dp.year}` },
+              ...(show.venue ? [{ k: "Venue", v: show.venueId ? <Link href={`/venues/${show.venueId}`}>{show.venue}</Link> : show.venue }] : []),
+              ...(loc ? [{ k: "Location", v: loc }] : []),
+              ...(show.tour ? [{ k: "Tour", v: show.tourId ? <Link href={`/tours/${show.tourId}`}>{show.tour}</Link> : show.tour }] : []),
+              { k: "Songs", v: `${setlist.length} · ${setCount} ${setCount === 1 ? "set" : "sets"}${encores > 0 ? ` + ${encores} encore${encores === 1 ? "" : "s"}` : ""}${durationLogged ? ` · ${durationLogged}` : ""}` },
+              ...(show.permalink ? [{ k: "Source", v: <a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer">elgoose.net</a> }] : []),
+            ]}
+          />
+        </Doc>
       </Container>
     );
   }

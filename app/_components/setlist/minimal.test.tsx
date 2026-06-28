@@ -13,20 +13,19 @@ function entry(p: Partial<SetlistEntry>): SetlistEntry {
   };
 }
 
-describe("SetlistMinimal", () => {
-  it("renders a semantic ordered list with inline segue and jam markers", () => {
+describe("SetlistMinimal (document)", () => {
+  it("renders per-set tables, segue marks, and a jam footnote ref + note", () => {
     const html = renderToStaticMarkup(
       <SetlistMinimal entries={[
-        entry({ song: "Hot Tea", transition: " > ", isJamchart: true, trackTime: "14:32" }),
+        entry({ song: "Hot Tea", transition: " > ", isJamchart: true, jamchartNotes: "huge jam", trackTime: "14:32" }),
         entry({ song: "Arrow", position: 2 }),
       ]} />,
     );
-    expect(html).toContain("<ol");
-    expect(html).toContain("<li");
+    expect(html).toContain("<table");
     expect(html).toContain("Hot Tea");
-    expect(html).toContain("&gt;"); // inline segue, HTML-escaped
-    expect(html).toContain("jam");
-    expect(html).toContain("(14:32)");
-    expect(html).not.toContain("<svg"); // no decorative marks
+    expect(html).toContain("&gt;");      // segue
+    expect(html).toContain("<sup");      // footnote ref
+    expect(html).toContain("huge jam");  // footnote text
+    expect(html).not.toContain("<svg");
   });
 });

@@ -1,29 +1,48 @@
 import { groupSets, isSegue } from "./shared";
+import { Footnotes, DocSection } from "../doc";
 import type { SetlistEntry } from "@/lib/queries/shows";
 
 export function SetlistMinimal({ entries }: { entries: SetlistEntry[] }) {
   if (entries.length === 0) {
-    return <p className="text-muted">No setlist has been recorded for this show yet.</p>;
+    return <p>No setlist has been recorded for this show yet.</p>;
   }
   const groups = groupSets(entries);
+  const notes: { id: string; text: string }[] = [];
+  entries.forEach((e) => {
+    if (e.isJamchart && e.jamchartNotes) notes.push({ id: `n-${e.uniqueId}`, text: `${e.song} — ${e.jamchartNotes}` });
+  });
+  const noteIndex = new Map(notes.map((n, i) => [n.id, i + 1]));
+
   return (
-    <div className="space-y-6">
+    <div>
       {groups.map((g) => (
-        <section key={g.key}>
-          <h3 className="mb-1 font-display text-lg text-ink">{g.label}</h3>
-          <ol className="list-decimal space-y-0.5 pl-6 text-ink">
-            {g.entries.map((e) => (
-              <li key={e.uniqueId}>
-                {e.song}
-                {!e.isOriginal && e.originalArtist ? ` (${e.originalArtist})` : ""}
-                {isSegue(e.transition) ? " > " : ""}
-                {e.isJamchart ? " · jam" : ""}
-                {e.trackTime ? ` (${e.trackTime})` : ""}
-              </li>
-            ))}
-          </ol>
-        </section>
+        <DocSection key={g.key} title={g.label}>
+          <table className="doc-table">
+            <tbody>
+              {g.entries.map((e, i) => {
+                const nid = `n-${e.uniqueId}`;
+                const fn = e.isJamchart && e.jamchartNotes ? noteIndex.get(nid) : undefined;
+                return (
+                  <tr key={e.uniqueId}>
+                    <td className="num" style={{ width: "1.6rem" }}>{i + 1}</td>
+                    <td>
+                      {e.song}
+                      {fn ? <sup><a href={`#${nid}`}>{fn}</a></sup> : null}
+                      {isSegue(e.transition) ? " >" : ""}
+                    </td>
+                    <td className="num">{e.trackTime ?? ""}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </DocSection>
       ))}
+      {notes.length > 0 && (
+        <DocSection title="Jam notes">
+          <Footnotes notes={notes} />
+        </DocSection>
+      )}
     </div>
   );
 }

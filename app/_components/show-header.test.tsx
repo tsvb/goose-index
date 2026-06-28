@@ -14,10 +14,10 @@ const setlist = [
 ] as SetlistEntry[];
 
 describe("ShowHeader", () => {
-  it("minimal renders a breadcrumb, an h1, and a facts dl — no hero glow", () => {
+  it("minimal renders a breadcrumb, an h1, and a facts table — no hero glow", () => {
     const html = renderToStaticMarkup(<ShowHeader show={show} date="2026-06-26" setlist={setlist} experience="minimal" />);
     expect(html).toContain("<h1");
-    expect(html).toContain("<dl");
+    expect(html).toContain("<table");
     expect(html).toContain("Red Hat Amphitheater");
     expect(html).not.toContain("stage-glow");
   });
