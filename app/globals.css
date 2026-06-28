@@ -260,8 +260,8 @@
   --sage-deep: #164d3c;
   --ember: #141414;
   --shadow: rgba(0, 0, 0, 0.12);
-  --type-display: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --type-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --type-display: Georgia, "Times New Roman", serif;
+  --type-body: Georgia, "Times New Roman", serif;
   --type-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   color-scheme: light;
 }
@@ -271,6 +271,22 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+[data-experience="minimal"] .doc { max-width: 640px; }
+[data-experience="minimal"] .doc-crumb { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.1rem; }
+[data-experience="minimal"] h1 { font-size: 1.6rem; font-weight: 700; line-height: 1.15; margin: 0 0 0.5rem; }
+[data-experience="minimal"] .doc-h2 { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #333; margin: 1.6rem 0 0.45rem; padding-bottom: 3px; border-bottom: 1px solid #cfcfcf; }
+[data-experience="minimal"] table.doc-meta { border-collapse: collapse; margin: 0 0 1.4rem; font-size: 0.95rem; }
+[data-experience="minimal"] table.doc-meta td { padding: 3px 0; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+[data-experience="minimal"] table.doc-meta td.k { width: 7rem; color: var(--muted); padding-right: 0.9rem; white-space: nowrap; }
+[data-experience="minimal"] table.doc-table { border-collapse: collapse; width: 100%; font-size: 0.95rem; margin: 0.2rem 0 1rem; }
+[data-experience="minimal"] table.doc-table th { text-align: left; font-weight: 700; border-bottom: 1px solid #cfcfcf; padding: 3px 12px 3px 0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+[data-experience="minimal"] table.doc-table td { padding: 3px 12px 3px 0; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+[data-experience="minimal"] table.doc-table th.num, [data-experience="minimal"] table.doc-table td.num { text-align: right; font-family: var(--type-mono); font-size: 0.85rem; padding-right: 0; white-space: nowrap; }
+[data-experience="minimal"] .nowrap { white-space: nowrap; }
+[data-experience="minimal"] .doc sup a { font-size: 0.7rem; }
+[data-experience="minimal"] ol.doc-notes { font-size: 0.9rem; color: var(--muted); padding-left: 1.4rem; line-height: 1.55; }
+[data-experience="minimal"] .doc-foot { margin-top: 1.8rem; padding-top: 0.6rem; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--muted); }
 
 /* Drop atmosphere + entrance motion outside Fancy. */
 [data-experience="functional"] .stage-glow,
