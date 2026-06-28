@@ -5,6 +5,27 @@ import { Doc, Breadcrumb, MetaTable } from "./doc";
 import { dateParts, locationLine, formatDuration, trackSeconds } from "@/lib/queries/format";
 import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
 import type { Experience } from "@/lib/experience";
+import { NugsLink } from "./nugs-link";
+import { nugsShowHref, nugsWebFallback } from "@/lib/nugs";
+
+function ShowNugs({ date, venue, minimal = false }: { date: string; venue: string | null; minimal?: boolean }) {
+  const fallback = nugsWebFallback({ date, venue });
+  if (minimal) {
+    return (
+      <>
+        <NugsLink href={nugsShowHref({ date, venue })} fallback={fallback} className="nugs-show">listen on nugs</NugsLink>
+        {" · "}
+        <NugsLink href={nugsShowHref({ date, venue, media: "video" })} fallback={fallback} className="nugs-show watch">watch</NugsLink>
+      </>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <NugsLink href={nugsShowHref({ date, venue })} fallback={fallback} className="nugs-show" title="Play this show on nugs">▷ Listen on nugs</NugsLink>
+      <NugsLink href={nugsShowHref({ date, venue, media: "video" })} fallback={fallback} className="nugs-show watch" title="Watch this show on nugs">▷ Watch</NugsLink>
+    </span>
+  );
+}
 
 function computeStats(date: string, setlist: SetlistEntry[]) {
   const dp = dateParts(date);
@@ -40,6 +61,7 @@ export function ShowHeader({
               ...(show.tour ? [{ k: "Tour", v: show.tourId ? <Link href={`/tours/${show.tourId}`}>{show.tour}</Link> : show.tour }] : []),
               { k: "Songs", v: `${setlist.length} · ${setCount} ${setCount === 1 ? "set" : "sets"}${encores > 0 ? ` + ${encores} encore${encores === 1 ? "" : "s"}` : ""}${durationLogged ? ` · ${durationLogged}` : ""}` },
               ...(show.permalink ? [{ k: "Source", v: <a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer">elgoose.net</a> }] : []),
+              { k: "Listen", v: <ShowNugs date={date} venue={show.venue} minimal /> },
             ]}
           />
         </Doc>
@@ -65,6 +87,7 @@ export function ShowHeader({
               {encores > 0 && <span className="w2-badge">{encores} enc</span>}
               {durationLogged && <span className="w2-badge gold">{durationLogged}</span>}
             </div>
+            <div className="mt-3"><ShowNugs date={date} venue={show.venue} /></div>
           </div>
         </div>
       </Container>
@@ -105,6 +128,8 @@ export function ShowHeader({
           {encores > 0 && (<><span className="text-line">·</span><span><span className="text-ink">{encores}</span> {encores === 1 ? "encore" : "encores"}</span></>)}
           {durationLogged && (<><span className="text-line">·</span><span><span className="text-ink">{durationLogged}</span> logged</span></>)}
           {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className="text-sage transition hover:text-ink">View on elgoose ↗</a></>)}
+          <span className="text-line">·</span>
+          <ShowNugs date={date} venue={show.venue} />
         </div>
       </Container>
     </header>

@@ -13,6 +13,9 @@ const setlist = [
   { setType: "Set", setNumber: "1", trackTime: "8:00" },
 ] as SetlistEntry[];
 
+const nugsShow = { showId: 1, date: "2024-04-20", order: 1, venue: "The Salt Shed", city: "Chicago", state: "IL", country: "USA", tour: null, tourId: null, songCount: 2, hasNotes: false, venueId: 9, permalink: "p", notes: null } as ShowDetail;
+const emptySetlist: SetlistEntry[] = [];
+
 describe("ShowHeader", () => {
   it("minimal renders a breadcrumb, an h1, and a facts table — no hero glow", () => {
     const html = renderToStaticMarkup(<ShowHeader show={show} date="2026-06-26" setlist={setlist} experience="minimal" />);
@@ -31,4 +34,16 @@ describe("ShowHeader", () => {
     expect(html).toContain("stage-glow");
     expect(html).toContain("eyebrow");
   });
+});
+
+describe("ShowHeader nugs affordance", () => {
+  for (const exp of ["fancy", "functional", "minimal"] as const) {
+    it(`emits a show-level applenugs Listen link in ${exp}`, () => {
+      const html = renderToStaticMarkup(<ShowHeader show={nugsShow} date="2024-04-20" setlist={emptySetlist} experience={exp} />);
+      // renderToStaticMarkup HTML-encodes & in attributes; check both the scheme and the encoded venue
+      expect(html).toContain("applenugs://show/2024-04-20?artist=Goose");
+      expect(html).toContain("The%20Salt%20Shed");
+      expect(html).toContain("media=video"); // the Watch variant
+    });
+  }
 });
