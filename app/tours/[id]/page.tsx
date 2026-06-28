@@ -2,9 +2,11 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { ShowRow } from "@/app/_components/show-card";
+import { Doc, Breadcrumb, MetaTable, DocSection, ShowTable } from "@/app/_components/doc";
 import { getTourMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
 import { formatShortDate } from "@/lib/queries/format";
+import { getExperience } from "@/lib/experience.server";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -28,6 +30,25 @@ export default async function TourPage({ params }: Params) {
   ]);
 
   if (!tour) notFound();
+
+  const experience = await getExperience();
+
+  if (experience === "minimal") {
+    return (
+      <Container className="py-8">
+        <Doc>
+          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { href: "/tours", label: "Tours" }, { label: tour.name }]} />
+          <h1>{tour.name}</h1>
+          <MetaTable rows={[
+            { k: "Year", v: tour.year },
+            ...(tour.start && tour.end ? [{ k: "Dates", v: `${formatShortDate(tour.start)} – ${formatShortDate(tour.end)}` }] : []),
+            { k: "Shows", v: tour.shows },
+          ]} />
+          <DocSection title="Shows"><ShowTable shows={shows} /></DocSection>
+        </Doc>
+      </Container>
+    );
+  }
 
   const dateRange =
     tour.start && tour.end

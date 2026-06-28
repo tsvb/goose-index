@@ -3,9 +3,11 @@ import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { ShowRow } from "@/app/_components/show-card";
 import { MapPin } from "@/app/_components/marks";
+import { Doc, Breadcrumb, MetaTable, DocSection, ShowTable } from "@/app/_components/doc";
 import { getVenueMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
 import { locationLine, compact, formatShortDate } from "@/lib/queries/format";
+import { getExperience } from "@/lib/experience.server";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -32,8 +34,28 @@ export default async function VenuePage({ params }: Params) {
 
   if (!venue) notFound();
 
+  const experience = await getExperience();
   const { rows: shows } = showsResult;
   const loc = locationLine(venue.city, venue.state, venue.country);
+
+  if (experience === "minimal") {
+    return (
+      <Container className="py-8">
+        <Doc>
+          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { href: "/venues", label: "Venues" }, { label: venue.name }]} />
+          <h1>{venue.name}</h1>
+          <MetaTable rows={[
+            { k: "Location", v: locationLine(venue.city, venue.state, venue.country) || "—" },
+            ...(venue.capacity && venue.capacity > 0 ? [{ k: "Capacity", v: compact(venue.capacity) }] : []),
+            { k: "Shows", v: venue.shows },
+            ...(venue.first ? [{ k: "First", v: venue.first }] : []),
+            ...(venue.last ? [{ k: "Last", v: venue.last }] : []),
+          ]} />
+          <DocSection title="Shows here"><ShowTable shows={shows} /></DocSection>
+        </Doc>
+      </Container>
+    );
+  }
 
   // Build stat line parts
   const statParts: string[] = [

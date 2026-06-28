@@ -2,8 +2,10 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { SectionHeader } from "@/app/_components/section-header";
+import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { listTours } from "@/lib/queries/dimensions";
 import { formatShortDate } from "@/lib/queries/format";
+import { getExperience } from "@/lib/experience.server";
 
 export const metadata: Metadata = {
   title: "Tours",
@@ -12,6 +14,20 @@ export const metadata: Metadata = {
 
 export default async function ToursPage() {
   const tours = await listTours();
+  const experience = await getExperience();
+
+  if (experience === "minimal") {
+    return (
+      <Container className="py-8">
+        <Doc>
+          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Tours" }]} />
+          <h1>Tours</h1>
+          <p className="doc-crumb">{tours.length} tours</p>
+          <EntityTable rows={tours.map((t) => ({ href: `/tours/${t.tourId}`, name: t.name, sub: t.start && t.end ? `${formatShortDate(t.start)} – ${formatShortDate(t.end)}` : String(t.year), count: t.shows }))} />
+        </Doc>
+      </Container>
+    );
+  }
 
   // Group by year for divider treatment
   const groups: { year: number | null; tours: typeof tours }[] = [];

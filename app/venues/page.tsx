@@ -2,8 +2,10 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { MapPin } from "@/app/_components/marks";
+import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { listVenues } from "@/lib/queries/dimensions";
 import { locationLine, compact } from "@/lib/queries/format";
+import { getExperience } from "@/lib/experience.server";
 
 export const metadata: Metadata = {
   title: "Venues",
@@ -19,6 +21,20 @@ export default async function VenuesPage({
 }) {
   const { sort = "shows" } = await searchParams;
   const venues = await listVenues({ sort });
+  const experience = await getExperience();
+
+  if (experience === "minimal") {
+    return (
+      <Container className="py-8">
+        <Doc>
+          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Venues" }]} />
+          <h1>Venues</h1>
+          <p className="doc-crumb">{venues.length} venues</p>
+          <EntityTable rows={venues.map((v) => ({ href: `/venues/${v.venueId}`, name: v.name, sub: locationLine(v.city, v.state, v.country), count: v.shows }))} />
+        </Doc>
+      </Container>
+    );
+  }
 
   return (
     <>
