@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { Container } from "./container";
 import { SearchBox } from "./search-box";
-import { ThemeToggle } from "./theme-toggle";
 import { MobileNav } from "./mobile-nav";
-import { ExperienceSwitcher } from "./experience-switcher";
+import { SettingsMenu } from "./settings-menu";
 import { Feather } from "./marks";
 import { getExperience } from "@/lib/experience.server";
-import { allowsTheme, type Experience } from "@/lib/experience";
+import { type Experience } from "@/lib/experience";
 
 const NAV = [
   { href: "/shows", label: "Shows" },
@@ -37,10 +36,9 @@ export function HeaderFancy({ experience }: { experience: Experience }) {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <div className="hidden sm:block"><ExperienceSwitcher current={experience} /></div>
           <SearchBox />
-          {allowsTheme(experience) && <ThemeToggle />}
-          <MobileNav experience={experience} />
+          <SettingsMenu current={experience} />
+          <MobileNav />
         </div>
       </Container>
     </header>
@@ -60,10 +58,9 @@ export function HeaderFunctional({ experience }: { experience: Experience }) {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <div className="hidden sm:block"><ExperienceSwitcher current={experience} /></div>
           <SearchBox />
-          {allowsTheme(experience) && <ThemeToggle />}
-          <MobileNav experience={experience} />
+          <SettingsMenu current={experience} />
+          <MobileNav />
         </div>
       </Container>
     </header>
@@ -80,7 +77,7 @@ export function HeaderMinimal({ experience }: { experience: Experience }) {
           <Link key={n.href} href={n.href} className="underline">{n.label}</Link>
         ))}
         <Link href="/search" className="underline">Search</Link>
-        <span className="ml-auto"><ExperienceSwitcher current={experience} /></span>
+        <span className="ml-auto"><SettingsMenu current={experience} /></span>
       </Container>
     </header>
   );

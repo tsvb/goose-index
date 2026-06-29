@@ -322,10 +322,9 @@
   display: inline-block; background: linear-gradient(#ffd86b, #f4a72b); border: 1px solid #d9952a; border-radius: 5px;
   color: #7a4e06; font-size: 10px; font-weight: 800; padding: 1px 5px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
-/* Gel-ify the experience switcher chrome inside functional. */
-[data-experience="functional"] [aria-label="Experience mode"] { background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.4); }
-[data-experience="functional"] [aria-label="Experience mode"] button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.3); color: #fff; }
-[data-experience="functional"] [aria-label="Experience mode"] button { color: #eaf4fd; }
+/* Settings gear sits on the blue functional appbar — make it read white. */
+[data-experience="functional"] [aria-label="Settings"] { color: #fff; background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.4); }
+[data-experience="functional"] [aria-label="Settings"]:hover { background: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.6); color: #fff; }
 
 /* Minimal — flat, high-contrast, single look (ignores data-theme). */
 :root[data-experience="minimal"] {

@@ -4,8 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, Search } from "./marks";
-import { ExperienceSwitcher } from "./experience-switcher";
-import type { Experience } from "@/lib/experience";
 
 const NAV = [
   { href: "/shows", label: "Shows" },
@@ -16,7 +14,7 @@ const NAV = [
   { href: "/tours", label: "Tours" },
 ];
 
-export function MobileNav({ experience }: { experience: Experience }) {
+export function MobileNav() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const router = useRouter();
@@ -64,10 +62,6 @@ export function MobileNav({ experience }: { experience: Experience }) {
                   className="w-full rounded-full border border-line bg-surface py-3 pl-10 pr-4 text-ink placeholder:text-faint outline-none focus:border-gold"
                 />
               </form>
-              <div>
-                <span className="mb-2 block font-mono text-[0.62rem] uppercase tracking-wider text-faint">Experience</span>
-                <ExperienceSwitcher current={experience} />
-              </div>
               <nav className="flex flex-col">
                 {NAV.map((n) => {
                   const active = pathname === n.href || pathname.startsWith(n.href + "/");
