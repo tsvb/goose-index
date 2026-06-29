@@ -37,7 +37,7 @@ export default async function TourPage({ params }: Params) {
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { href: "/tours", label: "Tours" }, { label: tour.name }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { href: "/tours", label: "Tours" }, { label: tour.name }]} />
           <h1>{tour.name}</h1>
           <MetaTable rows={[
             { k: "Year", v: tour.year },

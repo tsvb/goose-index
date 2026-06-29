@@ -16,7 +16,7 @@ export default function NotFound() {
         <span className="eyebrow mt-8 block">404 · off the setlist</span>
 
         <h1 className="mt-5 font-display text-[2.6rem] leading-[1.06] tracking-tight text-ink sm:text-5xl">
-          This page isn&rsquo;t in the almanac.
+          This page isn&rsquo;t in the index.
         </h1>
 
         <p className="mx-auto mt-5 max-w-sm text-lg leading-relaxed text-muted">
@@ -29,7 +29,7 @@ export default function NotFound() {
             href="/"
             className="group flex items-center gap-2 rounded-full border border-gold/40 bg-surface px-6 py-3 font-mono text-sm text-gold transition hover:border-gold hover:bg-surface-2"
           >
-            Back to the almanac
+            Back to the index
             <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
           </Link>
           <Link

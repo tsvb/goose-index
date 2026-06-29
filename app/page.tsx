@@ -32,8 +32,8 @@ export default async function Home() {
     return (
       <Container className="py-8">
         <Doc>
-          <h1>Goose Almanac</h1>
-          <p>An almanac of every Goose show — setlists, segues, jams, venues, and tours. Setlist data from <a href="https://elgoose.net" target="_blank" rel="noreferrer">elgoose.net</a>.</p>
+          <h1>Goose Index</h1>
+          <p>A complete index of every Goose show — setlists, segues, jams, venues, and tours. Setlist data from <a href="https://elgoose.net" target="_blank" rel="noreferrer">elgoose.net</a>.</p>
           <MetaTable rows={[
             { k: "Shows", v: compact(stats.showsPlayed) },
             { k: "Songs", v: compact(stats.songs) },
@@ -63,13 +63,13 @@ export default async function Home() {
         <div className="stage-glow inset-x-0 top-0 h-[420px]" />
         <Container className="relative pt-16 pb-14 sm:pt-24 sm:pb-20">
           <span className="eyebrow rise" style={{ animationDelay: "0ms" }}>
-            The Goose Almanac · est. {sinceYear}
+            Goose Index · est. {sinceYear}
           </span>
           <h1
             className="rise mt-5 max-w-3xl font-display text-[2.7rem] leading-[1.04] tracking-tight text-ink sm:text-6xl"
             style={{ animationDelay: "60ms" }}
           >
-            An almanac of every <span className="italic text-gold">Goose</span> show.
+            Every <span className="italic text-gold">Goose</span> show, indexed.
           </h1>
           <p
             className="rise mt-5 max-w-xl text-lg leading-relaxed text-muted"

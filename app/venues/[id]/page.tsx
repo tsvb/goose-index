@@ -42,7 +42,7 @@ export default async function VenuePage({ params }: Params) {
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { href: "/venues", label: "Venues" }, { label: venue.name }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { href: "/venues", label: "Venues" }, { label: venue.name }]} />
           <h1>{venue.name}</h1>
           <MetaTable rows={[
             { k: "Location", v: locationLine(venue.city, venue.state, venue.country) || "—" },

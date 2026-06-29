@@ -19,7 +19,7 @@ export default async function OnThisDayPage() {
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "On this day" }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "On this day" }]} />
           <h1>On this day</h1>
           {rows.length === 0 ? <p>No Goose shows on today&apos;s date.</p> : <ShowTable shows={rows} />}
         </Doc>

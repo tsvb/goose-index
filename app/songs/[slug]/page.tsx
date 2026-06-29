@@ -44,7 +44,7 @@ export default async function SongPage({ params }: Params) {
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
           <h1>{song.name}</h1>
           <p className="doc-crumb">{tag}</p>
           <MetaTable rows={facts(song).map((f) => ({ k: f.k, v: f.v }))} />
@@ -69,7 +69,7 @@ export default async function SongPage({ params }: Params) {
   return (
     <>
       <Container className="py-7">
-        <Breadcrumb trail={[{ href: "/", label: "Almanac" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
+        <Breadcrumb trail={[{ href: "/", label: "Index" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
         <div className="mt-2 flex flex-wrap items-baseline gap-3">
           <h1 className="font-display text-[2.2rem] font-extrabold leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
           <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.62rem] uppercase tracking-wider text-muted">{tag}</span>

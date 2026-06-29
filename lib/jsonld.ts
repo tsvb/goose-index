@@ -28,8 +28,8 @@ export function siteJsonLd(): object {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Goose Almanac",
-    description: "An almanac of every Goose show: setlists, venues, tours, and stats.",
+    name: "Goose Index",
+    description: "A complete index of every Goose show: setlists, venues, tours, and stats.",
     about: { "@type": "MusicGroup", name: "Goose" },
   };
 }

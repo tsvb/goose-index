@@ -29,7 +29,7 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Songs" }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Songs" }]} />
           <h1>Songs</h1>
           <p className="doc-crumb">{rows.length} songs · sorted by {SORTS.find((s) => s.key === sort)?.label}</p>
           <p className="doc-crumb">

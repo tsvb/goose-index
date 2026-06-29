@@ -48,7 +48,7 @@ export default async function YearPage({ params }: Params) {
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { href: "/shows", label: "Shows" }, { label: String(year) }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { href: "/shows", label: "Shows" }, { label: String(year) }]} />
           <h1>{year}</h1>
           <p className="doc-crumb">{rows.length} {rows.length === 1 ? "show" : "shows"}</p>
           <ShowTable shows={rows} />

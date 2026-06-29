@@ -1,6 +1,6 @@
-# Goose Almanac
+# Goose Index
 
-A functional, dynamic almanac for aggregating data and statistics about the band
+A functional, dynamic index for aggregating data and statistics about the band
 **Goose** — inspired *in spirit* by [dmbalmanac.com](https://dmbalmanac.com), built on
 the modern live-performance record maintained at [elgoose.net](https://elgoose.net).
 

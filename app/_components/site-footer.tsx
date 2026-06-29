@@ -11,11 +11,11 @@ export function FooterFancy() {
           <div className="flex items-center gap-2 text-gold">
             <Feather className="h-5 w-5" />
             <span className="font-display text-lg text-ink">
-              Goose <span className="italic text-gold">Almanac</span>
+              Goose <span className="italic text-gold">Index</span>
             </span>
           </div>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
-            An almanac of every Goose show — setlists, segues, jams, venues, and the story of
+            A complete index of every Goose show — setlists, segues, jams, venues, and the story of
             each night.
           </p>
         </div>
@@ -41,7 +41,7 @@ export function FooterFancy() {
       </Container>
       <div className="border-t border-line-soft">
         <Container className="flex flex-col items-center justify-between gap-2 py-5 text-xs text-faint sm:flex-row">
-          <span className="font-mono">© {new Date().getFullYear()} Goose Almanac</span>
+          <span className="font-mono">© {new Date().getFullYear()} Goose Index</span>
           <span className="font-mono">Not affiliated with Goose. Built by fans.</span>
         </Container>
       </div>
@@ -54,7 +54,7 @@ export function FooterFunctional() {
     <footer className="mt-16 w2-appbar">
       <div style={{ textShadow: "0 -1px 0 rgba(0,0,0,.2)" }}>
         <Container className="flex flex-col items-center justify-between gap-2 py-4 text-xs text-white sm:flex-row">
-          <span>© {new Date().getFullYear()} Goose Almanac · data from elgoose.net</span>
+          <span>© {new Date().getFullYear()} Goose Index · data from elgoose.net</span>
           <span>Not affiliated with Goose. Built by fans.</span>
         </Container>
       </div>
@@ -66,7 +66,7 @@ export function FooterMinimal() {
   return (
     <footer className="mt-16 border-t border-line">
       <Container className="py-6 text-sm text-muted">
-        Goose Almanac — setlist data from{" "}
+        Goose Index — setlist data from{" "}
         <a href="https://elgoose.net" target="_blank" rel="noreferrer">elgoose.net</a>. A
         non-commercial fan project, not affiliated with Goose.
       </Container>

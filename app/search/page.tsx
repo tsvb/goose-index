@@ -18,8 +18,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   return {
     title: q ? `Search: ${q}` : "Search",
     description: q
-      ? `Goose Almanac search results for "${q}".`
-      : "Search the Goose Almanac by date, venue, city, or tour.",
+      ? `Goose Index search results for "${q}".`
+      : "Search the Goose Index by date, venue, city, or tour.",
   };
 }
 
@@ -33,7 +33,7 @@ export default async function SearchPage({ searchParams }: Props) {
       return (
         <Container className="py-8">
           <Doc>
-            <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Search" }]} />
+            <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Search" }]} />
             <h1>Search</h1>
             <p>Enter a query in the address bar, e.g. <code>/search?q=red+rocks</code>.</p>
           </Doc>
@@ -48,7 +48,7 @@ export default async function SearchPage({ searchParams }: Props) {
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Search" }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Search" }]} />
           <h1>Search: {term}</h1>
           {shows.length > 0 && <DocSection title="Shows"><ShowTable shows={shows} /></DocSection>}
           {venues.length > 0 && <DocSection title="Venues"><EntityTable rows={venues.map((v) => ({ href: `/venues/${v.venueId}`, name: v.name, sub: locationLine(v.city, v.state, v.country), count: v.shows }))} /></DocSection>}
@@ -64,7 +64,7 @@ export default async function SearchPage({ searchParams }: Props) {
       <div className="relative overflow-hidden border-b border-line">
         <div className="stage-glow inset-x-0 top-0 h-72" />
         <Container className="relative py-16 sm:py-24">
-          <span className="eyebrow">Search the almanac</span>
+          <span className="eyebrow">Search the index</span>
           <h1 className="mt-4 font-display text-[2.4rem] leading-[1.06] tracking-tight text-ink sm:text-5xl">
             Every show. Every night.
             <br />
@@ -95,7 +95,7 @@ export default async function SearchPage({ searchParams }: Props) {
       <div className="relative overflow-hidden border-b border-line">
         <div className="stage-glow inset-x-0 top-0 h-72" />
         <Container className="relative py-12 sm:py-16">
-          <span className="eyebrow">Search the almanac</span>
+          <span className="eyebrow">Search the index</span>
           <h1 className="mt-3 font-display text-[2rem] leading-tight tracking-tight text-ink sm:text-4xl">
             Results for{" "}
             <span className="italic text-gold">&ldquo;{term}&rdquo;</span>

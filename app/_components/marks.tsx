@@ -1,4 +1,4 @@
-// Line-art marks for the Almanac. Clean, single-weight strokes (Lucide-style geometry).
+// Line-art marks for Goose Index. Clean, single-weight strokes (Lucide-style geometry).
 type IconProps = { className?: string; strokeWidth?: number };
 
 function Svg({ className, strokeWidth = 1.5, children }: IconProps & { children: React.ReactNode }) {
@@ -18,7 +18,7 @@ function Svg({ className, strokeWidth = 1.5, children }: IconProps & { children:
   );
 }
 
-/** The signature mark: a goose feather (also the almanac's quill). */
+/** The signature mark: a goose feather (also the index's quill). */
 export function Feather({ className, strokeWidth }: IconProps) {
   return (
     <Svg className={className} strokeWidth={strokeWidth}>

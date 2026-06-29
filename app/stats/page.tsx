@@ -17,7 +17,7 @@ export default async function StatsHub() {
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Stats" }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Stats" }]} />
           <h1>Stats</h1>
           <ul>
             {CUTS.map((c) => (

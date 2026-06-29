@@ -73,7 +73,7 @@ export default async function StatsCut({ params }: Params) {
   const crumb = (
     <Breadcrumb
       trail={[
-        { href: "/", label: minimal ? "Goose Almanac" : "Almanac" },
+        { href: "/", label: minimal ? "Goose Index" : "Index" },
         { href: "/stats", label: "Stats" },
         { label: meta.title },
       ]}

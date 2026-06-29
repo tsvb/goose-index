@@ -40,9 +40,9 @@ const plexMono = IBM_Plex_Mono({
 // Minimal uses the system font stack (no webfont) — see globals.css.
 
 export const metadata: Metadata = {
-  title: { default: "Goose Almanac — every show, every night", template: "%s · Goose Almanac" },
+  title: { default: "Goose Index — every show, every night", template: "%s · Goose Index" },
   description:
-    "An almanac of every Goose show: full setlists with segues and jams, venues, tours, and the story of each night. Data from elgoose.net.",
+    "A complete index of every Goose show: full setlists with segues and jams, venues, tours, and the story of each night. Data from elgoose.net.",
 };
 
 // Pages read live DB data and `current_date` (e.g. "On This Day"), so render

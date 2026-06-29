@@ -9,7 +9,7 @@ export interface ElgooseClientOptions {
 }
 
 const DEFAULT_BASE = "https://elgoose.net/api/v2";
-const DEFAULT_UA = "GooseAlmanac/0.1 (goose almanac fan project)";
+const DEFAULT_UA = "GooseIndex/0.1 (goose index fan project)";
 
 function buildUrl(baseUrl: string, method: string, params?: Record<string, string | number>): string {
   const qs = params

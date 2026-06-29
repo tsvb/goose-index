@@ -27,7 +27,7 @@ export default async function VenuesPage({
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Venues" }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Venues" }]} />
           <h1>Venues</h1>
           <p className="doc-crumb">{venues.length} venues</p>
           <EntityTable rows={venues.map((v) => ({ href: `/venues/${v.venueId}`, name: v.name, sub: locationLine(v.city, v.state, v.country), count: v.shows }))} />

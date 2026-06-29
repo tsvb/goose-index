@@ -1,7 +1,7 @@
 export type Experience = "fancy" | "functional" | "minimal";
 
 export const EXPERIENCES: { key: Experience; label: string; blurb: string }[] = [
-  { key: "fancy", label: "Fancy", blurb: "The full immersive Almanac" },
+  { key: "fancy", label: "Fancy", blurb: "The full immersive edition" },
   { key: "functional", label: "Functional", blurb: "Dense, utility-first" },
   { key: "minimal", label: "Minimal", blurb: "Plain, fast, machine-readable" },
 ];

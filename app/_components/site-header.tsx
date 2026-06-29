@@ -26,7 +26,7 @@ export function HeaderFancy({ experience }: { experience: Experience }) {
             <Feather className="h-[18px] w-[18px]" />
           </span>
           <span className="font-display text-[1.15rem] leading-none tracking-tight">
-            Goose <span className="italic text-gold">Almanac</span>
+            Goose <span className="italic text-gold">Index</span>
           </span>
         </Link>
         <nav className="hidden items-center gap-4 text-[0.9rem] text-muted lg:flex">
@@ -52,7 +52,7 @@ export function HeaderFunctional({ experience }: { experience: Experience }) {
     <header className="w2-appbar sticky top-0 z-40">
       <Container className="flex h-12 items-center justify-between gap-4">
         <Link href="/" className="w2-brand flex items-center text-[1.05rem]">
-          Goose Almanac<span className="w2-beta">BETA</span>
+          Goose Index<span className="w2-beta">BETA</span>
         </Link>
         <nav className="hidden items-center gap-1 text-[0.8rem] lg:flex">
           {NAV.map((n) => (
@@ -74,7 +74,7 @@ export function HeaderMinimal({ experience }: { experience: Experience }) {
   return (
     <header className="border-b border-line">
       <Container className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3 text-sm">
-        <Link href="/" className="font-medium underline">Goose Almanac</Link>
+        <Link href="/" className="font-medium underline">Goose Index</Link>
         <span className="text-faint" aria-hidden>·</span>
         {NAV.map((n) => (
           <Link key={n.href} href={n.href} className="underline">{n.label}</Link>

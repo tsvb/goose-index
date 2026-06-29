@@ -50,7 +50,7 @@ export function ShowHeader({
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { href: "/shows", label: "Shows" }, { label: date }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { href: "/shows", label: "Shows" }, { label: date }]} />
           <h1>{show.venue ? `Goose at ${show.venue}` : "Goose"}</h1>
           <p className="doc-crumb">{dp.weekday}, {dp.month} {dp.day}, {dp.year}{loc ? ` · ${loc}` : ""}</p>
           <MetaTable

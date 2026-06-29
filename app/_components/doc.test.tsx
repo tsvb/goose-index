@@ -9,8 +9,8 @@ const shows: ShowSummary[] = [
 
 describe("doc primitives", () => {
   it("Breadcrumb renders links and a trailing label with separators", () => {
-    const html = renderToStaticMarkup(<Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Shows" }]} />);
-    expect(html).toContain("Goose Almanac");
+    const html = renderToStaticMarkup(<Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Shows" }]} />);
+    expect(html).toContain("Goose Index");
     expect(html).toContain("›");
     expect(html).toContain("Shows");
   });

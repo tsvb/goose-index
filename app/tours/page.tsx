@@ -20,7 +20,7 @@ export default async function ToursPage() {
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Tours" }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Tours" }]} />
           <h1>Tours</h1>
           <p className="doc-crumb">{tours.length} tours</p>
           <EntityTable rows={tours.map((t) => ({ href: `/tours/${t.tourId}`, name: t.name, sub: t.start && t.end ? `${formatShortDate(t.start)} – ${formatShortDate(t.end)}` : String(t.year), count: t.shows }))} />

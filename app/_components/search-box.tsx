@@ -22,7 +22,7 @@ export function SearchBox({ size = "compact" }: { size?: "compact" | "full" }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Try a date (2022-06-24), a venue, or a city…"
-          aria-label="Search the almanac"
+          aria-label="Search the index"
           className="w-full rounded-full border border-line bg-surface py-3.5 pl-12 pr-4 text-ink placeholder:text-faint outline-none transition focus:border-gold"
         />
       </form>
@@ -36,7 +36,7 @@ export function SearchBox({ size = "compact" }: { size?: "compact" | "full" }) {
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search…"
-        aria-label="Search the almanac"
+        aria-label="Search the index"
         className="w-36 rounded-full border border-line bg-surface/60 py-2 pl-8 pr-3 text-sm text-ink placeholder:text-faint outline-none transition focus:w-52 focus:border-gold"
       />
     </form>

@@ -68,7 +68,7 @@ export default async function ShowsBrowsePage({
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Almanac" }, { label: "Shows" }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Shows" }]} />
           <h1>{year ? `Shows in ${year}` : "All shows"}</h1>
           <p className="doc-crumb">{countLine}</p>
           <p className="doc-crumb">
@@ -95,7 +95,7 @@ export default async function ShowsBrowsePage({
         <div className="stage-glow inset-x-0 top-0 h-72" />
         <Container className="relative py-12 sm:py-16">
           <span className="eyebrow rise" style={{ animationDelay: "0ms" }}>
-            The Goose Almanac · Shows
+            Goose Index · Shows
           </span>
           <h1
             className="rise mt-3 font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-5xl"
