@@ -6,6 +6,7 @@ import { SiteFooter } from "./_components/site-footer";
 import { getExperience } from "@/lib/experience.server";
 import { JsonLd } from "./_components/json-ld";
 import { siteJsonLd } from "@/lib/jsonld";
+import { SITE_URL } from "@/lib/site";
 
 // Fancy display face.
 const bricolage = Bricolage_Grotesque({
@@ -40,6 +41,7 @@ const plexMono = IBM_Plex_Mono({
 // Minimal uses the system font stack (no webfont) — see globals.css.
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: { default: "Goose Index — every show, every night", template: "%s · Goose Index" },
   description:
     "A complete index of every Goose show: full setlists with segues and jams, venues, tours, and the story of each night. Data from elgoose.net.",
