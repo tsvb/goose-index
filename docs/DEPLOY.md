@@ -1,9 +1,9 @@
 # Deployment
 
-The Goose Almanac runs as a **Next.js app on [Vercel](https://vercel.com)** reading from a
+Goose Index runs as a **Next.js app on [Vercel](https://vercel.com)** reading from a
 **managed Postgres database on [Neon](https://neon.tech)**. Both have free tiers that are
-ample for a low-traffic fan site. Total cost to launch: **$0** (a custom domain, optional,
-is ~$12/yr).
+ample for a low-traffic fan site. Total cost to launch: **$0** (the custom domain,
+`gooseindex.com`, is ~$12/yr).
 
 ```
  elgoose.net ──(nightly GitHub Action: npm run sync)──▶  Neon Postgres  ◀──(reads)──  Vercel (Next.js)  ──▶  visitors
@@ -60,7 +60,9 @@ DATABASE_URL='<neon-pooled-url>' npm run verify        # expect: VERIFY OK
    |------|-------|
    | `DATABASE_URL` | the **pooled** Neon string from step 2 |
    | `ELGOOSE_USER_AGENT` | _(optional)_ `GooseIndex/1.0 (+https://github.com/tsvb/goose-index)` |
-4. **Deploy.** It goes live at `https://goose-index.vercel.app` (or similar).
+4. **Deploy.** The Vercel project is named `gooseindex` (renamed from `goose-almanac`), and the
+   live site is `https://www.gooseindex.com` (step 6). The old
+   `goose-almanac-*.vercel.app` alias is pinned to a pre-rename deployment — don't use it.
 
 ### 5. Nightly data refresh (GitHub Action)
 
@@ -75,11 +77,12 @@ gh secret set DATABASE_URL --repo tsvb/goose-index --body '<neon-UNPOOLED-url>'
 
 The workflow also has a **Run workflow** button (manual trigger) on the repo's Actions tab.
 
-### 6. Custom domain (optional, later)
+### 6. Custom domain — ✅ done
 
-In Vercel: **Project → Settings → Domains → Add**, enter the domain, and follow Vercel's DNS
-instructions at your registrar (an `A`/`CNAME` record, or nameserver delegation). HTTPS is
-automatic.
+`gooseindex.com` is live. In Vercel (**Project → Settings → Domains**) the **primary domain
+is `https://www.gooseindex.com`** — the apex 307-redirects to `www`. HTTPS is automatic.
+The canonical origin is the `SITE_URL` constant in `lib/site.ts`; `app/sitemap.ts` and
+`app/robots.ts` build every URL from it, so if the domain ever changes, change it there too.
 
 ---
 

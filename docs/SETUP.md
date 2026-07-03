@@ -11,6 +11,7 @@
 4. `npm run db:migrate`   — create the tables
 5. `npm run sync`         — pull Goose data from elgoose.net into Postgres
 6. `npm run verify`       — confirm the data is correct
+7. `npm run dev`          — start the app at http://localhost:3000
 
 A successful `sync` reports roughly:
 

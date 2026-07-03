@@ -2,6 +2,11 @@
 
 _Last updated: 2026-06-27 (end of session)_
 
+> **Historical snapshot** — accurate as of 2026-06-27 and kept as a record. Much has
+> shipped since (Phase 2, the Goose Index rebrand, nugs deep-links, the settings popover,
+> the live domain). For current state see [`README.md`](../README.md) and
+> [`DEPLOY.md`](DEPLOY.md).
+
 ## Where things stand
 
 **Phases 0 and 1 are complete and merged to `main`** (clean tree, 30/30 tests passing,

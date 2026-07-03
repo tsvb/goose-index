@@ -13,20 +13,22 @@ the modern live-performance record maintained at [elgoose.net](https://elgoose.n
 |-------|---------|--------|
 | **0** | **Data Foundation** — sync elgoose → our own database, verified | ✅ done |
 | **1** | **Show Browsing & Discovery** — browse shows by year/tour/venue, rich setlist pages (segues, jams, track times), search, "On This Day", upcoming shows | ✅ done |
-| 2 | Song Stats & History — per-song pages, gaps/bustouts, debuts, Spotify discography | planned |
+| **2** | **Song Stats & History** — per-song pages, sortable song index, `/stats` hub, gaps/bustouts, debuts (Spotify discography deferred to 2.5) | ✅ done |
 | 3 | Jam & Set-Flow Analytics — jam charts, segue networks, era-aware analysis | planned |
 | 4 | Personal Fan Tracking — "shows I've seen", personal stats, song life-list | planned |
 
 **Experience modes** (cross-cutting, ✅ shipped): every page renders in your choice of
-**Fancy** (the immersive default), **Functional** (dense, utility-first), or **Minimal**
-(plain semantic markup with embedded `schema.org` JSON-LD). Pick from the header — the
-choice is remembered per visitor, independent of light/dark.
+**3.0** (the immersive default), **2.0** (dense, utility-first, in a glossy Web 2.0 skin), or
+**1.0** (plain semantic markup with embedded `schema.org` JSON-LD). Pick from the settings
+popover in the header — the choice is remembered per visitor. 3.0 also carries three
+appearance themes: Dark, Light, and Pod (matte graphite, banana-yellow accent).
 
 Each phase has its own design spec under [`docs/superpowers/specs/`](docs/superpowers/specs/).
 
 ## Live site & deployment
 
-Runs on **Vercel** (Next.js) reading from **Neon** (managed Postgres), refreshed nightly by a
+Live at **[www.gooseindex.com](https://www.gooseindex.com)** — runs on **Vercel** (Next.js)
+reading from **Neon** (managed Postgres), refreshed nightly by a
 GitHub Action. See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the full runbook.
 
 ## Getting started

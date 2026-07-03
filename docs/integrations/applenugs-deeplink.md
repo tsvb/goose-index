@@ -42,8 +42,8 @@ applenugs://show/<YYYY-MM-DD>?artist=Goose&song=<title>&set=<n>&pos=<n>[&venue=]
 | `set` / `pos` | The setlist `setNumber` / `position` — disambiguate repeats/covers within the show. |
 
 The app resolves the show (above), then finds the matching track and starts playback
-there. Track-level links only *work* once the app adds track matching; the Goose Index
-emits them regardless.
+there. Matching is title-driven (3-tier: exact → contains → longest-overlap); `set`/`pos`
+are parsed but not yet used to disambiguate a song played twice in one show.
 
 ### Encoding
 
@@ -75,10 +75,14 @@ resolver, the fallback can point there for an exact landing.)
 - Register the scheme: add `CFBundleURLTypes` (scheme `applenugs`) to the Info block in `project.yml`.
 - Add `.onOpenURL` on the root scene (`AppleNugsApp.swift` / `RootView`) → parse the URL → branch on `media` → run the resolver → set the navigation `Route`.
 - Add the resolver (~a thin wrapper over `allArtists` / `artistShows` / `artistVideos` / `search`).
+- Single-window handoff (added 2026-07-02): `.handlesExternalEvents(preferring:allowing:)` on the
+  root view, so a link that arrives while the app is running reuses the existing window instead
+  of opening a second one.
 
 **Goose Index (this repo):**
 - A tasteful **"Listen on nugs"** (and **"Watch"**) affordance on show pages, optionally on song-page performance rows / "longest versions", emitting the URL above — across all three experience modes, unobtrusive for non-subscribers.
-- A `nugsHref({ date, venue, media })` helper that builds the URL (+ the web-fallback URL).
+- `nugsShowHref({ date, venue, media })` / `nugsTrackHref` / `nugsWebFallback` helpers
+  (`lib/nugs.ts`) that build the URLs above.
 
 ## Decisions & things considered
 
