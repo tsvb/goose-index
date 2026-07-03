@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { SettingsPanel } from "./settings-panel";
+import { SettingsPanel, resolveTheme } from "./settings-panel";
 
 const noop = () => {};
 
@@ -55,5 +55,17 @@ describe("SettingsPanel", () => {
     const html = render({ current: "functional", themeAllowed: false });
     expect(html).not.toContain("Appearance");
     expect(html).toContain("3.0 experience");
+  });
+});
+
+describe("resolveTheme", () => {
+  it("accepts each valid theme and rejects everything else", () => {
+    expect(resolveTheme("dark")).toBe("dark");
+    expect(resolveTheme("light")).toBe("light");
+    expect(resolveTheme("pod")).toBe("pod");
+    expect(resolveTheme("sepia")).toBeNull();
+    expect(resolveTheme("")).toBeNull();
+    expect(resolveTheme(null)).toBeNull();
+    expect(resolveTheme(undefined)).toBeNull();
   });
 });

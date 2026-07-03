@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { allowsTheme, serializeExperienceCookie, type Experience } from "@/lib/experience";
 import { Settings } from "./marks";
-import { SettingsPanel, type Theme } from "./settings-panel";
+import { SettingsPanel, resolveTheme, type Theme } from "./settings-panel";
 
 export function SettingsMenu({ current }: { current: Experience }) {
   const router = useRouter();
@@ -17,9 +17,8 @@ export function SettingsMenu({ current }: { current: Experience }) {
   const isText = current === "minimal";
 
   useEffect(() => {
-    const saved =
-      (typeof localStorage !== "undefined" && (localStorage.getItem("ga-theme") as Theme | null)) || null;
-    const attr = document.documentElement.getAttribute("data-theme") as Theme | null;
+    const saved = resolveTheme(typeof localStorage !== "undefined" ? localStorage.getItem("ga-theme") : null);
+    const attr = resolveTheme(document.documentElement.getAttribute("data-theme"));
     setTheme(saved ?? attr ?? "dark");
   }, []);
 

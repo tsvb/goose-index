@@ -10,6 +10,11 @@ const THEMES: { value: Theme; label: string; icon: typeof Moon }[] = [
   { value: "pod", label: "Pod", icon: Disc },
 ];
 
+/** Narrow an untrusted value (localStorage, DOM attribute) to a Theme. */
+export function resolveTheme(value: string | null | undefined): Theme | null {
+  return THEMES.some((t) => t.value === value) ? (value as Theme) : null;
+}
+
 export function SettingsPanel({
   current,
   themeAllowed,
