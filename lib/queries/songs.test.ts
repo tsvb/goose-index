@@ -120,10 +120,34 @@ describe("stats cuts", () => {
     await upsertPerformances(ctx.db, [{ uniqueId: "b0", showId: 1, songId: 702, setType: "Set", setNumber: "1", position: 3, trackTime: "6:00", transition: null, transitionId: null, isJamchart: false, jamchartNotes: null, isReprise: false, isJam: false, isVerified: true, footnote: null }]);
     const { rarities, currentGaps, debutsByYear, setStats } = await import("./songs");
 
-    expect((await rarities()).map((r) => r.slug)).toContain("bowie"); // 1 play
+    expect((await rarities()).map((r) => r.slug)).not.toContain("bowie"); // one-time cover excluded
     expect((await currentGaps()).every((r) => r.timesPlayed >= 5)).toBe(true);
     expect((await debutsByYear())).toEqual([{ year: 2020, count: 3 }]);
     const opener = (await setStats()).find((b) => b.key === "show-opener");
     expect(opener!.rows[0].slug).toBe("madhuvan"); // position 1 every show
+  });
+
+  it("rarities keeps one-time originals and recurring covers, drops one-time covers", async () => {
+    await seed();
+    await upsertSongs(ctx.db, [
+      { songId: 705, name: "Rare Original", slug: "rare-original", isOriginal: true, originalArtist: null },
+      { songId: 706, name: "Twice Cover", slug: "twice-cover", isOriginal: false, originalArtist: "Talking Heads" },
+      { songId: 707, name: "Once Cover", slug: "once-cover", isOriginal: false, originalArtist: "David Bowie" },
+    ]);
+    const mk = (uniqueId: string, showId: number, songId: number) => ({
+      uniqueId, showId, songId, setType: "Set", setNumber: "1", position: 4, trackTime: "6:00",
+      transition: null, transitionId: null, isJamchart: false, jamchartNotes: null,
+      isReprise: false, isJam: false, isVerified: true, footnote: null,
+    });
+    await upsertPerformances(ctx.db, [
+      mk("ro0", 1, 705),            // one-time original
+      mk("tc0", 1, 706), mk("tc1", 2, 706), // cover played twice
+      mk("oc0", 1, 707),            // one-time cover
+    ]);
+    const { rarities } = await import("./songs");
+    const rare = (await rarities()).map((r) => r.slug);
+    expect(rare).toContain("rare-original"); // one-time ORIGINAL stays
+    expect(rare).toContain("twice-cover");   // cover played 2x (<=3) stays
+    expect(rare).not.toContain("once-cover"); // one-time COVER excluded
   });
 });

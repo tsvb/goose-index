@@ -188,7 +188,11 @@ export async function mostPlayed(limit = 100): Promise<SongIndexRow[]> {
 }
 
 export async function rarities(limit = 100): Promise<SongIndexRow[]> {
-  return (await listSongs({ sort: "rare" })).filter((r) => r.timesPlayed <= 3).slice(0, limit);
+  // Low-play songs, but a cover played only once is a one-off, not a rarity —
+  // keep one-time originals (genuine rare gems) and any cover that recurred.
+  return (await listSongs({ sort: "rare" }))
+    .filter((r) => r.timesPlayed <= 3 && (r.isOriginal || r.timesPlayed > 1))
+    .slice(0, limit);
 }
 
 export async function currentGaps(limit = 100): Promise<SongIndexRow[]> {
