@@ -20,9 +20,9 @@ function render(props: Partial<React.ComponentProps<typeof SettingsPanel>> = {})
 describe("SettingsPanel", () => {
   it("lists every experience with its label and blurb", () => {
     const html = render();
-    expect(html).toContain("Fancy");
-    expect(html).toContain("Functional");
-    expect(html).toContain("Minimal");
+    expect(html).toContain("3.0");
+    expect(html).toContain("2.0");
+    expect(html).toContain("1.0");
     expect(html).toContain("The full immersive edition");
     expect(html).toContain("Dense, utility-first");
     expect(html).toContain("Plain, fast, machine-readable");
@@ -33,11 +33,12 @@ describe("SettingsPanel", () => {
     expect(html.match(/aria-current="true"/g)).toHaveLength(1);
   });
 
-  it("shows the Appearance section with dark/light when theme is allowed", () => {
+  it("shows the Appearance section with dark/light/pod when theme is allowed", () => {
     const html = render({ current: "fancy", themeAllowed: true });
     expect(html).toContain("Appearance");
     expect(html).toContain("Dark");
     expect(html).toContain("Light");
+    expect(html).toContain("Pod");
   });
 
   it("marks exactly one appearance option as pressed", () => {
@@ -45,9 +46,14 @@ describe("SettingsPanel", () => {
     expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
   });
 
+  it("marks pod as pressed when it is the active theme", () => {
+    const html = render({ themeAllowed: true, theme: "pod" });
+    expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
+  });
+
   it("hides Appearance and shows a hint when theme is not allowed", () => {
     const html = render({ current: "functional", themeAllowed: false });
     expect(html).not.toContain("Appearance");
-    expect(html).toContain("Fancy experience");
+    expect(html).toContain("3.0 experience");
   });
 });

@@ -1,12 +1,13 @@
 import { EXPERIENCES, type Experience } from "@/lib/experience";
-import { Moon, Sun } from "./marks";
+import { Disc, Moon, Sun } from "./marks";
 import { clsx } from "./clsx";
 
-export type Theme = "dark" | "light";
+export type Theme = "dark" | "light" | "pod";
 
-const THEMES: { value: Theme; label: string }[] = [
-  { value: "dark", label: "Dark" },
-  { value: "light", label: "Light" },
+const THEMES: { value: Theme; label: string; icon: typeof Moon }[] = [
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "light", label: "Light", icon: Sun },
+  { value: "pod", label: "Pod", icon: Disc },
 ];
 
 export function SettingsPanel({
@@ -64,7 +65,7 @@ export function SettingsPanel({
           <div role="group" aria-label="Appearance" className="flex gap-1 rounded-full border border-line p-0.5">
             {THEMES.map((t) => {
               const pressed = theme === t.value;
-              const Icon = t.value === "dark" ? Moon : Sun;
+              const Icon = t.icon;
               return (
                 <button
                   key={t.value}
@@ -72,7 +73,7 @@ export function SettingsPanel({
                   onClick={() => onSelectTheme(t.value)}
                   aria-pressed={pressed}
                   className={clsx(
-                    "flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-[0.75rem] transition",
+                    "flex flex-1 items-center justify-center gap-1 rounded-full px-2 py-1.5 text-[0.75rem] transition",
                     pressed ? "bg-gold/15 text-gold" : "text-faint hover:text-ink",
                   )}
                 >
@@ -85,7 +86,7 @@ export function SettingsPanel({
         </>
       ) : (
         <p className="mt-2.5 text-[0.7rem] leading-snug text-faint">
-          Light and dark apply in the Fancy experience.
+          Themes apply in the 3.0 experience.
         </p>
       )}
     </div>

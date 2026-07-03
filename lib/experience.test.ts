@@ -41,8 +41,8 @@ describe("serializeExperienceCookie", () => {
 });
 
 describe("EXPERIENCES", () => {
-  it("lists the three modes in order with labels", () => {
+  it("lists the three modes in order with web-era labels (keys unchanged for cookie compat)", () => {
     expect(EXPERIENCES.map((e) => e.key)).toEqual(["fancy", "functional", "minimal"]);
-    expect(EXPERIENCES.map((e) => e.label)).toEqual(["Fancy", "Functional", "Minimal"]);
+    expect(EXPERIENCES.map((e) => e.label)).toEqual(["3.0", "2.0", "1.0"]);
   });
 });

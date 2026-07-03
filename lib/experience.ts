@@ -1,9 +1,12 @@
 export type Experience = "fancy" | "functional" | "minimal";
 
+// Labels are web-era versions (3.0 = immersive, 2.0 = glossy utility,
+// 1.0 = plain hypertext). Keys keep their original names — they're persisted
+// in the ga_experience cookie, so renaming them would reset every visitor.
 export const EXPERIENCES: { key: Experience; label: string; blurb: string }[] = [
-  { key: "fancy", label: "Fancy", blurb: "The full immersive edition" },
-  { key: "functional", label: "Functional", blurb: "Dense, utility-first" },
-  { key: "minimal", label: "Minimal", blurb: "Plain, fast, machine-readable" },
+  { key: "fancy", label: "3.0", blurb: "The full immersive edition" },
+  { key: "functional", label: "2.0", blurb: "Dense, utility-first" },
+  { key: "minimal", label: "1.0", blurb: "Plain, fast, machine-readable" },
 ];
 
 export const EXPERIENCE_COOKIE = "ga_experience";

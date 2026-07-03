@@ -50,7 +50,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 // Set the saved theme before first paint to avoid a flash.
-const themeScript = `(function(){try{var t=localStorage.getItem('ga-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;
+const themeScript = `(function(){try{var t=localStorage.getItem('ga-theme');if(t==='light'||t==='dark'||t==='pod'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const experience = await getExperience();

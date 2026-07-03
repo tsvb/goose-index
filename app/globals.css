@@ -46,6 +46,29 @@
   color-scheme: light;
 }
 
+/* Pod — matte-black player hardware: graphite neutrals (the warm ledger
+   browns go cold), hairline strokes, and one loud accent — Warhol-banana
+   yellow. Inspired by the click-wheel era of dark handheld players. */
+:root[data-theme="pod"] {
+  --bg: #161618;
+  --bg-deep: #101012;
+  --surface: #1f1f22;
+  --surface-2: #29292d;
+  --ink: #f4f4f6;
+  --muted: #9d9da4;
+  --faint: #6f6f77;
+  --line: #333338;
+  --line-soft: #28282c;
+  --gold: #f2cf3e;
+  --gold-soft: #d8b52f;
+  --gold-deep: #a98f24;
+  --sage: #8fb2c9;
+  --sage-deep: #6e93ab;
+  --ember: #ef9646;
+  --shadow: rgba(0, 0, 0, 0.65);
+  color-scheme: dark;
+}
+
 /* ---- Type tokens — overridable per experience. The `@theme inline` map below
    inlines `var(--type-*)` into the font utilities, so redefining these on a
    `[data-experience]` selector actually re-fonts the page (like the colors). ---- */
@@ -131,6 +154,10 @@
 :root[data-theme="light"] .grain-overlay {
   mix-blend-mode: multiply;
   opacity: 0.05;
+}
+/* Pod is molded plastic, not paper — barely-there grain. */
+:root[data-theme="pod"] .grain-overlay {
+  opacity: 0.025;
 }
 
 /* Stage-light glow — place inside a relatively-positioned hero */
