@@ -1,4 +1,4 @@
-import { pgTable, integer, text, boolean, date, index } from "drizzle-orm/pg-core";
+import { pgTable, integer, text, boolean, date, index, timestamp } from "drizzle-orm/pg-core";
 import type { PgDatabase } from "drizzle-orm/pg-core";
 
 export const artists = pgTable("artists", {
@@ -69,5 +69,15 @@ export const performances = pgTable("performances", {
   showIdx: index("perf_show_idx").on(t.showId),
   songIdx: index("perf_song_idx").on(t.songId),
 }));
+
+// Single-row coordination state for the live-show incremental sync: the
+// atomic 60s claim on last_run_at is what stops concurrent page renders
+// from stampeding elgoose during a show.
+export const liveSyncState = pgTable("live_sync_state", {
+  id: integer("id").primaryKey(),
+  lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+  lastDate: text("last_date"),
+  lastSummary: text("last_summary"),
+});
 
 export type AppDb = PgDatabase<any, Record<string, never>, any>;

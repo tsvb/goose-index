@@ -26,6 +26,10 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
+      - name: Apply schema migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:migrate
       - name: Sync elgoose → database
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

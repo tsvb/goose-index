@@ -510,6 +510,29 @@ table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; l
   color: #1a4fa0; text-decoration: underline; font-size: inherit; border-radius: 0;
 }
 
+/* ---- Live show ---- */
+.live-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.18em;
+  color: var(--ember); border: 1px solid color-mix(in srgb, var(--ember) 55%, transparent);
+  border-radius: 999px; padding: 3px 11px;
+  background: color-mix(in srgb, var(--ember) 10%, transparent);
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 999px; background: var(--ember);
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+}
+[data-experience="minimal"] .doc-live {
+  font-size: 0.9rem; color: var(--muted); font-style: italic; margin: 0 0 1.1rem;
+}
+
 /* Jump-to-show anchors: clear the sticky header, and flash when targeted. */
 .show-anchor { scroll-margin-top: 6rem; }
 [data-experience="minimal"] .show-anchor { scroll-margin-top: 1.5rem; }

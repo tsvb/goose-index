@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Setlist } from "@/app/_components/setlist";
 import { ArrowLeft, ArrowRight } from "@/app/_components/marks";
 import { ShowHeader } from "@/app/_components/show-header";
+import { LiveRefresh } from "@/app/_components/live-refresh";
+import { liveCandidateDate } from "@/lib/live";
+import { maybeLiveSync } from "@/lib/sync/maybe-live";
 import { getShowDetails, getSetlist, getShowNeighbors } from "@/lib/queries/shows";
 import { getExperience } from "@/lib/experience.server";
 import { JsonLd } from "@/app/_components/json-ld";
@@ -63,6 +67,12 @@ export default async function ShowPage({ params, searchParams }: Params) {
 
   const siblings = details.filter((d) => d.showId !== show.showId);
 
+  // This show is (or could be) on stage right now: refresh the setlist from
+  // elgoose after the response is sent (debounced server-side), and let the
+  // client re-pull the page while it stays open.
+  const isLive = liveCandidateDate(new Date()) === date;
+  if (isLive) after(() => maybeLiveSync());
+
   return (
     <article>
       <JsonLd data={ld} />
@@ -86,6 +96,17 @@ export default async function ShowPage({ params, searchParams }: Params) {
                 </Link>
               )}
             </div>
+          </Container>
+        </div>
+      )}
+
+      {isLive && (
+        <div className={experience === "minimal" ? undefined : "border-b border-line"}>
+          <Container className={experience === "minimal" ? "pt-4" : "flex items-center gap-3 py-3"}>
+            <LiveRefresh minimal={experience === "minimal"} />
+            {experience !== "minimal" && (
+              <span className="font-mono text-xs text-faint">setlist updates automatically while the show is on</span>
+            )}
           </Container>
         </div>
       )}
