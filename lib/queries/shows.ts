@@ -2,6 +2,8 @@ import { db } from "@/db/client";
 import { shows, venues, tours, performances, songs } from "@/db/schema";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { p95, isDustedOffGap } from "./songs";
+import { normalizeDateQuery } from "./search-dates";
+import { escapeLike } from "@/lib/util";
 
 function allRows(result: unknown): Record<string, unknown>[] {
   const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
@@ -287,12 +289,32 @@ export async function findLatestPastShow(
   };
 }
 
-export async function searchShows(q: string, limit = 24): Promise<ShowSummary[]> {
-  const like = `%${q}%`;
-  return baseShowQuery()
-    .where(
-      sql`(${shows.showDate}::text ilike ${like} or ${venues.name} ilike ${like} or ${venues.city} ilike ${like})`,
-    )
+/**
+ * Global search over shows. Date-shaped queries ("2024-08-07", "8/7/2024",
+ * "aug 7 2024") match show_date exactly; a month + day with no year
+ * ("july 10", "7/10") matches that date across every year. Everything else
+ * substring-matches the date text, venue name, and city. `total` is the full
+ * match count so the UI can say when `rows` is truncated.
+ */
+export async function searchShows(q: string, limit = 24): Promise<{ rows: ShowSummary[]; total: number }> {
+  const like = `%${escapeLike(q.trim())}%`;
+  const date = normalizeDateQuery(q);
+  const where = date?.iso
+    ? eq(shows.showDate, date.iso)
+    : date?.monthDay
+      ? sql`to_char(${shows.showDate}, 'MM-DD') = ${date.monthDay}`
+      : sql`(${shows.showDate}::text ilike ${like} or ${venues.name} ilike ${like} or ${venues.city} ilike ${like})`;
+
+  const rows = await baseShowQuery()
+    .where(where)
     .orderBy(desc(shows.showDate), desc(shows.showOrder))
     .limit(limit);
+
+  const [{ total }] = await db
+    .select({ total: sql<number>`count(*)::int` })
+    .from(shows)
+    .leftJoin(venues, eq(venues.venueId, shows.venueId))
+    .where(where);
+
+  return { rows, total };
 }

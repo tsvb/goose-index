@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb } from "@/app/_components/doc";
 import { SongIndexTable } from "@/app/_components/song";
+import { Search } from "@/app/_components/marks";
 import { listSongs, type SongSort, type SongFacet } from "@/lib/queries/songs";
 import { getExperience } from "@/lib/experience.server";
 
@@ -35,6 +36,13 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
           <p className="doc-crumb">
             {SORTS.map((s) => <span key={s.key}>{s.key === sort ? <strong>{s.label}</strong> : <Link href={`/songs?sort=${s.key}`}>{s.label}</Link>}{" · "}</span>)}
           </p>
+          <form action="/songs" method="get">
+            <FilterParams sort={sort} facet={facet} />
+            <label>
+              Name filter: <input name="q" defaultValue={q} />
+            </label>{" "}
+            <button type="submit">Filter</button>
+          </form>
           <table className="doc-table">
             <thead><tr><th>Song</th><th className="num">Played</th><th className="num">Gap</th><th>Last</th><th>Debut</th></tr></thead>
             <tbody>
@@ -82,8 +90,44 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
             </Link>
           ))}
         </div>
+        {experience === "functional" ? (
+          <form action="/songs" method="get" className="mb-4 flex items-center gap-2">
+            <FilterParams sort={sort} facet={facet} />
+            <input
+              name="q"
+              defaultValue={q}
+              placeholder="Filter by song name…"
+              aria-label="Filter songs by name"
+              className="w-56 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink placeholder:text-faint outline-none focus:border-gold"
+            />
+            <button type="submit" className="gel text-xs">Filter</button>
+          </form>
+        ) : (
+          <form action="/songs" method="get" className="group relative mb-4 max-w-xs">
+            <FilterParams sort={sort} facet={facet} />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint transition group-focus-within:text-gold" />
+            <input
+              name="q"
+              defaultValue={q}
+              placeholder="Filter by song name…"
+              aria-label="Filter songs by name"
+              className="w-full rounded-full border border-line bg-surface/60 py-2 pl-8 pr-3 text-sm text-ink placeholder:text-faint outline-none transition focus:border-gold"
+            />
+          </form>
+        )}
         <SongIndexTable rows={rows} years={yearsForTable} />
       </Container>
+    </>
+  );
+}
+
+// Carry the active sort/facet through the name-filter form (mirrors buildHref's
+// omit-the-defaults behavior) so filtering doesn't reset them.
+function FilterParams({ sort, facet }: { sort: SongSort; facet: SongFacet }) {
+  return (
+    <>
+      {sort !== "played" && <input type="hidden" name="sort" value={sort} />}
+      {facet !== "all" && <input type="hidden" name="facet" value={facet} />}
     </>
   );
 }

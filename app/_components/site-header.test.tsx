@@ -8,6 +8,7 @@ vi.mock("next/navigation", () => ({
     push: () => {},
   }),
   usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 describe("SiteHeader variants", () => {

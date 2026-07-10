@@ -57,7 +57,7 @@ export function MobileNav() {
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search shows, venues, cities…"
+                  placeholder="Search songs, shows, venues…"
                   aria-label="Search the index"
                   className="w-full rounded-full border border-line bg-surface py-3 pl-10 pr-4 text-ink placeholder:text-faint outline-none focus:border-gold"
                 />

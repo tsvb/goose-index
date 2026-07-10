@@ -35,6 +35,11 @@ export function emptyToNull(v: string | null | undefined): string | null {
   return decodeEntities(v);
 }
 
+/** Escape LIKE/ILIKE metacharacters so user text matches literally (Postgres default escape '\'). */
+export function escapeLike(term: string): string {
+  return term.replace(/[\\%_]/g, "\\$&");
+}
+
 export function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));

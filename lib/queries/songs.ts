@@ -2,6 +2,7 @@ import { db } from "@/db/client";
 import { sql, type SQL } from "drizzle-orm";
 import { setLabel } from "@/app/_components/setlist/shared";
 import { trackSeconds } from "@/lib/queries/format";
+import { escapeLike } from "@/lib/util";
 
 function allRows(result: unknown): Record<string, unknown>[] {
   const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
@@ -114,7 +115,7 @@ export async function listSongs(opts: { sort?: SongSort; facet?: SongFacet; q?: 
   const facetCond =
     facet === "originals" ? sql`and so.is_original` :
     facet === "covers" ? sql`and not so.is_original` : sql``;
-  const qCond = opts.q?.trim() ? sql`and so.name ilike ${"%" + opts.q.trim() + "%"}` : sql``;
+  const qCond = opts.q?.trim() ? sql`and so.name ilike ${"%" + escapeLike(opts.q.trim()) + "%"}` : sql``;
 
   // year span for the sparkline
   const [span] = allRows(await db.execute(sql`
@@ -179,6 +180,38 @@ export async function listSongs(opts: { sort?: SongSort; facet?: SongFacet; q?: 
       playsPerYear: years.map((y) => byYear.get(y) ?? 0),
     };
   });
+}
+
+export interface SongSearchRow {
+  songId: number; name: string; slug: string | null;
+  timesPlayed: number; lastPlayedDate: string | null;
+}
+
+/** Name-substring search for the global search page. Never-played songs match too (timesPlayed 0). */
+export async function searchSongs(q: string, limit = 12): Promise<{ rows: SongSearchRow[]; total: number }> {
+  const like = `%${escapeLike(q.trim())}%`;
+  const raw = allRows(await db.execute(sql`
+    with ${SHOW_SEQ},
+    agg as (
+      select song_id, count(*)::int as times_played, max(show_date)::text as last_date
+      from song_show group by song_id
+    )
+    select so.song_id, so.name, so.slug,
+           coalesce(a.times_played, 0) as times_played, a.last_date,
+           count(*) over ()::int as full_count
+    from songs so
+    left join agg a on a.song_id = so.song_id
+    where so.name ilike ${like}
+    order by coalesce(a.times_played, 0) desc, lower(so.name) asc
+    limit ${limit}
+  `));
+  return {
+    rows: raw.map((r) => ({
+      songId: num(r.song_id), name: String(r.name), slug: strOrNull(r.slug),
+      timesPlayed: num(r.times_played), lastPlayedDate: strOrNull(r.last_date),
+    })),
+    total: raw.length ? num(raw[0].full_count) : 0,
+  };
 }
 
 // ── Stats cuts ────────────────────────────────────────────────────────────────
