@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll, vi } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { makeTestDb } from "@/db/testing";
 import {
   upsertArtists, upsertVenues, upsertTours, upsertSongs, upsertShows, upsertPerformances,
@@ -89,5 +89,71 @@ describe("getSetlist gap + Dusted Off enrichment", () => {
     const filler = entries.find((x) => x.songId === FILLER_SONG_ID)!;
     expect(filler).toBeDefined();
     expect(filler.isDustedOff).toBe(false);
+  });
+});
+
+describe("searchShows", () => {
+  beforeAll(async () => {
+    await seed();
+    // Two shows on the same date a year after the seed run: exercises multi-show
+    // dates and across-years month-day matching.
+    await upsertShows(ctx.db, [30, 31].map((id, i) => ({
+      showId: id, showDate: "2021-01-05", artistId: 1, venueId: 1, tourId: null,
+      title: null, permalink: `p${id}`, showOrder: i + 1, notes: null, createdAt: null, updatedAt: null,
+    })));
+  });
+
+  it("substring-matches venue and city text and reports the full total", async () => {
+    const { searchShows } = await import("./shows");
+    const r = await searchShows("port chester", 5);
+    expect(r.rows).toHaveLength(5); // truncated to the limit…
+    expect(r.total).toBe(22);       // …but the total spans every show at The Cap
+    expect(r.rows[0].date).toBe("2021-01-05"); // newest first
+    expect(r.rows[0].order).toBe(2);
+  });
+
+  it("still substring-matches partial dates as text", async () => {
+    const { searchShows } = await import("./shows");
+    const r = await searchShows("2020-01", 5);
+    expect(r.rows).toHaveLength(5);
+    expect(r.total).toBe(20);
+  });
+
+  it("matches an exact ISO date", async () => {
+    const { searchShows } = await import("./shows");
+    const r = await searchShows("2020-01-05");
+    expect(r.total).toBe(1);
+    expect(r.rows.map((s) => s.date)).toEqual(["2020-01-05"]);
+  });
+
+  it("returns every show on a multi-show date", async () => {
+    const { searchShows } = await import("./shows");
+    const r = await searchShows("2021-01-05");
+    expect(r.total).toBe(2);
+    expect(r.rows.map((s) => s.showId)).toEqual([31, 30]); // show order desc
+  });
+
+  it("natural date formats return the same shows as ISO", async () => {
+    const { searchShows } = await import("./shows");
+    const iso = await searchShows("2021-01-05");
+    for (const q of ["1/5/2021", "01/05/2021", "1-5-2021", "jan 5 2021", "January 5, 2021", "Jan 5th 2021"]) {
+      const r = await searchShows(q);
+      expect(r.total).toBe(iso.total);
+      expect(r.rows.map((s) => s.showId)).toEqual(iso.rows.map((s) => s.showId));
+    }
+  });
+
+  it("month + day with no year matches across years", async () => {
+    const { searchShows } = await import("./shows");
+    for (const q of ["jan 5", "1/5", "January 5th"]) {
+      const r = await searchShows(q);
+      expect(r.total).toBe(3);
+      expect(r.rows.map((s) => s.date)).toEqual(["2021-01-05", "2021-01-05", "2020-01-05"]);
+    }
+  });
+
+  it("date-shaped queries with no shows return an empty result", async () => {
+    const { searchShows } = await import("./shows");
+    expect(await searchShows("3/3/1999")).toEqual({ rows: [], total: 0 });
   });
 });

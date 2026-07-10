@@ -151,3 +151,54 @@ describe("stats cuts", () => {
     expect(rare).not.toContain("once-cover"); // one-time COVER excluded
   });
 });
+
+describe("searchSongs", () => {
+  const mk = (uniqueId: string, showId: number, songId: number) => ({
+    uniqueId, showId, songId, setType: "Set", setNumber: "1", position: 5, trackTime: "6:00",
+    transition: null, transitionId: null, isJamchart: false, jamchartNotes: null,
+    isReprise: false, isJam: false, isVerified: true, footnote: null,
+  });
+
+  it("matches name substrings case-insensitively, ordered by plays then name, never-played included", async () => {
+    await seed();
+    await upsertSongs(ctx.db, [
+      { songId: 710, name: "Echo of a Rose", slug: "echo-of-a-rose", isOriginal: true, originalArtist: null },
+      { songId: 711, name: "Rosewood Heart", slug: "rosewood-heart", isOriginal: true, originalArtist: null }, // never played
+      { songId: 712, name: "Rose Parade", slug: "rose-parade", isOriginal: false, originalArtist: "Elliott Smith" },
+      { songId: 713, name: "Rose Garden", slug: "rose-garden", isOriginal: true, originalArtist: null },       // never played
+    ]);
+    await upsertPerformances(ctx.db, [
+      mk("sr0", 1, 710), mk("sr1", 2, 710), // Echo of a Rose x2
+      mk("sr2", 3, 712),                    // Rose Parade x1
+    ]);
+    const { searchSongs } = await import("./songs");
+
+    const { rows, total } = await searchSongs("ROSE");
+    // plays desc, then name asc breaks the 0-0 tie
+    expect(rows.map((r) => r.slug)).toEqual(["echo-of-a-rose", "rose-parade", "rose-garden", "rosewood-heart"]);
+    expect(rows.map((r) => r.timesPlayed)).toEqual([2, 1, 0, 0]);
+    expect(total).toBe(4);
+    expect(rows[0].lastPlayedDate).toBe("2020-01-02");
+    expect(rows[0].songId).toBe(710);
+    expect(rows[0].name).toBe("Echo of a Rose");
+    expect(rows[2].lastPlayedDate).toBeNull(); // never played
+  });
+
+  it("respects the limit while total counts every match", async () => {
+    const { searchSongs } = await import("./songs");
+    const { rows, total } = await searchSongs("rose", 2);
+    expect(rows.map((r) => r.slug)).toEqual(["echo-of-a-rose", "rose-parade"]);
+    expect(total).toBe(4);
+  });
+
+  it("returns empty when nothing matches", async () => {
+    const { searchSongs } = await import("./songs");
+    expect(await searchSongs("zzzz")).toEqual({ rows: [], total: 0 });
+  });
+
+  it("treats ILIKE metacharacters as literals", async () => {
+    const { searchSongs } = await import("./songs");
+    expect((await searchSongs("ro_e")).total).toBe(0); // would match "Rose" if _ stayed a wildcard
+    expect((await searchSongs("%rose%")).total).toBe(0);
+  });
+});

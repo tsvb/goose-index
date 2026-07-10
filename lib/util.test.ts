@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toBool, emptyToNull, chunk } from "./util";
+import { toBool, emptyToNull, chunk, escapeLike } from "./util";
 
 describe("toBool", () => {
   it("treats 1, '1', true as true and 0, '0', '' as false", () => {
@@ -27,5 +27,14 @@ describe("chunk", () => {
   it("splits into size-bounded groups", () => {
     expect(chunk([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]]);
     expect(chunk([], 2)).toEqual([]);
+  });
+});
+
+describe("escapeLike", () => {
+  it("escapes ILIKE metacharacters so user text matches literally", () => {
+    expect(escapeLike("100%")).toBe("100\\%");
+    expect(escapeLike("a_b")).toBe("a\\_b");
+    expect(escapeLike("back\\slash")).toBe("back\\\\slash");
+    expect(escapeLike("plain text")).toBe("plain text");
   });
 });
