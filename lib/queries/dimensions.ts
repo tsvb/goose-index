@@ -10,7 +10,11 @@ export async function listYears(): Promise<YearRow[]> {
     .select({
       year: sql<number>`extract(year from ${shows.showDate})::int`,
       shows: sql<number>`count(*)::int`,
-      songs: sql<number>`(select count(*)::int from performances p join shows s2 on s2.show_id = p.show_id where extract(year from s2.show_date) = extract(year from ${shows.showDate}))`,
+      // Sum the per-show performance counts. Written as raw `shows.show_id`:
+      // drizzle renders `${shows.showId}` unqualified ("show_id") in select
+      // fields, which would bind to the subquery's own table instead of the
+      // outer show and count every performance for every year.
+      songs: sql<number>`sum((select count(*) from performances p where p.show_id = shows.show_id))::int`,
     })
     .from(shows)
     .where(sql`${shows.showDate} <= current_date`)
@@ -74,11 +78,17 @@ export type VenueRow = {
   last: string | null;
 };
 
-export async function listVenues(opts?: { sort?: "shows" | "name" }): Promise<VenueRow[]> {
+export async function listVenues(opts?: { sort?: "shows" | "name"; q?: string }): Promise<VenueRow[]> {
   const order =
     opts?.sort === "name"
       ? [asc(venues.name)]
       : [sql`count(${shows.showId}) desc`, asc(venues.name)];
+  // Filter matches name, city, or state so "red rocks", "chicago", and "CO" all work.
+  const q = opts?.q?.trim();
+  const like = q ? `%${escapeLike(q)}%` : null;
+  const where = like
+    ? sql`(${venues.name} ilike ${like} or ${venues.city} ilike ${like} or ${venues.state} ilike ${like})`
+    : undefined;
   return db
     .select({
       venueId: venues.venueId,
@@ -93,6 +103,7 @@ export async function listVenues(opts?: { sort?: "shows" | "name" }): Promise<Ve
     })
     .from(venues)
     .leftJoin(shows, eq(shows.venueId, venues.venueId))
+    .where(where)
     .groupBy(venues.venueId)
     .having(sql`count(${shows.showId}) > 0`)
     .orderBy(...order);

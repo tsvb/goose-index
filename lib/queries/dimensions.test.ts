@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { makeTestDb } from "@/db/testing";
-import { upsertArtists, upsertVenues, upsertTours, upsertShows } from "@/db/repository";
+import { upsertArtists, upsertVenues, upsertTours, upsertShows, upsertSongs, upsertPerformances } from "@/db/repository";
 
 // Redirect the module-level `db` in dimensions.ts to the PGlite test db.
 // vi.mock is hoisted; the lambda captures `_testDb` which is set before any test runs.
@@ -43,7 +43,57 @@ beforeAll(async () => {
     mkShow(3, "2024-06-03", 1, null),
     mkShow(4, "2024-09-15", 2, 2),
     mkShow(5, "2024-10-01", 4, null),
+    mkShow(6, "2023-05-01", 4, null),
   ]);
+  // 2024 gets three performances (two at show 1, one at show 4); 2023 gets one.
+  await upsertSongs(ctx.db, [{ songId: 900, name: "Arcadia", slug: "arcadia", isOriginal: true, originalArtist: null }]);
+  const mkPerf = (uniqueId: string, showId: number, position: number) => ({
+    uniqueId, showId, songId: 900, setType: "Set", setNumber: "1", position,
+    trackTime: null, transition: null, transitionId: null, isJamchart: false,
+    jamchartNotes: null, isReprise: false, isJam: false, isVerified: true, footnote: null,
+  });
+  await upsertPerformances(ctx.db, [
+    mkPerf("a", 1, 1), mkPerf("b", 1, 2), mkPerf("c", 4, 1), mkPerf("d", 6, 1),
+  ]);
+});
+
+describe("listYears", () => {
+  it("counts shows and performances per year, not globally", async () => {
+    const { listYears } = await import("./dimensions");
+    const years = await listYears();
+    expect(years).toEqual([
+      { year: 2024, shows: 5, songs: 3 },
+      { year: 2023, shows: 1, songs: 1 },
+    ]);
+  });
+});
+
+describe("listVenues", () => {
+  it("orders by show count by default and excludes venues with no shows", async () => {
+    const { listVenues } = await import("./dimensions");
+    const rows = await listVenues();
+    expect(rows.map((v) => v.name)).toEqual(["Red Rocks Amphitheatre", "The Capitol Theatre", "Red Hat Amphitheater"]);
+    expect(rows.map((v) => v.shows)).toEqual([3, 2, 1]);
+  });
+
+  it("filters by name, city, or state with q", async () => {
+    const { listVenues } = await import("./dimensions");
+    expect((await listVenues({ q: "rocks" })).map((v) => v.venueId)).toEqual([1]);   // name
+    expect((await listVenues({ q: "raleigh" })).map((v) => v.venueId)).toEqual([2]); // city
+    expect((await listVenues({ q: "ny" })).map((v) => v.venueId)).toEqual([4]);      // state
+  });
+
+  it("keeps the sort under a q filter and still drops showless matches", async () => {
+    const { listVenues } = await import("./dimensions");
+    const byName = await listVenues({ q: "red", sort: "name" });
+    expect(byName.map((v) => v.name)).toEqual(["Red Hat Amphitheater", "Red Rocks Amphitheatre"]); // no Redemption Hall
+  });
+
+  it("treats ILIKE metacharacters as literals and trims whitespace", async () => {
+    const { listVenues } = await import("./dimensions");
+    expect(await listVenues({ q: "r_d" })).toEqual([]); // would match "Red…" if _ stayed a wildcard
+    expect((await listVenues({ q: "  rocks  " })).map((v) => v.venueId)).toEqual([1]);
+  });
 });
 
 describe("searchVenues", () => {

@@ -2,10 +2,14 @@ import type { SongPerf } from "@/lib/queries/songs";
 
 function maxOf(ns: number[]): number { return Math.max(1, ...ns); }
 
-export function PlaysPerYearChart({ data }: { data: { year: number; count: number }[] }) {
+// role="group" (not "img"): an img role flattens the per-year count/label text
+// out of the accessibility tree; group keeps that text readable while still
+// naming the chart. `label` lets non-plays series (e.g. debuts) announce
+// themselves correctly.
+export function PlaysPerYearChart({ data, label = "Plays per year" }: { data: { year: number; count: number }[]; label?: string }) {
   const max = maxOf(data.map((d) => d.count));
   return (
-    <div className="song-ppy" role="img" aria-label="Plays per year">
+    <div className="song-ppy" role="group" aria-label={label}>
       {data.map((d) => (
         <div className="song-ppy-col" key={d.year}>
           <div className="song-ppy-bar" style={{ height: `${Math.round((d.count / max) * 100)}%` }} title={`${d.year}: ${d.count}`} />

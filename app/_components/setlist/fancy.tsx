@@ -30,7 +30,9 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
         return (
           <section key={g.key}>
             <div className="mb-2 flex items-baseline justify-between gap-4 border-b border-line pb-2">
-              <h3 className="font-display text-xl text-ink">{g.label}</h3>
+              {/* h2, not h3 — the show page's h1 (the date) is the only level
+                  above; element only, styling unchanged. */}
+              <h2 className="font-display text-xl text-ink">{g.label}</h2>
               <span className="font-mono text-[0.7rem] text-faint">
                 {g.entries.length} {g.entries.length === 1 ? "song" : "songs"}
                 {total ? ` · ${formatDuration(total)}` : ""}
@@ -73,7 +75,7 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                           <Flame className="ml-1.5 inline h-[15px] w-[15px] -translate-y-px text-gold" strokeWidth={1.7} />
                         </span>
                       )}
-                      {e.isDustedOff && <span className="ml-2 rounded-full border border-gold/40 px-2 py-0.5 align-middle font-mono text-[0.6rem] text-gold">{RETURN_LABEL} · {e.gap}</span>}
+                      {e.isDustedOff && <span title={`First play in ${e.gap} shows`} className="ml-2 inline-block whitespace-nowrap rounded-full border border-gold/40 px-2 py-0.5 align-middle font-mono text-[0.6rem] text-gold">{RETURN_LABEL} · {e.gap}</span>}
                       {!e.isOriginal && e.originalArtist && (
                         <span className="ml-2 align-baseline text-xs italic text-faint">{e.originalArtist}</span>
                       )}
@@ -97,6 +99,7 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                       fallback={nugsWebFallback({ date: showDate, venue })}
                       className="nugs-track ml-1 shrink-0"
                       title={`Listen to ${e.song} on nugs`}
+                      ariaLabel={`Listen to ${e.song} on nugs`}
                     >▷</NugsLink>
                   </li>
                 );
@@ -134,6 +137,17 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
           </section>
         );
       })}
+
+      {/* Legend — the almanac explains its own marks. Keep in step with what
+          the rows above actually render: segue carets, jam-chart flames,
+          numbered endnotes, and the Dusted Off pill. */}
+      <p className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line-soft pt-3 font-mono text-[0.65rem] leading-relaxed text-faint">
+        <span className="uppercase tracking-[0.18em]">Reading the ledger</span>
+        <span><span className="text-gold">›</span> = segue</span>
+        <span><Flame className="inline h-3 w-3 -translate-y-px text-gold" strokeWidth={1.7} /> = jam chart pick</span>
+        <span><span className="text-sage">¹</span> = see the notes under each set</span>
+        <span><span className="text-gold">{RETURN_LABEL} · n</span> = first play in n shows</span>
+      </p>
     </div>
   );
 }

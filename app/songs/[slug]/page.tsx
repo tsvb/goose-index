@@ -6,6 +6,7 @@ import { Doc, Breadcrumb, MetaTable, DocSection } from "@/app/_components/doc";
 import { FactRibbon, PlaysPerYearChart, SetPlacementBars, GapSparkline, PerformanceTable } from "@/app/_components/song";
 import { getSongBySlug, getSongPerformances, type SongStat } from "@/lib/queries/songs";
 import { getExperience } from "@/lib/experience.server";
+import type { Experience } from "@/lib/experience";
 import { showHref, formatShortDate, formatDuration } from "@/lib/queries/format";
 import { entityOpenGraph } from "@/lib/site";
 
@@ -16,7 +17,9 @@ export async function generateMetadata({ params }: Params, parent: ResolvingMeta
   const { slug } = await params;
   const song = await getSongBySlug(slug);
   if (!song) return { title: "Song not found" };
-  const description = `Goose has played ${song.name} ${song.timesPlayed} time${song.timesPlayed === 1 ? "" : "s"} since ${song.debutDate ?? "?"}.`;
+  const description = song.timesPlayed === 0
+    ? `${song.name} is in the Goose songbook, but never yet played live.`
+    : `Goose has played ${song.name} ${song.timesPlayed} time${song.timesPlayed === 1 ? "" : "s"} since ${song.debutDate ?? "?"}.`;
   return { title: song.name, description, openGraph: entityOpenGraph({ title: song.name, description, path: `/songs/${slug}`, parent: await parent }) };
 }
 
@@ -45,9 +48,14 @@ export default async function SongPage({ params }: Params) {
   const { slug } = await params;
   const song = await getSongBySlug(slug);
   if (!song) notFound();
-  const perfs = await getSongPerformances(song.songId);
   const experience = await getExperience();
   const tag = song.isOriginal ? "Original" : `Cover · ${song.originalArtist ?? "trad."}`;
+
+  // A song with no performances has no ribbon, charts, or table worth rendering
+  // — a wall of zeros reads as broken. Say what's true instead.
+  if (song.timesPlayed === 0) return <NeverPlayed song={song} tag={tag} experience={experience} />;
+
+  const perfs = await getSongPerformances(song.songId);
 
   if (experience === "minimal") {
     return (
@@ -86,26 +94,71 @@ export default async function SongPage({ params }: Params) {
         <FactRibbon facts={facts(song)} />
         <div className="song-cols mt-6">
           <div className="space-y-7">
-            <section><h3 className="mb-2 font-display text-base text-ink">Plays per year</h3><PlaysPerYearChart data={song.playsPerYear} /></section>
-            <section><h3 className="mb-2 font-display text-base text-ink">Set placement</h3><SetPlacementBars placement={song.setPlacement} /></section>
-            {perfs.length > 0 && <section><h3 className="mb-2 font-display text-base text-ink">Gaps &amp; returns</h3><GapSparkline perfs={perfs} /><p className="mt-2 font-mono text-[0.68rem] text-faint">{gapLegend(perfs.some((p) => p.isDustedOff), song.longestGap, perfs.length)}</p></section>}
+            <section><h2 className="mb-2 font-display text-base text-ink">Plays per year</h2><PlaysPerYearChart data={song.playsPerYear} /></section>
+            <section><h2 className="mb-2 font-display text-base text-ink">Set placement</h2><SetPlacementBars placement={song.setPlacement} /></section>
+            {perfs.length > 0 && <section><h2 className="mb-2 font-display text-base text-ink">Gaps &amp; returns</h2><GapSparkline perfs={perfs} /><p className="mt-2 font-mono text-[0.68rem] text-faint">{gapLegend(perfs.some((p) => p.isDustedOff), song.longestGap, perfs.length)}</p></section>}
             {song.longestVersions.length > 0 && (
-              <section><h3 className="mb-2 font-display text-base text-ink">Longest versions</h3>
+              <section><h2 className="mb-2 font-display text-base text-ink">Longest versions</h2>
                 <ul className="space-y-1 text-sm">{song.longestVersions.map((v) => <li key={v.showId} className="flex justify-between gap-3"><span className="tabular-nums text-gold">{v.trackTime}</span><Link href={showHref(v.date, v.order)} className="text-muted hover:text-ink">{v.date} · {v.venue ?? "—"}</Link></li>)}</ul>
               </section>
             )}
             {song.topVenues.length > 0 && (
-              <section><h3 className="mb-2 font-display text-base text-ink">Top venues</h3>
+              <section><h2 className="mb-2 font-display text-base text-ink">Top venues</h2>
                 <ul className="space-y-1 text-sm">{song.topVenues.map((v) => <li key={v.venueId} className="flex justify-between gap-3"><Link href={`/venues/${v.venueId}`} className="text-muted hover:text-ink">{v.name}</Link><span className="tabular-nums text-faint">{v.count}×</span></li>)}</ul>
               </section>
             )}
           </div>
           <div>
-            <h3 className="mb-2 font-display text-base text-ink">Every performance <span className="font-mono text-xs text-faint">· {perfs.length}</span></h3>
+            <h2 className="mb-2 font-display text-base text-ink">Every performance <span className="font-mono text-xs text-faint">· {perfs.length}</span></h2>
             <PerformanceTable perfs={perfs} />
           </div>
         </div>
       </Container>
     </>
+  );
+}
+
+/** Empty state for songs in the book that have never been performed —
+ *  the ribbon/charts/table would render a wall of zeros. */
+function NeverPlayed({ song, tag, experience }: { song: SongStat; tag: string; experience: Experience }) {
+  if (experience === "minimal") {
+    return (
+      <Container className="py-8">
+        <Doc>
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
+          <h1>{song.name}</h1>
+          <p className="doc-crumb">{tag}</p>
+          <p>
+            In the songbook, but never yet played live. When it debuts, this page will log the
+            date, the venue, and every performance after it.
+          </p>
+          <p>
+            <Link href="/songs">All songs</Link> · <Link href="/stats/debuts">Recent debuts</Link>
+          </p>
+        </Doc>
+      </Container>
+    );
+  }
+  return (
+    <Container className="py-7">
+      <Breadcrumb trail={[{ href: "/", label: "Index" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
+      <div className="mt-2 flex flex-wrap items-baseline gap-3">
+        <h1 className="font-display text-[2.2rem] font-extrabold leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
+        <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.62rem] uppercase tracking-wider text-muted">{tag}</span>
+      </div>
+      <div className="mt-8 rounded-lg border border-dashed border-line bg-surface/50 px-6 py-14 text-center">
+        <p className="font-display text-xl text-ink">In the songbook, but never yet played live.</p>
+        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted">
+          The Index keeps a page for every song in the book — this one is still waiting for its
+          first night. When it debuts, the plays, gaps, set placements, and longest versions will
+          be logged here.
+        </p>
+        <p className="mt-6 font-mono text-xs">
+          <Link href="/songs" className="text-sage transition hover:text-ink">Browse the catalog →</Link>
+          <span className="mx-3 text-line">·</span>
+          <Link href="/stats/debuts" className="text-sage transition hover:text-ink">Recent debuts →</Link>
+        </p>
+      </div>
+    </Container>
   );
 }

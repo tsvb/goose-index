@@ -335,6 +335,17 @@
 }
 [data-experience="functional"] .w2-navlink { color: #fff; font-weight: 700; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2); border-radius: 6px; padding: 4px 10px; }
 [data-experience="functional"] .w2-navlink:hover { background: rgba(255, 255, 255, 0.22); }
+/* Current section: the pressed white tab of the era. After :hover so the
+   active look holds while hovered. */
+[data-experience="functional"] .w2-navlink[aria-current="page"] {
+  background: rgba(255, 255, 255, 0.92);
+  color: #1a5c96;
+  text-shadow: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+/* The global gold focus ring is blue-on-blue on the appbar (1.1–1.3:1) —
+   keep the ring, swap it to white there. */
+[data-experience="functional"] .w2-appbar :focus-visible { outline-color: #fff; }
 /* Glossy panel + badges (show header). */
 [data-experience="functional"] .w2-panel {
   background: linear-gradient(#ffffff, #f1f7fc); border: 1px solid #c4d4e2; border-radius: 12px;
@@ -343,11 +354,15 @@
 [data-experience="functional"] .w2-badge {
   display: inline-flex; align-items: center; gap: 4px; border: 1px solid #aac6e0; border-radius: 18px;
   background: linear-gradient(#eaf4fd, #cfe6f8); color: #1f5e93; font-weight: 700; font-size: 11px;
-  padding: 3px 11px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  padding: 3px 11px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7); white-space: nowrap;
 }
 [data-experience="functional"] .w2-badge.gold { border-color: #d9b24e; background: linear-gradient(#fff0c4, #f7d271); color: #7a560a; }
 /* Zebra data table (setlist). */
 [data-experience="functional"] table.w2-table { border-collapse: collapse; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #c4d4e2; box-shadow: 0 1px 4px rgba(40, 70, 110, 0.18); }
+/* Horizontal scroll wrapper for w2 tables — phones can reach the trailing
+   Listen column. Negative margin + matching padding keeps the table's own
+   shadow unclipped and its edges aligned with the surrounding panels. */
+[data-experience="functional"] .w2-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: -6px; padding: 6px; }
 [data-experience="functional"] table.w2-table thead th { background: linear-gradient(#4a9be0, #2c7cc4); color: #fff; text-align: left; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; padding: 8px 12px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.22); }
 [data-experience="functional"] table.w2-table tbody td { padding: 7px 12px; border-bottom: 1px solid #e7eef5; background: #fff; }
 [data-experience="functional"] table.w2-table tbody tr:nth-child(even) td { background: #eef5fb; }
@@ -356,9 +371,14 @@
   display: inline-block; background: linear-gradient(#ffd86b, #f4a72b); border: 1px solid #d9952a; border-radius: 5px;
   color: #7a4e06; font-size: 10px; font-weight: 800; padding: 1px 5px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
-/* Settings gear sits on the blue functional appbar — make it read white. */
-[data-experience="functional"] [aria-label="Settings"] { color: #fff; background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.4); }
-[data-experience="functional"] [aria-label="Settings"]:hover { background: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.6); color: #fff; }
+/* Icon toggles (settings gear, mobile menu) sit on the blue functional
+   appbar — make them read white. */
+[data-experience="functional"] [aria-label="Settings"],
+[data-experience="functional"] [aria-label="Open menu"],
+[data-experience="functional"] [aria-label="Close menu"] { color: #fff; background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.4); }
+[data-experience="functional"] [aria-label="Settings"]:hover,
+[data-experience="functional"] [aria-label="Open menu"]:hover,
+[data-experience="functional"] [aria-label="Close menu"]:hover { background: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.6); color: #fff; }
 
 /* Minimal — flat, high-contrast, single look (ignores data-theme). */
 :root[data-experience="minimal"] {
@@ -401,6 +421,12 @@
 [data-experience="minimal"] table.doc-table th { text-align: left; font-weight: 700; border-bottom: 1px solid #cfcfcf; padding: 3px 12px 3px 0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
 [data-experience="minimal"] table.doc-table td { padding: 3px 12px 3px 0; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
 [data-experience="minimal"] table.doc-table th.num, [data-experience="minimal"] table.doc-table td.num { text-align: right; font-family: var(--type-mono); font-size: 0.85rem; padding-right: 0; white-space: nowrap; }
+/* .num cells end flush right (padding-right: 0), so at phone widths they
+   collide with their neighbors ("PLAYEDGAP", "22026-06-06"). Give every .num
+   column — and whatever column follows one — its own left gutter instead.
+   First cells stay flush so the table keeps the document's left margin. */
+[data-experience="minimal"] table.doc-table th.num:not(:first-child), [data-experience="minimal"] table.doc-table td.num:not(:first-child),
+[data-experience="minimal"] table.doc-table th.num + th, [data-experience="minimal"] table.doc-table td.num + td { padding-left: 12px; }
 [data-experience="minimal"] .nowrap { white-space: nowrap; }
 [data-experience="minimal"] .doc sup a { font-size: 0.7rem; }
 [data-experience="minimal"] ol.doc-notes { font-size: 0.9rem; color: var(--muted); padding-left: 1.4rem; line-height: 1.55; }
@@ -544,9 +570,14 @@ table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; l
   color: var(--nugs-track); border: 1px solid var(--nugs-track-line); font-size: 0.66rem; line-height: 1;
 }
 .nugs-track:hover { color: var(--nugs-link-strong); border-color: var(--nugs-line-strong); text-decoration: none; }
+/* Opacity, not visibility, so the ▷ stays in the tab order while hidden:
+   keyboard focus anywhere in the row (:focus-within) or on the link itself
+   (:focus-visible) reveals it just like hover does. */
 @media (hover: hover) {
-  .nugs-row .nugs-track { visibility: hidden; }
-  .nugs-row:hover .nugs-track { visibility: visible; }
+  .nugs-row .nugs-track { opacity: 0; }
+  .nugs-row:hover .nugs-track,
+  .nugs-row:focus-within .nugs-track,
+  .nugs-track:focus-visible { opacity: 1; }
 }
 
 /* Functional (Web 2.0) reskin */
@@ -592,3 +623,10 @@ table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; l
   100% { background-color: transparent; }
 }
 .show-anchor:target { animation: show-anchor-flash 2.6s ease-out forwards; }
+/* :target never re-fires after pushState navigations, so AnchorFlash
+   (anchor-flash.tsx) re-triggers the same flash via this class. */
+.show-anchor.show-anchor-flash { animation: show-anchor-flash 2.6s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .show-anchor:target,
+  .show-anchor.show-anchor-flash { animation: none; }
+}

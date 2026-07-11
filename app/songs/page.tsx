@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb } from "@/app/_components/doc";
 import { SongIndexTable } from "@/app/_components/song";
-import { Search } from "@/app/_components/marks";
-import { listSongs, type SongSort, type SongFacet } from "@/lib/queries/songs";
+import { ArrowLeft, ArrowRight, Search } from "@/app/_components/marks";
+import { listSongs, OVERDUE_MIN_PLAYS, type SongSort, type SongFacet } from "@/lib/queries/songs";
+import { compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 
 export const dynamic = "force-dynamic";
@@ -12,18 +13,26 @@ export const metadata: Metadata = { title: "Songs", description: "Every Goose so
 
 const SORTS: { key: SongSort; label: string }[] = [
   { key: "played", label: "Most played" }, { key: "rare", label: "Rarest" },
-  { key: "overdue", label: "Most overdue" }, { key: "recent", label: "Recently played" },
-  { key: "debut", label: "By debut" }, { key: "az", label: "A–Z" },
+  { key: "overdue", label: "Most overdue" }, { key: "rotation", label: "Rotation" },
+  { key: "recent", label: "Recently played" }, { key: "debut", label: "By debut" }, { key: "az", label: "A–Z" },
 ];
+
+// /songs?sort=overdue is the same cut as /stats/current-gaps — say so on both pages.
+const OVERDUE_NOTE = `Most overdue = songs played ≥${OVERDUE_MIN_PLAYS} times, ranked by shows since last played — the same cut as `;
 const FACETS: { key: SongFacet; label: string }[] = [
   { key: "all", label: "All" }, { key: "originals", label: "Originals" }, { key: "covers", label: "Covers" },
 ];
 
-type SP = { sort?: SongSort; facet?: SongFacet; q?: string };
+// 613 songs × ~11 sparkline elements each is a multi-megabyte page — window it.
+const PER_PAGE = 100;
+
+type SP = { sort?: SongSort; facet?: SongFacet; q?: string; page?: string };
 
 export default async function SongsPage({ searchParams }: { searchParams: Promise<SP> }) {
-  const { sort = "played", facet = "all", q = "" } = await searchParams;
-  const rows = await listSongs({ sort, facet, q });
+  const { sort = "played", facet = "all", q = "", page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "", 10) || 1);
+  const { rows, total } = await listSongs({ sort, facet, q, page, perPage: PER_PAGE });
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const experience = await getExperience();
 
   if (experience === "minimal") {
@@ -32,10 +41,13 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
         <Doc>
           <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Songs" }]} />
           <h1>Songs</h1>
-          <p className="doc-crumb">{rows.length} songs · sorted by {SORTS.find((s) => s.key === sort)?.label}</p>
+          <p className="doc-crumb">{compact(total)} songs · sorted by {SORTS.find((s) => s.key === sort)?.label}</p>
           <p className="doc-crumb">
-            {SORTS.map((s) => <span key={s.key}>{s.key === sort ? <strong>{s.label}</strong> : <Link href={`/songs?sort=${s.key}`}>{s.label}</Link>}{" · "}</span>)}
+            {SORTS.map((s) => <span key={s.key}>{s.key === sort ? <strong>{s.label}</strong> : <Link href={buildHref({ sort: s.key, facet, q })}>{s.label}</Link>}{" · "}</span>)}
           </p>
+          {sort === "overdue" && (
+            <p className="doc-crumb">{OVERDUE_NOTE}<Link href="/stats/current-gaps">Most Overdue</Link> in Stats.</p>
+          )}
           <form action="/songs" method="get">
             <FilterParams sort={sort} facet={facet} />
             <label>
@@ -55,6 +67,13 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
               ))}
             </tbody>
           </table>
+          {totalPages > 1 && (
+            <p className="doc-crumb">
+              {page > 1 ? <Link href={buildHref({ sort, facet, q, page: page - 1 })}>← Previous</Link> : null}
+              {" "}Page {page} of {totalPages}{" "}
+              {page < totalPages ? <Link href={buildHref({ sort, facet, q, page: page + 1 })}>Next →</Link> : null}
+            </p>
+          )}
         </Doc>
       </Container>
     );
@@ -69,7 +88,7 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
         <Container className="relative py-10 sm:py-12">
           <span className="eyebrow">The catalog</span>
           <h1 className="mt-3 font-display text-[2.4rem] leading-none tracking-tight text-ink sm:text-5xl">Songs</h1>
-          <p className="mt-2 font-mono text-xs text-faint">{rows.length} songs · sort the whole catalog any way you like</p>
+          <p className="mt-2 font-mono text-xs text-faint">{compact(total)} songs · sort the whole catalog any way you like</p>
         </Container>
       </header>
       <Container className="py-8">
@@ -115,7 +134,55 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
             />
           </form>
         )}
-        <SongIndexTable rows={rows} years={yearsForTable} />
+        {sort === "overdue" && (
+          <p className="mb-3 font-mono text-[0.7rem] text-faint">
+            {OVERDUE_NOTE}<Link href="/stats/current-gaps" className="underline hover:text-gold">Most Overdue</Link> in Stats.
+          </p>
+        )}
+        <SongIndexTable rows={rows} years={yearsForTable} rankOffset={(page - 1) * PER_PAGE} sort={{ active: sort, hrefFor: (key) => buildHref({ sort: key, facet, q }) }} />
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-between gap-4">
+            <div>
+              {page > 1 ? (
+                <Link
+                  href={buildHref({ sort, facet, q, page: page - 1 })}
+                  className="group flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-muted transition hover:border-gold hover:text-gold"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" />
+                  Previous
+                </Link>
+              ) : (
+                <span aria-disabled="true" className="flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-faint opacity-40 select-none">
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Previous
+                </span>
+              )}
+            </div>
+
+            <span className="font-mono text-xs text-faint">
+              Page {compact(page)} of {compact(totalPages)}
+            </span>
+
+            <div>
+              {page < totalPages ? (
+                <Link
+                  href={buildHref({ sort, facet, q, page: page + 1 })}
+                  className="group flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-muted transition hover:border-gold hover:text-gold"
+                >
+                  Next
+                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </Link>
+              ) : (
+                <span aria-disabled="true" className="flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-faint opacity-40 select-none">
+                  Next
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </Container>
     </>
   );
@@ -132,11 +199,14 @@ function FilterParams({ sort, facet }: { sort: SongSort; facet: SongFacet }) {
   );
 }
 
-function buildHref(sp: { sort: string; facet: string; q: string }) {
+// Sort/facet/header links never pass `page`, so re-cutting the list always
+// lands back on page 1; only the pager itself carries the page along.
+function buildHref(sp: { sort: string; facet: string; q: string; page?: number }) {
   const u = new URLSearchParams();
   if (sp.sort !== "played") u.set("sort", sp.sort);
   if (sp.facet !== "all") u.set("facet", sp.facet);
   if (sp.q) u.set("q", sp.q);
+  if (sp.page != null && sp.page > 1) u.set("page", String(sp.page));
   const qs = u.toString();
   return qs ? `/songs?${qs}` : "/songs";
 }

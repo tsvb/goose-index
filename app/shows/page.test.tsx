@@ -50,6 +50,16 @@ describe("ShowsBrowsePage controls", () => {
     expect(html).toContain("per=100");
   });
 
+  it("marks the placeholder pager ends as disabled for assistive tech", async () => {
+    h.total = 150; // 3 pages at the default per=50
+    const first = await render();
+    expect(first).toContain("Page 1 of 3");
+    expect(first).toContain('aria-disabled="true"'); // Previous placeholder on page 1
+    const last = await render({ page: "3" });
+    expect(last).toContain("Page 3 of 3");
+    expect(last).toContain('aria-disabled="true"'); // Next placeholder on the last page
+  });
+
   it("hides the tour filter row until a year is chosen", async () => {
     const noYear = await render();
     expect(noYear).not.toContain("All 2024"); // no clear-tour pill
@@ -60,6 +70,15 @@ describe("ShowsBrowsePage controls", () => {
     expect(withYear).toContain("year=2024&amp;tour=1"); // Summer Tour 2024 pill
     expect(withYear).toContain("year=2024&amp;tour=2"); // Fall Tour 2024 pill
     expect(withYear).not.toContain("tour=3"); // Winter Tour 2023 belongs to 2023
+  });
+
+  it("adds a companion Year page link only when a year filter is active", async () => {
+    const noYear = await render();
+    expect(noYear).not.toContain('href="/years/');
+
+    const withYear = await render({ year: "2024" });
+    expect(withYear).toContain('href="/years/2024"');
+    expect(withYear).toContain("Year 2024 page");
   });
 
   it("shows a 'Most recent show' jump that deep-links to the show anchor", async () => {

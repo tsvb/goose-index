@@ -5,7 +5,7 @@ import { SearchBox } from "./_components/search-box";
 import { SectionHeader } from "./_components/section-header";
 import { ArrowRight, Calendar, MapPin, Disc } from "./_components/marks";
 import { getOverviewStats } from "@/lib/queries/stats";
-import { getRecentShows, getUpcomingShows, getOnThisDay } from "@/lib/queries/shows";
+import { getRecentShows, getUpcomingShows, getOnThisDay, getTonightShows } from "@/lib/queries/shows";
 import { compact, yearOf, formatMonthDay, formatLongDate, dateParts, locationLine, showHref } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { Doc, MetaTable, ShowTable, DocSection } from "./_components/doc";
@@ -20,13 +20,20 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 export default async function Home() {
-  const [stats, recent, upcoming, onThisDay] = await Promise.all([
+  const [stats, recentRaw, upcoming, onThisDay, tonight] = await Promise.all([
     getOverviewStats(),
-    getRecentShows(6),
+    // Over-fetch so filtering tonight's show(s) out still leaves six cards.
+    getRecentShows(9),
     getUpcomingShows(4),
     getOnThisDay(),
+    getTonightShows(),
   ]);
   const experience = await getExperience();
+
+  // Tonight's show gets its own banner — keep it out of "Latest shows", where
+  // it would read as a stale "no setlist" card.
+  const tonightIds = new Set(tonight.map((s) => s.showId));
+  const recent = recentRaw.filter((s) => !tonightIds.has(s.showId)).slice(0, 6);
 
   if (experience === "minimal") {
     return (
@@ -35,6 +42,23 @@ export default async function Home() {
           <h1>Goose Index</h1>
           <p>A complete index of every Goose show — setlists, segues, jams, venues, and tours. Setlist data from <a href="https://elgoose.net" target="_blank" rel="noreferrer">elgoose.net</a>.</p>
           <MetaTable rows={[
+            ...(tonight.length > 0 ? [{
+              k: "Tonight",
+              v: (
+                <>
+                  {tonight.map((s, i) => {
+                    const loc = locationLine(s.city, s.state, s.country);
+                    return (
+                      <span key={s.showId}>
+                        {i > 0 ? " · " : ""}
+                        <Link href={showHref(s.date, s.order)}>{s.venue ?? "Unknown venue"}{loc ? `, ${loc}` : ""}</Link>
+                      </span>
+                    );
+                  })}
+                  {" — the setlist will appear live"}
+                </>
+              ),
+            }] : []),
             { k: "Shows", v: compact(stats.showsPlayed) },
             { k: "Songs", v: compact(stats.songs) },
             { k: "Venues", v: compact(stats.venues) },
@@ -94,13 +118,54 @@ export default async function Home() {
         </Container>
       </section>
 
+      {/* ---- Tonight ---- */}
+      {tonight.length > 0 && (
+        <section className="border-b border-line bg-surface/40">
+          <Container className="py-10">
+            <span className="live-pill">
+              <span className="live-dot" aria-hidden />
+              Tonight
+            </span>
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              {tonight.map((s) => {
+                const loc = locationLine(s.city, s.state, s.country);
+                return (
+                  <Link
+                    key={s.showId}
+                    href={showHref(s.date, s.order)}
+                    className="group flex flex-col rounded-lg border border-ember/45 bg-surface p-5 transition duration-200 hover:-translate-y-0.5 hover:border-ember hover:bg-surface-2"
+                  >
+                    {tonight.length > 1 && s.order != null && (
+                      <span className="eyebrow mb-2">Show {s.order}</span>
+                    )}
+                    <h2 className="font-display text-2xl leading-tight text-ink transition group-hover:text-gold">
+                      {s.venue ?? "Unknown venue"}
+                    </h2>
+                    <span className="mt-1.5 flex items-center gap-1.5 text-sm text-muted">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-faint" /> {loc || "—"}
+                    </span>
+                    <span className="mt-4 flex items-center justify-between gap-3 border-t border-line-soft pt-3 font-mono text-[0.7rem] text-faint">
+                      The setlist will appear here live as the band plays it
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0 transition group-hover:translate-x-0.5 group-hover:text-gold" />
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </Container>
+        </section>
+      )}
+
       {/* ---- On this day ---- */}
       {onThisDay.length > 0 && (
         <section className="border-b border-line bg-surface/40">
           <Container className="py-12">
             <div className="flex items-center gap-2 text-gold">
               <Calendar className="h-4 w-4" />
-              <span className="eyebrow">On this day · {todayLabel}</span>
+              {/* A real h2 (the section had no heading) — inline style pins the
+                  eyebrow's weight/tracking against the base h2 rule (460) and
+                  functional's unlayered h2 rule (800 / -0.015em). */}
+              <h2 className="eyebrow" style={{ fontWeight: 400, letterSpacing: "0.22em" }}>On this day · {todayLabel}</h2>
             </div>
             <p className="mt-3 max-w-2xl text-muted">
               {onThisDay.length === 1

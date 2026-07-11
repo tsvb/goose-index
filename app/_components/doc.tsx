@@ -35,15 +35,16 @@ export function MetaTable({ rows }: { rows: { k: string; v: ReactNode }[] }) {
   );
 }
 
-export function ShowTable({ shows }: { shows: ShowSummary[] }) {
+/** `hideVenue` drops the venue/location columns on pages that already name the venue. */
+export function ShowTable({ shows, hideVenue }: { shows: ShowSummary[]; hideVenue?: boolean }) {
   if (shows.length === 0) return <p>No shows.</p>;
   return (
     <table className="doc-table">
       <thead>
         <tr>
           <th>Date</th>
-          <th>Venue</th>
-          <th>Location</th>
+          {!hideVenue && <th>Venue</th>}
+          {!hideVenue && <th>Location</th>}
           <th className="num">Songs</th>
         </tr>
       </thead>
@@ -53,8 +54,8 @@ export function ShowTable({ shows }: { shows: ShowSummary[] }) {
             <td className="nowrap">
               <Link href={showHref(s.date, s.order)}>{s.date}</Link>
             </td>
-            <td>{s.venue ?? "Unknown venue"}</td>
-            <td>{locationLine(s.city, s.state, s.country) || "—"}</td>
+            {!hideVenue && <td>{s.venue ?? "Unknown venue"}</td>}
+            {!hideVenue && <td>{locationLine(s.city, s.state, s.country) || "—"}</td>}
             <td className="num">{s.songCount > 0 ? s.songCount : "—"}</td>
           </tr>
         ))}

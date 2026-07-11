@@ -79,6 +79,18 @@ export async function getShowsOnDate(date: string): Promise<ShowSummary[]> {
     .orderBy(asc(shows.showOrder));
 }
 
+/**
+ * Shows dated today — the home page's Tonight banner. Usually one show, but
+ * multi-show days (matinee + evening) return all of them in show order.
+ * getRecentShows still includes today (date <= current_date); callers that
+ * hoist tonight into its own treatment filter these ids out themselves.
+ */
+export async function getTonightShows(): Promise<ShowSummary[]> {
+  return baseShowQuery()
+    .where(sql`${shows.showDate} = current_date`)
+    .orderBy(asc(shows.showOrder));
+}
+
 export type ShowDetail = ShowSummary & {
   venueId: number | null;
   permalink: string | null;
