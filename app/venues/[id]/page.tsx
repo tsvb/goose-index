@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
@@ -54,7 +55,7 @@ export default async function VenuePage({ params }: Params) {
             ...(venue.first ? [{ k: "First", v: venue.first }] : []),
             ...(venue.last ? [{ k: "Last", v: venue.last }] : []),
           ]} />
-          <DocSection title="Shows here"><ShowTable shows={shows} /></DocSection>
+          <DocSection title="Shows here"><ShowTable shows={shows} hideVenue /></DocSection>
         </Doc>
       </Container>
     );
@@ -81,7 +82,7 @@ export default async function VenuePage({ params }: Params) {
         <div className="stage-glow inset-x-0 top-0 h-72" />
         <Container className="relative py-12 sm:py-16">
           <span className="eyebrow rise" style={{ animationDelay: "0ms" }}>
-            Venue
+            <Link href="/venues" className="transition hover:text-gold">Venues</Link>
           </span>
           <h1
             className="rise mt-4 font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-5xl"
@@ -123,7 +124,7 @@ export default async function VenuePage({ params }: Params) {
             </p>
             <div className="surface-card overflow-hidden px-2">
               {shows.map((show) => (
-                <ShowRow key={show.showId} show={show} />
+                <ShowRow key={show.showId} show={show} context="venue" />
               ))}
             </div>
           </div>

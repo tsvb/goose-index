@@ -1,7 +1,27 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { GapSparkline, MiniSparkline } from "./charts";
+import { GapSparkline, MiniSparkline, PlaysPerYearChart } from "./charts";
 import type { SongPerf } from "@/lib/queries/songs";
+
+describe("PlaysPerYearChart", () => {
+  const data = [{ year: 2020, count: 12 }, { year: 2021, count: 0 }, { year: 2022, count: 7 }];
+
+  it("keeps its per-year text accessible — no role=img flattening", () => {
+    const html = renderToStaticMarkup(<PlaysPerYearChart data={data} />);
+    expect(html).not.toContain('role="img"');
+    expect(html).toContain('role="group"');            // named, but children stay in the a11y tree
+    expect(html).toContain('aria-label="Plays per year"');
+    expect(html).toContain(">12<");                    // count text
+    expect(html).toContain(">20<");                    // year label (last two digits)
+    expect(html).toContain(">0<");                     // zero-filled drought column renders labeled
+  });
+
+  it("announces a custom label for non-plays series", () => {
+    const html = renderToStaticMarkup(<PlaysPerYearChart data={data} label="Debuts per year" />);
+    expect(html).toContain('aria-label="Debuts per year"');
+    expect(html).not.toContain("Plays per year");
+  });
+});
 
 function perf(i: number, over: Partial<SongPerf> = {}): SongPerf {
   return {

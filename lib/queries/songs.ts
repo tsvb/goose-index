@@ -101,7 +101,14 @@ export type SongStat = {
 
 // ── Song Index ────────────────────────────────────────────────────────────────
 
-export type SongSort = "played" | "rare" | "overdue" | "recent" | "debut" | "az";
+export type SongSort = "played" | "rare" | "overdue" | "rotation" | "recent" | "debut" | "az";
+
+/**
+ * "Most overdue" is a cut, not just an ordering: without a plays floor the top
+ * of the list is one-off retired covers. Shared by /songs?sort=overdue and
+ * /stats/current-gaps so the two pages can never disagree.
+ */
+export const OVERDUE_MIN_PLAYS = 5;
 export type SongFacet = "all" | "originals" | "covers";
 export type SongIndexRow = {
   songId: number; name: string; slug: string; isOriginal: boolean;
@@ -109,9 +116,13 @@ export type SongIndexRow = {
   lastPlayedDate: string | null; debutYear: number | null; playsPerYear: number[];
 };
 
-export async function listSongs(opts: { sort?: SongSort; facet?: SongFacet; q?: string } = {}): Promise<SongIndexRow[]> {
+export async function listSongs(
+  opts: { sort?: SongSort; facet?: SongFacet; q?: string; page?: number; perPage?: number } = {},
+): Promise<{ rows: SongIndexRow[]; total: number }> {
   const sort = opts.sort ?? "played";
   const facet = opts.facet ?? "all";
+  const perPage = Math.max(1, Math.floor(opts.perPage ?? 100));
+  const page = Math.max(1, Math.floor(opts.page ?? 1));
   const facetCond =
     facet === "originals" ? sql`and so.is_original` :
     facet === "covers" ? sql`and not so.is_original` : sql``;
@@ -127,9 +138,12 @@ export async function listSongs(opts: { sort?: SongSort; facet?: SongFacet; q?: 
   const years: number[] = [];
   for (let y = lo; y <= hi; y++) years.push(y);
 
+  // overdue applies the ≥OVERDUE_MIN_PLAYS floor as a filter (see the constant's doc).
+  const overdueCond = sort === "overdue" ? sql`and coalesce(a.times_played, 0) >= ${OVERDUE_MIN_PLAYS}` : sql``;
   const orderBy: SQL =
     sort === "rare" ? sql`times_played asc, last_seq desc nulls last` :
-    sort === "overdue" ? sql`current_gap desc nulls last, (times_played >= 5) desc` :
+    sort === "overdue" ? sql`current_gap desc nulls last, times_played desc` :
+    sort === "rotation" ? sql`rotation desc, times_played desc, lower(name) asc` :
     sort === "recent" ? sql`last_seq desc nulls last` :
     sort === "debut" ? sql`debut_seq desc nulls last` :
     sort === "az" ? sql`lower(name) asc` :
@@ -152,9 +166,22 @@ export async function listSongs(opts: { sort?: SongSort; facet?: SongFacet; q?: 
                   greatest((select count(*) from show_seq where seq >= a.debut_seq), 1)) * 1000) / 10 as rotation
     from songs so
     left join agg a on a.song_id = so.song_id
-    where coalesce(a.times_played, 0) > 0 ${facetCond} ${qCond}
+    where coalesce(a.times_played, 0) > 0 ${facetCond} ${qCond} ${overdueCond}
     order by ${orderBy}
+    limit ${perPage} offset ${(page - 1) * perPage}
   `));
+
+  // total counts the whole cut, not the window, so page math stays right even
+  // when the requested page runs off the end (mirrors listShows).
+  const [cnt] = allRows(await db.execute(sql`
+    with ${SHOW_SEQ},
+    agg as (select song_id, count(*)::int as times_played from song_show group by song_id)
+    select count(*)::int as total
+    from songs so
+    left join agg a on a.song_id = so.song_id
+    where coalesce(a.times_played, 0) > 0 ${facetCond} ${qCond} ${overdueCond}
+  `));
+  const total = num(cnt?.total);
 
   // plays per year per song (one grouped query, bucket in TS)
   const ppyRows = allRows(await db.execute(sql`
@@ -169,7 +196,7 @@ export async function listSongs(opts: { sort?: SongSort; facet?: SongFacet; q?: 
     ppy.get(sid)!.set(num(r.year), num(r.c));
   }
 
-  return rows.map((r) => {
+  const pageRows = rows.map((r) => {
     const sid = num(r.song_id);
     const byYear = ppy.get(sid) ?? new Map();
     return {
@@ -180,6 +207,22 @@ export async function listSongs(opts: { sort?: SongSort; facet?: SongFacet; q?: 
       playsPerYear: years.map((y) => byYear.get(y) ?? 0),
     };
   });
+  return { rows: pageRows, total };
+}
+
+/**
+ * Fill a sparse ascending {year, count} series so every year from the first
+ * entry (the debut) through `through` renders — droughts become explicit
+ * zero-count columns instead of silently collapsing. Empty stays empty.
+ */
+export function zeroFillYears(series: { year: number; count: number }[], through: number): { year: number; count: number }[] {
+  if (series.length === 0) return series;
+  const byYear = new Map(series.map((s) => [s.year, s.count]));
+  const lo = series[0].year;
+  const hi = Math.max(series[series.length - 1].year, through);
+  const out: { year: number; count: number }[] = [];
+  for (let y = lo; y <= hi; y++) out.push({ year: y, count: byYear.get(y) ?? 0 });
+  return out;
 }
 
 export interface SongSearchRow {
@@ -217,27 +260,30 @@ export async function searchSongs(q: string, limit = 12): Promise<{ rows: SongSe
 // ── Stats cuts ────────────────────────────────────────────────────────────────
 
 export async function mostPlayed(limit = 100): Promise<SongIndexRow[]> {
-  return (await listSongs({ sort: "played" })).slice(0, limit);
+  return (await listSongs({ sort: "played", perPage: limit })).rows;
 }
 
 export async function rarities(limit = 100): Promise<SongIndexRow[]> {
   // Low-play songs, but a cover played only once is a one-off, not a rarity —
   // keep one-time originals (genuine rare gems) and any cover that recurred.
-  return (await listSongs({ sort: "rare" }))
+  // The filter runs in TS, so scan the whole catalog rather than one page.
+  return (await listSongs({ sort: "rare", perPage: Number.MAX_SAFE_INTEGER })).rows
     .filter((r) => r.timesPlayed <= 3 && (r.isOriginal || r.timesPlayed > 1))
     .slice(0, limit);
 }
 
 export async function currentGaps(limit = 100): Promise<SongIndexRow[]> {
-  return (await listSongs({ sort: "overdue" })).filter((r) => r.timesPlayed >= 5).slice(0, limit);
+  // The ≥OVERDUE_MIN_PLAYS floor is part of the overdue sort itself (listSongs).
+  return (await listSongs({ sort: "overdue", perPage: limit })).rows;
 }
 
 export async function debutsByYear(): Promise<{ year: number; count: number }[]> {
-  return allRows(await db.execute(sql`
+  const byYear = allRows(await db.execute(sql`
     with ${SHOW_SEQ},
     debut as (select song_id, min(show_date) as d from song_show group by song_id)
     select extract(year from d)::int as year, count(*)::int as count from debut group by 1 order by 1
   `)).map((r) => ({ year: num(r.year), count: num(r.count) }));
+  return zeroFillYears(byYear, new Date().getUTCFullYear());
 }
 
 export async function recentDebuts(limit = 25): Promise<{ slug: string; name: string; date: string; venue: string | null }[]> {
@@ -275,6 +321,67 @@ export async function setStats(): Promise<{ key: string; label: string; rows: { 
   return out;
 }
 
+export type StatsHubHighlights = {
+  mostPlayed: { name: string; slug: string; plays: number } | null;
+  raritiesCount: number;
+  mostOverdue: { name: string; slug: string; gap: number } | null;
+  latestDebut: { name: string; slug: string; date: string } | null;
+  topOpener: { name: string; slug: string; count: number } | null;
+};
+
+/**
+ * One headline per cut for the /stats hub, without running the five full cuts:
+ * two cheap queries (one pass over the gap CTE + one over openers). Each
+ * headline uses the same criteria and ordering as its cut page — mostPlayed
+ * mirrors listSongs "played", raritiesCount mirrors rarities(), mostOverdue
+ * applies the ≥OVERDUE_MIN_PLAYS floor, latestDebut mirrors recentDebuts(),
+ * topOpener mirrors setStats()'s show-opener bucket.
+ */
+export async function statsHubHighlights(): Promise<StatsHubHighlights> {
+  const [row] = allRows(await db.execute(sql`
+    with ${SHOW_SEQ},
+    agg as (
+      select song_id, count(*)::int as times_played,
+             min(show_date) as debut_date,
+             (select max(seq) from show_seq) - max(seq) as current_gap
+      from gapped group by song_id
+    ),
+    named as (
+      select a.*, so.name, so.slug, so.is_original
+      from agg a join songs so on so.song_id = a.song_id
+    )
+    select
+      mp.name as mp_name, mp.slug as mp_slug, mp.times_played as mp_plays,
+      (select count(*)::int from named
+       where times_played <= 3 and (is_original or times_played > 1)) as rarities_count,
+      od.name as od_name, od.slug as od_slug, od.current_gap as od_gap,
+      de.name as de_name, de.slug as de_slug, de.debut_date::text as de_date
+    from (values (1)) as one(x)
+    left join lateral (select name, slug, times_played from named
+      order by times_played desc, lower(name) asc limit 1) mp on true
+    left join lateral (select name, slug, current_gap from named
+      where times_played >= ${OVERDUE_MIN_PLAYS}
+      order by current_gap desc nulls last, times_played desc limit 1) od on true
+    left join lateral (select name, slug, debut_date from named
+      order by debut_date desc, name asc limit 1) de on true
+  `));
+  const [op] = allRows(await db.execute(sql`
+    select so.name, so.slug, count(*)::int as count
+    from performances p join songs so on so.song_id = p.song_id
+    join shows s on s.show_id = p.show_id
+    where s.show_date <= current_date
+      and p.position = 1 and (p.set_number = '1' or p.set_type = 'One Set')
+    group by so.slug, so.name order by count(*) desc, so.name asc limit 1
+  `));
+  return {
+    mostPlayed: row?.mp_slug ? { name: String(row.mp_name), slug: String(row.mp_slug), plays: num(row.mp_plays) } : null,
+    raritiesCount: num(row?.rarities_count),
+    mostOverdue: row?.od_slug ? { name: String(row.od_name), slug: String(row.od_slug), gap: num(row.od_gap) } : null,
+    latestDebut: row?.de_slug ? { name: String(row.de_name), slug: String(row.de_slug), date: String(row.de_date) } : null,
+    topOpener: op ? { name: String(op.name), slug: String(op.slug), count: num(op.count) } : null,
+  };
+}
+
 // ── Song detail ───────────────────────────────────────────────────────────────
 
 export async function getSongBySlug(slug: string): Promise<SongStat | null> {
@@ -309,13 +416,16 @@ export async function getSongBySlug(slug: string): Promise<SongStat | null> {
   const denom = num(rot?.denom) || 1;
   const rotationPct = Math.round((timesPlayed / denom) * 1000) / 10;
 
-  // plays per year
-  const ppy = allRows(await db.execute(sql`
-    select extract(year from s.show_date)::int as year, count(*)::int as count
-    from performances p join shows s on s.show_id = p.show_id
-    where p.song_id = ${songId} and s.show_date <= current_date
-    group by 1 order by 1
-  `)).map((r) => ({ year: num(r.year), count: num(r.count) }));
+  // plays per year, zero-filled debut→today so droughts stay visible
+  const ppy = zeroFillYears(
+    allRows(await db.execute(sql`
+      select extract(year from s.show_date)::int as year, count(*)::int as count
+      from performances p join shows s on s.show_id = p.show_id
+      where p.song_id = ${songId} and s.show_date <= current_date
+      group by 1 order by 1
+    `)).map((r) => ({ year: num(r.year), count: num(r.count) })),
+    new Date().getUTCFullYear(),
+  );
 
   // set placement percentages
   const place = allRows(await db.execute(sql`

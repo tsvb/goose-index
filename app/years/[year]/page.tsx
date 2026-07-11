@@ -50,7 +50,7 @@ export default async function YearPage({ params }: Params) {
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { href: "/shows", label: "Shows" }, { label: String(year) }]} />
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { href: "/years", label: "Years" }, { label: String(year) }]} />
           <h1>{year}</h1>
           <p className="doc-crumb">{rows.length} {rows.length === 1 ? "show" : "shows"}</p>
           <ShowTable shows={rows} />
@@ -66,7 +66,7 @@ export default async function YearPage({ params }: Params) {
         <div className="stage-glow inset-x-0 top-0 h-72" />
         <Container className="relative py-14 sm:py-20">
           <span className="eyebrow rise" style={{ animationDelay: "0ms" }}>
-            The year
+            <Link href="/years" className="transition hover:text-gold">Years</Link>
           </span>
           <h1
             className="rise mt-4 font-display text-[5rem] leading-none tracking-tight text-ink sm:text-[7rem]"
@@ -99,6 +99,12 @@ export default async function YearPage({ params }: Params) {
             ) : (
               <span className="invisible select-none px-3 py-1.5">‹ prev</span>
             )}
+            <Link
+              href="/years"
+              className="rounded border border-line px-3 py-1.5 text-muted transition hover:border-gold/55 hover:text-gold"
+            >
+              All years
+            </Link>
             {nextYear && (
               <Link
                 href={`/years/${nextYear}`}

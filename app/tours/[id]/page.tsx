@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
@@ -66,7 +67,7 @@ export default async function TourPage({ params }: Params) {
         <div className="stage-glow inset-x-0 top-0 h-72" />
         <Container className="relative py-12 sm:py-16">
           <span className="eyebrow rise" style={{ animationDelay: "0ms" }}>
-            Tour
+            <Link href="/tours" className="transition hover:text-gold">Tours</Link>
           </span>
           <h1
             className="rise mt-3 font-display text-[2.4rem] leading-none tracking-tight text-ink sm:text-5xl"
@@ -96,7 +97,7 @@ export default async function TourPage({ params }: Params) {
         ) : (
           <div className="surface-card overflow-hidden px-2">
             {shows.map((show) => (
-              <ShowRow key={show.showId} show={show} />
+              <ShowRow key={show.showId} show={show} context="tour" />
             ))}
           </div>
         )}

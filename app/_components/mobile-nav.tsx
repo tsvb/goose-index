@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, Search } from "./marks";
@@ -14,11 +14,36 @@ const NAV = [
   { href: "/tours", label: "Tours" },
 ];
 
+// Document-level behavior while the sheet is open: Escape dismisses it (the
+// settings popover's contract) and the page behind stays put. Returns the
+// cleanup; exported so the node tests can drive it without a DOM.
+export function bindSheetDismissal(doc: Document, close: () => void): () => void {
+  function onKey(e: KeyboardEvent) {
+    if (e.key === "Escape") close();
+  }
+  doc.addEventListener("keydown", onKey);
+  const prevOverflow = doc.body.style.overflow;
+  doc.body.style.overflow = "hidden";
+  return () => {
+    doc.removeEventListener("keydown", onKey);
+    doc.body.style.overflow = prevOverflow;
+  };
+}
+
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const router = useRouter();
   const pathname = usePathname();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    return bindSheetDismissal(document, () => {
+      setOpen(false);
+      triggerRef.current?.focus();
+    });
+  }, [open]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,6 +57,7 @@ export function MobileNav() {
   return (
     <div className="lg:hidden">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label={open ? "Close menu" : "Open menu"}
@@ -43,14 +69,16 @@ export function MobileNav() {
 
       {open && (
         <>
+          {/* Offsets track the live header's height via --header-h, set per
+              experience on each <header> (fancy h-16, functional h-12). */}
           <button
             type="button"
             aria-hidden
             tabIndex={-1}
             onClick={() => setOpen(false)}
-            className="fixed inset-0 top-16 z-30 cursor-default bg-bg-deep/50"
+            className="fixed inset-0 top-[var(--header-h,4rem)] z-30 cursor-default bg-bg-deep/50"
           />
-          <div className="fixed inset-x-0 top-16 z-40 border-b border-line bg-bg shadow-[0_24px_48px_-20px_var(--shadow)]">
+          <div className="fixed inset-x-0 top-[var(--header-h,4rem)] z-40 max-h-[calc(100dvh-var(--header-h,4rem))] overflow-y-auto overscroll-contain border-b border-line bg-bg shadow-[0_24px_48px_-20px_var(--shadow)]">
             <div className="space-y-5 px-5 py-6">
               <form onSubmit={submit} className="group relative">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint group-focus-within:text-gold" />

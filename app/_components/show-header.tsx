@@ -59,9 +59,10 @@ export function ShowHeader({
               ...(show.venue ? [{ k: "Venue", v: show.venueId ? <Link href={`/venues/${show.venueId}`}>{show.venue}</Link> : show.venue }] : []),
               ...(loc ? [{ k: "Location", v: loc }] : []),
               ...(show.tour ? [{ k: "Tour", v: show.tourId ? <Link href={`/tours/${show.tourId}`}>{show.tour}</Link> : show.tour }] : []),
-              { k: "Songs", v: `${setlist.length} · ${setCount} ${setCount === 1 ? "set" : "sets"}${encores > 0 ? ` + ${encores} encore${encores === 1 ? "" : "s"}` : ""}${durationLogged ? ` · ${durationLogged}` : ""}` },
+              { k: "Songs", v: setlist.length === 0 ? "Setlist not yet posted" : `${setlist.length} · ${setCount} ${setCount === 1 ? "set" : "sets"}${encores > 0 ? ` + ${encores} encore${encores === 1 ? "" : "s"}` : ""}${durationLogged ? ` · ${durationLogged}` : ""}` },
               ...(show.permalink ? [{ k: "Source", v: <a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer">elgoose.net</a> }] : []),
-              { k: "Listen", v: <ShowNugs date={date} venue={show.venue} minimal /> },
+              // Nothing to play yet — a Listen row on an empty show is a dead end.
+              ...(setlist.length > 0 ? [{ k: "Listen", v: <ShowNugs date={date} venue={show.venue} minimal /> }] : []),
             ]}
           />
         </Doc>
@@ -74,20 +75,28 @@ export function ShowHeader({
       <Container className="py-5">
         <div className="w2-panel flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="text-[1.7rem] font-extrabold leading-none tracking-tight text-ink">
+            {/* A real h1 (functional pages had zero headings) — element only,
+                the classes keep the same rendering as the old div. */}
+            <h1 className="text-[1.7rem] font-extrabold leading-none tracking-tight text-ink">
               {dp.month} {dp.day}, {dp.year}
-            </div>
+            </h1>
             <div className="mt-1 text-sm font-semibold text-muted">
               {show.venueId ? <Link href={`/venues/${show.venueId}`} className="text-gold hover:underline">{show.venue}</Link> : (show.venue ?? "Unknown venue")}
               {loc ? ` · ${loc}` : ""}{show.tour ? ` · ${show.tour}` : ""}
             </div>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              <span className="w2-badge">{setlist.length} songs</span>
-              <span className="w2-badge">{setCount} {setCount === 1 ? "set" : "sets"}</span>
-              {encores > 0 && <span className="w2-badge">{encores} enc</span>}
-              {durationLogged && <span className="w2-badge gold">{durationLogged}</span>}
-            </div>
-            <div className="mt-3"><ShowNugs date={date} venue={show.venue} /></div>
+            {setlist.length === 0 ? (
+              <div className="mt-3 text-sm font-semibold text-muted">Setlist not yet posted — check back soon.</div>
+            ) : (
+              <>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  <span className="w2-badge">{setlist.length} songs</span>
+                  <span className="w2-badge">{setCount} {setCount === 1 ? "set" : "sets"}</span>
+                  {encores > 0 && <span className="w2-badge">{encores} enc</span>}
+                  {durationLogged && <span className="w2-badge gold">{durationLogged}</span>}
+                </div>
+                <div className="mt-3"><ShowNugs date={date} venue={show.venue} /></div>
+              </>
+            )}
           </div>
         </div>
       </Container>
@@ -122,14 +131,25 @@ export function ShowHeader({
           </span>
         )}
         <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs text-faint">
-          <span><span className="text-ink">{setlist.length}</span> songs</span>
-          <span className="text-line">·</span>
-          <span><span className="text-ink">{setCount}</span> {setCount === 1 ? "set" : "sets"}</span>
-          {encores > 0 && (<><span className="text-line">·</span><span><span className="text-ink">{encores}</span> {encores === 1 ? "encore" : "encores"}</span></>)}
-          {durationLogged && (<><span className="text-line">·</span><span><span className="text-ink">{durationLogged}</span> logged</span></>)}
-          {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className="text-sage transition hover:text-ink">View on elgoose ↗</a></>)}
-          <span className="text-line">·</span>
-          <ShowNugs date={date} venue={show.venue} />
+          {setlist.length === 0 ? (
+            // Nothing logged yet — "0 songs · 0 sets" and dead Listen buttons
+            // would read like a broken page, not a pending one.
+            <>
+              <span>Setlist not yet in the ledger — check back soon</span>
+              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className="text-sage transition hover:text-ink">View on elgoose ↗</a></>)}
+            </>
+          ) : (
+            <>
+              <span><span className="text-ink">{setlist.length}</span> songs</span>
+              <span className="text-line">·</span>
+              <span><span className="text-ink">{setCount}</span> {setCount === 1 ? "set" : "sets"}</span>
+              {encores > 0 && (<><span className="text-line">·</span><span><span className="text-ink">{encores}</span> {encores === 1 ? "encore" : "encores"}</span></>)}
+              {durationLogged && (<><span className="text-line">·</span><span><span className="text-ink">{durationLogged}</span> logged</span></>)}
+              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className="text-sage transition hover:text-ink">View on elgoose ↗</a></>)}
+              <span className="text-line">·</span>
+              <ShowNugs date={date} venue={show.venue} />
+            </>
+          )}
         </div>
       </Container>
     </header>

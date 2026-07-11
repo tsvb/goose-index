@@ -20,3 +20,24 @@ describe("SiteFooter variants", () => {
     expect(html).not.toContain("Browse");
   });
 });
+
+describe("SiteFooter edition line", () => {
+  it("fancy names the 3.0 edition and points at the gear", () => {
+    const html = renderToStaticMarkup(<FooterFancy />);
+    expect(html).toContain("3.0");
+    expect(html).toContain("gear in the header");
+    expect(html).toContain("2.0 (dense)");
+    expect(html).toContain("1.0 (plain text)");
+  });
+  it("functional names the 2.0 edition and its alternatives", () => {
+    const html = renderToStaticMarkup(<FooterFunctional />);
+    expect(html).toContain("2.0 edition");
+    expect(html).toContain("3.0 (immersive)");
+    expect(html).toContain("1.0 (plain text)");
+  });
+  it("minimal names the 1.0 edition and points at the Settings link", () => {
+    const html = renderToStaticMarkup(<FooterMinimal />);
+    expect(html).toContain("1.0 (plain text) edition");
+    expect(html).toContain("Settings link in the header");
+  });
+});

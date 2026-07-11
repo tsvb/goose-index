@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Container } from "./container";
+import { NavLink } from "./nav-links";
 import { SearchBox } from "./search-box";
 import { MobileNav } from "./mobile-nav";
 import { SettingsMenu } from "./settings-menu";
@@ -18,7 +19,8 @@ const NAV = [
 
 export function HeaderFancy({ experience }: { experience: Experience }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-line/80 bg-bg/85 backdrop-blur-md">
+    // --header-h mirrors the Container's h-16 — MobileNav offsets its sheet from it.
+    <header className="sticky top-0 z-40 border-b border-line/80 bg-bg/85 backdrop-blur-md [--header-h:4rem]">
       <Container className="flex h-16 items-center justify-between gap-4">
         <Link href="/" className="group flex items-center gap-2.5 shrink-0">
           <span className="grid h-9 w-9 place-items-center rounded-full border border-line text-gold transition group-hover:border-gold group-hover:rotate-[8deg]">
@@ -28,11 +30,17 @@ export function HeaderFancy({ experience }: { experience: Experience }) {
             Goose <span className="italic text-gold">Index</span>
           </span>
         </Link>
-        <nav className="hidden items-center gap-4 text-[0.9rem] text-muted lg:flex">
+        <nav aria-label="Primary" className="hidden items-center gap-4 text-[0.9rem] text-muted lg:flex">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="relative whitespace-nowrap py-1 transition hover:text-ink">
+            <NavLink
+              key={n.href}
+              href={n.href}
+              className="relative whitespace-nowrap py-1 transition"
+              activeClassName="text-gold"
+              inactiveClassName="hover:text-ink"
+            >
               {n.label}
-            </Link>
+            </NavLink>
           ))}
         </nav>
         <div className="flex items-center gap-2">
@@ -47,14 +55,15 @@ export function HeaderFancy({ experience }: { experience: Experience }) {
 
 export function HeaderFunctional({ experience }: { experience: Experience }) {
   return (
-    <header className="w2-appbar sticky top-0 z-40">
+    // --header-h mirrors the Container's h-12 — MobileNav offsets its sheet from it.
+    <header className="w2-appbar sticky top-0 z-40 [--header-h:3rem]">
       <Container className="flex h-12 items-center justify-between gap-4">
         <Link href="/" className="w2-brand flex items-center text-[1.05rem]">
           Goose Index<span className="w2-beta">BETA</span>
         </Link>
-        <nav className="hidden items-center gap-1 text-[0.8rem] lg:flex">
+        <nav aria-label="Primary" className="hidden items-center gap-1 text-[0.8rem] lg:flex">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="w2-navlink whitespace-nowrap">{n.label}</Link>
+            <NavLink key={n.href} href={n.href} className="w2-navlink whitespace-nowrap">{n.label}</NavLink>
           ))}
         </nav>
         <div className="flex items-center gap-2">
@@ -74,9 +83,9 @@ export function HeaderMinimal({ experience }: { experience: Experience }) {
         <Link href="/" className="font-medium underline">Goose Index</Link>
         <span className="text-faint" aria-hidden>·</span>
         {NAV.map((n) => (
-          <Link key={n.href} href={n.href} className="underline">{n.label}</Link>
+          <NavLink key={n.href} href={n.href} className="underline" activeClassName="font-semibold">{n.label}</NavLink>
         ))}
-        <Link href="/search" className="underline">Search</Link>
+        <NavLink href="/search" className="underline" activeClassName="font-semibold">Search</NavLink>
         <span className="ml-auto"><SettingsMenu current={experience} /></span>
       </Container>
     </header>

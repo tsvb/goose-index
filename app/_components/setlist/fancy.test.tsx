@@ -41,14 +41,35 @@ describe("SetlistFancy", () => {
     expect(html.match(/>1<\/a><\/sup>/g)).toHaveLength(2);
     expect(html).not.toContain("cursor-help");
   });
+  it("renders set labels as h2 — no h1→h3 skip under the show page's h1", () => {
+    const html = renderToStaticMarkup(
+      <SetlistFancy entries={[entry({ song: "Madhuvan" })]} showDate="2024-04-20" venue={null} />,
+    );
+    expect(html).toContain("<h2");
+    expect(html).not.toContain("<h3");
+  });
   it("renders an empty-state when there are no entries", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
     expect(html).toContain("No setlist");
   });
-  it("links the song and marks a Dusted Off return", () => {
+  it("links the song and marks a Dusted Off return with an explanatory title", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[entry({ song: "Hot Tea", slug: "hot-tea", gap: 52, isDustedOff: true })]} showDate="2024-04-20" venue={null} />);
     expect(html).toContain('href="/songs/hot-tea"');
     expect(html).toContain("Dusted Off");
+    expect(html).toContain('title="First play in 52 shows"');
+  });
+  it("renders a one-line legend decoding the marks, but not on the empty state", () => {
+    const html = renderToStaticMarkup(<SetlistFancy entries={[entry({ song: "Hot Tea" })]} showDate="2024-04-20" venue={null} />);
+    expect(html).toContain("Reading the ledger");
+    expect(html).toContain("segue");
+    expect(html).toContain("jam chart pick");
+    expect(html).toContain("first play in n shows");
+    const empty = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
+    expect(empty).not.toContain("Reading the ledger");
+  });
+  it("labels the per-track listen link for assistive tech", () => {
+    const html = renderToStaticMarkup(<SetlistFancy entries={[entry({ song: "Hot Tea" })]} showDate="2024-04-20" venue={null} />);
+    expect(html).toContain('aria-label="Listen to Hot Tea on nugs"');
   });
   it("emits a per-track applenugs link", () => {
     const html = renderToStaticMarkup(

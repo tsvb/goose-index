@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { AnchorFlash } from "@/app/_components/anchor-flash";
 import { Container } from "@/app/_components/container";
 import { ShowList } from "@/app/_components/show-list";
 import { ArrowLeft, ArrowRight } from "@/app/_components/marks";
@@ -66,7 +67,7 @@ export default async function ShowsBrowsePage({
   const experience = await getExperience();
 
   const flipDir = dir === "asc" ? "desc" : "asc";
-  const dirLabel = dir === "asc" ? "Oldest → Newest" : "Newest → Oldest";
+  // The toggle reads as the action it performs; countLine states the current order.
   const flipDirLabel = dir === "asc" ? "Show newest first" : "Show oldest first";
 
   const scope = selectedTour ? selectedTour.name : year ? `in ${year}` : null;
@@ -80,6 +81,7 @@ export default async function ShowsBrowsePage({
   if (experience === "minimal") {
     return (
       <Container className="py-8">
+        <AnchorFlash />
         <Doc>
           <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Shows" }]} />
           <h1>{selectedTour ? selectedTour.name : year ? `Shows in ${year}` : "All shows"}</h1>
@@ -87,6 +89,7 @@ export default async function ShowsBrowsePage({
           <p className="doc-crumb">
             Years: <Link href={href({ year: null })}>All</Link>
             {years.map((y) => (<span key={y.year}> · <Link href={href({ year: y.year })}>{y.year}</Link></span>))}
+            {year ? <span> · <Link href={`/years/${year}`}>Year {year} page →</Link></span> : null}
           </p>
           {tourOptions.length > 0 && (
             <p className="doc-crumb">
@@ -98,7 +101,7 @@ export default async function ShowsBrowsePage({
             Per page: {SHOWS_PER_OPTIONS.map((n, i) => (
               <span key={n}>{i > 0 ? " · " : ""}<Link href={href({ per: n })}>{n}</Link></span>
             ))}
-            {" · "}Sort: <Link href={href({ dir: flipDir })}>{dirLabel}</Link>
+            {" · "}Sort: <Link href={href({ dir: flipDir })}>{flipDirLabel}</Link>
             {jumpHref ? <> {" · "}<Link href={jumpHref}>{jumpLabel}</Link></> : null}
           </p>
           <ShowTable shows={rows} />
@@ -116,6 +119,7 @@ export default async function ShowsBrowsePage({
 
   return (
     <>
+      <AnchorFlash />
       {/* Header */}
       <header className="relative overflow-hidden border-b border-line">
         <div className="stage-glow inset-x-0 top-0 h-72" />
@@ -141,21 +145,29 @@ export default async function ShowsBrowsePage({
       <Container className="py-10">
         {/* Year filter + sort */}
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <Link href={href({ year: null })} className={pillClass(!year)}>All</Link>
             {years.map((y) => (
               <Link key={y.year} href={href({ year: y.year })} className={pillClass(year === y.year)}>
                 {y.year}
               </Link>
             ))}
+            {year != null && (
+              <Link
+                href={`/years/${year}`}
+                className="group ml-1.5 flex shrink-0 items-center gap-1.5 font-mono text-xs text-sage transition hover:text-ink"
+              >
+                Year {year} page
+                <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+              </Link>
+            )}
           </div>
 
           <Link
             href={href({ dir: flipDir })}
             className="shrink-0 rounded border border-line px-3 py-1.5 font-mono text-xs text-muted transition hover:border-gold hover:text-gold"
-            title={flipDirLabel}
           >
-            {dirLabel}
+            {flipDirLabel}
           </Link>
         </div>
 
@@ -217,7 +229,7 @@ export default async function ShowsBrowsePage({
                   Previous
                 </Link>
               ) : (
-                <span className="flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-faint opacity-40 select-none">
+                <span aria-disabled="true" className="flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-faint opacity-40 select-none">
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Previous
                 </span>
@@ -238,7 +250,7 @@ export default async function ShowsBrowsePage({
                   <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
                 </Link>
               ) : (
-                <span className="flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-faint opacity-40 select-none">
+                <span aria-disabled="true" className="flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-faint opacity-40 select-none">
                   Next
                   <ArrowRight className="h-3.5 w-3.5" />
                 </span>

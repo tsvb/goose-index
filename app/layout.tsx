@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Hanken_Grotesk, JetBrains_Mono, IBM_Plex_Sans, IBM
 import "./globals.css";
 import { SiteHeader } from "./_components/site-header";
 import { SiteFooter } from "./_components/site-footer";
+import { SkipLink } from "./_components/skip-link";
 import { getExperience } from "@/lib/experience.server";
 import { JsonLd } from "./_components/json-ld";
 import { siteJsonLd } from "@/lib/jsonld";
@@ -80,9 +81,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <JsonLd data={siteJsonLd()} />
       </head>
       <body className="flex min-h-screen flex-col">
+        <SkipLink />
         {experience === "fancy" && <div className="grain-overlay" aria-hidden />}
         <SiteHeader />
-        <main className="flex-1">{children}</main>
+        <main id="main" className="flex-1">{children}</main>
         <SiteFooter />
       </body>
     </html>

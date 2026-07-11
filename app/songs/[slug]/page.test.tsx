@@ -1,0 +1,101 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
+import type { SongStat, SongPerf } from "@/lib/queries/songs";
+
+const h = vi.hoisted(() => ({
+  experience: "fancy",
+  song: null as Record<string, unknown> | null,
+  perfs: [] as Record<string, unknown>[],
+  perfsQueried: false,
+}));
+
+vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("notFound"); } }));
+vi.mock("@/lib/experience.server", () => ({ getExperience: async () => h.experience }));
+vi.mock("@/lib/queries/songs", () => ({
+  getSongBySlug: async () => h.song as unknown as SongStat | null,
+  getSongPerformances: async () => {
+    h.perfsQueried = true;
+    return h.perfs as unknown as SongPerf[];
+  },
+}));
+// Chart/table children are exercised by their own colocated tests; stubs keep
+// this test on the played/never-played branch.
+vi.mock("@/app/_components/song", () => ({
+  FactRibbon: () => <div data-stub="ribbon" />,
+  PlaysPerYearChart: () => null,
+  SetPlacementBars: () => null,
+  GapSparkline: () => null,
+  PerformanceTable: () => <table data-stub="perf-table" />,
+}));
+
+import SongPage from "./page";
+
+function song(overrides: Partial<SongStat> = {}): SongStat {
+  return {
+    songId: 1, name: "Creatures", slug: "creatures", isOriginal: true, originalArtist: null,
+    timesPlayed: 0, debutDate: null, debutShowId: null, debutOrder: null,
+    lastPlayedDate: null, lastShowId: null, lastOrder: null,
+    currentGap: null, longestGap: null, avgGap: null, rotationPct: 0, longestSeconds: null,
+    playsPerYear: [], setPlacement: { set1: 0, set2: 0, encore: 0, opener: 0, jammed: 0 },
+    longestVersions: [], topVenues: [], ...overrides,
+  };
+}
+
+async function render(slug = "creatures") {
+  const el = await SongPage({ params: Promise.resolve({ slug }) });
+  return renderToStaticMarkup(el);
+}
+
+beforeEach(() => {
+  h.experience = "fancy";
+  h.song = song();
+  h.perfs = [];
+  h.perfsQueried = false;
+});
+
+describe("SongPage for a never-played song", () => {
+  it("fancy replaces ribbon/charts/table with the songbook empty state", async () => {
+    const html = await render();
+    expect(html).toContain("In the songbook, but never yet played live.");
+    expect(html).toContain("Creatures");
+    expect(html).not.toContain("data-stub"); // no ribbon, no performance table
+    expect(html).not.toContain("Every performance");
+    expect(html).toContain('href="/songs"');
+    expect(html).toContain('href="/stats/debuts"');
+  });
+  it("skips the performances query entirely", async () => {
+    await render();
+    expect(h.perfsQueried).toBe(false);
+  });
+  it("minimal gets the same message as plain prose", async () => {
+    h.experience = "minimal";
+    const html = await render();
+    expect(html).toContain("In the songbook, but never yet played live");
+    expect(html).toContain("<h1");
+    expect(html).not.toContain("doc-table");
+  });
+  it("functional shares the fancy body", async () => {
+    h.experience = "functional";
+    const html = await render();
+    expect(html).toContain("In the songbook, but never yet played live.");
+  });
+});
+
+describe("SongPage for a played song", () => {
+  it("keeps the ribbon and performance table", async () => {
+    h.song = song({ timesPlayed: 2, debutDate: "2021-06-01", lastPlayedDate: "2024-04-20" });
+    h.perfs = [];
+    const html = await render();
+    expect(html).toContain('data-stub="ribbon"');
+    expect(html).toContain('data-stub="perf-table"');
+    expect(html).not.toContain("never yet played live");
+  });
+  it("steps h1 → h2 with no skipped level (sections are h2, not h3)", async () => {
+    h.song = song({ timesPlayed: 2, debutDate: "2021-06-01", lastPlayedDate: "2024-04-20" });
+    h.perfs = [];
+    const html = await render();
+    expect(html.match(/<h1/g)).toHaveLength(1);
+    expect(html).toContain("<h2");
+    expect(html).not.toContain("<h3");
+  });
+});

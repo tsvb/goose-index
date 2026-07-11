@@ -19,7 +19,7 @@ export function FooterFancy() {
             each night.
           </p>
         </div>
-        <nav className="flex flex-col gap-2 text-sm text-muted">
+        <nav aria-label="Footer" className="flex flex-col gap-2 text-sm text-muted">
           <span className="eyebrow mb-1">Browse</span>
           <Link href="/shows" className="transition hover:text-ink">All shows</Link>
           <Link href="/songs" className="transition hover:text-ink">Songs</Link>
@@ -39,6 +39,13 @@ export function FooterFancy() {
           </p>
         </div>
       </Container>
+      {/* Edition line — names the current experience and points at its switcher. */}
+      <div className="border-t border-line-soft">
+        <Container className="py-4 text-center font-mono text-xs text-faint">
+          You&rsquo;re reading the <span className="text-gold">3.0</span> edition — the gear in the header
+          switches to 2.0 (dense) or 1.0 (plain text).
+        </Container>
+      </div>
       <div className="border-t border-line-soft">
         <Container className="flex flex-col items-center justify-between gap-2 py-5 text-xs text-faint sm:flex-row">
           <span className="font-mono">© {new Date().getFullYear()} Goose Index</span>
@@ -55,6 +62,7 @@ export function FooterFunctional() {
       <div style={{ textShadow: "0 -1px 0 rgba(0,0,0,.2)" }}>
         <Container className="flex flex-col items-center justify-between gap-2 py-4 text-xs text-white sm:flex-row">
           <span>© {new Date().getFullYear()} Goose Index · data from elgoose.net</span>
+          <span>You&rsquo;re on the 2.0 edition — the gear up top switches to 3.0 (immersive) or 1.0 (plain text).</span>
           <span>Not affiliated with Goose. Built by fans.</span>
         </Container>
       </div>
@@ -66,9 +74,15 @@ export function FooterMinimal() {
   return (
     <footer className="mt-16 border-t border-line">
       <Container className="py-6 text-sm text-muted">
-        Goose Index — setlist data from{" "}
-        <a href="https://elgoose.net" target="_blank" rel="noreferrer">elgoose.net</a>. A
-        non-commercial fan project, not affiliated with Goose.
+        <p>
+          Goose Index — setlist data from{" "}
+          <a href="https://elgoose.net" target="_blank" rel="noreferrer">elgoose.net</a>. A
+          non-commercial fan project, not affiliated with Goose.
+        </p>
+        <p className="mt-2">
+          This is the 1.0 (plain text) edition — the Settings link in the header switches to the
+          3.0 (immersive) or 2.0 (dense) editions.
+        </p>
       </Container>
     </footer>
   );

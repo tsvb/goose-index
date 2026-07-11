@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { sql } from "drizzle-orm";
 import { makeTestDb } from "@/db/testing";
 import {
   upsertArtists, upsertVenues, upsertTours, upsertSongs, upsertShows, upsertPerformances,
@@ -215,5 +216,42 @@ describe("getShowNeighbors", () => {
     expect(first.prev).toBeNull();
     const last = await getShowNeighbors("2022-06-26", 1);
     expect(last.next).toBeNull();
+  });
+});
+
+describe("getTonightShows", () => {
+  it("returns an empty list when no show is dated today", async () => {
+    await seed();
+    const { getTonightShows } = await import("./shows");
+    expect(await getTonightShows()).toEqual([]);
+  });
+
+  it("returns only today's shows, in show order", async () => {
+    // The db decides what "today" is (avoids TZ drift between JS and Postgres).
+    const res = await (ctx.db as unknown as { execute: (q: unknown) => Promise<unknown> })
+      .execute(sql`select current_date::text as today, (current_date + 1)::text as tomorrow`);
+    const rows = (Array.isArray(res) ? res : (res as { rows: unknown[] }).rows) as { today: string; tomorrow: string }[];
+    const { today, tomorrow } = rows[0];
+    // Two shows today (seeded out of order) and one tomorrow.
+    await upsertShows(ctx.db, [
+      { showId: 60, showDate: today, showOrder: 2 },
+      { showId: 61, showDate: today, showOrder: 1 },
+      { showId: 62, showDate: tomorrow, showOrder: 1 },
+    ].map((s) => ({
+      ...s, artistId: 1, venueId: 1, tourId: null,
+      title: null, permalink: `p${s.showId}`, notes: null, createdAt: null, updatedAt: null,
+    })));
+
+    const { getTonightShows } = await import("./shows");
+    const tonight = await getTonightShows();
+    expect(tonight.map((s) => s.showId)).toEqual([61, 60]);
+    expect(tonight.every((s) => s.date === today)).toBe(true);
+  });
+
+  it("keeps today inside getRecentShows — the home page filters it out itself", async () => {
+    const { getRecentShows } = await import("./shows");
+    const recent = await getRecentShows(3);
+    expect(recent[0].showId).toBe(60); // today, highest show order first
+    expect(recent.map((s) => s.showId)).not.toContain(62); // tomorrow stays upcoming
   });
 });

@@ -70,56 +70,60 @@ export function SetlistFunctional({ entries, showDate, venue }: { entries: Setli
           ★ Jams only
         </button>
       </div>
-      <table className="w2-table text-sm">
-        <thead>
-          <tr>
-            <th>Set</th>
-            <th>#</th>
-            <th className="w-full">Song</th>
-            <th aria-label="Segue">→</th>
-            <th className="text-right">Time</th>
-            <th>Jam</th>
-            <th aria-label="Listen"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.e.uniqueId} className="nugs-row">
-              <td className="text-faint">{r.set}</td>
-              <td className="tabular-nums text-faint">{r.n}</td>
-              <td className="font-semibold text-ink">
-                {r.e.slug ? <a href={`/songs/${r.e.slug}`} className="hover:underline">{r.e.song}</a> : r.e.song}
-                {r.e.footnote ? (
-                  <sup className="ml-0.5">
-                    <a
-                      href={`#w2fn-${r.e.uniqueId}`}
-                      aria-label={`Note ${fnIndex.get(r.e.uniqueId)} for ${r.e.song}`}
-                      className="font-bold text-gold-soft hover:underline"
-                    >
-                      {fnIndex.get(r.e.uniqueId)}
-                    </a>
-                  </sup>
-                ) : null}
-                {r.e.isDustedOff ? <span className="w2-badge gold ml-2">{RETURN_LABEL} · {r.e.gap}</span> : null}
-              </td>
-              <td className="font-extrabold text-gold">{isSegue(r.e.transition) ? "›" : ""}</td>
-              <td className="text-right tabular-nums text-muted">{r.e.trackTime ?? "—"}</td>
-              <td>{r.e.isJamchart ? <span className="w2-star" title={r.e.jamchartNotes ?? undefined}>★ JAM</span> : <span className="text-faint">·</span>}</td>
-              <td>
-                <NugsLink
-                  href={nugsTrackHref({ date: showDate, venue, song: r.e.song, set: r.e.setNumber, pos: r.e.position })}
-                  fallback={nugsWebFallback({ date: showDate, venue })}
-                  className="nugs-track"
-                  title={`Listen to ${r.e.song} on nugs`}
-                >▷</NugsLink>
-              </td>
+      <div className="w2-scroll">
+        <table className="w2-table text-sm">
+          <thead>
+            <tr>
+              <th>Set</th>
+              <th>#</th>
+              <th className="w-full">Song</th>
+              <th aria-label="Segue">→</th>
+              <th className="text-right">Time</th>
+              <th>Jam</th>
+              <th aria-label="Listen"></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.e.uniqueId} className="nugs-row">
+                <td className="text-faint">{r.set}</td>
+                <td className="tabular-nums text-faint">{r.n}</td>
+                <td className="font-semibold text-ink">
+                  {r.e.slug ? <a href={`/songs/${r.e.slug}`} className="hover:underline">{r.e.song}</a> : r.e.song}
+                  {r.e.footnote ? (
+                    <sup className="ml-0.5">
+                      <a
+                        href={`#w2fn-${r.e.uniqueId}`}
+                        aria-label={`Note ${fnIndex.get(r.e.uniqueId)} for ${r.e.song}`}
+                        className="font-bold text-gold-soft hover:underline"
+                      >
+                        {fnIndex.get(r.e.uniqueId)}
+                      </a>
+                    </sup>
+                  ) : null}
+                  {r.e.isDustedOff ? <span className="w2-badge gold ml-2" title={`First play in ${r.e.gap} shows`}>{RETURN_LABEL} · {r.e.gap}</span> : null}
+                </td>
+                <td className="font-extrabold text-gold">{isSegue(r.e.transition) ? "›" : ""}</td>
+                <td className="text-right tabular-nums text-muted">{r.e.trackTime ?? "—"}</td>
+                <td>{r.e.isJamchart ? <span className="w2-star" title={r.e.jamchartNotes ?? undefined}>★ JAM</span> : <span className="text-faint">·</span>}</td>
+                <td>
+                  <NugsLink
+                    href={nugsTrackHref({ date: showDate, venue, song: r.e.song, set: r.e.setNumber, pos: r.e.position })}
+                    fallback={nugsWebFallback({ date: showDate, venue })}
+                    className="nugs-track"
+                    title={`Listen to ${r.e.song} on nugs`}
+                    ariaLabel={`Listen to ${r.e.song} on nugs`}
+                  >▷</NugsLink>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {noteRows.length > 0 && (
         <div className="w2-panel mt-3">
-          <h3 className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-[#1f5e93]">Notes</h3>
+          {/* h2, not h3 — sits directly under the page's h1 (the date). */}
+          <h2 className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-[#1f5e93]">Notes</h2>
           <ul className="space-y-1 text-sm">
             {noteRows.map((n) => (
               <li key={n.key} id={n.id} className="flex gap-2">

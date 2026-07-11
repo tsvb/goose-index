@@ -39,27 +39,42 @@ export function ShowCard({ show, className }: { show: ShowSummary; className?: s
   );
 }
 
-/** Dense ledger row — browse lists, dimension pages. */
-export function ShowRow({ show }: { show: ShowSummary }) {
+/**
+ * Dense ledger row — browse lists, dimension pages.
+ *
+ * `context` keeps the row from repeating what its page already says:
+ * on a venue page ("venue") the date takes the display slot and the tour
+ * replaces the venue/location line; on a tour page ("tour") the repeated
+ * tour eyebrow drops.
+ */
+export function ShowRow({ show, context }: { show: ShowSummary; context?: "venue" | "tour" }) {
   const dp = dateParts(show.date);
   const loc = locationLine(show.city, show.state, show.country);
+  const onVenue = context === "venue";
   return (
     <Link
       href={showHref(show.date, show.order)}
-      className="group grid grid-cols-[5.5rem_1fr_auto] items-center gap-4 rounded-md border-b border-line-soft px-2 py-3.5 transition last:border-0 hover:bg-surface"
+      className={clsx(
+        "group grid items-center gap-4 rounded-md border-b border-line-soft px-2 py-3.5 transition last:border-0 hover:bg-surface",
+        onVenue ? "grid-cols-[1fr_auto]" : "grid-cols-[5.5rem_1fr_auto]",
+      )}
     >
-      <div className="shrink-0">
-        <div className="font-mono text-sm tabular-nums text-gold-soft">{show.date}</div>
-        <div className="font-mono text-[0.62rem] uppercase tracking-wider text-faint">{dp.weekday.slice(0, 3)}</div>
-      </div>
+      {!onVenue && (
+        <div className="shrink-0">
+          <div className="font-mono text-sm tabular-nums text-gold-soft">{show.date}</div>
+          <div className="font-mono text-[0.62rem] uppercase tracking-wider text-faint">{dp.weekday.slice(0, 3)}</div>
+        </div>
+      )}
       <div className="min-w-0">
         <div className="truncate font-display text-base text-ink transition group-hover:text-gold">
-          {show.venue ?? "Unknown venue"}
+          {onVenue ? `${dp.month} ${dp.day}, ${dp.year}` : (show.venue ?? "Unknown venue")}
         </div>
-        <div className="truncate text-sm text-muted">{loc || "—"}</div>
+        <div className="truncate text-sm text-muted">{onVenue ? dp.weekday : (loc || "—")}</div>
       </div>
       <div className="text-right">
-        {show.tour && <div className="eyebrow mb-0.5 hidden max-w-[14rem] truncate sm:block">{show.tour}</div>}
+        {context !== "tour" && show.tour && (
+          <div className="eyebrow mb-0.5 hidden max-w-[14rem] truncate sm:block">{show.tour}</div>
+        )}
         <div className="font-mono text-[0.7rem] text-faint">
           {show.songCount > 0 ? `${show.songCount} songs` : "—"}
           {show.hasNotes && <span className="ml-2 text-sage">notes</span>}

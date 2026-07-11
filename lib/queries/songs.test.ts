@@ -3,7 +3,7 @@ import { makeTestDb } from "@/db/testing";
 import {
   upsertArtists, upsertVenues, upsertTours, upsertSongs, upsertShows, upsertPerformances,
 } from "@/db/repository";
-import { p95, isDustedOffGap } from "./songs";
+import { p95, isDustedOffGap, zeroFillYears, OVERDUE_MIN_PLAYS } from "./songs";
 
 // Redirect the module-level `db` in songs.ts to the PGlite test db.
 // vi.mock is hoisted; the lambda captures `_testDb` which is set before any test runs.
@@ -32,6 +32,23 @@ describe("p95 / Dusted Off helpers", () => {
     expect(isDustedOffGap(10, gaps)).toBe(false); // below 15 floor
     const tight = Array.from({ length: 50 }, () => 1); // heavy rotation
     expect(isDustedOffGap(2, tight)).toBe(false);     // p95=1 but floor blocks
+  });
+});
+
+describe("zeroFillYears", () => {
+  it("fills interior droughts and extends through the given year", () => {
+    expect(zeroFillYears([{ year: 2019, count: 4 }, { year: 2022, count: 1 }], 2024)).toEqual([
+      { year: 2019, count: 4 }, { year: 2020, count: 0 }, { year: 2021, count: 0 },
+      { year: 2022, count: 1 }, { year: 2023, count: 0 }, { year: 2024, count: 0 },
+    ]);
+  });
+  it("keeps a never-played series empty", () => {
+    expect(zeroFillYears([], 2026)).toEqual([]);
+  });
+  it("never truncates below the series' own span", () => {
+    expect(zeroFillYears([{ year: 2020, count: 1 }, { year: 2021, count: 2 }], 2019)).toEqual([
+      { year: 2020, count: 1 }, { year: 2021, count: 2 },
+    ]);
   });
 });
 
@@ -86,7 +103,12 @@ describe("getSongBySlug", () => {
     expect(s!.lastPlayedDate).toBe("2020-01-05");
     expect(s!.currentGap).toBe(0);          // played at the latest show
     expect(s!.longestVersions[0].trackTime).toBe("14:00");
-    expect(s!.playsPerYear).toEqual([{ year: 2020, count: 3 }]);
+    // zero-filled from the 2020 debut through the current year — droughts stay visible
+    const nowYear = new Date().getUTCFullYear();
+    expect(s!.playsPerYear).toEqual([
+      { year: 2020, count: 3 },
+      ...Array.from({ length: nowYear - 2020 }, (_, i) => ({ year: 2021 + i, count: 0 })),
+    ]);
     expect(await getSongBySlug("nope")).toBeNull();
   });
 });
@@ -98,18 +120,58 @@ describe("listSongs", () => {
     await upsertPerformances(ctx.db, [{ uniqueId: "b0", showId: 1, songId: 702, setType: "Set", setNumber: "1", position: 3, trackTime: "6:00", transition: null, transitionId: null, isJamchart: false, jamchartNotes: null, isReprise: false, isJam: false, isVerified: true, footnote: null }]);
     const { listSongs } = await import("./songs");
 
-    const played = await listSongs({ sort: "played" });
+    const { rows: played } = await listSongs({ sort: "played" });
     expect(played[0].name).toBe("Madhuvan"); // 5 plays
     expect(played.find((r) => r.slug === "hot-tea")!.timesPlayed).toBe(3);
 
-    const overdue = await listSongs({ sort: "overdue" });
-    expect(overdue[0].slug).toBe("bowie"); // last played show 1, biggest current gap
+    // overdue is a cut, not just an order: songs under the plays floor drop out entirely,
+    // so one-off covers like bowie can't top the list (same criterion as /stats/current-gaps).
+    const { rows: overdue, total: overdueTotal } = await listSongs({ sort: "overdue" });
+    expect(overdue.map((r) => r.slug)).toEqual(["madhuvan"]); // hot-tea (3) and bowie (1) fall under the floor
+    expect(overdue.every((r) => r.timesPlayed >= OVERDUE_MIN_PLAYS)).toBe(true);
+    expect(overdueTotal).toBe(1); // total honors the overdue floor too
 
-    const covers = await listSongs({ facet: "covers" });
+    const { rows: rotation } = await listSongs({ sort: "rotation" });
+    expect(rotation.map((r) => r.slug)).toEqual(["madhuvan", "hot-tea", "bowie"]); // 100% · 60% · 20%
+    expect(rotation[0].rotationPct).toBe(100);
+
+    const { rows: covers, total: coversTotal } = await listSongs({ facet: "covers" });
     expect(covers.map((r) => r.slug)).toEqual(["bowie"]);
+    expect(coversTotal).toBe(1);
 
-    const filtered = await listSongs({ q: "tea" });
+    const { rows: filtered, total: filteredTotal } = await listSongs({ q: "tea" });
     expect(filtered.map((r) => r.slug)).toEqual(["hot-tea"]);
+    expect(filteredTotal).toBe(1);
+  });
+
+  it("paginates: rows are a window, total counts the whole cut", async () => {
+    await seed();
+    await upsertSongs(ctx.db, [{ songId: 702, name: "Bowie", slug: "bowie", isOriginal: false, originalArtist: "David Bowie" }]);
+    await upsertPerformances(ctx.db, [{ uniqueId: "b0", showId: 1, songId: 702, setType: "Set", setNumber: "1", position: 3, trackTime: "6:00", transition: null, transitionId: null, isJamchart: false, jamchartNotes: null, isReprise: false, isJam: false, isVerified: true, footnote: null }]);
+    const { listSongs } = await import("./songs");
+
+    // 3 played songs at 2/page → pages of 2 + 1
+    const p1 = await listSongs({ sort: "played", page: 1, perPage: 2 });
+    expect(p1.rows.map((r) => r.slug)).toEqual(["madhuvan", "hot-tea"]);
+    expect(p1.total).toBe(3);
+
+    const p2 = await listSongs({ sort: "played", page: 2, perPage: 2 });
+    expect(p2.rows.map((r) => r.slug)).toEqual(["bowie"]); // the tail
+    expect(p2.total).toBe(3);
+
+    // off the end: empty window, but total still counts the cut so page math holds
+    const beyond = await listSongs({ sort: "played", page: 3, perPage: 2 });
+    expect(beyond.rows).toEqual([]);
+    expect(beyond.total).toBe(3);
+
+    // page/perPage are clamped, not trusted
+    const clamped = await listSongs({ sort: "played", page: 0, perPage: 2 });
+    expect(clamped.rows.map((r) => r.slug)).toEqual(["madhuvan", "hot-tea"]);
+
+    // a filter that fits on one page: total === rows.length (no pager needed)
+    const filtered = await listSongs({ q: "tea", perPage: 2 });
+    expect(filtered.rows.map((r) => r.slug)).toEqual(["hot-tea"]);
+    expect(filtered.total).toBe(1);
   });
 });
 
@@ -121,8 +183,13 @@ describe("stats cuts", () => {
     const { rarities, currentGaps, debutsByYear, setStats } = await import("./songs");
 
     expect((await rarities()).map((r) => r.slug)).not.toContain("bowie"); // one-time cover excluded
-    expect((await currentGaps()).every((r) => r.timesPlayed >= 5)).toBe(true);
-    expect((await debutsByYear())).toEqual([{ year: 2020, count: 3 }]);
+    expect((await currentGaps()).every((r) => r.timesPlayed >= OVERDUE_MIN_PLAYS)).toBe(true);
+    // debuts-per-year zero-fills through the current year so droughts render as labeled columns
+    const nowYear = new Date().getUTCFullYear();
+    expect(await debutsByYear()).toEqual([
+      { year: 2020, count: 3 },
+      ...Array.from({ length: nowYear - 2020 }, (_, i) => ({ year: 2021 + i, count: 0 })),
+    ]);
     const opener = (await setStats()).find((b) => b.key === "show-opener");
     expect(opener!.rows[0].slug).toBe("madhuvan"); // position 1 every show
   });
@@ -200,5 +267,34 @@ describe("searchSongs", () => {
     const { searchSongs } = await import("./songs");
     expect((await searchSongs("ro_e")).total).toBe(0); // would match "Rose" if _ stayed a wildcard
     expect((await searchSongs("%rose%")).total).toBe(0);
+  });
+});
+
+describe("statsHubHighlights", () => {
+  it("returns one headline per cut using the seeded catalog", async () => {
+    await seed();
+    const { statsHubHighlights } = await import("./songs");
+    const hl = await statsHubHighlights();
+    expect(hl.mostPlayed).toMatchObject({ name: "Madhuvan", slug: "madhuvan", plays: 5 });
+    expect(hl.mostOverdue).toMatchObject({ slug: "madhuvan", gap: 0 }); // only song over the ≥5 floor
+    expect(hl.topOpener).toMatchObject({ slug: "madhuvan", count: 5 }); // position 1 every show
+    expect(hl.latestDebut).not.toBeNull();
+    expect(hl.raritiesCount).toBeGreaterThan(0); // Hot Tea (3 plays, original) at minimum
+  });
+
+  it("agrees with the full cuts it summarizes", async () => {
+    await seed();
+    const { statsHubHighlights, mostPlayed, rarities, currentGaps, recentDebuts, setStats } =
+      await import("./songs");
+    const hl = await statsHubHighlights();
+    const [mp] = await mostPlayed(1);
+    expect(hl.mostPlayed).toEqual({ name: mp.name, slug: mp.slug, plays: mp.timesPlayed });
+    expect(hl.raritiesCount).toBe((await rarities()).length); // catalog is far under the 100 slice
+    const [od] = await currentGaps(1);
+    expect(hl.mostOverdue).toEqual({ name: od.name, slug: od.slug, gap: od.currentGap });
+    const [de] = await recentDebuts(1);
+    expect(hl.latestDebut).toEqual({ name: de.name, slug: de.slug, date: de.date });
+    const opener = (await setStats()).find((b) => b.key === "show-opener")!;
+    expect(hl.topOpener).toEqual({ name: opener.rows[0].name, slug: opener.rows[0].slug, count: opener.rows[0].count });
   });
 });

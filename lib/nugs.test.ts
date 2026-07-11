@@ -22,7 +22,12 @@ describe("nugs URL builders", () => {
   it("never emits + for spaces (Swift URLComponents safety)", () => {
     expect(nugsTrackHref({ date: "2024-04-20", song: "Hot Tea" })).not.toContain("+");
   });
-  it("web fallback: a reliable nugs.net web landing", () => {
-    expect(nugsWebFallback({ date: "2024-04-20" })).toBe("https://play.nugs.net/");
+  it("web fallback deep-links a play.nugs.net search for artist + date", () => {
+    expect(nugsWebFallback({ date: "2024-04-20" }))
+      .toBe("https://play.nugs.net/#/search?searchTerm=Goose%202024-04-20");
+  });
+  it("web fallback ignores venue — artist + date is the search term", () => {
+    expect(nugsWebFallback({ date: "2024-04-20", venue: "The Salt Shed" }))
+      .toBe("https://play.nugs.net/#/search?searchTerm=Goose%202024-04-20");
   });
 });

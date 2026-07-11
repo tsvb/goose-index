@@ -37,10 +37,10 @@ export function nugsTrackHref(o: {
   return `${NUGS_SCHEME}://show/${o.date}?${q}`;
 }
 
-/** Web fallback for users without the app: a reliable nugs.net web landing.
- *  Kept generic on purpose — `play.nugs.net` is a SPA and its date/artist search
- *  route isn't confirmed; a precise date-search URL can replace this body later
- *  without touching callers (the signature already carries date/venue). */
-export function nugsWebFallback(_o: { date: string; venue?: string | null }): string {
-  return "https://play.nugs.net/";
+/** Web fallback for users without the app: deep-link `play.nugs.net`'s search
+ *  to the artist + date so the show is one result away instead of a homepage.
+ *  The SPA's hash router takes a `searchTerm` param; venue is deliberately left
+ *  out of the term — artist + date is the tightest match nugs' search handles. */
+export function nugsWebFallback(o: { date: string; venue?: string | null }): string {
+  return `https://play.nugs.net/#/search?searchTerm=${encodeURIComponent(`${ARTIST} ${o.date}`)}`;
 }

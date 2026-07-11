@@ -1,6 +1,7 @@
 export type Dir = "asc" | "desc";
 
-export const SHOWS_DEFAULT_DIR: Dir = "asc";
+/** Newest first: the bare /shows page leads with current setlists. */
+export const SHOWS_DEFAULT_DIR: Dir = "desc";
 export const SHOWS_DEFAULT_PER = 50;
 export const SHOWS_PER_OPTIONS = [50, 100] as const;
 
@@ -14,7 +15,7 @@ export type ShowsQuery = {
 };
 
 export function resolveDir(value: string | null | undefined): Dir {
-  return value === "desc" ? "desc" : SHOWS_DEFAULT_DIR;
+  return value === "asc" || value === "desc" ? value : SHOWS_DEFAULT_DIR;
 }
 
 export function resolvePer(value: string | null | undefined): number {

@@ -61,9 +61,15 @@ export default async function ToursPage() {
         <div className="surface-card overflow-hidden">
           {groups.map((group) => (
             <div key={group.year ?? "unknown"}>
-              {/* Year divider */}
+              {/* Year divider — links through to the year's own page */}
               <div className="border-b border-line bg-surface-2 px-4 py-2">
-                <span className="eyebrow">{group.year ?? "—"}</span>
+                {group.year != null ? (
+                  <Link href={`/years/${group.year}`} className="eyebrow transition hover:text-gold" title={`Every show from ${group.year}`}>
+                    {group.year} →
+                  </Link>
+                ) : (
+                  <span className="eyebrow">—</span>
+                )}
               </div>
 
               {group.tours.map((tour) => (
