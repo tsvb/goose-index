@@ -59,7 +59,9 @@ describe("SettingsPanel", () => {
 
   it("leaves the experience options enabled when not pending", () => {
     const html = render();
-    expect(html).not.toContain("disabled");
+    // The `disabled:opacity-60` class is always present; assert on the actual
+    // disabled attribute, which only the pending state adds.
+    expect(html).not.toContain('disabled=""');
   });
 
   it("disables and dims every experience option while an experience switch is pending", () => {

@@ -107,3 +107,18 @@ describe("ShowsBrowsePage controls", () => {
     expect(html).not.toContain("Tonight");
   });
 });
+
+describe("ShowsBrowsePage count qualifiers", () => {
+  it("marks the unfiltered total as the full log, incl. upcoming", async () => {
+    // Distinguishes this count from the home hero's played-only "Shows played".
+    const html = await render();
+    expect(html).toContain("logged");
+    expect(html).toContain("incl. upcoming");
+  });
+
+  it("drops the upcoming qualifier once a year scopes the list", async () => {
+    const html = await render({ year: "2024" });
+    expect(html).toContain("in 2024");
+    expect(html).not.toContain("incl. upcoming");
+  });
+});
