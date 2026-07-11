@@ -131,8 +131,14 @@ export default async function ShowPage({ params, searchParams }: Params) {
             <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-faint">
               Also this day:
               {siblings.map((s) => (
-                <Link key={s.showId} href={showHref(s.date, s.order)} className="rounded border border-line px-2 py-0.5 text-muted transition hover:border-gold hover:text-gold">
-                  Show {s.order}
+                <Link key={s.showId} href={showHref(s.date, s.order)} className="flex max-w-full items-center gap-1 rounded border border-line px-2 py-0.5 text-muted transition hover:border-gold hover:text-gold">
+                  <span className="shrink-0">Show {s.order}</span>
+                  {s.venue && (
+                    <>
+                      <span aria-hidden>·</span>
+                      <span className="max-w-[11rem] truncate">{s.venue}</span>
+                    </>
+                  )}
                 </Link>
               ))}
             </div>

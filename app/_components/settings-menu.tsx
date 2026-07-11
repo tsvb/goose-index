@@ -1,15 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { allowsTheme, serializeExperienceCookie, type Experience } from "@/lib/experience";
 import { Settings } from "./marks";
 import { SettingsPanel, resolveTheme, type Theme } from "./settings-panel";
 
+/** Where initial focus lands when the popover opens: the currently-selected
+ *  experience option (aria-current), falling back to the first button. Takes
+ *  a query function so the node tests can drive it without a DOM. */
+export function initialFocusTarget<T>(query: (selector: string) => T | null): T | null {
+  return query('button[aria-current="true"]') ?? query("button");
+}
+
 export function SettingsMenu({ current }: { current: Experience }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>("dark");
+  const [isPending, startTransition] = useTransition();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -24,7 +32,7 @@ export function SettingsMenu({ current }: { current: Experience }) {
 
   useEffect(() => {
     if (!open) return;
-    panelRef.current?.querySelector<HTMLElement>("button")?.focus();
+    initialFocusTarget((sel) => panelRef.current?.querySelector<HTMLElement>(sel) ?? null)?.focus();
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
         setOpen(false);
@@ -46,11 +54,14 @@ export function SettingsMenu({ current }: { current: Experience }) {
   }, [open]);
 
   function chooseExperience(next: Experience) {
-    if (next !== current) {
-      document.cookie = serializeExperienceCookie(next);
-      router.refresh();
+    if (next === current) {
+      setOpen(false);
+      return;
     }
-    setOpen(false);
+    document.cookie = serializeExperienceCookie(next);
+    // Keep the popover up — dimmed and disabled — until the server re-renders
+    // the new experience (the swapped header unmounts it, which closes it).
+    startTransition(() => router.refresh());
   }
 
   function chooseTheme(next: Theme) {
@@ -87,6 +98,7 @@ export function SettingsMenu({ current }: { current: Experience }) {
             current={current}
             themeAllowed={themeAllowed}
             theme={theme}
+            pending={isPending}
             onSelectExperience={chooseExperience}
             onSelectTheme={chooseTheme}
           />

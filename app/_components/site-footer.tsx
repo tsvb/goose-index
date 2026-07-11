@@ -24,7 +24,7 @@ export function FooterFancy() {
           <Link href="/shows" className="transition hover:text-ink">All shows</Link>
           <Link href="/songs" className="transition hover:text-ink">Songs</Link>
           <Link href="/stats" className="transition hover:text-ink">Stats</Link>
-          <Link href="/on-this-day" className="transition hover:text-ink">On this day</Link>
+          <Link href="/on-this-day" className="transition hover:text-ink">On This Day</Link>
           <Link href="/venues" className="transition hover:text-ink">Venues</Link>
           <Link href="/tours" className="transition hover:text-ink">Tours</Link>
         </nav>

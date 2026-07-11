@@ -12,15 +12,15 @@ export const metadata: Metadata = { title: "On This Day" };
 export default async function OnThisDayPage() {
   const rows = await getOnThisDay();
 
-  const title = rows.length > 0 ? formatMonthDay(rows[0].date) : "On this day";
+  const title = rows.length > 0 ? formatMonthDay(rows[0].date) : "On This Day";
   const experience = await getExperience();
 
   if (experience === "minimal") {
     return (
       <Container className="py-8">
         <Doc>
-          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "On this day" }]} />
-          <h1>On this day</h1>
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "On This Day" }]} />
+          <h1>On This Day</h1>
           {rows.length === 0 ? <p>No Goose shows on today&apos;s date.</p> : <ShowTable shows={rows} />}
         </Doc>
       </Container>
@@ -35,7 +35,7 @@ export default async function OnThisDayPage() {
         <Container className="relative py-14 sm:py-20">
           <span className="eyebrow rise flex items-center gap-2" style={{ animationDelay: "0ms" }}>
             <Calendar className="h-4 w-4" />
-            On this day
+            On This Day
           </span>
           <h1
             className="rise mt-4 font-display text-[3.5rem] leading-none tracking-tight text-ink sm:text-6xl"

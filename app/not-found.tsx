@@ -34,7 +34,7 @@ export default function NotFound() {
           </Link>
           <Link
             href="/shows"
-            className="flex items-center gap-2 rounded-full border border-line bg-surface px-6 py-3 font-mono text-sm text-muted transition hover:border-line-soft hover:bg-surface-2 hover:text-ink"
+            className="flex items-center gap-2 rounded-full border border-line bg-surface px-6 py-3 font-mono text-sm text-muted transition hover:border-gold-soft hover:bg-surface-2 hover:text-ink"
           >
             Browse all shows
           </Link>

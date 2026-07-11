@@ -30,7 +30,8 @@ export function HeaderFancy({ experience }: { experience: Experience }) {
             Goose <span className="italic text-gold">Index</span>
           </span>
         </Link>
-        <nav aria-label="Primary" className="hidden items-center gap-4 text-[0.9rem] text-muted lg:flex">
+        {/* Tighter tracking in the 768–1024 band so six links + search fit one row. */}
+        <nav aria-label="Primary" className="hidden items-center gap-2.5 text-[0.82rem] text-muted md:flex lg:gap-4 lg:text-[0.9rem]">
           {NAV.map((n) => (
             <NavLink
               key={n.href}
@@ -61,7 +62,7 @@ export function HeaderFunctional({ experience }: { experience: Experience }) {
         <Link href="/" className="w2-brand flex items-center text-[1.05rem]">
           Goose Index<span className="w2-beta">BETA</span>
         </Link>
-        <nav aria-label="Primary" className="hidden items-center gap-1 text-[0.8rem] lg:flex">
+        <nav aria-label="Primary" className="hidden items-center gap-0.5 text-[0.75rem] md:flex lg:gap-1 lg:text-[0.8rem]">
           {NAV.map((n) => (
             <NavLink key={n.href} href={n.href} className="w2-navlink whitespace-nowrap">{n.label}</NavLink>
           ))}
