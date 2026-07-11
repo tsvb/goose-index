@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { ShowRow } from "@/app/_components/show-card";
 import { Doc, Breadcrumb, MetaTable, DocSection, ShowTable } from "@/app/_components/doc";
@@ -7,16 +7,18 @@ import { getTourMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
 import { formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
+import { entityOpenGraph } from "@/lib/site";
 
 type Params = { params: Promise<{ id: string }> };
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+export async function generateMetadata({ params }: Params, parent: ResolvingMetadata): Promise<Metadata> {
   const { id } = await params;
   const tourId = parseInt(id, 10);
   if (isNaN(tourId)) return { title: "Tour not found" };
   const tour = await getTourMeta(tourId);
   if (!tour) return { title: "Tour not found" };
-  return { title: tour.name };
+  const description = `All ${tour.shows} Goose show${tour.shows === 1 ? "" : "s"} on ${tour.name}, with full setlists.`;
+  return { title: tour.name, description, openGraph: entityOpenGraph({ title: tour.name, description, path: `/tours/${tourId}`, parent: await parent }) };
 }
 
 export default async function TourPage({ params }: Params) {

@@ -24,6 +24,29 @@ export function SetlistFunctional({ entries, showDate, venue }: { entries: Setli
     return flat;
   }, [entries, q, sort, jamsOnly]);
 
+  // Footnotes are numbered in setlist order over all entries so markers stay
+  // stable under filtering and sorting.
+  const fnIndex = useMemo(() => {
+    const m = new Map<string, number>();
+    entries.forEach((e) => {
+      if (e.footnote) m.set(e.uniqueId, m.size + 1);
+    });
+    return m;
+  }, [entries]);
+
+  // Notes for the visible rows, in table order: footnotes (numbered) and
+  // jamchart notes (starred).
+  const noteRows = rows.flatMap((r) => {
+    const out: { key: string; id?: string; marker: string; song: string; text: string }[] = [];
+    if (r.e.footnote) {
+      out.push({ key: `fn-${r.e.uniqueId}`, id: `w2fn-${r.e.uniqueId}`, marker: `${fnIndex.get(r.e.uniqueId)}`, song: r.e.song, text: r.e.footnote });
+    }
+    if (r.e.isJamchart && r.e.jamchartNotes) {
+      out.push({ key: `jam-${r.e.uniqueId}`, marker: "★", song: r.e.song, text: r.e.jamchartNotes });
+    }
+    return out;
+  });
+
   if (entries.length === 0) {
     return <p className="text-muted">No setlist has been recorded for this show yet.</p>;
   }
@@ -66,11 +89,22 @@ export function SetlistFunctional({ entries, showDate, venue }: { entries: Setli
               <td className="tabular-nums text-faint">{r.n}</td>
               <td className="font-semibold text-ink">
                 {r.e.slug ? <a href={`/songs/${r.e.slug}`} className="hover:underline">{r.e.song}</a> : r.e.song}
+                {r.e.footnote ? (
+                  <sup className="ml-0.5">
+                    <a
+                      href={`#w2fn-${r.e.uniqueId}`}
+                      aria-label={`Note ${fnIndex.get(r.e.uniqueId)} for ${r.e.song}`}
+                      className="font-bold text-gold-soft hover:underline"
+                    >
+                      {fnIndex.get(r.e.uniqueId)}
+                    </a>
+                  </sup>
+                ) : null}
                 {r.e.isDustedOff ? <span className="w2-badge gold ml-2">{RETURN_LABEL} · {r.e.gap}</span> : null}
               </td>
               <td className="font-extrabold text-gold">{isSegue(r.e.transition) ? "›" : ""}</td>
               <td className="text-right tabular-nums text-muted">{r.e.trackTime ?? "—"}</td>
-              <td>{r.e.isJamchart ? <span className="w2-star">★ JAM</span> : <span className="text-faint">·</span>}</td>
+              <td>{r.e.isJamchart ? <span className="w2-star" title={r.e.jamchartNotes ?? undefined}>★ JAM</span> : <span className="text-faint">·</span>}</td>
               <td>
                 <NugsLink
                   href={nugsTrackHref({ date: showDate, venue, song: r.e.song, set: r.e.setNumber, pos: r.e.position })}
@@ -83,6 +117,21 @@ export function SetlistFunctional({ entries, showDate, venue }: { entries: Setli
           ))}
         </tbody>
       </table>
+      {noteRows.length > 0 && (
+        <div className="w2-panel mt-3">
+          <h3 className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-[#1f5e93]">Notes</h3>
+          <ul className="space-y-1 text-sm">
+            {noteRows.map((n) => (
+              <li key={n.key} id={n.id} className="flex gap-2">
+                <span className="w-5 shrink-0 text-right font-bold tabular-nums text-gold-soft">{n.marker}</span>
+                <span className="text-muted">
+                  <span className="font-semibold text-ink">{n.song}</span> — {n.text}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

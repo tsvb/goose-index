@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { ShowRow } from "@/app/_components/show-card";
 import { MapPin } from "@/app/_components/marks";
@@ -8,17 +8,20 @@ import { getVenueMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
 import { locationLine, compact, formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
+import { entityOpenGraph } from "@/lib/site";
 
 type Params = { params: Promise<{ id: string }> };
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+export async function generateMetadata({ params }: Params, parent: ResolvingMetadata): Promise<Metadata> {
   const { id } = await params;
   const venueId = parseInt(id, 10);
   const venue = Number.isNaN(venueId) ? null : await getVenueMeta(venueId);
   if (!venue) return { title: "Venue not found" };
+  const description = `All ${venue.shows} Goose show${venue.shows === 1 ? "" : "s"} at ${venue.name}${venue.city ? `, ${venue.city}` : ""}.`;
   return {
     title: venue.name,
-    description: `All Goose shows at ${venue.name}${venue.city ? `, ${venue.city}` : ""}.`,
+    description,
+      openGraph: entityOpenGraph({ title: venue.name, description, path: `/venues/${venue.venueId}`, parent: await parent }),
   };
 }
 

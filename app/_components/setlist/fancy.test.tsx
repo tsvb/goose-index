@@ -22,6 +22,25 @@ describe("SetlistFancy", () => {
     expect(html).toContain("Madhuvan");
     expect(html).toContain("<svg"); // the flame mark
   });
+  it("renders footnotes as visible numbered endnotes, restarting per set", () => {
+    const html = renderToStaticMarkup(
+      <SetlistFancy entries={[
+        entry({ uniqueId: "a", song: "Butter Rum", footnote: "First time played." }),
+        entry({ uniqueId: "b", song: "Jive II", position: 2, footnote: "With guest horns." }),
+        entry({ uniqueId: "c", song: "Arrow", setNumber: "2", position: 1, footnote: "Tease." }),
+      ]} showDate="2024-04-20" venue={null} />,
+    );
+    // note text is in the DOM, not just a title attribute
+    expect(html).toContain("First time played.");
+    expect(html).toContain("With guest horns.");
+    expect(html).toContain("Tease.");
+    // superscript marker links to the endnote
+    expect(html).toContain('href="#fn-a"');
+    expect(html).toContain('id="fn-a"');
+    // numbering restarts per set: both sets open with a ¹ marker
+    expect(html.match(/>1<\/a><\/sup>/g)).toHaveLength(2);
+    expect(html).not.toContain("cursor-help");
+  });
   it("renders an empty-state when there are no entries", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
     expect(html).toContain("No setlist");
