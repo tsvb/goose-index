@@ -45,6 +45,17 @@ export const metadata: Metadata = {
   title: { default: "Goose Index — every show, every night", template: "%s · Goose Index" },
   description:
     "A complete index of every Goose show: full setlists with segues and jams, venues, tours, and the story of each night. Data from elgoose.net.",
+  // og:image comes from app/opengraph-image.tsx (file convention) — don't
+  // declare `images` here or it would override the generated card.
+  openGraph: {
+    type: "website",
+    siteName: "Goose Index",
+    url: SITE_URL,
+    title: "Goose Index — every show, every night",
+    description:
+      "A complete index of every Goose show: full setlists with segues and jams, venues, tours, and the story of each night. Data from elgoose.net.",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 // Pages read live DB data and `current_date` (e.g. "On This Day"), so render

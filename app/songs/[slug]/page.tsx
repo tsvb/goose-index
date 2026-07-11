@@ -1,21 +1,30 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, MetaTable, DocSection } from "@/app/_components/doc";
 import { FactRibbon, PlaysPerYearChart, SetPlacementBars, GapSparkline, PerformanceTable } from "@/app/_components/song";
 import { getSongBySlug, getSongPerformances, type SongStat } from "@/lib/queries/songs";
 import { getExperience } from "@/lib/experience.server";
 import { showHref, formatShortDate, formatDuration } from "@/lib/queries/format";
+import { entityOpenGraph } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ slug: string }> };
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+export async function generateMetadata({ params }: Params, parent: ResolvingMetadata): Promise<Metadata> {
   const { slug } = await params;
   const song = await getSongBySlug(slug);
   if (!song) return { title: "Song not found" };
-  return { title: song.name, description: `Goose has played ${song.name} ${song.timesPlayed} times since ${song.debutDate ?? "?"}.` };
+  const description = `Goose has played ${song.name} ${song.timesPlayed} time${song.timesPlayed === 1 ? "" : "s"} since ${song.debutDate ?? "?"}.`;
+  return { title: song.name, description, openGraph: entityOpenGraph({ title: song.name, description, path: `/songs/${slug}`, parent: await parent }) };
+}
+
+/** Legend for the gap sparkline — must describe only what the chart actually renders. */
+function gapLegend(hasBusts: boolean, longestGap: number | null, timesPlayed: number): string {
+  if (hasBusts) return `Orange = a "Dusted Off" return (gap in this song's longest 5%, ≥15 shows).`;
+  if ((longestGap ?? 0) > 0) return `Orange = the longest gap (${longestGap} shows). No "Dusted Off" returns yet — that takes a gap of ≥15 shows.`;
+  return timesPlayed === 1 ? "Played once — no gaps between plays yet." : "No gaps yet — played at every show since its debut.";
 }
 
 function facts(song: SongStat) {
@@ -79,7 +88,7 @@ export default async function SongPage({ params }: Params) {
           <div className="space-y-7">
             <section><h3 className="mb-2 font-display text-base text-ink">Plays per year</h3><PlaysPerYearChart data={song.playsPerYear} /></section>
             <section><h3 className="mb-2 font-display text-base text-ink">Set placement</h3><SetPlacementBars placement={song.setPlacement} /></section>
-            {perfs.length > 1 && <section><h3 className="mb-2 font-display text-base text-ink">Gaps &amp; returns</h3><GapSparkline perfs={perfs} /><p className="mt-2 font-mono text-[0.68rem] text-faint">Orange = a &quot;Dusted Off&quot; return (gap in this song&apos;s longest 5%, ≥15 shows).</p></section>}
+            {perfs.length > 0 && <section><h3 className="mb-2 font-display text-base text-ink">Gaps &amp; returns</h3><GapSparkline perfs={perfs} /><p className="mt-2 font-mono text-[0.68rem] text-faint">{gapLegend(perfs.some((p) => p.isDustedOff), song.longestGap, perfs.length)}</p></section>}
             {song.longestVersions.length > 0 && (
               <section><h3 className="mb-2 font-display text-base text-ink">Longest versions</h3>
                 <ul className="space-y-1 text-sm">{song.longestVersions.map((v) => <li key={v.showId} className="flex justify-between gap-3"><span className="tabular-nums text-gold">{v.trackTime}</span><Link href={showHref(v.date, v.order)} className="text-muted hover:text-ink">{v.date} · {v.venue ?? "—"}</Link></li>)}</ul>

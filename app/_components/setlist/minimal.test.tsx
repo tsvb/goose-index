@@ -28,6 +28,21 @@ describe("SetlistMinimal (document)", () => {
     expect(html).toContain("huge jam");  // footnote text
     expect(html).not.toContain("<svg");
   });
+  it("merges footnotes and jam notes into the Notes list in document order", () => {
+    const html = renderToStaticMarkup(
+      <SetlistMinimal entries={[
+        entry({ uniqueId: "a", song: "Hot Tea", footnote: "First time played.", isJamchart: true, jamchartNotes: "huge jam" }),
+        entry({ uniqueId: "b", song: "Arrow", position: 2, footnote: "With guest horns." }),
+      ]} showDate="2024-04-20" venue={null} />,
+    );
+    expect(html).toContain("First time played.");
+    expect(html).toContain("With guest horns.");
+    expect(html).toContain("huge jam");
+    // Hot Tea carries both refs: footnote then jam note
+    expect(html).toContain('href="#fn-a"');
+    expect(html).toContain('href="#n-a"');
+    expect(html.indexOf("First time played.")).toBeLessThan(html.indexOf("huge jam"));
+  });
   it("links the song and marks a Dusted Off return", () => {
     const html = renderToStaticMarkup(<SetlistMinimal entries={[entry({ song: "Hot Tea", slug: "hot-tea", gap: 52, isDustedOff: true })]} showDate="2024-04-20" venue={null} />);
     expect(html).toContain('href="/songs/hot-tea"');

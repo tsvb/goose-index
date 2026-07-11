@@ -330,15 +330,25 @@ value.
 
 ## Appendix: measured contrast ratios (text tokens on `--bg` / `--surface`)
 
+Updated 2026-07-11 after the P0-7 token fixes — cells marked ✔ were re-derived to
+clear 4.5:1 on both `--bg` and `--surface` (old ratios in parentheses). Pod and
+minimal were untouched.
+
 | Token | Dark | Light | Pod | Functional | Minimal |
 |---|---|---|---|---|---|
-| `--muted` | 7.79 / 7.37 | 5.40 / 5.99 | 6.71 / 6.10 | 4.32 / 4.98 | 8.86 |
-| `--faint` | **4.49 / 4.24** | **2.88 / 3.19** | 5.28 / 4.80 | **2.72 / 3.13** | 5.41 |
-| `--gold` | 9.41 / 8.89 | **3.07 / 3.41** | 11.85 / 10.78 | **3.36 / 3.87** | 18.42 |
-| `--gold-soft` | 6.36 / 6.01 | **3.81 / 4.22** | 9.10 / 8.28 | **3.81 / 4.39** | 18.42 |
-| `--sage` | 8.92 / 8.43 | 4.27 / 4.73 | 8.07 / 7.34 | **2.53 / 2.92** | 7.54 |
-| `--ember` | 7.07 / 6.69 | **3.53 / 3.91** | 7.85 / 7.14 | **1.75 / 2.02** | 18.42 |
+| `--muted` | 7.79 / 7.37 | 5.40 / 5.99 | 6.71 / 6.10 | ✔ 5.23 / 6.02 (was 4.32 / 4.98) | 8.86 |
+| `--faint` | ✔ 5.21 / 4.93 (was 4.49 / 4.24) | ✔ 4.69 / 5.20 (was 2.88 / 3.19) | 5.28 / 4.80 | ✔ 4.71 / 5.43 (was 2.72 / 3.13) | 5.41 |
+| `--gold` | 9.41 / 8.89 | ✔ 4.74 / 5.25 (was 3.07 / 3.41) | 11.85 / 10.78 | ✔ 4.76 / 5.48 (was 3.36 / 3.87) | 18.42 |
+| `--gold-soft` | 6.36 / 6.01 | ✔ 4.99 / 5.53 (was 3.81 / 4.22) | 9.10 / 8.28 | ✔ 5.46 / 6.29 (was 3.81 / 4.39) | 18.42 |
+| `--sage` | 8.92 / 8.43 | ✔ 4.76 / 5.28 (was 4.27 / 4.73) | 8.07 / 7.34 | ✔ 4.94 / 5.69 (was 2.53 / 2.92) | 7.54 |
+| `--ember` | 7.07 / 6.69 | ✔ 4.63 / 5.13 (was 3.53 / 3.91) | 7.85 / 7.14 | ✔ 4.62 / 5.33 (was 1.75 / 2.02) | 18.42 |
 
-Bold = below WCAG AA (4.5:1) for the small text these tokens are used on. Pod and
-minimal pass everywhere; pod's `--faint` comment (`globals.css:59`) shows the standard
-the other themes should be brought to.
+New values: dark `--faint` #94856b; light `--faint` #77654a, `--gold` #8f5c14,
+`--gold-soft` #8a5913, `--sage` #2b7263, `--ember` #a5511c; functional `--muted`
+#526577, `--faint` #5a6c7c, `--gold` #1f6cb0, `--gold-soft` #1e639f, `--sage`
+#3b7411, `--ember` #a85413 (its `.overdue` / `.live-pill` roles are body text).
+
+Every text token now meets WCAG AA (4.5:1) for the small text these tokens are
+used on, in every theme. Pod and minimal passed everywhere from the start; pod's
+`--faint` comment (`globals.css:59`) shows the standard the other themes were
+brought to.

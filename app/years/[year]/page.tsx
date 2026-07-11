@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { ShowRow } from "@/app/_components/show-card";
 import { ArrowLeft, ArrowRight } from "@/app/_components/marks";
@@ -9,12 +9,14 @@ import { listYears } from "@/lib/queries/dimensions";
 import { compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { Doc, Breadcrumb, ShowTable } from "@/app/_components/doc";
+import { entityOpenGraph } from "@/lib/site";
 
 type Params = { params: Promise<{ year: string }> };
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+export async function generateMetadata({ params }: Params, parent: ResolvingMetadata): Promise<Metadata> {
   const { year } = await params;
-  return { title: year };
+  const description = `Every Goose show from ${year}, with full setlists.`;
+  return { title: year, description, openGraph: entityOpenGraph({ title: `${year} · Goose`, description, path: `/years/${year}`, parent: await parent }) };
 }
 
 export default async function YearPage({ params }: Params) {

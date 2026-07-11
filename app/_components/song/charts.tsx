@@ -32,23 +32,85 @@ export function SetPlacementBars({ placement }: { placement: { set1: number; set
   );
 }
 
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+// SVG sparkline geometry, in viewBox units (100 = full width). Computed rect widths
+// replace the old flex-with-2px-gaps layout, which collapsed every bar to 0px above
+// ~180 performances and rendered 2-play songs as half-container monoliths.
+const SPARK = {
+  viewW: 100, viewH: 100, height: 52,
+  maxBars: 200, // bucket longer series so each bar keeps ≥ ~1px of rendered width
+  barCap: 4, // ≤ 4% of the container per bar, so sparse songs stay slim
+  gapUnits: 0.35, minSlotForGap: 1.2, minBarH: 2,
+};
+
+type SparkBar = { gap: number; ember: boolean; label: string };
+
+function toSparkBars(series: SongPerf[], emberIds: Set<string>): SparkBar[] {
+  const bar = (p: SongPerf): SparkBar => ({ gap: p.gap ?? 0, ember: emberIds.has(p.uniqueId), label: `${p.date}: gap ${p.gap ?? 0}` });
+  if (series.length <= SPARK.maxBars) return series.map(bar);
+  const out: SparkBar[] = [];
+  for (let i = 0; i < SPARK.maxBars; i++) {
+    const chunk = series.slice(Math.floor((i * series.length) / SPARK.maxBars), Math.floor(((i + 1) * series.length) / SPARK.maxBars));
+    let top = chunk[0];
+    for (const p of chunk) if ((p.gap ?? 0) > (top.gap ?? 0)) top = p;
+    out.push({ ...bar(top), ember: chunk.some((p) => emberIds.has(p.uniqueId)) });
+  }
+  return out;
+}
+
 export function GapSparkline({ perfs }: { perfs: SongPerf[] }) {
   const series = [...perfs].reverse(); // oldest→newest
-  const max = maxOf(series.map((p) => p.gap ?? 0));
+  const longest = Math.max(0, ...series.map((p) => p.gap ?? 0));
+  const busts = series.filter((p) => p.isDustedOff).length;
+  // Ember marks the notable droughts: every "Dusted Off" return, or — for songs that
+  // have never been dusted off — the most recent occurrence of the longest gap, so
+  // the chart always anchors the "Longest gap" fact and the legend never describes a
+  // color that isn't on screen. (A dusted-off song's longest gap is itself a bust.)
+  const emberIds = new Set(series.filter((p) => p.isDustedOff).map((p) => p.uniqueId));
+  if (emberIds.size === 0 && longest > 0) {
+    for (let i = series.length - 1; i >= 0; i--) {
+      if ((series[i].gap ?? 0) === longest) { emberIds.add(series[i].uniqueId); break; }
+    }
+  }
+  const bars = toSparkBars(series, emberIds);
+  const max = maxOf(bars.map((b) => b.gap));
+  const slot = SPARK.viewW / Math.max(bars.length, 1);
+  const barW = Math.min(slot - (slot >= SPARK.minSlotForGap ? SPARK.gapUnits : 0), SPARK.barCap);
+  const label = `Gap between plays across ${series.length} performance${series.length === 1 ? "" : "s"}; longest gap ${longest} show${longest === 1 ? "" : "s"}; ${busts} dusted-off return${busts === 1 ? "" : "s"}`;
   return (
-    <div className="song-spark" role="img" aria-label="Gap before each performance">
-      {series.map((p) => (
-        <i key={p.uniqueId} className={p.isDustedOff ? "bust" : ""} style={{ height: `${Math.round(((p.gap ?? 0) / max) * 100)}%` }} title={`${p.date}: gap ${p.gap ?? 0}`} />
-      ))}
-    </div>
+    <svg role="img" aria-label={label} width="100%" height={SPARK.height} viewBox={`0 0 ${SPARK.viewW} ${SPARK.viewH}`} preserveAspectRatio="none" fill="var(--gold-deep, #c8902f)" fillOpacity={0.8} style={{ display: "block" }}>
+      {bars.map((b, i) => {
+        const h = Math.max(SPARK.minBarH, round2((b.gap / max) * SPARK.viewH));
+        return (
+          <rect key={i} x={round2(i * slot + (slot - barW) / 2)} y={round2(SPARK.viewH - h)} width={round2(barW)} height={h} {...(b.ember ? { fill: "var(--ember, #ff8a3d)", fillOpacity: 1 } : {})}>
+            <title>{b.label}</title>
+          </rect>
+        );
+      })}
+    </svg>
   );
 }
 
+// Index-table activity sparkline: fixed 64×18, decorative (the Played column carries
+// the value), so it stays aria-hidden. Same computed-width approach as GapSparkline,
+// but all bars in a single <path> to keep the 600-row /songs payload lean.
+const MSPARK = { w: 64, h: 18, barCap: 6, minBarH: 1 };
+const round1 = (n: number) => Math.round(n * 10) / 10;
+
 export function MiniSparkline({ values }: { values: number[] }) {
   const max = maxOf(values);
+  const slot = MSPARK.w / Math.max(values.length, 1);
+  const barW = round1(Math.min(slot - (slot >= 3 ? 1 : 0), MSPARK.barCap));
+  const d = values
+    .map((v, i) => {
+      const h = Math.max(MSPARK.minBarH, round1((v / max) * MSPARK.h));
+      return `M${round1(i * slot + (slot - barW) / 2)} ${round1(MSPARK.h - h)}h${barW}v${h}h${-barW}z`;
+    })
+    .join("");
   return (
-    <span className="song-mspark" aria-hidden>
-      {values.map((v, i) => <i key={i} style={{ height: `${Math.max(4, Math.round((v / max) * 100))}%` }} />)}
-    </span>
+    <svg aria-hidden width={MSPARK.w} height={MSPARK.h} viewBox={`0 0 ${MSPARK.w} ${MSPARK.h}`} style={{ verticalAlign: "middle" }}>
+      <path d={d} fill="var(--gold-deep, #c8902f)" fillOpacity={0.85} />
+    </svg>
   );
 }

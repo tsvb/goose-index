@@ -15,4 +15,10 @@ describe("SongIndexTable", () => {
     expect(html).toContain("song-pin");      // sticky identity column
     expect(html).toContain("187");
   });
+
+  it("exposes the full name and the played count inside the pinned cell", () => {
+    const html = renderToStaticMarkup(<SongIndexTable rows={[row]} years={[2017,2018,2019,2020,2021,2022,2023,2024,2025,2026]} />);
+    expect(html).toContain('title="Hot Tea"');                          // full name survives the mobile ellipsis cap
+    expect(html).toContain('<span class="song-pin-stat">187 played');   // key stat rides along on small screens
+  });
 });

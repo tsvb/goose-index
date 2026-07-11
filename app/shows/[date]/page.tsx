@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Setlist } from "@/app/_components/setlist";
 import { ArrowLeft, ArrowRight } from "@/app/_components/marks";
@@ -19,6 +19,7 @@ import {
   locationLine,
   showHref,
 } from "@/lib/queries/format";
+import { entityOpenGraph } from "@/lib/site";
 
 type Params = { params: Promise<{ date: string }>; searchParams: Promise<{ n?: string }> };
 
@@ -36,15 +37,18 @@ async function resolveShow(date: string, n?: string) {
   return (order && details.find((d) => d.order === order)) || details[0];
 }
 
-export async function generateMetadata({ params, searchParams }: Params): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Params, parent: ResolvingMetadata): Promise<Metadata> {
   const { date } = await params;
   const { n } = await searchParams;
   const show = await resolveShow(date, n);
   if (!show) return { title: "Show not found" };
   const where = show.venue ? `${show.venue}, ${locationLine(show.city, show.state, show.country)}` : "";
+  const title = `${formatShortDate(date)} · ${show.venue ?? "Goose"}`;
+  const description = `Goose setlist for ${formatLongDate(date)}${where ? ` at ${where}` : ""}.`;
   return {
-    title: `${formatShortDate(date)} · ${show.venue ?? "Goose"}`,
-    description: `Goose setlist for ${formatLongDate(date)}${where ? ` at ${where}` : ""}.`,
+    title,
+    description,
+    openGraph: entityOpenGraph({ title, description, path: `/shows/${date}`, parent: await parent }),
   };
 }
 
@@ -67,6 +71,13 @@ export default async function ShowPage({ params, searchParams }: Params) {
 
   const siblings = details.filter((d) => d.showId !== show.showId);
 
+  // On multi-show dates a neighbor can share this page's date: label it as a
+  // same-day show rather than a "night" so the step through ?n= reads right.
+  const prevSameDay = neighbors.prev?.date === date;
+  const nextSameDay = neighbors.next?.date === date;
+  const prevLabel = prevSameDay ? "Earlier show this day" : "Previous night";
+  const nextLabel = nextSameDay ? "Later show this day" : "Next night";
+
   // This show is (or could be) on stage right now: refresh the setlist from
   // elgoose after the response is sent (debounced server-side), and let the
   // client re-pull the page while it stays open.
@@ -86,12 +97,12 @@ export default async function ShowPage({ params, searchParams }: Params) {
             </Link>
             <div className="flex items-center gap-1 font-mono text-xs">
               {neighbors.prev && (
-                <Link href={showHref(neighbors.prev.date)} className="rounded px-2 py-1 text-muted transition hover:bg-surface hover:text-ink" title={neighbors.prev.venue ?? ""}>
+                <Link href={showHref(neighbors.prev.date, neighbors.prev.order)} className="rounded px-2 py-1 text-muted transition hover:bg-surface hover:text-ink" title={prevSameDay ? prevLabel : neighbors.prev.venue ?? ""}>
                   ‹ {formatShortDate(neighbors.prev.date)}
                 </Link>
               )}
               {neighbors.next && (
-                <Link href={showHref(neighbors.next.date)} className="rounded px-2 py-1 text-muted transition hover:bg-surface hover:text-ink" title={neighbors.next.venue ?? ""}>
+                <Link href={showHref(neighbors.next.date, neighbors.next.order)} className="rounded px-2 py-1 text-muted transition hover:bg-surface hover:text-ink" title={nextSameDay ? nextLabel : neighbors.next.venue ?? ""}>
                   {formatShortDate(neighbors.next.date)} ›
                 </Link>
               )}
@@ -156,10 +167,10 @@ export default async function ShowPage({ params, searchParams }: Params) {
         <nav className="border-t border-line">
           <Container className="flex flex-wrap justify-between gap-4 py-6 text-sm">
             {neighbors.prev ? (
-              <Link href={showHref(neighbors.prev.date)}>← {formatShortDate(neighbors.prev.date)}{neighbors.prev.venue ? ` · ${neighbors.prev.venue}` : ""}</Link>
+              <Link href={showHref(neighbors.prev.date, neighbors.prev.order)}>← {prevSameDay ? prevLabel : formatShortDate(neighbors.prev.date)}{neighbors.prev.venue ? ` · ${neighbors.prev.venue}` : ""}</Link>
             ) : <span />}
             {neighbors.next ? (
-              <Link href={showHref(neighbors.next.date)}>{formatShortDate(neighbors.next.date)}{neighbors.next.venue ? ` · ${neighbors.next.venue}` : ""} →</Link>
+              <Link href={showHref(neighbors.next.date, neighbors.next.order)}>{nextSameDay ? nextLabel : formatShortDate(neighbors.next.date)}{neighbors.next.venue ? ` · ${neighbors.next.venue}` : ""} →</Link>
             ) : <span />}
           </Container>
         </nav>
@@ -167,9 +178,9 @@ export default async function ShowPage({ params, searchParams }: Params) {
         <nav className="border-t border-line">
           <Container className="grid gap-3 py-8 sm:grid-cols-2">
             {neighbors.prev ? (
-              <Link href={showHref(neighbors.prev.date)} className="group flex flex-col rounded-lg border border-line bg-surface p-5 transition hover:border-gold/55 hover:bg-surface-2">
+              <Link href={showHref(neighbors.prev.date, neighbors.prev.order)} className="group flex flex-col rounded-lg border border-line bg-surface p-5 transition hover:border-gold/55 hover:bg-surface-2">
                 <span className="flex items-center gap-1.5 font-mono text-[0.7rem] uppercase tracking-wider text-faint">
-                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" /> Previous night
+                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" /> {prevLabel}
                 </span>
                 <span className="mt-2 font-display text-lg text-ink group-hover:text-gold">{formatShortDate(neighbors.prev.date)}</span>
                 <span className="text-sm text-muted">{neighbors.prev.venue}</span>
@@ -178,9 +189,9 @@ export default async function ShowPage({ params, searchParams }: Params) {
               <div />
             )}
             {neighbors.next && (
-              <Link href={showHref(neighbors.next.date)} className="group flex flex-col items-end rounded-lg border border-line bg-surface p-5 text-right transition hover:border-gold/55 hover:bg-surface-2">
+              <Link href={showHref(neighbors.next.date, neighbors.next.order)} className="group flex flex-col items-end rounded-lg border border-line bg-surface p-5 text-right transition hover:border-gold/55 hover:bg-surface-2">
                 <span className="flex items-center gap-1.5 font-mono text-[0.7rem] uppercase tracking-wider text-faint">
-                  Next night <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                  {nextLabel} <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
                 </span>
                 <span className="mt-2 font-display text-lg text-ink group-hover:text-gold">{formatShortDate(neighbors.next.date)}</span>
                 <span className="text-sm text-muted">{neighbors.next.venue}</span>

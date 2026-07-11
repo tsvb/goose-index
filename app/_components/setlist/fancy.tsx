@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Flame } from "../marks";
 import { clsx } from "../clsx";
 import { trackSeconds, formatDuration, RETURN_LABEL } from "@/lib/queries/format";
@@ -22,6 +23,9 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
       {groups.map((g) => {
         const secs = g.entries.map((e) => trackSeconds(e.trackTime)).filter((s): s is number => s != null);
         const total = secs.length >= Math.ceil(g.entries.length / 2) ? secs.reduce((a, b) => a + b, 0) : null;
+        // Footnote numbering restarts per set; jamchart notes share the endnote list.
+        const fnIndex = new Map(g.entries.filter((e) => e.footnote).map((e, i) => [e.uniqueId, i + 1]));
+        const hasNotes = fnIndex.size > 0 || g.entries.some((e) => e.isJamchart && e.jamchartNotes);
 
         return (
           <section key={g.key}>
@@ -74,9 +78,15 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                         <span className="ml-2 align-baseline text-xs italic text-faint">{e.originalArtist}</span>
                       )}
                       {e.footnote && (
-                        <span className="ml-1 cursor-help align-super text-[0.6rem] text-sage" title={e.footnote}>
-                          °
-                        </span>
+                        <sup className="ml-0.5">
+                          <a
+                            href={`#fn-${e.uniqueId}`}
+                            aria-label={`Footnote ${fnIndex.get(e.uniqueId)} for ${e.song}`}
+                            className="font-mono text-[0.65rem] text-sage hover:underline"
+                          >
+                            {fnIndex.get(e.uniqueId)}
+                          </a>
+                        </sup>
                       )}
                     </span>
                     {e.trackTime && (
@@ -93,18 +103,32 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
               })}
             </ol>
 
-            {g.entries.some((e) => e.isJamchart && e.jamchartNotes) && (
+            {hasNotes && (
               <ul className="mt-4 space-y-2 border-t border-line-soft pt-3">
-                {g.entries
-                  .filter((e) => e.isJamchart && e.jamchartNotes)
-                  .map((e) => (
-                    <li key={e.uniqueId} className="flex gap-2.5 text-[0.82rem] leading-relaxed text-muted">
-                      <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.7} />
-                      <span>
-                        <span className="text-ink">{e.song}</span> — {e.jamchartNotes}
-                      </span>
-                    </li>
-                  ))}
+                {g.entries.flatMap((e) => {
+                  const items: ReactNode[] = [];
+                  if (e.footnote) {
+                    items.push(
+                      <li key={`fn-${e.uniqueId}`} id={`fn-${e.uniqueId}`} className="flex gap-2.5 text-[0.82rem] leading-relaxed text-muted">
+                        <span className="mt-0.5 w-3.5 shrink-0 text-right font-mono text-[0.7rem] text-sage">{fnIndex.get(e.uniqueId)}</span>
+                        <span>
+                          <span className="text-ink">{e.song}</span> — {e.footnote}
+                        </span>
+                      </li>,
+                    );
+                  }
+                  if (e.isJamchart && e.jamchartNotes) {
+                    items.push(
+                      <li key={`jam-${e.uniqueId}`} className="flex gap-2.5 text-[0.82rem] leading-relaxed text-muted">
+                        <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.7} />
+                        <span>
+                          <span className="text-ink">{e.song}</span> — {e.jamchartNotes}
+                        </span>
+                      </li>,
+                    );
+                  }
+                  return items;
+                })}
               </ul>
             )}
           </section>

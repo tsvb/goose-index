@@ -35,6 +35,22 @@ describe("SetlistFunctional", () => {
     expect(html).toContain("Tumble");
     expect(html).toContain("Yeti");
   });
+  it("renders footnotes and jamchart notes as a visible notes panel under the table", () => {
+    const html = renderToStaticMarkup(
+      <SetlistFunctional entries={[
+        entry({ uniqueId: "a", song: "Tumble", footnote: "First time played." }),
+        entry({ uniqueId: "b", song: "Yeti", position: 2, isJamchart: true, jamchartNotes: "type II monster" }),
+      ]} showDate="2024-04-20" venue={null} />,
+    );
+    // note text lives in the DOM, not just in title attributes
+    expect(html).toContain("First time played.");
+    expect(html).toContain("type II monster");
+    // superscript marker on the song links to the note item
+    expect(html).toContain('href="#w2fn-a"');
+    expect(html).toContain('id="w2fn-a"');
+    // ★ JAM badge carries the note as a tooltip too
+    expect(html).toContain('title="type II monster"');
+  });
   it("links the song and marks a Dusted Off return", () => {
     const html = renderToStaticMarkup(<SetlistFunctional entries={[entry({ song: "Hot Tea", slug: "hot-tea", gap: 52, isDustedOff: true })]} showDate="2024-04-20" venue={null} />);
     expect(html).toContain('href="/songs/hot-tea"');

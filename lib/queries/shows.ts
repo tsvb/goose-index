@@ -176,7 +176,7 @@ export async function getSetlist(showId: number): Promise<SetlistEntry[]> {
   });
 }
 
-export type ShowNeighbor = { date: string; venue: string | null; city: string | null; state: string | null } | null;
+export type ShowNeighbor = { date: string; order: number | null; venue: string | null; city: string | null; state: string | null } | null;
 
 export async function getShowNeighbors(
   date: string,
@@ -185,23 +185,27 @@ export async function getShowNeighbors(
   const ord = order ?? 1;
   const cols = {
     date: shows.showDate,
+    order: shows.showOrder,
     venue: venues.name,
     city: venues.city,
     state: venues.state,
   };
+  // Walk the true chronological sequence (date, show_order) so multi-show
+  // dates step through show 1 → 2 → n before crossing to the next date.
+  const seqOrder = sql`coalesce(${shows.showOrder}, 1)`;
   const [prev] = await db
     .select(cols)
     .from(shows)
     .leftJoin(venues, eq(venues.venueId, shows.venueId))
     .where(sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) < (${date}::date, ${ord})`)
-    .orderBy(desc(shows.showDate), desc(shows.showOrder))
+    .orderBy(desc(shows.showDate), desc(seqOrder))
     .limit(1);
   const [next] = await db
     .select(cols)
     .from(shows)
     .leftJoin(venues, eq(venues.venueId, shows.venueId))
     .where(sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) > (${date}::date, ${ord})`)
-    .orderBy(asc(shows.showDate), asc(shows.showOrder))
+    .orderBy(asc(shows.showDate), asc(seqOrder))
     .limit(1);
   return { prev: prev ?? null, next: next ?? null };
 }

@@ -19,9 +19,12 @@ export function SongIndexTable({ rows, years }: { rows: SongIndexRow[]; years: n
           {rows.map((r, i) => (
             <tr key={r.songId}>
               <td className="num dim">{i + 1}</td>
-              <td className="song-pin">
-                <Link href={songHref(r)}>{r.name}</Link>
-                {!r.isOriginal && <span className="song-cover">cover</span>}
+              <td className="song-pin" title={r.name}>
+                <span className="song-pin-name">
+                  <Link href={songHref(r)}>{r.name}</Link>
+                  {!r.isOriginal && <span className="song-cover">cover</span>}
+                </span>
+                <span className="song-pin-stat">{r.timesPlayed} played</span>
               </td>
               <td className="num">{r.timesPlayed}</td>
               <td><MiniSparkline values={r.playsPerYear} /></td>

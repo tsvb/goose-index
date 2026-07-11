@@ -12,6 +12,7 @@ export function SetlistMinimal({ entries, showDate, venue }: { entries: SetlistE
   const groups = groupSets(entries);
   const notes: { id: string; text: string }[] = [];
   entries.forEach((e) => {
+    if (e.footnote) notes.push({ id: `fn-${e.uniqueId}`, text: `${e.song} — ${e.footnote}` });
     if (e.isJamchart && e.jamchartNotes) notes.push({ id: `n-${e.uniqueId}`, text: `${e.song} — ${e.jamchartNotes}` });
   });
   const noteIndex = new Map(notes.map((n, i) => [n.id, i + 1]));
@@ -23,14 +24,15 @@ export function SetlistMinimal({ entries, showDate, venue }: { entries: SetlistE
           <table className="doc-table">
             <tbody>
               {g.entries.map((e, i) => {
-                const nid = `n-${e.uniqueId}`;
-                const fn = e.isJamchart && e.jamchartNotes ? noteIndex.get(nid) : undefined;
+                const refIds = [`fn-${e.uniqueId}`, `n-${e.uniqueId}`].filter((id) => noteIndex.has(id));
                 return (
                   <tr key={e.uniqueId} className="nugs-row">
                     <td className="num" style={{ width: "1.6rem" }}>{i + 1}</td>
                     <td>
                       {e.slug ? <a href={`/songs/${e.slug}`}>{e.song}</a> : e.song}
-                      {fn ? <sup><a href={`#${nid}`}>{fn}</a></sup> : null}
+                      {refIds.map((id, j) => (
+                        <sup key={id}>{j > 0 ? "," : ""}<a href={`#${id}`}>{noteIndex.get(id)}</a></sup>
+                      ))}
                       {isSegue(e.transition) ? " >" : ""}
                       {e.isDustedOff ? <span className="doc-crumb"> [{RETURN_LABEL} · {e.gap}]</span> : null}
                     </td>
@@ -50,7 +52,7 @@ export function SetlistMinimal({ entries, showDate, venue }: { entries: SetlistE
         </DocSection>
       ))}
       {notes.length > 0 && (
-        <DocSection title="Jam notes">
+        <DocSection title="Notes">
           <Footnotes notes={notes} />
         </DocSection>
       )}

@@ -13,7 +13,8 @@
   --surface-2: #261d14;
   --ink: #f3ead9;
   --muted: #b6a585;
-  --faint: #897a60;
+  /* ≥4.5:1 (WCAG AA) on --bg and --surface — text-faint styles 0.55–0.85rem text. */
+  --faint: #94856b;
   --line: #362b1e;
   --line-soft: #2a2117;
   --gold: #edab44;
@@ -33,15 +34,17 @@
   --surface-2: #f1e7d2;
   --ink: #241b10;
   --muted: #6c5c44;
-  --faint: #9a8868;
+  /* Accent/faint text tokens re-derived for cream paper at ≥4.5:1 (WCAG AA)
+     on --bg and --surface — same warm hues, pulled darker. */
+  --faint: #77654a;
   --line: #e0d3ba;
   --line-soft: #ebdfc8;
-  --gold: #b9771a;
-  --gold-soft: #a4691a;
+  --gold: #8f5c14;
+  --gold-soft: #8a5913;
   --gold-deep: #8a5712;
-  --sage: #2f7a6a;
+  --sage: #2b7263;
   --sage-deep: #266456;
-  --ember: #bd6326;
+  --ember: #a5511c;
   --shadow: rgba(80, 56, 20, 0.14);
   color-scheme: light;
 }
@@ -267,16 +270,19 @@
   --surface: #ffffff;
   --surface-2: #f1f7fc;
   --ink: #2a3a47;
-  --muted: #5f7282;
-  --faint: #8194a4;
+  /* Text tokens hold ≥4.5:1 (WCAG AA) on --bg and --surface — blue-slate
+     grays, gel blues, and the link green pulled darker; ember darkened for
+     its text roles (.overdue, .live-pill). */
+  --muted: #526577;
+  --faint: #5a6c7c;
   --line: #c4d4e2;
   --line-soft: #e7eef5;
-  --gold: #2f86cf;
-  --gold-soft: #2c7cc4;
+  --gold: #1f6cb0;
+  --gold-soft: #1e639f;
   --gold-deep: #1f5e93;
-  --sage: #5fa928;
-  --sage-deep: #4d8c20;
-  --ember: #f4a72b;
+  --sage: #3b7411;
+  --sage-deep: #305e0e;
+  --ember: #a85413;
   --shadow: rgba(40, 70, 110, 0.18);
   --type-display: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   --type-body: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
@@ -290,7 +296,7 @@
   font-weight: 800;
   letter-spacing: -0.015em;
 }
-[data-experience="functional"] .eyebrow { color: #2c7cc4; }
+[data-experience="functional"] .eyebrow { color: var(--gold-soft); }
 /* Glossy panels — reskins the shared .surface-card used across listing/home bodies. */
 [data-experience="functional"] .surface-card {
   background: linear-gradient(#ffffff, #f1f7fc);
@@ -423,8 +429,11 @@
 .song-fact-k { font-size: 0.6rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
 @media (max-width: 640px) { .song-ribbon { grid-template-columns: 1fr 1fr; } }
 
-.song-cols { display: grid; grid-template-columns: 360px 1fr; gap: 1.6rem; align-items: start; }
-@media (max-width: 820px) { .song-cols { grid-template-columns: 1fr; } }
+.song-cols { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 1.6rem; align-items: start; }
+/* minmax(0, 1fr): a bare 1fr means min-width:auto, so the nowrap table's
+   min-content width blows the track (and the page) past the viewport instead
+   of letting .song-scroll-inner scroll. */
+@media (max-width: 820px) { .song-cols { grid-template-columns: minmax(0, 1fr); } }
 
 .song-ppy { display: flex; align-items: flex-end; gap: 4px; height: 96px; border-bottom: 1px solid var(--line); }
 .song-ppy-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
@@ -448,7 +457,7 @@
 .song-scroll { position: relative; border: 1px solid var(--line); border-radius: 10px; }
 .song-scroll-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
 .song-scroll-fade { position: absolute; top: 0; right: 0; width: 24px; height: 100%; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg) 80%, transparent)); }
-.song-scroll-hint { font-size: 0.62rem; color: var(--faint); text-align: right; margin: 5px 8px 0; }
+.song-scroll-hint { font-size: 0.62rem; color: var(--faint); text-align: right; margin: 0 8px 5px; }
 table.song-table { border-collapse: collapse; width: 100%; font-size: 0.85rem; white-space: nowrap; }
 table.song-table th { text-align: left; font-size: 0.58rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding: 6px 9px; background: var(--bg); }
 table.song-table td { padding: 5px 9px; border-bottom: 1px solid var(--line-soft, var(--line)); }
@@ -458,6 +467,15 @@ table.song-table .gold { color: var(--gold); }
 table.song-table .gapcell { color: var(--gold); }
 table.song-table .overdue { color: var(--ember, #ff8a3d); font-weight: 700; }
 table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; left: 0; z-index: 2; background: var(--bg); border-right: 1px solid var(--line); min-width: 120px; }
+.song-pin-name { display: block; overflow: hidden; text-overflow: ellipsis; }
+.song-pin-stat { display: none; }
+/* Phones: cap the pinned column so the scroll viewport keeps a data window
+   (long titles otherwise eat it), and surface the row's key stat inside the
+   pin since the stat columns start off-screen. */
+@media (max-width: 640px) {
+  table.song-table th.song-pin, table.song-table td.song-pin { max-width: 44vw; }
+  .song-pin-stat { display: block; font-size: 0.62rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+}
 .song-cover { font-size: 0.6rem; color: var(--faint); margin-left: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
 .song-bust { font-size: 0.62rem; color: var(--ember, #ff8a3d); border: 1px solid color-mix(in srgb, var(--ember, #ff8a3d) 45%, transparent); border-radius: 999px; padding: 1px 7px; margin-right: 6px; }
 .song-jam { font-size: 0.62rem; color: var(--gold); }
@@ -475,24 +493,57 @@ table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; l
 [data-experience="functional"] .song-bust { color: #b8501a; border-color: #f4a72b; }
 
 /* ---- nugs "Listen / Watch" affordance ---- */
+/* Cool "player" blues/violets, deliberately apart from the ledger palette.
+   Tokenized per [data-theme]: defaults are the dark-theme values (pod inherits
+   them — they read fine on graphite); light re-derives every text color for
+   cream at ≥4.5:1 (WCAG AA) incl. the translucent wash, borders at parity. */
+:root {
+  --nugs-link: #8fc6ee;
+  --nugs-link-strong: #bfe0fb;
+  --nugs-line: #34506a;
+  --nugs-line-strong: #4a78a6;
+  --nugs-wash: linear-gradient(180deg, rgba(60,110,160,0.16), rgba(40,70,110,0.10));
+  --nugs-watch: #c6b8ee;
+  --nugs-watch-strong: #ddd0fb;
+  --nugs-watch-line: #4a3f6a;
+  --nugs-watch-line-strong: #6a5aa0;
+  --nugs-watch-wash: linear-gradient(180deg, rgba(110,80,170,0.16), rgba(70,55,120,0.10));
+  --nugs-track: #7fbfe8;
+  --nugs-track-line: #2f4860;
+}
+:root[data-theme="light"] {
+  --nugs-link: #1d5c86;
+  --nugs-link-strong: #144a6d;
+  --nugs-line: #8ba6bb;
+  --nugs-line-strong: #4f7899;
+  --nugs-wash: linear-gradient(180deg, rgba(60,110,160,0.10), rgba(40,70,110,0.05));
+  --nugs-watch: #5f4399;
+  --nugs-watch-strong: #443070;
+  --nugs-watch-line: #a89bce;
+  --nugs-watch-line-strong: #7a68ac;
+  --nugs-watch-wash: linear-gradient(180deg, rgba(110,80,170,0.10), rgba(70,55,120,0.05));
+  --nugs-track: #1a567e;
+  --nugs-track-line: #93acc0;
+}
+
 /* show-header link (Listen / Watch) — tasteful secondary */
 .nugs-show {
   display: inline-flex; align-items: center; gap: 5px;
-  font-size: 0.76rem; color: #8fc6ee; border: 1px solid #34506a; border-radius: 8px;
-  padding: 4px 10px; background: linear-gradient(180deg, rgba(60,110,160,0.16), rgba(40,70,110,0.10));
+  font-size: 0.76rem; color: var(--nugs-link); border: 1px solid var(--nugs-line); border-radius: 8px;
+  padding: 4px 10px; background: var(--nugs-wash);
   transition: border-color 0.15s, color 0.15s;
 }
-.nugs-show:hover { color: #bfe0fb; border-color: #4a78a6; text-decoration: none; }
-.nugs-show.watch { color: #c6b8ee; border-color: #4a3f6a; background: linear-gradient(180deg, rgba(110,80,170,0.16), rgba(70,55,120,0.10)); }
-.nugs-show.watch:hover { color: #ddd0fb; border-color: #6a5aa0; }
+.nugs-show:hover { color: var(--nugs-link-strong); border-color: var(--nugs-line-strong); text-decoration: none; }
+.nugs-show.watch { color: var(--nugs-watch); border-color: var(--nugs-watch-line); background: var(--nugs-watch-wash); }
+.nugs-show.watch:hover { color: var(--nugs-watch-strong); border-color: var(--nugs-watch-line-strong); }
 
 /* per-track ▷ — hover-reveal where a pointer exists, always-visible on touch */
 .nugs-track {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 20px; height: 20px; padding: 0 5px; border-radius: 6px;
-  color: #7fbfe8; border: 1px solid #2f4860; font-size: 0.66rem; line-height: 1;
+  color: var(--nugs-track); border: 1px solid var(--nugs-track-line); font-size: 0.66rem; line-height: 1;
 }
-.nugs-track:hover { color: #bfe0fb; border-color: #4a78a6; text-decoration: none; }
+.nugs-track:hover { color: var(--nugs-link-strong); border-color: var(--nugs-line-strong); text-decoration: none; }
 @media (hover: hover) {
   .nugs-row .nugs-track { visibility: hidden; }
   .nugs-row:hover .nugs-track { visibility: visible; }

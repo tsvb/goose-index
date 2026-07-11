@@ -157,3 +157,63 @@ describe("searchShows", () => {
     expect(await searchShows("3/3/1999")).toEqual({ rows: [], total: 0 });
   });
 });
+
+describe("getShowNeighbors", () => {
+  beforeAll(async () => {
+    await seed();
+    // A three-show date flanked by single-show dates: 6/24 · 6/25 (n=1,2,3) · 6/26.
+    await upsertShows(ctx.db, [
+      { showId: 40, showDate: "2022-06-24", showOrder: 1 },
+      { showId: 41, showDate: "2022-06-25", showOrder: 1 },
+      { showId: 42, showDate: "2022-06-25", showOrder: 2 },
+      { showId: 43, showDate: "2022-06-25", showOrder: 3 },
+      { showId: 44, showDate: "2022-06-26", showOrder: 1 },
+    ].map((s) => ({
+      ...s, artistId: 1, venueId: 1, tourId: null,
+      title: null, permalink: `p${s.showId}`, notes: null, createdAt: null, updatedAt: null,
+    })));
+  });
+
+  it("walks forward through a multi-show date: n=1 → n=2 → n=3 → next date", async () => {
+    const { getShowNeighbors } = await import("./shows");
+    const from1 = await getShowNeighbors("2022-06-25", 1);
+    expect(from1.next).toMatchObject({ date: "2022-06-25", order: 2 });
+    const from2 = await getShowNeighbors("2022-06-25", 2);
+    expect(from2.next).toMatchObject({ date: "2022-06-25", order: 3 });
+    const from3 = await getShowNeighbors("2022-06-25", 3);
+    expect(from3.next).toMatchObject({ date: "2022-06-26", order: 1 });
+  });
+
+  it("walks backward through a multi-show date: n=3 → n=2 → n=1 → previous date", async () => {
+    const { getShowNeighbors } = await import("./shows");
+    const from3 = await getShowNeighbors("2022-06-25", 3);
+    expect(from3.prev).toMatchObject({ date: "2022-06-25", order: 2 });
+    const from2 = await getShowNeighbors("2022-06-25", 2);
+    expect(from2.prev).toMatchObject({ date: "2022-06-25", order: 1 });
+    const from1 = await getShowNeighbors("2022-06-25", 1);
+    expect(from1.prev).toMatchObject({ date: "2022-06-24", order: 1 });
+  });
+
+  it("crosses the date boundary from the flanking single-show dates", async () => {
+    const { getShowNeighbors } = await import("./shows");
+    const before = await getShowNeighbors("2022-06-24", 1);
+    expect(before.next).toMatchObject({ date: "2022-06-25", order: 1 });
+    const after = await getShowNeighbors("2022-06-26", 1);
+    expect(after.prev).toMatchObject({ date: "2022-06-25", order: 3 });
+  });
+
+  it("treats a null order as show 1", async () => {
+    const { getShowNeighbors } = await import("./shows");
+    const r = await getShowNeighbors("2022-06-25", null);
+    expect(r.prev).toMatchObject({ date: "2022-06-24", order: 1 });
+    expect(r.next).toMatchObject({ date: "2022-06-25", order: 2 });
+  });
+
+  it("returns null at the edges of the timeline", async () => {
+    const { getShowNeighbors } = await import("./shows");
+    const first = await getShowNeighbors("2020-01-01", 1);
+    expect(first.prev).toBeNull();
+    const last = await getShowNeighbors("2022-06-26", 1);
+    expect(last.next).toBeNull();
+  });
+});
