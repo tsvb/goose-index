@@ -465,18 +465,9 @@
    min-content width blows the track (and the page) past the viewport instead
    of letting .song-scroll-inner scroll. */
 @media (max-width: 820px) { .song-cols { grid-template-columns: minmax(0, 1fr); } }
-/* Two-column layouts only: pin the chart rail while the performance table
-   scrolls — 5rem clears the sticky header. A rail taller than the viewport
-   scrolls inside itself (max-height + auto) instead of dead-ending. */
-@media (min-width: 821px) {
-  .song-cols > :first-child {
-    position: sticky;
-    top: 5rem;
-    align-self: start;
-    max-height: calc(100dvh - 6rem);
-    overflow-y: auto;
-  }
-}
+/* The chart rail flows with the page — no sticky/inner-scroll. Pinning a rail
+   taller than the viewport needs its own scrollbar, and two competing vertical
+   scrollbars read worse than a rail that simply scrolls with the page. */
 
 .song-ppy { display: flex; align-items: flex-end; gap: 4px; height: 96px; border-bottom: 1px solid var(--line); }
 .song-ppy-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
