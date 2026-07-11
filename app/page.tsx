@@ -3,7 +3,7 @@ import { Container } from "./_components/container";
 import { ShowCard } from "./_components/show-card";
 import { SearchBox } from "./_components/search-box";
 import { SectionHeader } from "./_components/section-header";
-import { ArrowRight, Calendar, MapPin, Disc } from "./_components/marks";
+import { ArrowRight, Calendar, MapPin, Disc, Feather, Flame } from "./_components/marks";
 import { getOverviewStats } from "@/lib/queries/stats";
 import { getRecentShows, getUpcomingShows, getOnThisDay, getTonightShows } from "@/lib/queries/shows";
 import { compact, yearOf, formatMonthDay, formatLongDate, dateParts, locationLine, showHref } from "@/lib/queries/format";
@@ -59,18 +59,18 @@ export default async function Home() {
                 </>
               ),
             }] : []),
-            { k: "Shows", v: compact(stats.showsPlayed) },
+            { k: "Shows played", v: compact(stats.showsPlayed) },
             { k: "Songs", v: compact(stats.songs) },
             { k: "Venues", v: compact(stats.venues) },
             { k: "Performances", v: compact(stats.performances) },
             ...(stats.firstDate ? [{ k: "First show", v: stats.firstDate }] : []),
             ...(stats.lastPlayedDate ? [{ k: "Last show", v: stats.lastPlayedDate }] : []),
           ]} />
-          {onThisDay.length > 0 && <DocSection title="On this day"><ShowTable shows={onThisDay.slice(0, 6)} /></DocSection>}
+          {onThisDay.length > 0 && <DocSection title="On This Day"><ShowTable shows={onThisDay.slice(0, 6)} /></DocSection>}
           <DocSection title="Recent shows"><ShowTable shows={recent} /></DocSection>
           {upcoming.length > 0 && <DocSection title="Upcoming"><ShowTable shows={upcoming} /></DocSection>}
           <DocSection title="Browse">
-            <p><Link href="/shows">All shows</Link> · <Link href="/venues">Venues</Link> · <Link href="/tours">Tours</Link> · <Link href="/on-this-day">On this day</Link></p>
+            <p><Link href="/shows">All shows</Link> · <Link href="/songs">Songs</Link> · <Link href="/stats">Stats</Link> · <Link href="/venues">Venues</Link> · <Link href="/tours">Tours</Link> · <Link href="/on-this-day">On This Day</Link></p>
           </DocSection>
         </Doc>
       </Container>
@@ -110,7 +110,7 @@ export default async function Home() {
             className="rise mt-12 grid max-w-2xl grid-cols-2 gap-x-8 gap-y-8 sm:grid-cols-4"
             style={{ animationDelay: "260ms" }}
           >
-            <Stat value={compact(stats.showsPlayed)} label="Shows" />
+            <Stat value={compact(stats.showsPlayed)} label="Shows played" />
             <Stat value={compact(stats.performances)} label="Songs played" />
             <Stat value={compact(stats.songs)} label="Unique songs" />
             <Stat value={compact(stats.venues)} label="Venues" />
@@ -165,7 +165,7 @@ export default async function Home() {
               {/* A real h2 (the section had no heading) — inline style pins the
                   eyebrow's weight/tracking against the base h2 rule (460) and
                   functional's unlayered h2 rule (800 / -0.015em). */}
-              <h2 className="eyebrow" style={{ fontWeight: 400, letterSpacing: "0.22em" }}>On this day · {todayLabel}</h2>
+              <h2 className="eyebrow" style={{ fontWeight: 400, letterSpacing: "0.22em" }}>On This Day · {todayLabel}</h2>
             </div>
             <p className="mt-3 max-w-2xl text-muted">
               {onThisDay.length === 1
@@ -235,6 +235,8 @@ export default async function Home() {
             <SectionHeader eyebrow="Find your way in" title="Browse the record" />
             <div className="flex flex-col gap-3">
               <BrowseLink href="/shows" icon={<Calendar className="h-5 w-5" />} title="Every show" sub={`${compact(stats.showsPlayed)} nights, by year & tour`} />
+              <BrowseLink href="/songs" icon={<Feather className="h-5 w-5" />} title="Songs" sub={`${compact(stats.songsInCatalog)} songs, sorted any way`} />
+              <BrowseLink href="/stats" icon={<Flame className="h-5 w-5" />} title="Stats" sub="Cuts, gaps, and debuts" />
               <BrowseLink href="/venues" icon={<MapPin className="h-5 w-5" />} title="Venues" sub={`${compact(stats.venues)} rooms across the map`} />
               <BrowseLink href="/tours" icon={<Disc className="h-5 w-5" />} title="Tours" sub="Runs and eras, start to finish" />
             </div>

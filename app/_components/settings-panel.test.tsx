@@ -56,6 +56,19 @@ describe("SettingsPanel", () => {
     expect(html).not.toContain("Appearance");
     expect(html).toContain("3.0 experience");
   });
+
+  it("leaves the experience options enabled when not pending", () => {
+    const html = render();
+    // The `disabled:opacity-60` class is always present; assert on the actual
+    // disabled attribute, which only the pending state adds.
+    expect(html).not.toContain('disabled=""');
+  });
+
+  it("disables and dims every experience option while an experience switch is pending", () => {
+    const html = render({ pending: true });
+    expect(html.match(/disabled=""/g)).toHaveLength(3); // the three experiences
+    expect(html).toContain("disabled:opacity-60");
+  });
 });
 
 describe("resolveTheme", () => {

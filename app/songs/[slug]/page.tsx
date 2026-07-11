@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Params, parent: ResolvingMeta
   if (!song) return { title: "Song not found" };
   const description = song.timesPlayed === 0
     ? `${song.name} is in the Goose songbook, but never yet played live.`
-    : `Goose has played ${song.name} ${song.timesPlayed} time${song.timesPlayed === 1 ? "" : "s"} since ${song.debutDate ?? "?"}.`;
+    : `Goose has played ${song.name} ${song.timesPlayed} time${song.timesPlayed === 1 ? "" : "s"}${song.debutDate ? ` since ${song.debutDate}` : ""}.`;
   return { title: song.name, description, openGraph: entityOpenGraph({ title: song.name, description, path: `/songs/${slug}`, parent: await parent }) };
 }
 
@@ -88,7 +88,7 @@ export default async function SongPage({ params }: Params) {
       <Container className="py-7">
         <Breadcrumb trail={[{ href: "/", label: "Index" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
         <div className="mt-2 flex flex-wrap items-baseline gap-3">
-          <h1 className="font-display text-[2.2rem] font-extrabold leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
+          <h1 className="font-display text-[2.2rem] leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
           <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.62rem] uppercase tracking-wider text-muted">{tag}</span>
         </div>
         <FactRibbon facts={facts(song)} />
@@ -143,7 +143,7 @@ function NeverPlayed({ song, tag, experience }: { song: SongStat; tag: string; e
     <Container className="py-7">
       <Breadcrumb trail={[{ href: "/", label: "Index" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
       <div className="mt-2 flex flex-wrap items-baseline gap-3">
-        <h1 className="font-display text-[2.2rem] font-extrabold leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
+        <h1 className="font-display text-[2.2rem] leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
         <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.62rem] uppercase tracking-wider text-muted">{tag}</span>
       </div>
       <div className="mt-8 rounded-lg border border-dashed border-line bg-surface/50 px-6 py-14 text-center">

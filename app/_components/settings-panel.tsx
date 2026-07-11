@@ -19,12 +19,15 @@ export function SettingsPanel({
   current,
   themeAllowed,
   theme,
+  pending = false,
   onSelectExperience,
   onSelectTheme,
 }: {
   current: Experience;
   themeAllowed: boolean;
   theme: Theme;
+  /** An experience switch is refreshing the page — dim and disable the options. */
+  pending?: boolean;
   onSelectExperience: (next: Experience) => void;
   onSelectTheme: (next: Theme) => void;
 }) {
@@ -39,9 +42,10 @@ export function SettingsPanel({
               key={e.key}
               type="button"
               onClick={() => onSelectExperience(e.key)}
+              disabled={pending}
               aria-current={selected ? "true" : undefined}
               className={clsx(
-                "flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition",
+                "flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition disabled:opacity-60",
                 selected ? "bg-gold/15 ring-1 ring-gold/40" : "hover:bg-line/40",
               )}
             >

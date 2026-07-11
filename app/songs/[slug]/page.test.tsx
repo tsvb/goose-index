@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import type { ResolvingMetadata } from "next";
 import type { SongStat, SongPerf } from "@/lib/queries/songs";
 
 const h = vi.hoisted(() => ({
@@ -28,7 +29,7 @@ vi.mock("@/app/_components/song", () => ({
   PerformanceTable: () => <table data-stub="perf-table" />,
 }));
 
-import SongPage from "./page";
+import SongPage, { generateMetadata } from "./page";
 
 function song(overrides: Partial<SongStat> = {}): SongStat {
   return {
@@ -44,6 +45,13 @@ function song(overrides: Partial<SongStat> = {}): SongStat {
 async function render(slug = "creatures") {
   const el = await SongPage({ params: Promise.resolve({ slug }) });
   return renderToStaticMarkup(el);
+}
+
+async function meta(slug = "creatures") {
+  return generateMetadata(
+    { params: Promise.resolve({ slug }) },
+    Promise.resolve({}) as unknown as ResolvingMetadata,
+  );
 }
 
 beforeEach(() => {
@@ -97,5 +105,35 @@ describe("SongPage for a played song", () => {
     expect(html.match(/<h1/g)).toHaveLength(1);
     expect(html).toContain("<h2");
     expect(html).not.toContain("<h3");
+  });
+});
+
+describe("SongPage metadata description grammar", () => {
+  it("says a never-played song is in the book, not 'played 0 times'", async () => {
+    h.song = song({ timesPlayed: 0 });
+    const m = await meta();
+    expect(m.description).toContain("never yet played live");
+    expect(m.description).not.toContain("0 time");
+  });
+
+  it("uses the singular 'time' for a one-off", async () => {
+    h.song = song({ timesPlayed: 1, debutDate: "2023-05-01" });
+    const m = await meta();
+    expect(m.description).toBe("Goose has played Creatures 1 time since 2023-05-01.");
+    expect(m.description).not.toContain("1 times");
+  });
+
+  it("uses plural 'times' with the debut date when known", async () => {
+    h.song = song({ timesPlayed: 42, debutDate: "2019-01-30" });
+    const m = await meta();
+    expect(m.description).toBe("Goose has played Creatures 42 times since 2019-01-30.");
+  });
+
+  it("drops the 'since' clause entirely when the debut is unknown", async () => {
+    h.song = song({ timesPlayed: 42, debutDate: null });
+    const m = await meta();
+    expect(m.description).toBe("Goose has played Creatures 42 times.");
+    expect(m.description).not.toContain("since");
+    expect(m.description).not.toContain("?");
   });
 });

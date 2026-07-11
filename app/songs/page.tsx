@@ -43,7 +43,7 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
           <h1>Songs</h1>
           <p className="doc-crumb">{compact(total)} songs · sorted by {SORTS.find((s) => s.key === sort)?.label}</p>
           <p className="doc-crumb">
-            {SORTS.map((s) => <span key={s.key}>{s.key === sort ? <strong>{s.label}</strong> : <Link href={buildHref({ sort: s.key, facet, q })}>{s.label}</Link>}{" · "}</span>)}
+            {SORTS.map((s, i) => <span key={s.key}>{i > 0 ? " · " : ""}{s.key === sort ? <strong>{s.label}</strong> : <Link href={buildHref({ sort: s.key, facet, q })}>{s.label}</Link>}</span>)}
           </p>
           {sort === "overdue" && (
             <p className="doc-crumb">{OVERDUE_NOTE}<Link href="/stats/current-gaps">Most Overdue</Link> in Stats.</p>

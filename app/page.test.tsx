@@ -16,7 +16,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/experience.server", () => ({ getExperience: async () => h.experience }));
 vi.mock("@/lib/queries/stats", () => ({
   getOverviewStats: async () => ({
-    showsPlayed: 392, upcoming: 3, songs: 613, venues: 191, performances: 6459,
+    showsPlayed: 392, upcoming: 3, songs: 613, songsInCatalog: 621, venues: 191, performances: 6459,
     firstDate: "2016-08-03", lastPlayedDate: "2026-07-11",
   }),
 }));
@@ -51,12 +51,41 @@ beforeEach(() => {
 });
 
 describe("Home section headings", () => {
-  it("renders 'On this day' and 'Latest shows' as real h2s under the single h1", async () => {
+  it("renders 'On This Day' and 'Latest shows' as real h2s under the single h1", async () => {
     h.onThisDay = [show(7, "2016-07-11", "Nectar's", 1)];
     const html = await render();
     expect(html.match(/<h1/g)).toHaveLength(1);
-    expect(html).toMatch(/<h2[^>]*>On this day/);
+    // Casing is unified on "On This Day" everywhere user-facing.
+    expect(html).toMatch(/<h2[^>]*>On This Day/);
+    expect(html).not.toContain("On this day");
     expect(html).toMatch(/<h2[^>]*>Latest shows<\/h2>/);
+  });
+});
+
+describe("Home hero + browse funnels", () => {
+  it("labels the hero show count as 'Shows played', not a bare 'Shows'", async () => {
+    const html = await render();
+    expect(html).toContain("Shows played");
+    // The old ambiguous label is gone (would leave a stray "Shows" tile).
+    expect(html).not.toMatch(/>Shows<\/span>/);
+  });
+
+  it("funnels into Songs and Stats from the browse rail", async () => {
+    const html = await render();
+    // Songs row — count comes from the whole songbook, not the played-song total.
+    expect(html).toContain('href="/songs"');
+    expect(html).toContain("621 songs, sorted any way");
+    // Stats row.
+    expect(html).toContain('href="/stats"');
+    expect(html).toContain("Cuts, gaps, and debuts");
+  });
+
+  it("minimal browse line links Songs and Stats too", async () => {
+    h.experience = "minimal";
+    const html = await render();
+    expect(html).toContain('href="/songs"');
+    expect(html).toContain('href="/stats"');
+    expect(html).toContain("Shows played");
   });
 });
 

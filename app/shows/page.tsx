@@ -36,7 +36,7 @@ const pillClass = (active: boolean) =>
     "rounded-full border px-3 py-1 font-mono text-xs transition",
     active
       ? "border-gold text-gold"
-      : "border-line text-muted hover:border-line-soft hover:text-ink",
+      : "border-line text-muted hover:border-gold-soft hover:text-ink",
   ].join(" ");
 
 export default async function ShowsBrowsePage({
@@ -71,9 +71,11 @@ export default async function ShowsBrowsePage({
   const flipDirLabel = dir === "asc" ? "Show newest first" : "Show oldest first";
 
   const scope = selectedTour ? selectedTour.name : year ? `in ${year}` : null;
+  // Unfiltered, the total counts every show in the log — announced future
+  // dates included — unlike the home hero's "shows played". Say so.
   const countLine = scope
     ? `${compact(total)} ${total === 1 ? "show" : "shows"} · ${scope}`
-    : `${compact(total)} ${total === 1 ? "show" : "shows"} · ${dir === "asc" ? "oldest first" : "newest first"}`;
+    : `${compact(total)} ${total === 1 ? "show" : "shows"} logged · incl. upcoming · ${dir === "asc" ? "oldest first" : "newest first"}`;
 
   const jumpLabel = latest?.isToday ? "Tonight’s show" : "Most recent show";
   const jumpHref = latest ? `${href({ page: latest.page })}#show-${latest.showId}` : null;

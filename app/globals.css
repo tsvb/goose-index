@@ -334,6 +334,11 @@
   color: #fff; font-size: 9px; font-weight: 800; padding: 1px 5px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 [data-experience="functional"] .w2-navlink { color: #fff; font-weight: 700; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2); border-radius: 6px; padding: 4px 10px; }
+/* 768–1024: the full nav now replaces the hamburger — slimmer tabs so six
+   links plus search and the gear share the appbar row. */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  [data-experience="functional"] .w2-navlink { padding: 4px 6px; }
+}
 [data-experience="functional"] .w2-navlink:hover { background: rgba(255, 255, 255, 0.22); }
 /* Current section: the pressed white tab of the era. After :hover so the
    active look holds while hovered. */
@@ -452,7 +457,7 @@
 .song-ribbon { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 1rem 0; }
 .song-fact { background: var(--surface); padding: 0.6rem 0.85rem; }
 .song-fact-v { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; color: var(--gold); font-variant-numeric: tabular-nums; }
-.song-fact-k { font-size: 0.6rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+.song-fact-k { font-size: 0.65rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
 @media (max-width: 640px) { .song-ribbon { grid-template-columns: 1fr 1fr; } }
 
 .song-cols { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 1.6rem; align-items: start; }
@@ -460,12 +465,24 @@
    min-content width blows the track (and the page) past the viewport instead
    of letting .song-scroll-inner scroll. */
 @media (max-width: 820px) { .song-cols { grid-template-columns: minmax(0, 1fr); } }
+/* Two-column layouts only: pin the chart rail while the performance table
+   scrolls — 5rem clears the sticky header. A rail taller than the viewport
+   scrolls inside itself (max-height + auto) instead of dead-ending. */
+@media (min-width: 821px) {
+  .song-cols > :first-child {
+    position: sticky;
+    top: 5rem;
+    align-self: start;
+    max-height: calc(100dvh - 6rem);
+    overflow-y: auto;
+  }
+}
 
 .song-ppy { display: flex; align-items: flex-end; gap: 4px; height: 96px; border-bottom: 1px solid var(--line); }
 .song-ppy-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
 .song-ppy-bar { width: 100%; background: linear-gradient(180deg, var(--gold), var(--gold-deep, #c8902f)); border-radius: 3px 3px 0 0; min-height: 3px; }
-.song-ppy-ct { font-size: 0.6rem; color: var(--muted); }
-.song-ppy-yr { font-size: 0.55rem; color: var(--faint); }
+.song-ppy-ct { font-size: 0.65rem; color: var(--muted); }
+.song-ppy-yr { font-size: 0.65rem; color: var(--faint); }
 
 .song-bars { display: grid; gap: 6px; }
 .song-barrow { display: grid; grid-template-columns: 84px 1fr 40px; align-items: center; gap: 10px; font-size: 0.82rem; }
@@ -483,7 +500,7 @@
 .song-scroll { position: relative; border: 1px solid var(--line); border-radius: 10px; }
 .song-scroll-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
 .song-scroll-fade { position: absolute; top: 0; right: 0; width: 24px; height: 100%; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg) 80%, transparent)); }
-.song-scroll-hint { font-size: 0.62rem; color: var(--faint); text-align: right; margin: 0 8px 5px; }
+.song-scroll-hint { font-size: 0.65rem; color: var(--faint); text-align: right; margin: 0 8px 5px; }
 table.song-table { border-collapse: collapse; width: 100%; font-size: 0.85rem; white-space: nowrap; }
 table.song-table th { text-align: left; font-size: 0.58rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding: 6px 9px; background: var(--bg); }
 table.song-table td { padding: 5px 9px; border-bottom: 1px solid var(--line-soft, var(--line)); }
@@ -502,7 +519,7 @@ table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; l
   table.song-table th.song-pin, table.song-table td.song-pin { max-width: 44vw; }
   .song-pin-stat { display: block; font-size: 0.62rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 }
-.song-cover { font-size: 0.6rem; color: var(--faint); margin-left: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.song-cover { font-size: 0.65rem; color: var(--faint); margin-left: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
 .song-bust { font-size: 0.62rem; color: var(--ember, #ff8a3d); border: 1px solid color-mix(in srgb, var(--ember, #ff8a3d) 45%, transparent); border-radius: 999px; padding: 1px 7px; margin-right: 6px; }
 .song-jam { font-size: 0.62rem; color: var(--gold); }
 
