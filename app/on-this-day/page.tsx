@@ -6,8 +6,9 @@ import { getOnThisDay } from "@/lib/queries/shows";
 import { formatMonthDay, compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { Doc, Breadcrumb, ShowTable } from "@/app/_components/doc";
+import { canonicalUrl } from "@/lib/site";
 
-export const metadata: Metadata = { title: "On This Day" };
+export const metadata: Metadata = { title: "On This Day", alternates: { canonical: canonicalUrl("/on-this-day") } };
 
 export default async function OnThisDayPage() {
   const rows = await getOnThisDay();

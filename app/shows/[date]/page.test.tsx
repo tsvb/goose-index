@@ -136,11 +136,46 @@ describe("ShowPage no-show date recovery", () => {
       {} as never,
     );
     expect(noShow.title).toBe("No show on Mar 19, 2019");
+    // Self-canonical so the recovery page doesn't get consolidated into a random show.
+    expect(noShow.alternates?.canonical).toBe("https://www.gooseindex.com/shows/2019-03-19");
     const garbage = await generateMetadata(
       { params: Promise.resolve({ date: "2019-13-99" }), searchParams: Promise.resolve({}) },
       {} as never,
     );
     expect(garbage.title).toBe("Show not found");
+    // No canonical for garbage — nothing to point at.
+    expect(garbage.alternates).toBeUndefined();
+  });
+});
+
+describe("ShowPage canonical URL (multi-show dates)", () => {
+  const parent = { openGraph: { images: [] } } as never;
+
+  it("canonicals show 1 to the bare date URL — never ?n=1", async () => {
+    // Both no-?n and ?n=1 should resolve to show 1 (order 1) with the same bare canonical.
+    for (const searchParams of [{}, { n: "1" }]) {
+      const m = await generateMetadata(
+        { params: Promise.resolve({ date: "2025-06-25" }), searchParams: Promise.resolve(searchParams) },
+        parent,
+      );
+      expect(m.alternates?.canonical).toBe("https://www.gooseindex.com/shows/2025-06-25");
+    }
+  });
+
+  it("canonicals a non-default show to ?n=<its order>", async () => {
+    const m = await generateMetadata(
+      { params: Promise.resolve({ date: "2025-06-25" }), searchParams: Promise.resolve({ n: "2" }) },
+      parent,
+    );
+    expect(m.alternates?.canonical).toBe("https://www.gooseindex.com/shows/2025-06-25?n=2");
+  });
+
+  it("openGraph url matches the canonical (so social scrapers and Google agree)", async () => {
+    const m = await generateMetadata(
+      { params: Promise.resolve({ date: "2025-06-25" }), searchParams: Promise.resolve({ n: "3" }) },
+      parent,
+    );
+    expect(m.openGraph?.url).toBe(m.alternates?.canonical);
   });
 });
 

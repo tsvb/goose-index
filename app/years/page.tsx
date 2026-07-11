@@ -5,10 +5,12 @@ import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { listYears } from "@/lib/queries/dimensions";
 import { compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
+import { canonicalUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Years",
   description: "Every year of Goose shows, from the first gig on the record to tonight.",
+  alternates: { canonical: canonicalUrl("/years") },
 };
 
 export default async function YearsPage() {

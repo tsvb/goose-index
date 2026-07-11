@@ -22,7 +22,7 @@ import {
   showHref,
   yearOf,
 } from "@/lib/queries/format";
-import { entityOpenGraph } from "@/lib/site";
+import { canonicalUrl, entityMetadata } from "@/lib/site";
 
 type Params = { params: Promise<{ date: string }>; searchParams: Promise<{ n?: string }> };
 
@@ -46,14 +46,21 @@ export async function generateMetadata({ params, searchParams }: Params, parent:
   const show = await resolveShow(date, n);
   // A shape-valid date with no logged show gets a titled "no show" page;
   // genuine garbage keeps the plain 404 title.
-  if (!show) return { title: isValidShowDate(date) ? `No show on ${formatShortDate(date)}` : "Show not found" };
+  if (!show) {
+    return isValidShowDate(date)
+      ? { title: `No show on ${formatShortDate(date)}`, alternates: { canonical: canonicalUrl(`/shows/${date}`) } }
+      : { title: "Show not found" };
+  }
   const where = show.venue ? `${show.venue}, ${locationLine(show.city, show.state, show.country)}` : "";
   const title = `${formatShortDate(date)} · ${show.venue ?? "Goose"}`;
   const description = `Goose setlist for ${formatLongDate(date)}${where ? ` at ${where}` : ""}.`;
+  // Multi-show dates: canonical includes ?n= only when the resolved show is
+  // not the default (order 1), so ?n=1 collapses to /shows/<date>.
+  const path = show.order && show.order > 1 ? `/shows/${date}?n=${show.order}` : `/shows/${date}`;
   return {
     title,
     description,
-    openGraph: entityOpenGraph({ title, description, path: `/shows/${date}`, parent: await parent }),
+    ...entityMetadata({ title, description, path, parent: await parent }),
   };
 }
 

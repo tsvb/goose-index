@@ -6,11 +6,13 @@ import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { listVenues, type VenueRow } from "@/lib/queries/dimensions";
 import { locationLine, compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
+import { canonicalUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Venues",
   description: "Every venue Goose has played, grouped by state and filterable by name or city.",
+  alternates: { canonical: canonicalUrl("/venues") },
 };
 
 type SearchParams = { sort?: "shows" | "name"; q?: string };

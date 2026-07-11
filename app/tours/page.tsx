@@ -6,10 +6,12 @@ import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { listTours } from "@/lib/queries/dimensions";
 import { formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
+import { canonicalUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Tours",
   description: "Every Goose run and era, from first show to last night.",
+  alternates: { canonical: canonicalUrl("/tours") },
 };
 
 export default async function ToursPage() {

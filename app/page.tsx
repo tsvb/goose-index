@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "./_components/container";
 import { ShowCard } from "./_components/show-card";
@@ -8,7 +9,12 @@ import { getOverviewStats } from "@/lib/queries/stats";
 import { getRecentShows, getUpcomingShows, getOnThisDay, getTonightShows } from "@/lib/queries/shows";
 import { compact, yearOf, formatMonthDay, formatLongDate, dateParts, locationLine, showHref } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
+import { canonicalUrl } from "@/lib/site";
 import { Doc, MetaTable, ShowTable, DocSection } from "./_components/doc";
+
+export const metadata: Metadata = {
+  alternates: { canonical: canonicalUrl("/") },
+};
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (

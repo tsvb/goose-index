@@ -9,14 +9,14 @@ import { listYears } from "@/lib/queries/dimensions";
 import { compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { Doc, Breadcrumb, ShowTable } from "@/app/_components/doc";
-import { entityOpenGraph } from "@/lib/site";
+import { entityMetadata } from "@/lib/site";
 
 type Params = { params: Promise<{ year: string }> };
 
 export async function generateMetadata({ params }: Params, parent: ResolvingMetadata): Promise<Metadata> {
   const { year } = await params;
   const description = `Every Goose show from ${year}, with full setlists.`;
-  return { title: year, description, openGraph: entityOpenGraph({ title: `${year} · Goose`, description, path: `/years/${year}`, parent: await parent }) };
+  return { title: year, description, ...entityMetadata({ title: `${year} · Goose`, description, path: `/years/${year}`, parent: await parent }) };
 }
 
 export default async function YearPage({ params }: Params) {

@@ -16,6 +16,7 @@ import {
   SHOWS_PER_OPTIONS,
   type ShowsQuery,
 } from "@/lib/shows-url";
+import { canonicalUrl } from "@/lib/site";
 
 type SearchParams = Promise<{ year?: string; tour?: string; dir?: string; per?: string; page?: string }>;
 
@@ -28,6 +29,7 @@ export async function generateMetadata({
   const year = sp.year ? parseInt(sp.year, 10) : undefined;
   return {
     title: year ? `Shows in ${year}` : "Shows",
+    alternates: { canonical: canonicalUrl("/shows") },
   };
 }
 
