@@ -287,32 +287,50 @@ value.
 
 ## P2 — Polish (curated)
 
-- Home's "Browse the record" funnels omit Songs and Stats — the two sections stat
-  fans came for.
-- "Also this day" chips say only "Show 2" — add the venue name.
-- Two different show totals with no qualifier (home hero counts played shows, `/shows`
-  counts all).
-- Song-page meta descriptions emit "played X 0 times since ?" and "1 times".
-- Filter pills' hover *reduces* border contrast (reads backwards).
-- Song-detail H1 uses weight 800 against the site's 460 display voice.
-- Sub-10px mono microcopy (chart axes, swipe hints) is below comfortable legibility.
-- Desktop nav hides behind the hamburger until 1024px — tablets have room at 768px.
-- Settings popover: initial focus lands on the first button (not the current choice),
-  and focus drops after switching experience; no pending state during the refresh.
-- `:target` flash isn't gated behind `prefers-reduced-motion`.
-- Live polling continues while the tab is hidden (`live-refresh.tsx`) — pause on
-  `visibilitychange`.
-- Casing drift: header "On This Day" vs footer "On this day"; minimal `/songs` sort
-  row has a dangling "·".
-- The 404 ignores experience modes (fancy hero leaks into minimal); date-shaped 404
-  URLs could offer "browse shows near this date."
-- On desktop, the song page's left rail empties after the first screenful while the
-  performance table runs on for thousands of pixels — consider `position: sticky` on
-  the rail or grouping the history by year.
-- Modes can't be linked/shared (cookie-only). A `?exp=` override that sets the cookie
-  would let fans share the 2.0/1.0 views.
-- Hero stat "613 unique songs" counts 8 never-played songs; "605 performed" is the
-  honest number (or relabel "in the songbook").
+**Status (2026-07-11):** swept. Every item below is resolved except one, which was
+deliberately declined (recorded inline). Verified by typecheck, the full test suite
+(404/404), and a production build; the interactive items were confirmed on a running
+dev server. One separate issue was discovered during the sweep and is logged at the end.
+
+- ✅ Home's "Browse the record" funnels now include Songs and Stats.
+- ✅ "Also this day" chips now carry the venue name ("Show 2 · <venue>").
+- ✅ Show totals are scope-qualified (home hero = shows played; `/shows` states its count).
+- ✅ Song-page meta descriptions fixed ("1 time" not "1 times"; no "since ?" clause).
+- ✅ Filter-pill hover now *strengthens* the border (toward gold).
+- ✅ Song-detail H1 aligned to the 460 display weight.
+- ✅ Sub-10px mono microcopy raised to ≥0.65rem (chart labels, swipe hint, fact captions).
+- ✅ Desktop nav now shows from `md:` (768px); hamburger flips at the same breakpoint.
+- ✅ Settings popover focuses the current experience option and shows a `useTransition`
+  pending state. (Full focus-retention *after* the server refresh was intentionally not
+  pursued — fighting `router.refresh()` for focus is where over-engineering starts.)
+- ✅ `:target`/anchor flash is gated behind `prefers-reduced-motion` (landed in P1).
+- ✅ Live polling pauses on `visibilitychange` when the tab is hidden.
+- ✅ Casing unified on "On This Day"; dangling "·" removed from the minimal sort row.
+- ✅ The 404 now branches by experience (minimal → plain Doc, fancy → hero), and a
+  shape-valid date with no logged show renders an in-voice "No show logged" recovery
+  page (nearest shows before/after, year link, On This Day) instead of a hard 404.
+- ✅ Song-page left rail is now `position: sticky` on desktop (>820px), so it no longer
+  empties out beside the long performance table.
+- ⏭️ **Declined — shareable `?exp=` mode URLs.** Modes already persist per visitor via
+  cookie; a linkable override needs middleware or search-param plumbing on every route
+  to set the cookie honestly. Cost exceeds the value for a niche sharing case. Revisit
+  if mode-sharing becomes a real request.
+- ✅ Hero "unique songs" now counts distinct *performed* songs (605), not the catalog
+  (613); label unchanged.
+
+### Discovered during the P2 sweep (out of scope — logged for a decision)
+
+- **Soft-404: `notFound()` responses return HTTP 200, not 404.** The 404 *content* and
+  recovery paths render correctly in every experience, but the status line is 200. Root
+  cause is the global `export const dynamic = "force-dynamic"` (`app/layout.tsx:64`):
+  under streaming, Next flushes a 200 header before the not-found boundary resolves.
+  This is independent of the P2 experience-branching change (the pre-P2 404 was under
+  the same force-dynamic) and pre-dates it. It matters for SEO (crawlers treat a 200
+  "not found" as a soft-404). The clean fix is to scope `force-dynamic` to the routes
+  that truly need per-request data rather than applying it globally — an architecture
+  change, not a polish item, so it's left here for an explicit decision rather than
+  folded into this sweep. (Production status was not re-confirmed this session; the
+  sandbox was restarting/OOM-killing builds. Diagnosis is from the code.)
 
 ---
 
