@@ -6,11 +6,13 @@ import { getExperience } from "@/lib/experience.server";
 import { statsHubHighlights, type StatsHubHighlights } from "@/lib/queries/songs";
 import { compact, formatShortDate } from "@/lib/queries/format";
 import { CUTS } from "./cuts";
+import { canonicalUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Stats",
   description: "Goose by the numbers — most played, rarities, gaps, debuts, and set stats.",
+  alternates: { canonical: canonicalUrl("/stats") },
 };
 
 /** Each cut's live headline — big figure + mono qualifier — keyed by cut slug. */

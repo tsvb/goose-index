@@ -8,7 +8,7 @@ import { getTourMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
 import { formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
-import { entityOpenGraph } from "@/lib/site";
+import { entityMetadata } from "@/lib/site";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Params, parent: ResolvingMeta
   const tour = await getTourMeta(tourId);
   if (!tour) return { title: "Tour not found" };
   const description = `All ${tour.shows} Goose show${tour.shows === 1 ? "" : "s"} on ${tour.name}, with full setlists.`;
-  return { title: tour.name, description, openGraph: entityOpenGraph({ title: tour.name, description, path: `/tours/${tourId}`, parent: await parent }) };
+  return { title: tour.name, description, ...entityMetadata({ title: tour.name, description, path: `/tours/${tourId}`, parent: await parent }) };
 }
 
 export default async function TourPage({ params }: Params) {

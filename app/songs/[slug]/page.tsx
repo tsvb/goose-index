@@ -8,7 +8,7 @@ import { getSongBySlug, getSongPerformances, type SongStat } from "@/lib/queries
 import { getExperience } from "@/lib/experience.server";
 import type { Experience } from "@/lib/experience";
 import { showHref, formatShortDate, formatDuration } from "@/lib/queries/format";
-import { entityOpenGraph } from "@/lib/site";
+import { entityMetadata } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ slug: string }> };
@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Params, parent: ResolvingMeta
   const description = song.timesPlayed === 0
     ? `${song.name} is in the Goose songbook, but never yet played live.`
     : `Goose has played ${song.name} ${song.timesPlayed} time${song.timesPlayed === 1 ? "" : "s"}${song.debutDate ? ` since ${song.debutDate}` : ""}.`;
-  return { title: song.name, description, openGraph: entityOpenGraph({ title: song.name, description, path: `/songs/${slug}`, parent: await parent }) };
+  return { title: song.name, description, ...entityMetadata({ title: song.name, description, path: `/songs/${slug}`, parent: await parent }) };
 }
 
 /** Legend for the gap sparkline — must describe only what the chart actually renders. */

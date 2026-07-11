@@ -5,7 +5,7 @@ import type { ShowSummary } from "@/lib/queries/shows";
 const h = vi.hoisted(() => ({ experience: "fancy" as "fancy" | "functional" | "minimal" }));
 
 vi.mock("@/lib/experience.server", () => ({ getExperience: async () => h.experience }));
-vi.mock("@/lib/site", () => ({ entityOpenGraph: () => ({}) }));
+vi.mock("@/lib/site", () => ({ entityMetadata: () => ({}) }));
 vi.mock("@/lib/queries/dimensions", () => ({
   getVenueMeta: async () => ({
     venueId: 303, name: "Dillon Amphitheater", city: "Dillon", state: "CO", country: "USA",

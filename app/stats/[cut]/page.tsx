@@ -17,6 +17,7 @@ import {
   type SongSort,
 } from "@/lib/queries/songs";
 import { getExperience } from "@/lib/experience.server";
+import { canonicalUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ cut: string }> };
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { cut } = await params;
   const meta = CUTS.find((c) => c.slug === cut);
   return meta
-    ? { title: `${meta.title} · Stats`, description: meta.blurb }
+    ? { title: `${meta.title} · Stats`, description: meta.blurb, alternates: { canonical: canonicalUrl(`/stats/${cut}`) } }
     : { title: "Stats" };
 }
 

@@ -5,7 +5,7 @@ import type { ShowSummary } from "@/lib/queries/shows";
 const h = vi.hoisted(() => ({ experience: "fancy" as "fancy" | "functional" | "minimal" }));
 
 vi.mock("@/lib/experience.server", () => ({ getExperience: async () => h.experience }));
-vi.mock("@/lib/site", () => ({ entityOpenGraph: () => ({}) }));
+vi.mock("@/lib/site", () => ({ entityMetadata: () => ({}) }));
 vi.mock("@/lib/queries/dimensions", () => ({
   getTourMeta: async () => ({
     tourId: 130, name: "Summer Tour 2024", year: 2024, shows: 2, start: "2024-06-01", end: "2024-08-30",

@@ -5,21 +5,39 @@ import type { ResolvedMetadata } from "next";
     redirect hop on every crawl. */
 export const SITE_URL = "https://www.gooseindex.com";
 
-/** Page-level `openGraph` replaces the root object wholesale (dropping
-    site_name/type/url and the file-convention og:image), so entity pages
-    rebuild the shared fields here and re-attach the parent's images. */
-export function entityOpenGraph(opts: {
+/** Absolute URL for a given site path. Path must start with "/". */
+export function canonicalUrl(path: string): string {
+  return `${SITE_URL}${path}`;
+}
+
+/** Canonical link + Open Graph for an entity page. Spread into Metadata:
+ *    return { title, description, ...entityMetadata({...}) };
+ *
+ * `path` is the CANONICAL path — pathname plus only the query params that
+ * distinguish content (e.g. `?n=2` for a specific show on a multi-show day).
+ * Never include filter, sort, or pagination params.
+ *
+ * Page-level `openGraph` replaces the root object wholesale (dropping
+ * site_name/type/url and the file-convention og:image), so we rebuild the
+ * shared fields and re-attach the parent's images. `alternates.canonical`
+ * is set to the same URL — Google treats og:url and rel=canonical
+ * independently, so both must be declared. */
+export function entityMetadata(opts: {
   title: string;
   description: string;
   path: string;
   parent: ResolvedMetadata;
 }) {
+  const url = canonicalUrl(opts.path);
   return {
-    title: opts.title,
-    description: opts.description,
-    siteName: "Goose Index",
-    type: "website" as const,
-    url: `${SITE_URL}${opts.path}`,
-    images: opts.parent.openGraph?.images,
+    alternates: { canonical: url },
+    openGraph: {
+      title: opts.title,
+      description: opts.description,
+      siteName: "Goose Index",
+      type: "website" as const,
+      url,
+      images: opts.parent.openGraph?.images,
+    },
   };
 }

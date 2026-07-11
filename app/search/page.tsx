@@ -11,6 +11,7 @@ import { searchVenues, searchTours, listYears, type VenueRow, type TourRow } fro
 import { locationLine, formatShortDate, songHref } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { Doc, Breadcrumb, ShowTable, EntityTable, DocSection } from "@/app/_components/doc";
+import { canonicalUrl } from "@/lib/site";
 
 type Props = { searchParams: Promise<{ q?: string }> };
 
@@ -21,6 +22,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     description: q
       ? `Goose Index search results for "${q}".`
       : "Search the Goose Index by song, date, venue, city, or tour.",
+    alternates: { canonical: canonicalUrl("/search") },
   };
 }
 

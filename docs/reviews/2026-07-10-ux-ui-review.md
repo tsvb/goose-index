@@ -309,8 +309,12 @@ dev server. One separate issue was discovered during the sweep and is logged at 
 - ✅ The 404 now branches by experience (minimal → plain Doc, fancy → hero), and a
   shape-valid date with no logged show renders an in-voice "No show logged" recovery
   page (nearest shows before/after, year link, On This Day) instead of a hard 404.
-- ✅ Song-page left rail is now `position: sticky` on desktop (>820px), so it no longer
-  empties out beside the long performance table.
+- ◑ Song-page left rail: was made `position: sticky` (>820px), but that pinned a rail
+  taller than the viewport and spawned a second, competing vertical scrollbar mid-page
+  (reported on `/songs/so-ready`). Reverted in `5e6c413` — the rail now flows with the
+  page (one scrollbar, all content reachable). The original "dead rail" nit is accepted
+  as the lesser evil; a nicer future fix is grouping the performance history by year to
+  shorten the table.
 - ⏭️ **Declined — shareable `?exp=` mode URLs.** Modes already persist per visitor via
   cookie; a linkable override needs middleware or search-param plumbing on every route
   to set the cookie honestly. Cost exceeds the value for a niche sharing case. Revisit

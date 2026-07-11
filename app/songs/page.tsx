@@ -7,9 +7,10 @@ import { ArrowLeft, ArrowRight, Search } from "@/app/_components/marks";
 import { listSongs, OVERDUE_MIN_PLAYS, type SongSort, type SongFacet } from "@/lib/queries/songs";
 import { compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
+import { canonicalUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Songs", description: "Every Goose song, sortable by plays, rarity, gap, and debut." };
+export const metadata: Metadata = { title: "Songs", description: "Every Goose song, sortable by plays, rarity, gap, and debut.", alternates: { canonical: canonicalUrl("/songs") } };
 
 const SORTS: { key: SongSort; label: string }[] = [
   { key: "played", label: "Most played" }, { key: "rare", label: "Rarest" },

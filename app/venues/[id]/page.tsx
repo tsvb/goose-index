@@ -9,7 +9,7 @@ import { getVenueMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
 import { locationLine, compact, formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
-import { entityOpenGraph } from "@/lib/site";
+import { entityMetadata } from "@/lib/site";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Params, parent: ResolvingMeta
   return {
     title: venue.name,
     description,
-      openGraph: entityOpenGraph({ title: venue.name, description, path: `/venues/${venue.venueId}`, parent: await parent }),
+      ...entityMetadata({ title: venue.name, description, path: `/venues/${venue.venueId}`, parent: await parent }),
   };
 }
 
