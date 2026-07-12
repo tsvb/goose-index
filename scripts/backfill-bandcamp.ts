@@ -5,8 +5,10 @@ import { eq, isNull } from "drizzle-orm";
 const MUSIC_URL = "https://goosetheband.bandcamp.com/music";
 const USER_AGENT = "goose-index/backfill (github.com/tsvb/goose-index)";
 const PER_ALBUM_DELAY_MS = 800; // gentle throttle against bandcamp
+const PER_PAGE_DELAY_MS = 400;
 const MAX_RETRIES = 3;
 const BASE_BACKOFF_MS = 1500;
+const MAX_DISCO_PAGES = 60; // hard cap so a scraping regression can't runaway
 
 async function fetchWithRetry(url: string): Promise<string | null> {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -79,13 +81,38 @@ function extractAlbumId(url: string): string | null {
   return m ? m[1] : null;
 }
 
+/** Bandcamp's music grid only ships ~16 items in the initial HTML; older
+ * releases live on `?page=2`, `?page=3`, … Walk the pages until one returns
+ * no new dated albums (or the safety cap trips). */
+async function collectAllAlbumLinks(): Promise<AlbumLink[]> {
+  const seen = new Map<string, AlbumLink>();
+  for (let page = 1; page <= MAX_DISCO_PAGES; page++) {
+    const url = page === 1 ? MUSIC_URL : `${MUSIC_URL}?page=${page}`;
+    const html = await fetchWithRetry(url);
+    if (!html) {
+      console.warn(`no html for ${url}, stopping pagination`);
+      break;
+    }
+    const links = extractAlbumLinks(html);
+    let newOnPage = 0;
+    for (const l of links) {
+      if (seen.has(l.url)) continue;
+      seen.set(l.url, l);
+      newOnPage++;
+    }
+    console.log(`page ${page}: ${links.length} dated links (${newOnPage} new, ${seen.size} total)`);
+    if (newOnPage === 0) break;
+    await sleep(PER_PAGE_DELAY_MS);
+  }
+  return [...seen.values()];
+}
+
 async function main() {
   const debug = process.argv.includes("--debug");
-  console.log(`fetching ${MUSIC_URL}`);
-  const musicHtml = await fetchWithRetry(MUSIC_URL);
-  if (!musicHtml) throw new Error("could not fetch bandcamp music page");
-  const links = extractAlbumLinks(musicHtml);
-  console.log(`found ${links.length} dated album links on /music`);
+  console.log(`walking discography starting at ${MUSIC_URL}`);
+  const links = await collectAllAlbumLinks();
+  console.log(`found ${links.length} dated album links across all pages`);
+  if (links.length === 0) throw new Error("could not extract any albums from bandcamp");
   const byDate = new Map(links.map((l) => [l.date, l]));
 
   const candidates = await db
