@@ -14,7 +14,7 @@ import {
 import { formatShortDate } from "@/lib/queries/format";
 import { CUTS } from "../cuts";
 import { StatsShell, MinimalCutRow, MinimalNoteRow } from "../_shell";
-import { DayOfWeekBars } from "./components/dow-bars";
+import { DayOfWeekDial } from "./components/dow-dial";
 import { TheShelf } from "./components/the-shelf";
 import { TransitionsList } from "./components/transitions-list";
 import { VenueDepth } from "./components/venue-depth";
@@ -132,9 +132,9 @@ export default async function OraclePage() {
       <div className="space-y-12">
         <OracleSection
           title="Never miss a Sunday show?"
-          blurb="Average number of jam-tagged performances per show, by day of the week."
+          blurb="Jam-tagged performances per show, by day of the week — read against the week's own mean."
         >
-          <DayOfWeekBars data={dow} />
+          <DayOfWeekDial data={dow} />
         </OracleSection>
 
         <OracleSection

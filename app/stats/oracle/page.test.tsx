@@ -77,8 +77,8 @@ describe("Oracle page (fancy)", () => {
     expect(html).toContain("Elmeg the Wise");
     expect(html).toContain("The Capitol Theatre");
     expect(html).toContain("Big night");
-    // positive path: a valid bandcamp URL surfaces the [Listen] link
-    expect(html).toContain("[Listen]");
+    // positive path: a valid bandcamp URL surfaces the Listen link on the J-card
+    expect(html).toContain("Listen ↗");
     expect(html).toContain("goosetheband.bandcamp.com/album/2026-07-04-spac");
   });
 
@@ -112,7 +112,7 @@ describe("Oracle page (fancy)", () => {
     ];
     const html = await render();
     expect(html).not.toContain("evil.example.com");
-    expect(html).not.toContain("[Listen]");
+    expect(html).not.toContain("Listen ↗");
   });
 });
 
