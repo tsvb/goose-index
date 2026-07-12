@@ -16,8 +16,9 @@ of band via the sync job, so page loads stay fast and never depend on the elgoos
 
 - **Neon gives you two connection strings.** Use the **pooled** one (host contains
   `-pooler`) for the app's `DATABASE_URL` — it routes through PgBouncer, which is what
-  serverless needs. `db/client.ts` already sets `prepare: false`, required for PgBouncer's
-  transaction pooling.
+  serverless needs. `db/client.ts` and `scripts/migrate.ts` both set `prepare: false`,
+  required for PgBouncer's transaction pooling — the migrate script needs it because the
+  production build migrates over whatever `DATABASE_URL` Vercel has, i.e. the pooled string.
 - The **direct** (non-pooled) string is only needed if a tool complains about pooling;
   migrations and sync work fine over the pooled string too.
 - Neon free-tier databases **auto-suspend when idle**, so the first request after a quiet
@@ -91,12 +92,22 @@ The canonical origin is the `SITE_URL` constant in `lib/site.ts`; `app/sitemap.t
 - **Code changes:** push to `main` → Vercel auto-deploys.
 - **Data only:** the nightly Action handles it; to refresh immediately, click **Run workflow**
   on the Actions tab (or re-run step 3 locally).
-- **Schema changes:** ⚠️ `next build` on Vercel does **not** run migrations. Apply the
-  migration to Neon **before or with** the deploy, or the freshly-deployed code can
-  reference columns that don't exist yet and the affected route 500s:
+- **Schema changes:** handled automatically. The `vercel-build` script in `package.json`
+  runs `npm run db:migrate && next build`, so a **production** deploy migrates Neon
+  immediately before the new code goes live — the schema can no longer lag the code.
+  Two consequences worth knowing:
+  - **A bad migration now fails the build** instead of shipping code against a stale
+    schema. That is the intended trade-off: no deploy beats a half-broken one.
+  - **Preview deploys deliberately skip migrations.** Previews share the *production*
+    database, so letting them migrate would mean any pushed branch could alter the prod
+    schema before review. `scripts/migrate.ts` exits early when `VERCEL_ENV !== production`.
+    A preview of a schema-changing branch will therefore 500 on the new route until it
+    merges — that's expected, not a regression.
+
+  The gate keys off `VERCEL`, which is unset off-platform, so local runs and the nightly
+  Action (which also migrates, see step 5) are unaffected and still work as before:
   ```bash
   DATABASE_URL='<neon-url>' npm run db:migrate
   ```
-  (This happened with the Oracle `coach_notes` columns on 2026-07-12 — see
-  `docs/handoff-2026-07-12-oracle.md`. Wiring `db:migrate` into the build is a tracked
-  next step in that handoff.)
+  (Before this was wired up, the Oracle `coach_notes` columns shipped ahead of their
+  migration and 500'd the route — see `docs/handoff-2026-07-12-oracle.md`.)

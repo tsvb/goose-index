@@ -73,15 +73,23 @@ string. `docs/DEPLOY.md` now has a "Schema changes" warning.
 
 ## Outstanding work
 
-1. **[Recommended] Harden the deploy so migrations can't lag the code again.** Add
-   `"vercel-build": "npm run db:migrate && next build"` to `package.json`, and set
-   `prepare: false` in `scripts/migrate.ts` (one line — `scripts/migrate.ts` currently
-   omits it, so a build-time migrate against Neon's **pooled** endpoint could fail on
-   prepared statements; `prepare:false` is safe on both pooled and direct). Trade-off: a bad
-   migration then blocks the deploy instead of shipping broken code — usually what you want.
-   Vercel's build has the Sensitive `DATABASE_URL` available, so it can self-migrate.
-   _(Alternatively, fold `db:migrate` into the nightly `sync.yml` Action, which already has
-   the unpooled prod string as a secret.)_
+1. ~~**[Recommended] Harden the deploy so migrations can't lag the code again.**~~
+   **✅ DONE (2026-07-12).** `package.json` gained
+   `"vercel-build": "npm run db:migrate && next build"` and `scripts/migrate.ts` now sets
+   `prepare: false` (needed against Neon's pooled endpoint). A bad migration now fails the
+   deploy instead of shipping code against a stale schema.
+
+   Two things the original note got wrong, worth recording:
+   - The "alternative" — folding `db:migrate` into `sync.yml` — **was already in place**
+     (added `55977df`, 2026-07-04, *before* the incident). It didn't help, and couldn't:
+     the nightly Action applies migrations up to 24h **after** the code deploys. That lag
+     *is* the bug. Build-time migration is what actually closes it.
+   - Vercel's `DATABASE_URL` is scoped to **Preview *and* Production**, and previews read
+     the **production** DB. An ungated `vercel-build` would let any pushed branch migrate
+     prod pre-review, so `scripts/migrate.ts` exits early unless
+     `VERCEL_ENV === "production"`. Consequence: a preview of a schema-changing branch 500s
+     on the new route until merge — expected. The gate keys off `VERCEL` (unset
+     off-platform), so local + Action runs are unchanged.
 
 2. **[Optional] The Shelf surfaces non-songs.** "Jam", "Trevor Reads Poetry" are flagged
    `songs.is_original = true` with ≥6 plays. Fix in data (untag), or bump `SHELF_MIN_PLAYS`
