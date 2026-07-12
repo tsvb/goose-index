@@ -91,3 +91,12 @@ The canonical origin is the `SITE_URL` constant in `lib/site.ts`; `app/sitemap.t
 - **Code changes:** push to `main` → Vercel auto-deploys.
 - **Data only:** the nightly Action handles it; to refresh immediately, click **Run workflow**
   on the Actions tab (or re-run step 3 locally).
+- **Schema changes:** ⚠️ `next build` on Vercel does **not** run migrations. Apply the
+  migration to Neon **before or with** the deploy, or the freshly-deployed code can
+  reference columns that don't exist yet and the affected route 500s:
+  ```bash
+  DATABASE_URL='<neon-url>' npm run db:migrate
+  ```
+  (This happened with the Oracle `coach_notes` columns on 2026-07-12 — see
+  `docs/handoff-2026-07-12-oracle.md`. Wiring `db:migrate` into the build is a tracked
+  next step in that handoff.)
