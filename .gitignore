@@ -35,3 +35,7 @@ coverage/
 
 # brainstorm visual companion
 .superpowers/
+
+# bandcamp scraper outputs (regenerable from scripts/scrape_bandcamp.py)
+data/
+
