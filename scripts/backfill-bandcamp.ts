@@ -80,6 +80,7 @@ function extractAlbumId(url: string): string | null {
 }
 
 async function main() {
+  const debug = process.argv.includes("--debug");
   console.log(`fetching ${MUSIC_URL}`);
   const musicHtml = await fetchWithRetry(MUSIC_URL);
   if (!musicHtml) throw new Error("could not fetch bandcamp music page");
@@ -92,6 +93,22 @@ async function main() {
     .from(shows)
     .where(isNull(shows.coachNotes));
   console.log(`${candidates.length} shows without coach_notes to try`);
+
+  if (debug) {
+    const dates = links.map((l) => l.date).sort();
+    console.log(`\n--- album dates on /music (sorted) ---`);
+    for (const d of dates) console.log(`  ${d}`);
+    const showDates = candidates.map((c) => (typeof c.showDate === "string" ? c.showDate : String(c.showDate))).sort();
+    console.log(`\n--- candidate show_date range ---`);
+    console.log(`  earliest: ${showDates[0]}`);
+    console.log(`  latest:   ${showDates[showDates.length - 1]}`);
+    const overlap = dates.filter((d) => showDates.includes(d));
+    console.log(`\n--- date overlap: ${overlap.length} match(es) ---`);
+    for (const d of overlap) console.log(`  ${d}`);
+    console.log(`\n(dry-run: skipping album fetches)`);
+    await closeDb();
+    return;
+  }
 
   let updated = 0;
   let skippedNoAlbum = 0;
