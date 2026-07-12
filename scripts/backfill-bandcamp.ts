@@ -134,8 +134,9 @@ async function main() {
     console.log(`\n--- candidate show_date range ---`);
     console.log(`  earliest: ${showDates[0]}`);
     console.log(`  latest:   ${showDates[showDates.length - 1]}`);
+    const c0 = candidates[0] as { showDate?: unknown } | undefined;
     console.log(`  first raw candidate: ${JSON.stringify(candidates[0])}`);
-    console.log(`  type of showDate on candidate[0]: ${typeof candidates[0]?.showDate} (instanceof Date: ${candidates[0]?.showDate instanceof Date})`);
+    console.log(`  type of showDate on candidate[0]: ${typeof c0?.showDate} (instanceof Date: ${c0?.showDate instanceof Date})`);
     const overlap = dates.filter((d) => showDates.includes(d));
     console.log(`\n--- date overlap: ${overlap.length} match(es) ---`);
     for (const d of overlap) console.log(`  ${d}`);
