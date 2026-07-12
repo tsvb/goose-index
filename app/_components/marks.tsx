@@ -125,6 +125,18 @@ export function Disc({ className, strokeWidth }: IconProps) {
   );
 }
 
+/** Compact cassette — the shell, two hubs, and the pinch-roller notch. */
+export function Cassette({ className, strokeWidth }: IconProps) {
+  return (
+    <Svg className={className} strokeWidth={strokeWidth}>
+      <rect x="2" y="5" width="20" height="14" rx="1.5" />
+      <circle cx="8.5" cy="11.5" r="2" />
+      <circle cx="15.5" cy="11.5" r="2" />
+      <path d="M7 19l1.4-2.4h7.2L17 19" />
+    </Svg>
+  );
+}
+
 export function Settings({ className, strokeWidth }: IconProps) {
   return (
     <Svg className={className} strokeWidth={strokeWidth}>

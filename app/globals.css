@@ -73,6 +73,130 @@
   color-scheme: dark;
 }
 
+/* XL II — high-bias chrome cassette × Braun wall clock × tube amp.
+   Thesis: a cold instrument with one hot filament.
+
+   The chassis is deliberately COLD graphite — the tape-nostalgia cliché is
+   sepia, and this theme refuses it: no browns, beiges or tans anywhere. The
+   working accent is chrome cyan, because XL II is a *chrome* tape and should
+   feel like cold metal. Warmth is rationed to a single colour, --ember, which
+   the design system already reserves for heat (live shows, overdue songs,
+   bust-outs) — so the one warm thing on screen is always the one hot thing in
+   the data. That is the whole idea; keep it. */
+:root[data-theme="xl2"] {
+  --bg: #0e1114;
+  --bg-deep: #08090b;
+  --surface: #161a1f;
+  --surface-2: #1f242b;
+  --ink: #eef2f5;
+  --muted: #99a4ae;
+  /* ≥4.5:1 (WCAG AA) on --bg and --surface — text-faint styles 0.55–0.85rem text. */
+  --faint: #8b959e;
+  --line: #2b323a;
+  --line-soft: #21262c;
+  /* Chrome — the instrument. Bars, rules, ticks, focus. `--gold-deep` only ever
+     fills graphics (bars, sparks), some at 80% opacity: held at ≥3:1 (WCAG
+     1.4.11) against every surface once composited. */
+  --gold: #5ccfe6;
+  --gold-soft: #3fb2cb;
+  --gold-deep: #3496b0;
+  /* Below 0 dB — the nominal end of a VU scale. */
+  --sage: #6fd3a0;
+  --sage-deep: #4fb27f;
+  /* The filament. The only warm colour in the theme — spend it on heat only. */
+  --ember: #ff9d3c;
+  --shadow: rgba(0, 0, 0, 0.7);
+  /* Plex is the engineered, rational face here — Rams by way of IBM — and Plex
+     Mono is the silkscreened legend on the shell. */
+  --type-display: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --type-body: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --type-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+  color-scheme: dark;
+}
+
+/* Braun legibility: one width per digit, so columns of numbers line up as a
+   scale rather than as text. */
+:root[data-theme="xl2"] body {
+  font-variant-numeric: tabular-nums;
+}
+:root[data-theme="xl2"] h1,
+:root[data-theme="xl2"] h2,
+:root[data-theme="xl2"] h3,
+:root[data-theme="xl2"] h4 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* The signature motif: a clock-face minute scale in place of a plain rule.
+   Ticks hang off a hairline, exactly like the bezel of a Braun BN wall clock. */
+:root[data-theme="xl2"] .hairline {
+  height: 5px;
+  background:
+    repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px 9px) top / 100% 4px no-repeat,
+    linear-gradient(var(--line-soft), var(--line-soft)) bottom / 100% 1px no-repeat;
+}
+
+/* Chassis: squared off, with a chrome bezel highlight along the top edge. */
+:root[data-theme="xl2"] .surface-card {
+  background: linear-gradient(180deg, var(--surface), var(--bg-deep));
+  border-radius: 2px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+}
+
+/* The tube. Not decorative atmosphere — a filament behind the chassis. */
+:root[data-theme="xl2"] .stage-glow {
+  background: radial-gradient(
+    58% 78% at 50% -12%,
+    color-mix(in oklab, var(--ember) 34%, transparent),
+    transparent 72%
+  );
+}
+:root[data-theme="xl2"] .live-dot {
+  box-shadow: 0 0 9px 1px var(--ember);
+}
+
+/* Silkscreened legend. */
+:root[data-theme="xl2"] .eyebrow {
+  color: var(--gold);
+  font-size: 0.64rem;
+  letter-spacing: 0.28em;
+}
+
+/* Meters, not candy: flat fills, square ends. A bar is a reading. */
+:root[data-theme="xl2"] .song-ppy-bar,
+:root[data-theme="xl2"] .song-bar,
+:root[data-theme="xl2"] .song-bar > span,
+:root[data-theme="xl2"] .song-spark i,
+:root[data-theme="xl2"] .song-mspark i,
+:root[data-theme="xl2"] .song-ribbon {
+  border-radius: 0;
+}
+:root[data-theme="xl2"] .song-ppy-bar,
+:root[data-theme="xl2"] .song-bar > span {
+  background: var(--gold);
+}
+:root[data-theme="xl2"] .song-spark i,
+:root[data-theme="xl2"] .song-mspark i {
+  background: var(--gold-deep);
+}
+/* Past 0 dB. */
+:root[data-theme="xl2"] .song-spark i.bust {
+  background: var(--ember);
+}
+
+/* Moulded ABS, not paper — the grain nearly vanishes. */
+:root[data-theme="xl2"] .grain-overlay {
+  opacity: 0.02;
+}
+
+:root[data-theme="xl2"] ::selection {
+  background: var(--gold);
+  color: #0e1114;
+}
+:root[data-theme="xl2"] ::-webkit-scrollbar-thumb {
+  border-radius: 0;
+}
+
 /* ---- Type tokens — overridable per experience. The `@theme inline` map below
    inlines `var(--type-*)` into the font utilities, so redefining these on a
    `[data-experience]` selector actually re-fonts the page (like the colors). ---- */

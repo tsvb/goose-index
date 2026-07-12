@@ -33,12 +33,13 @@ describe("SettingsPanel", () => {
     expect(html.match(/aria-current="true"/g)).toHaveLength(1);
   });
 
-  it("shows the Appearance section with dark/light/pod when theme is allowed", () => {
+  it("shows the Appearance section with every theme when theme is allowed", () => {
     const html = render({ current: "fancy", themeAllowed: true });
     expect(html).toContain("Appearance");
     expect(html).toContain("Dark");
     expect(html).toContain("Light");
     expect(html).toContain("Pod");
+    expect(html).toContain("XL II");
   });
 
   it("marks exactly one appearance option as pressed", () => {
@@ -48,6 +49,11 @@ describe("SettingsPanel", () => {
 
   it("marks pod as pressed when it is the active theme", () => {
     const html = render({ themeAllowed: true, theme: "pod" });
+    expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
+  });
+
+  it("marks xl2 as pressed when it is the active theme", () => {
+    const html = render({ themeAllowed: true, theme: "xl2" });
     expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
   });
 
@@ -76,6 +82,7 @@ describe("resolveTheme", () => {
     expect(resolveTheme("dark")).toBe("dark");
     expect(resolveTheme("light")).toBe("light");
     expect(resolveTheme("pod")).toBe("pod");
+    expect(resolveTheme("xl2")).toBe("xl2");
     expect(resolveTheme("sepia")).toBeNull();
     expect(resolveTheme("")).toBeNull();
     expect(resolveTheme(null)).toBeNull();

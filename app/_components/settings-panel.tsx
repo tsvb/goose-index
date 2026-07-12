@@ -1,13 +1,14 @@
 import { EXPERIENCES, type Experience } from "@/lib/experience";
-import { Disc, Moon, Sun } from "./marks";
+import { Cassette, Disc, Moon, Sun } from "./marks";
 import { clsx } from "./clsx";
 
-export type Theme = "dark" | "light" | "pod";
+export type Theme = "dark" | "light" | "pod" | "xl2";
 
 const THEMES: { value: Theme; label: string; icon: typeof Moon }[] = [
   { value: "dark", label: "Dark", icon: Moon },
   { value: "light", label: "Light", icon: Sun },
   { value: "pod", label: "Pod", icon: Disc },
+  { value: "xl2", label: "XL II", icon: Cassette },
 ];
 
 /** Narrow an untrusted value (localStorage, DOM attribute) to a Theme. */
