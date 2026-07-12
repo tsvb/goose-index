@@ -122,16 +122,31 @@ async function main() {
   console.log(`${candidates.length} shows without coach_notes to try`);
 
   if (debug) {
+    const fmtDate = (v: unknown): string => {
+      if (v instanceof Date) return v.toISOString().slice(0, 10);
+      if (typeof v === "string") return v.slice(0, 10);
+      return String(v);
+    };
     const dates = links.map((l) => l.date).sort();
     console.log(`\n--- album dates on /music (sorted) ---`);
     for (const d of dates) console.log(`  ${d}`);
-    const showDates = candidates.map((c) => (typeof c.showDate === "string" ? c.showDate : String(c.showDate))).sort();
+    const showDates = candidates.map((c) => fmtDate(c.showDate)).sort();
     console.log(`\n--- candidate show_date range ---`);
     console.log(`  earliest: ${showDates[0]}`);
     console.log(`  latest:   ${showDates[showDates.length - 1]}`);
+    console.log(`  first raw candidate: ${JSON.stringify(candidates[0])}`);
+    console.log(`  type of showDate on candidate[0]: ${typeof candidates[0]?.showDate} (instanceof Date: ${candidates[0]?.showDate instanceof Date})`);
     const overlap = dates.filter((d) => showDates.includes(d));
     console.log(`\n--- date overlap: ${overlap.length} match(es) ---`);
     for (const d of overlap) console.log(`  ${d}`);
+    // Any candidate show_date inside the album date window? If not, the
+    // scraper's found shows just aren't in the DB (yet) as coach-notes-null.
+    if (dates.length > 0) {
+      const lo = dates[0], hi = dates[dates.length - 1];
+      const inWindow = showDates.filter((d) => d >= lo && d <= hi);
+      console.log(`\n--- candidate shows inside album window (${lo} .. ${hi}) — ${inWindow.length} match(es) ---`);
+      for (const d of inWindow) console.log(`  ${d}`);
+    }
     console.log(`\n(dry-run: skipping album fetches)`);
     await closeDb();
     return;
