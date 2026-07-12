@@ -21,4 +21,6 @@ export const CUTS: CutMeta[] = [
     note: "Each song's first performance · latest 25 listed", songsSort: "debut" },
   { slug: "set-stats", title: "Set Stats", blurb: "Openers and encores.",
     note: "Openers and encores counted across every played show · top 15 per bucket" },
+  { slug: "oracle", title: "The Oracle", blurb: "Wild discoveries and deep patterns.",
+    note: "Unconventional analytics exploring flow states, show days, and insights." },
 ];

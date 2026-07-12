@@ -15,6 +15,13 @@
       "when": 1783186055622,
       "tag": "0001_live-sync-state",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783820765670,
+      "tag": "0002_married_typhoid_mary",
+      "breakpoints": true
     }
   ]
 }

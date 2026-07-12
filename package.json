@@ -23,10 +23,12 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.38.0",
+    "lucide-react": "^1.21.0",
     "next": "^15.1.0",
     "postgres": "^3.4.5",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.4"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.2.0",
