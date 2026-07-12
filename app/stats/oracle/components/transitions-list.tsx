@@ -12,7 +12,7 @@ export function TransitionsList({ data }: { data: TransitionRow[] }) {
       {data.map((t, i) => {
         const pct = Math.max(6, Math.round((t.count / max) * 100));
         return (
-          <li key={`${t.sourceName}->${t.targetName}`} className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-3 p-4 sm:grid-cols-[1.5rem_minmax(0,1fr)_10rem_auto]">
+          <li key={`${t.sourceSlug ?? t.sourceName}|${t.targetSlug ?? t.targetName}`} className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-3 p-4 sm:grid-cols-[1.5rem_minmax(0,1fr)_10rem_auto]">
             <span className="text-right font-mono text-xs text-faint tabular-nums">{i + 1}</span>
             <div className="min-w-0">
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">

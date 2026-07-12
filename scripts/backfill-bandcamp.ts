@@ -96,6 +96,7 @@ async function main() {
   let updated = 0;
   let skippedNoAlbum = 0;
   let skippedNoNotes = 0;
+  let skippedFetchFailed = 0;
 
   for (const s of candidates) {
     const date = typeof s.showDate === "string" ? s.showDate : String(s.showDate);
@@ -107,6 +108,7 @@ async function main() {
     const albumHtml = await fetchWithRetry(album.url);
     if (!albumHtml) {
       console.warn(`no html for ${album.url}`);
+      skippedFetchFailed++;
       continue;
     }
     const notes = extractCoachNotes(albumHtml);
@@ -127,7 +129,12 @@ async function main() {
     await sleep(PER_ALBUM_DELAY_MS);
   }
 
-  console.log(`done. updated=${updated} skipped_no_album=${skippedNoAlbum} skipped_no_notes=${skippedNoNotes}`);
+  const totalAccounted = updated + skippedNoAlbum + skippedNoNotes + skippedFetchFailed;
+  console.log(
+    `done. updated=${updated} skipped_no_album=${skippedNoAlbum} ` +
+    `skipped_no_notes=${skippedNoNotes} skipped_fetch_failed=${skippedFetchFailed} ` +
+    `(${totalAccounted}/${candidates.length} candidates accounted for)`,
+  );
   await closeDb();
 }
 

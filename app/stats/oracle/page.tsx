@@ -13,7 +13,7 @@ import {
 } from "@/lib/queries/discoveries";
 import { formatShortDate } from "@/lib/queries/format";
 import { CUTS } from "../cuts";
-import { StatsShell } from "../_shell";
+import { StatsShell, MinimalCutRow, MinimalNoteRow } from "../_shell";
 import { DayOfWeekBars } from "./components/dow-bars";
 import { TheShelf } from "./components/the-shelf";
 import { TransitionsList } from "./components/transitions-list";
@@ -52,14 +52,7 @@ export default async function OraclePage() {
             ]}
           />
           <h1>{CUT_META.title}</h1>
-          <p className="doc-crumb">
-            {CUTS.map((c, i) => (
-              <span key={c.slug}>
-                {i > 0 && " · "}
-                {c.slug === "oracle" ? <strong>{c.title}</strong> : <Link href={`/stats/${c.slug}`}>{c.title}</Link>}
-              </span>
-            ))}
-          </p>
+          <MinimalCutRow active="oracle" />
           <h2 className="doc-h2">Jams per show by day of the week</h2>
           <table className="doc-table">
             <thead><tr><th>Day</th><th className="num">Avg jams</th><th className="num">Shows</th></tr></thead>
@@ -78,7 +71,7 @@ export default async function OraclePage() {
             <thead><tr><th>From</th><th>To</th><th className="num">Segues</th></tr></thead>
             <tbody>
               {transitions.map((t) => (
-                <tr key={`${t.sourceName}->${t.targetName}`}>
+                <tr key={`${t.sourceSlug ?? t.sourceName}|${t.targetSlug ?? t.targetName}`}>
                   <td>{t.sourceSlug ? <Link href={`/songs/${t.sourceSlug}`}>{t.sourceName}</Link> : t.sourceName}</td>
                   <td>{t.targetSlug ? <Link href={`/songs/${t.targetSlug}`}>{t.targetName}</Link> : t.targetName}</td>
                   <td className="num">{t.count}</td>
@@ -128,7 +121,7 @@ export default async function OraclePage() {
               ))}
             </>
           )}
-          <p className="doc-crumb">{CUT_META.note}</p>
+          <MinimalNoteRow cut={CUT_META} />
         </Doc>
       </Container>
     );
@@ -146,7 +139,11 @@ export default async function OraclePage() {
 
         <OracleSection
           title="Flow-state matrix"
-          blurb={`Top ${transitions.length} segued transitions across every show, ranked by frequency.`}
+          blurb={
+            transitions.length > 0
+              ? `Top ${transitions.length} segued transitions across every show, ranked by frequency.`
+              : "Top segued transitions across every show, ranked by frequency."
+          }
         >
           <TransitionsList data={transitions} />
         </OracleSection>

@@ -1,5 +1,6 @@
 import { db } from "@/db/client";
 import { sql } from "drizzle-orm";
+import { WEEKDAYS } from "@/lib/queries/format";
 
 function allRows(result: unknown): Record<string, unknown>[] {
   const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
@@ -46,10 +47,9 @@ export async function dayOfWeekJams(): Promise<DayOfWeekJamsRow[]> {
     group by dow
     order by dow
   `));
-  const NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   return rows.map((r) => {
     const d = num(r.dow);
-    return { dow: d, dayName: NAMES[d] ?? "", totalShows: num(r.total_shows), avgJams: num(r.avg_jams) };
+    return { dow: d, dayName: WEEKDAYS[d] ?? "", totalShows: num(r.total_shows), avgJams: num(r.avg_jams) };
   });
 }
 
@@ -100,6 +100,7 @@ export async function topTransitions(): Promise<TransitionRow[]> {
 export type CoachsNoteRow = {
   showId: number;
   showDate: string;
+  showOrder: number | null;
   venueName: string | null;
   coachNotes: string;
   bandcampUrl: string | null;
@@ -110,6 +111,7 @@ export async function coachsNotes(): Promise<CoachsNoteRow[]> {
   const rows = allRows(await db.execute(sql`
     select s.show_id,
            s.show_date::text as show_date,
+           s.show_order,
            v.name as venue_name,
            s.coach_notes,
            s.bandcamp_url
@@ -123,6 +125,7 @@ export async function coachsNotes(): Promise<CoachsNoteRow[]> {
   return rows.map((r) => ({
     showId: num(r.show_id),
     showDate: String(r.show_date),
+    showOrder: numOrNull(r.show_order),
     venueName: strOrNull(r.venue_name),
     coachNotes: String(r.coach_notes),
     bandcampUrl: strOrNull(r.bandcamp_url),
@@ -155,7 +158,7 @@ export async function originalsOnTheShelf(): Promise<ShelfRow[]> {
       and sh.show_date <= current_date
     group by so.song_id, so.name, so.slug
     having count(*) >= ${SHELF_MIN_PLAYS}
-    order by max(sh.show_date) asc
+    order by max(sh.show_date) asc, lower(so.name) asc
     limit 10
   `));
   return rows.map((r) => ({

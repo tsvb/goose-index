@@ -5,7 +5,7 @@ type DowRow = { dow: number; dayName: string; totalShows: number; avgJams: numbe
 type TransitionRow = { sourceName: string; sourceSlug: string | null; targetName: string; targetSlug: string | null; count: number };
 type ShelfRow = { songId: number; name: string; slug: string | null; lastPlayedDate: string; totalPlays: number; daysSincePlayed: number };
 type VenueRow = { venueId: number; name: string; slug: string | null; totalShows: number; totalPerformances: number; totalJams: number; jamPercentage: number };
-type NoteRow = { showId: number; showDate: string; venueName: string | null; coachNotes: string; bandcampUrl: string | null };
+type NoteRow = { showId: number; showDate: string; showOrder: number | null; venueName: string | null; coachNotes: string; bandcampUrl: string | null };
 
 const h = vi.hoisted<{
   experience: "fancy" | "functional" | "minimal";
@@ -33,8 +33,8 @@ const h = vi.hoisted<{
     { venueId: 9, name: "The Capitol Theatre", slug: "capitol-theatre", totalShows: 8, totalPerformances: 120, totalJams: 40, jamPercentage: 33.3 },
   ],
   notes: [
-    { showId: 100, showDate: "2026-07-04", venueName: "SPAC", coachNotes: "Big night. Hunter → Arrow.", bandcampUrl: "https://goosetheband.bandcamp.com/album/2026-07-04-spac" },
-    { showId: 101, showDate: "2026-06-20", venueName: null, coachNotes: "Sit-in with the horns.", bandcampUrl: null },
+    { showId: 100, showDate: "2026-07-04", showOrder: 1, venueName: "SPAC", coachNotes: "Big night. Hunter → Arrow.", bandcampUrl: "https://goosetheband.bandcamp.com/album/2026-07-04-spac" },
+    { showId: 101, showDate: "2026-06-20", showOrder: null, venueName: null, coachNotes: "Sit-in with the horns.", bandcampUrl: null },
   ],
 }));
 
@@ -77,6 +77,9 @@ describe("Oracle page (fancy)", () => {
     expect(html).toContain("Elmeg the Wise");
     expect(html).toContain("The Capitol Theatre");
     expect(html).toContain("Big night");
+    // positive path: a valid bandcamp URL surfaces the [Listen] link
+    expect(html).toContain("[Listen]");
+    expect(html).toContain("goosetheband.bandcamp.com/album/2026-07-04-spac");
   });
 
   it("renders the StatsShell chrome (breadcrumb, switcher, methodology)", async () => {
@@ -105,7 +108,7 @@ describe("Oracle page (fancy)", () => {
 
   it("blocks non-bandcamp URLs from the Listen affordance", async () => {
     h.notes = [
-      { showId: 200, showDate: "2026-05-01", venueName: null, coachNotes: "x", bandcampUrl: "https://evil.example.com/steal" },
+      { showId: 200, showDate: "2026-05-01", showOrder: null, venueName: null, coachNotes: "x", bandcampUrl: "https://evil.example.com/steal" },
     ];
     const html = await render();
     expect(html).not.toContain("evil.example.com");
@@ -132,6 +135,7 @@ describe("Oracle page (minimal)", () => {
   it("skips the coach's notes section when there are none", async () => {
     h.notes = [];
     const html = await render();
-    expect(html).not.toContain("Coach's notes");
+    // React escapes apostrophes to &#x27; in server-rendered HTML — match both forms.
+    expect(html).not.toMatch(/Coach(&#x27;|')s notes/);
   });
 });

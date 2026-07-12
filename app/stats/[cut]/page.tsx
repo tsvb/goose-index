@@ -5,7 +5,7 @@ import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { SongIndexTable, PlaysPerYearChart } from "@/app/_components/song";
 import { CUTS } from "../cuts";
-import { StatsShell, songsSortHref } from "../_shell";
+import { StatsShell, MinimalCutRow, MinimalNoteRow, songsSortHref } from "../_shell";
 import {
   mostPlayed,
   rarities,
@@ -50,23 +50,10 @@ export default async function StatsCut({ params }: Params) {
       ]}
     />
   );
-  // Minimal's equivalents of the switcher row and methodology footnote.
-  const cutRow = (
-    <p className="doc-crumb">
-      {CUTS.map((c, i) => (
-        <span key={c.slug}>
-          {i > 0 && " · "}
-          {c.slug === cut ? <strong>{c.title}</strong> : <Link href={`/stats/${c.slug}`}>{c.title}</Link>}
-        </span>
-      ))}
-    </p>
-  );
-  const noteRow = (
-    <p className="doc-crumb">
-      {meta.note}
-      {meta.songsSort && <> · <Link href={songsSortHref(meta.songsSort)}>full catalog</Link></>}
-    </p>
-  );
+  // Minimal's equivalents of the switcher row and methodology footnote —
+  // shared with /stats/oracle via _shell so tweaks stay in one place.
+  const cutRow = <MinimalCutRow active={cut} />;
+  const noteRow = <MinimalNoteRow cut={meta} />;
 
   // Song-list cuts share one renderer.
   if (cut === "most-played" || cut === "rarities" || cut === "current-gaps") {

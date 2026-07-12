@@ -1,7 +1,7 @@
 // Date helpers for elgoose "YYYY-MM-DD" strings. Parsed in UTC to stay
 // timezone-stable (the date is the calendar date of the show, no time component).
 
-const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+export const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",

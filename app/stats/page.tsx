@@ -23,6 +23,9 @@ function hubLines(hl: StatsHubHighlights): Record<string, { big: string; small: 
     "current-gaps": hl.mostOverdue && { big: hl.mostOverdue.name, small: `${hl.mostOverdue.gap}-show gap` },
     "debuts": hl.latestDebut && { big: hl.latestDebut.name, small: `debuted ${formatShortDate(hl.latestDebut.date)}` },
     "set-stats": hl.topOpener && { big: hl.topOpener.name, small: `opened ${compact(hl.topOpener.count)} shows` },
+    // Oracle is a curated set of five discoveries, not a live-updated leaderboard;
+    // the static line keeps the card the same height as its siblings.
+    "oracle": { big: "5", small: "discoveries" },
   };
 }
 

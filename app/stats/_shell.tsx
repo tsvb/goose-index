@@ -8,6 +8,34 @@ export function songsSortHref(key: SongSort): string {
   return key === "played" ? "/songs" : `/songs?sort=${key}`;
 }
 
+/** Minimal-experience cut switcher: the text-list variant of CutSwitcher.
+ * Bolds the active title, dot-separates the rest. Used from both /stats/[cut]
+ * and /stats/oracle so a copy-tweak stays in one place. */
+export function MinimalCutRow({ active }: { active: string }) {
+  return (
+    <p className="doc-crumb">
+      {CUTS.map((c, i) => (
+        <span key={c.slug}>
+          {i > 0 && " · "}
+          {c.slug === active ? <strong>{c.title}</strong> : <Link href={`/stats/${c.slug}`}>{c.title}</Link>}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+/** Minimal-experience methodology footnote: the plain-text variant of the
+ * StatsShell footer. Mirrors the fancy version's optional "same sort, full
+ * catalog" tail. */
+export function MinimalNoteRow({ cut }: { cut: CutMeta }) {
+  return (
+    <p className="doc-crumb">
+      {cut.note}
+      {cut.songsSort && <> · <Link href={songsSortHref(cut.songsSort)}>full catalog</Link></>}
+    </p>
+  );
+}
+
 export function CutSwitcher({ active }: { active: string }) {
   return (
     <nav aria-label="Stats cuts" className="mb-5 flex flex-wrap items-center gap-1.5 font-mono text-xs">

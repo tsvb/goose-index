@@ -1,5 +1,5 @@
-import { formatShortDate } from "@/lib/queries/format";
-import { showHref } from "@/lib/queries/format";
+import Link from "next/link";
+import { formatShortDate, showHref } from "@/lib/queries/format";
 import type { CoachsNoteRow } from "@/lib/queries/discoveries";
 
 /** Terminal-styled cards for the coach's notes. Uses theme tokens so the
@@ -43,9 +43,9 @@ export function CoachsNotes({ data }: { data: CoachsNoteRow[] }) {
             <div className="p-5">
               <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
                 <h3 className="font-display text-lg text-ink">
-                  <a href={showHref(note.showDate)} className="hover:text-gold">
+                  <Link href={showHref(note.showDate, note.showOrder)} className="hover:text-gold">
                     {formatShortDate(note.showDate)}
-                  </a>
+                  </Link>
                 </h3>
                 {note.venueName && (
                   <p className="font-mono text-xs text-muted">@ {note.venueName}</p>

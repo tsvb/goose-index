@@ -1,3 +1,4 @@
+import { WEEKDAYS } from "@/lib/queries/format";
 import type { DayOfWeekJamsRow } from "@/lib/queries/discoveries";
 
 /** Vertical bar chart of avg jams per show by day of week. Same house SVG-bar
@@ -29,8 +30,7 @@ export function DayOfWeekBars({ data }: { data: DayOfWeekJamsRow[] }) {
 /** Shift Sunday (0) to the end so the row reads Mon → Sun. Missing days
  * get zero-filled so the chart's grid is always 7 columns wide. */
 function orderMonSun(data: DayOfWeekJamsRow[]): DayOfWeekJamsRow[] {
-  const NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const by = new Map(data.map((d) => [d.dow, d]));
   const order = [1, 2, 3, 4, 5, 6, 0];
-  return order.map((dow) => by.get(dow) ?? { dow, dayName: NAMES[dow], totalShows: 0, avgJams: 0 });
+  return order.map((dow) => by.get(dow) ?? { dow, dayName: WEEKDAYS[dow], totalShows: 0, avgJams: 0 });
 }
