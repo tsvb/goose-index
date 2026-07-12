@@ -13,6 +13,9 @@ const strOrNull = (v: unknown): string | null => (v == null ? null : String(v));
 /** Minimum total plays for a song to qualify as "on the shelf" — filters
  * one-offs and covers that were never really in the rotation. */
 export const SHELF_MIN_PLAYS = 6;
+/** Non-songs that no naming convention catches, so they're named outright.
+ * Compared case-insensitively against `songs.name`. */
+export const SHELF_EXCLUDED_NAMES = ["trevor reads poetry", "drums"];
 /** Minimum shows at a venue for its jam ratio to be reported. */
 export const DEEPEST_MIN_SHOWS = 3;
 /** How many transitions the Flow State list surfaces. */
@@ -142,7 +145,22 @@ export type ShelfRow = {
 };
 
 /** Original songs the band hasn't played in the longest time. Filters songs
- * with fewer than SHELF_MIN_PLAYS lifetime plays so one-offs don't dominate. */
+ * with fewer than SHELF_MIN_PLAYS lifetime plays so one-offs don't dominate.
+ *
+ * elgoose tags improvised jams, ambient segments and interstitials as
+ * `is_original` songs. Left in, they crowd out the actual shelved originals —
+ * an untouched-for-years "Jam" is not a song the band has shelved. Three
+ * naming conventions catch nearly all of them, and matching the convention
+ * rather than a fixed list means the nightly sync can add new ones without
+ * this list going stale:
+ *
+ *   "Jam", "20 Minute Jam", "Beast Pose Jam"  → a name that ends in "Jam"
+ *   "(dawn)", "(((postplace)))"               → bracketed ambient segments
+ *   "Interlude I", "Interlude II"             → interstitials
+ *
+ * Anything conventionless is named in SHELF_EXCLUDED_NAMES. The filters are
+ * safe for covers that open with a bracket — "(Marie's The Name) His Latest
+ * Flame" — since `is_original` already excludes those. */
 export async function originalsOnTheShelf(): Promise<ShelfRow[]> {
   const rows = allRows(await db.execute(sql`
     select so.song_id,
@@ -156,6 +174,10 @@ export async function originalsOnTheShelf(): Promise<ShelfRow[]> {
     join songs so on so.song_id = p.song_id
     where so.is_original = true
       and sh.show_date <= current_date
+      and so.name !~* '(^|\\s)jam$'
+      and so.name !~ '^[(]'
+      and so.name !~* '^interlude(\\s|$)'
+      and lower(so.name) not in (${sql.join(SHELF_EXCLUDED_NAMES.map((n) => sql`${n}`), sql`, `)})
     group by so.song_id, so.name, so.slug
     having count(*) >= ${SHELF_MIN_PLAYS}
     order by max(sh.show_date) asc, lower(so.name) asc
