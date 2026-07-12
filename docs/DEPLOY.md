@@ -100,9 +100,10 @@ The canonical origin is the `SITE_URL` constant in `lib/site.ts`; `app/sitemap.t
     schema. That is the intended trade-off: no deploy beats a half-broken one.
   - **Preview deploys deliberately skip migrations.** Previews share the *production*
     database, so letting them migrate would mean any pushed branch could alter the prod
-    schema before review. `scripts/migrate.ts` exits early when `VERCEL_ENV !== production`.
-    A preview of a schema-changing branch will therefore 500 on the new route until it
-    merges — that's expected, not a regression.
+    schema before review. `scripts/migrate-gate.ts` decides this (`shouldSkipMigrations`,
+    covered by `migrate-gate.test.ts`): on Vercel it fails closed, migrating only when
+    `VERCEL_ENV === "production"`. A preview of a schema-changing branch will therefore 500
+    on the new route until it merges — that's expected, not a regression.
 
   The gate keys off `VERCEL`, which is unset off-platform, so local runs and the nightly
   Action (which also migrates, see step 5) are unaffected and still work as before:
