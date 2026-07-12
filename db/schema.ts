@@ -41,6 +41,9 @@ export const shows = pgTable("shows", {
   permalink: text("permalink"),
   showOrder: integer("show_order"),
   notes: text("notes"),
+  bandcampAlbumId: text("bandcamp_album_id"),
+  bandcampUrl: text("bandcamp_url"),
+  coachNotes: text("coach_notes"),
   createdAt: text("created_at"),
   updatedAt: text("updated_at"),
 }, (t) => ({

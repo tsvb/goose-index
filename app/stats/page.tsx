@@ -68,19 +68,14 @@ export default async function StatsHub() {
         </Container>
       </header>
       <Container className="py-8">
-        {/* Most Played spans two tracks so five cards fill the grid at every width. */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {CUTS.map((c) => {
             const line = lines[c.slug];
-            const featured = c.slug === "most-played";
             return (
               <Link
                 key={c.slug}
                 href={`/stats/${c.slug}`}
-                className={
-                  "surface-card group flex flex-col p-5 transition hover:border-gold/55" +
-                  (featured ? " sm:col-span-2" : "")
-                }
+                className="surface-card group flex flex-col p-5 transition hover:border-gold/55"
               >
                 <div className="font-display text-lg text-ink group-hover:text-gold">{c.title}</div>
                 <p className="mt-1 text-sm text-muted">{c.blurb}</p>
@@ -89,7 +84,7 @@ export default async function StatsHub() {
                     <div className="flex items-baseline gap-2 border-t border-line-soft pt-3">
                       <span
                         title={line.big}
-                        className={"min-w-0 truncate font-display text-ink " + (featured ? "text-2xl" : "text-xl")}
+                        className="min-w-0 truncate font-display text-xl text-ink"
                       >
                         {line.big}
                       </span>

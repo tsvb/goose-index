@@ -19,7 +19,8 @@
     "sync": "tsx scripts/sync.ts",
     "verify": "tsx scripts/verify.ts",
     "capture-fixtures": "tsx scripts/capture-fixtures.ts",
-    "backfill-slugs": "tsx scripts/backfill-slugs.ts"
+    "backfill-slugs": "tsx scripts/backfill-slugs.ts",
+    "backfill-bandcamp": "tsx scripts/backfill-bandcamp.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.38.0",

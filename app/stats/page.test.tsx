@@ -50,13 +50,8 @@ describe("StatsHub headline stats (fancy/functional)", () => {
 
   it("still links every cut card", async () => {
     const html = await render();
-    for (const slug of ["most-played", "rarities", "current-gaps", "debuts", "set-stats"])
+    for (const slug of ["most-played", "rarities", "current-gaps", "debuts", "set-stats", "oracle"])
       expect(html).toContain(`href="/stats/${slug}"`);
-  });
-
-  it("balances the grid by spanning the Most Played card", async () => {
-    const html = await render();
-    expect(html).toContain("sm:col-span-2");
   });
 
   it("drops a headline gracefully when its cut is empty", async () => {
