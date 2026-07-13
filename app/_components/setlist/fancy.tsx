@@ -5,6 +5,7 @@ import { clsx } from "../clsx";
 import { trackSeconds, formatDuration, RETURN_LABEL } from "@/lib/queries/format";
 import type { SetlistEntry } from "@/lib/queries/shows";
 import { groupSets, isSegue } from "./shared";
+import { SetTape } from "./tape";
 import { NugsLink } from "../nugs-link";
 import { nugsTrackHref, nugsWebFallback } from "@/lib/nugs";
 
@@ -38,6 +39,8 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                 {total ? ` · ${formatDuration(total)}` : ""}
               </span>
             </div>
+
+            <SetTape entries={g.entries} />
 
             <ol>
               {g.entries.map((e, i) => {
