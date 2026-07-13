@@ -23,9 +23,9 @@ describe("SettingsPanel", () => {
     expect(html).toContain("3.0");
     expect(html).toContain("2.0");
     expect(html).toContain("1.0");
-    expect(html).toContain("The full immersive edition");
-    expect(html).toContain("Dense, utility-first");
-    expect(html).toContain("Plain, fast, machine-readable");
+    expect(html).toContain("Charts, themes, motion");
+    expect(html).toContain("Same charts, glossy skin");
+    expect(html).toContain("Plain document, no charts");
   });
 
   it("marks exactly the current experience as selected", () => {

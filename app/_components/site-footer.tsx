@@ -43,7 +43,7 @@ export function FooterFancy() {
       <div className="border-t border-line-soft">
         <Container className="py-4 text-center font-mono text-xs text-faint">
           You&rsquo;re reading the <span className="text-gold">3.0</span> edition — the gear in the header
-          switches to 2.0 (dense) or 1.0 (plain text).
+          switches to 2.0 (glossy) or 1.0 (plain).
         </Container>
       </div>
       <div className="border-t border-line-soft">
@@ -62,7 +62,7 @@ export function FooterFunctional() {
       <div style={{ textShadow: "0 -1px 0 rgba(0,0,0,.2)" }}>
         <Container className="flex flex-col items-center justify-between gap-2 py-4 text-xs text-white sm:flex-row">
           <span>© {new Date().getFullYear()} Goose Index · data from elgoose.net</span>
-          <span>You&rsquo;re on the 2.0 edition — the gear up top switches to 3.0 (immersive) or 1.0 (plain text).</span>
+          <span>You&rsquo;re on the 2.0 edition — the gear up top switches to 3.0 (themed) or 1.0 (plain).</span>
           <span>Not affiliated with Goose. Built by fans.</span>
         </Container>
       </div>
@@ -80,8 +80,8 @@ export function FooterMinimal() {
           non-commercial fan project, not affiliated with Goose.
         </p>
         <p className="mt-2">
-          This is the 1.0 (plain text) edition — the Settings link in the header switches to the
-          3.0 (immersive) or 2.0 (dense) editions.
+          This is the 1.0 (plain) edition — the Settings link in the header switches to the
+          3.0 (themed) or 2.0 (glossy) editions.
         </p>
       </Container>
     </footer>
