@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TheShelf } from "./the-shelf";
+import { TheShelf, spoolReadings } from "./the-shelf";
 import type { ShelfRow } from "@/lib/queries/discoveries";
 
 function row(name: string, daysSincePlayed: number, songId = daysSincePlayed): ShelfRow {
@@ -65,5 +65,44 @@ describe("TheShelf spools", () => {
 
   it("renders an empty state rather than dividing by zero", () => {
     expect(renderToStaticMarkup(<TheShelf data={[]} />)).toContain("No originals qualify yet");
+  });
+
+  it("draws one countdown ring per song", () => {
+    const html = renderToStaticMarkup(<TheShelf data={data} />);
+    expect([...html.matchAll(/data-role="gap"/g)]).toHaveLength(data.length);
+  });
+});
+
+// Ink reads as importance. The spool alone had that backwards — the
+// longest-shelved song was the faintest mark on the page. The ring is what
+// corrects it, so its direction is the invariant that matters: the more shelved
+// a song is, the more of the ring it must fill.
+describe("spoolReadings", () => {
+  const data = [row("Longest", 1367), row("Middle", 400), row("Shortest", 88)];
+
+  it("closes the ring as the tape runs out — the two readings are complementary", () => {
+    const [longest, middle, shortest] = spoolReadings(data);
+    expect(longest.gap).toBeGreaterThan(middle.gap);
+    expect(middle.gap).toBeGreaterThan(shortest.gap);
+    expect(longest.wound).toBeLessThan(middle.wound);
+    expect(middle.wound).toBeLessThan(shortest.wound);
+  });
+
+  it("gives the longest-shelved song the most ink, not the least", () => {
+    const readings = spoolReadings(data);
+    const loudest = readings.indexOf(readings.reduce((a, b) => (b.gap > a.gap ? b : a)));
+    expect(loudest).toBe(0); // data is sorted oldest-first
+    expect(readings[0].gap).toBeCloseTo(1, 5);
+  });
+
+  it("keeps a visible stub of ring for the most recently played song", () => {
+    const readings = spoolReadings(data);
+    expect(readings[2].gap).toBeGreaterThan(0.0);
+  });
+
+  it("does not collapse when every gap is identical", () => {
+    const readings = spoolReadings([row("A", 200, 1), row("B", 200, 2)]);
+    expect(readings[0].gap).toBe(readings[1].gap);
+    expect(readings[0].gap).toBeGreaterThan(0);
   });
 });
