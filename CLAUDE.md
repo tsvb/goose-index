@@ -1,5 +1,22 @@
 # Project notes for Claude
 
+## The database in .env is PRODUCTION
+
+`DATABASE_URL` in `.env` points at **Neon — the live database**. `npm run db:migrate`,
+`npm run sync` and every `import-*` script write **straight to production** from a laptop.
+There is no local database in the loop unless you deliberately put one there.
+
+A handoff doc used to claim the opposite ("local is a different database; local runs do not
+touch prod"). It was wrong, and that is the belief that loses a database. The write scripts
+now print their target host before they touch anything — trust that line, not a doc.
+
+To work against a local database instead:
+
+```bash
+npm run db:up                                   # starts Postgres in docker
+DATABASE_URL='postgres://postgres:postgres@localhost:5432/goose' npm run sync
+```
+
 ## Copy and voice
 
 This site's job is to tell the truth about a dataset. Copy that overstates what the

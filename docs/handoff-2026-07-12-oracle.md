@@ -67,9 +67,16 @@ are the now-removed TS backfill's debug iterations (superseded by the Python scr
   You cannot get the prod connection string from the CLI. Sources: the **Neon dashboard**
   (Vercel → Storage → Neon → connection string), or the GitHub repo secret `DATABASE_URL`
   used by `.github/workflows/sync.yml` (that one is the **unpooled** string).
-- **Local `.env`'s `DATABASE_URL` is a _different_ database from prod.** Running
-  `db:migrate` / `import-bandcamp` locally does **not** touch prod. To act on prod you must
-  `export DATABASE_URL='<neon-string>'` explicitly first. (This bit us — see incident below.)
+- ~~**Local `.env`'s `DATABASE_URL` is a _different_ database from prod.**~~
+  ⚠️ **THIS WAS FALSE, AND DANGEROUS. Corrected 2026-07-13.** The `DATABASE_URL` in `.env`
+  points at **Neon — the production database**. `npm run db:migrate`, `npm run sync` and
+  every `import-*` script run from a laptop write **straight to production**. There is no
+  local database in the loop unless you deliberately point `DATABASE_URL` at one
+  (`npm run db:up` starts one; you must then set the URL yourself).
+
+  Nothing was lost finding this out — the writes involved were additive — but the belief
+  that "local can't reach prod" is exactly the belief that loses a database, so the write
+  scripts now announce the target host before they touch anything.
 - **`/stats/oracle` is `force-dynamic`** — it re-queries on every request, so data changes
   show up without a redeploy.
 - Prod already has migration `0002` applied and `updated=447` rows imported (2026-07-12).
