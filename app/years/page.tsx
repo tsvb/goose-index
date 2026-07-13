@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
-import { listYears } from "@/lib/queries/dimensions";
+import { listYears, careerYears } from "@/lib/queries/dimensions";
+import { CareerChart } from "@/app/_components/career-chart";
 import { compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
@@ -14,8 +15,9 @@ export const metadata: Metadata = {
 };
 
 export default async function YearsPage() {
-  const years = await listYears();
+  const [years, career] = await Promise.all([listYears(), careerYears()]);
   const experience = await getExperience();
+  const coverage = new Map(career.map((c) => [c.year, c]));
 
   if (experience === "minimal") {
     return (
@@ -45,6 +47,16 @@ export default async function YearsPage() {
         </Container>
       </header>
 
+      <Container className="pt-10">
+        <section>
+          <h2 className="mb-1 font-display text-base text-ink">The shape of it</h2>
+          <p className="mb-5 font-mono text-xs text-faint">
+            Thirteen years of shows. A list makes you plot this in your head.
+          </p>
+          <CareerChart years={career} />
+        </section>
+      </Container>
+
       {/* List */}
       <Container className="py-10 sm:py-14">
         <div className="surface-card overflow-hidden">
@@ -59,6 +71,12 @@ export default async function YearsPage() {
               </span>
               <span className="font-mono text-xs text-faint">
                 {compact(y.shows)} {y.shows === 1 ? "show" : "shows"} · {compact(y.songs)} songs played
+                {(() => {
+                  const c = coverage.get(y.year);
+                  return c && c.documented < c.shows ? (
+                    <span className="ml-2 text-faint">(setlists for {c.documented})</span>
+                  ) : null;
+                })()}
               </span>
             </Link>
           ))}

@@ -317,3 +317,69 @@ export async function tourTimeline(): Promise<{ tours: TourSpan[]; untouredShows
   }
   return { tours, untouredShows };
 }
+
+// ── The career ────────────────────────────────────────────────────────────────
+
+export type CareerYear = {
+  year: number;
+  /** Shows elgoose has logged for the year. */
+  shows: number;
+  /** …of which this many have a setlist. The rest are known to have happened
+   * and nothing more. */
+  documented: number;
+  performances: number;
+  uniqueSongs: number;
+  debuts: number;
+  /** The current year is still running: its bar is a partial count, not a low one. */
+  partial: boolean;
+};
+
+/**
+ * A year, as more than a row.
+ *
+ * The catalogue's early years are badly documented — 2017 has 107 shows logged
+ * and setlists for 37 of them — and the page has been printing "107 shows · 343
+ * songs played" side by side, which invites you to read 343 songs across 107
+ * shows. They describe different sets of shows. So coverage is returned, not
+ * buried: an undocumented show is drawn, hatched, because "we know this happened
+ * and nothing else" is a fact about the archive worth seeing.
+ */
+export async function careerYears(): Promise<CareerYear[]> {
+  const rows = allRows(await db.execute(sql`
+    with per_show as (
+      select s.show_id, s.venue_id,
+             extract(year from s.show_date)::int as year,
+             (select count(*) from performances p where p.show_id = s.show_id)::int as songs
+      from shows s
+      where s.show_date <= current_date
+    ),
+    debut as (
+      select p.song_id, extract(year from min(s.show_date))::int as year
+      from performances p
+      join shows s on s.show_id = p.show_id
+      where s.show_date <= current_date
+      group by p.song_id
+    )
+    select ps.year,
+           count(*)::int as shows,
+           count(*) filter (where ps.songs > 0)::int as documented,
+           coalesce(sum(ps.songs), 0)::int as performances,
+           (select count(distinct p.song_id)
+              from performances p join shows s2 on s2.show_id = p.show_id
+             where extract(year from s2.show_date)::int = ps.year)::int as unique_songs,
+           (select count(*) from debut d where d.year = ps.year)::int as debuts
+    from per_show ps
+    group by ps.year
+    order by ps.year asc
+  `));
+  const thisYear = new Date().getUTCFullYear();
+  return rows.map((r) => ({
+    year: num(r.year),
+    shows: num(r.shows),
+    documented: num(r.documented),
+    performances: num(r.performances),
+    uniqueSongs: num(r.unique_songs),
+    debuts: num(r.debuts),
+    partial: num(r.year) === thisYear,
+  }));
+}

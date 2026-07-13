@@ -9,6 +9,11 @@ vi.mock("@/lib/queries/dimensions", () => ({
     { year: 2024, shows: 62, songs: 1204 },
     { year: 2023, shows: 1, songs: 18 },
   ],
+  careerYears: async () => [
+    // 2023 is deliberately under-documented: one show logged, no setlist.
+    { year: 2023, shows: 1, documented: 0, performances: 18, uniqueSongs: 12, debuts: 2, partial: false },
+    { year: 2024, shows: 62, documented: 62, performances: 1204, uniqueSongs: 140, debuts: 9, partial: true },
+  ],
 }));
 
 import YearsPage from "./page";
