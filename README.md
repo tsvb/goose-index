@@ -14,6 +14,7 @@ Setlists with segues and jams, songs, venues, tours — and statistics that don'
 ![Next.js](https://img.shields.io/badge/Next.js-App_Router-000?logo=nextdotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![Postgres](https://img.shields.io/badge/Postgres-Drizzle-4169E1?logo=postgresql&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 </div>
 
@@ -192,3 +193,11 @@ their official [Bandcamp](https://goosetheband.bandcamp.com) releases — see
 
 Inspired in spirit by [dmbalmanac.com](https://dmbalmanac.com). Full data landscape:
 [`docs/research/2026-06-26-data-landscape.md`](docs/research/2026-06-26-data-landscape.md).
+
+## License
+
+The **code** is [MIT](LICENSE).
+
+The **data** is not mine to license. Setlists, shows, venues and songs belong to the elgoose
+community; the coach's notes belong to the band. MIT covers what's in this repository, and
+nothing more.
