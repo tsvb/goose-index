@@ -72,7 +72,11 @@ export function SettingsPanel({
         <>
           <div className="my-3 h-px bg-line" />
           <p className="mb-2 font-mono text-[0.62rem] uppercase tracking-wider text-faint">Appearance</p>
-          <div role="group" aria-label="Appearance" className="flex gap-1 rounded-full border border-line p-0.5">
+          {/* A grid, not a segmented row: four themes in one row leaves ~60px a
+              button, which "XL II" cannot share with an icon — it wrapped and
+              burst the pill. Two columns hold any even number of themes without
+              the labels having to get shorter. */}
+          <div role="group" aria-label="Appearance" className="grid grid-cols-2 gap-1">
             {THEMES.map((t) => {
               const pressed = theme === t.value;
               const Icon = t.icon;
@@ -83,11 +87,13 @@ export function SettingsPanel({
                   onClick={() => onSelectTheme(t.value)}
                   aria-pressed={pressed}
                   className={clsx(
-                    "flex flex-1 items-center justify-center gap-1 rounded-full px-2 py-1.5 text-[0.75rem] transition",
-                    pressed ? "bg-gold/15 text-gold" : "text-faint hover:text-ink",
+                    "flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[0.75rem] transition",
+                    pressed
+                      ? "border-gold/40 bg-gold/15 text-gold"
+                      : "border-line text-faint hover:border-line hover:bg-line/40 hover:text-ink",
                   )}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
                   {t.label}
                 </button>
               );

@@ -47,6 +47,17 @@ describe("SettingsPanel", () => {
     expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
   });
 
+  // Four themes in a single segmented row left ~60px a button, which "XL II"
+  // could not share with its icon: the label wrapped and burst the pill. The
+  // grid is what keeps a long theme name from having to be shortened.
+  it("lays the themes out in a grid, with labels that cannot wrap", () => {
+    const html = render({ themeAllowed: true });
+    expect(html).toContain("grid grid-cols-2");
+    const buttons = html.match(/aria-pressed="(true|false)"/g) ?? [];
+    expect(buttons.length).toBeGreaterThanOrEqual(4); // one per theme
+    expect(html).toContain("whitespace-nowrap");
+  });
+
   it("marks pod as pressed when it is the active theme", () => {
     const html = render({ themeAllowed: true, theme: "pod" });
     expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
