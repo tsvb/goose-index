@@ -108,8 +108,10 @@ function Spool({ wound, gap, red }: SpoolReading) {
 
   return (
     <svg viewBox="0 0 100 100" className="w-full" aria-hidden="true">
-      {/* The countdown ring's track — so a short arc is read against a whole turn. */}
-      <circle cx={HUB.c} cy={HUB.c} r={HUB.ring} fill="none" stroke="var(--line-soft)" strokeWidth={3} />
+      {/* The countdown ring's track. It has to be *visible*: a recently-played
+          song is a short stub of arc, and without a full turn behind it the
+          stub reads as a stray tick rather than "barely begun". */}
+      <circle cx={HUB.c} cy={HUB.c} r={HUB.ring} fill="none" stroke="var(--line)" strokeWidth={3} />
       {/* Origin tick at twelve. */}
       <line x1={HUB.c} y1={HUB.ring - 5} x2={HUB.c} y2={HUB.ring + 5} stroke="var(--line)" strokeWidth={1} />
       {/* Past a year, the ring burns. */}

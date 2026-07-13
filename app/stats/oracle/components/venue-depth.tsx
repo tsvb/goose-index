@@ -30,7 +30,9 @@ function arc(from: number, to: number, radius: number) {
 function Meter({ fraction, fullScale }: { fraction: number; fullScale: number }) {
   const clamped = Math.min(1, Math.max(0, fraction));
   const inRed = clamped >= RED_FROM;
-  const tip = polar(clamped, VU.dial - 8);
+  // The needle must reach the graduations it is pointing at — stopping short
+  // leaves it floating in the middle of the housing, reading as a stray line.
+  const tip = polar(clamped, VU.dial - 3);
   const tail = polar(clamped, -6);
 
   return (
