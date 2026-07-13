@@ -14,12 +14,15 @@ function row(name: string, daysSincePlayed: number, songId = daysSincePlayed): S
   };
 }
 
-/** Match the wound pack itself — not the ghost windings or the red-zone glow,
- * which carry the same accent stroke. */
+/** The pack carries the reading in its *thickness* and is drawn in graphite —
+ * colour is reserved for the ring, which is the signal. So thickness comes off
+ * the pack, and red-zone comes off the ring. */
 function packs(html: string) {
-  return [...html.matchAll(/data-role="pack"[^>]*stroke="var\(--(ember|gold)\)" stroke-width="([\d.]+)"/g)].map((m) => ({
-    red: m[1] === "ember",
-    thickness: Number(m[2]),
+  const thicknesses = [...html.matchAll(/data-role="pack"[^>]*stroke="var\(--line\)" stroke-width="([\d.]+)"/g)];
+  const rings = [...html.matchAll(/data-role="gap"[^>]*stroke="var\(--(ember|gold)\)"/g)];
+  return thicknesses.map((m, i) => ({
+    thickness: Number(m[1]),
+    red: rings[i]?.[1] === "ember",
   }));
 }
 

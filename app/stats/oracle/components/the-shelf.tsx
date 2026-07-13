@@ -80,11 +80,19 @@ function Prongs() {
   );
 }
 
+/** The tape is material, not signal.
+ *
+ * Drawing the pack in the accent colour made a full spool the loudest object on
+ * the page — a fat bright donut has far more ink than a thin ring — so the
+ * songs played three months ago shouted over the one shelved for four years.
+ * Colour now carries exactly one meaning: how long it's been. The pack is
+ * graphite (which is also what tape actually looks like; it was never cyan),
+ * and every drop of accent is spent on the ring. */
 function Spool({ wound, gap, red }: SpoolReading) {
-  const thickness = (TAPE.min + wound * TAPE.span) * (HUB.rim - HUB.core);
+  const thickness = Number(((TAPE.min + wound * TAPE.span) * (HUB.rim - HUB.core)).toFixed(2));
   const packOuter = HUB.core + thickness;
   const mid = HUB.core + thickness / 2;
-  const tape = red ? "var(--ember)" : "var(--gold)";
+  const signal = red ? "var(--ember)" : "var(--gold)";
 
   // Ghost windings: where tape would be if the song were still in rotation.
   const missing = HUB.rim - packOuter;
@@ -93,34 +101,28 @@ function Spool({ wound, gap, red }: SpoolReading) {
   return (
     <svg viewBox="0 0 100 100" className="w-full" aria-hidden="true">
       {/* The countdown ring's track — so a short arc is read against a whole turn. */}
-      <circle cx={HUB.c} cy={HUB.c} r={HUB.ring} fill="none" stroke="var(--line-soft)" strokeWidth={2.5} />
+      <circle cx={HUB.c} cy={HUB.c} r={HUB.ring} fill="none" stroke="var(--line-soft)" strokeWidth={3} />
       {/* Origin tick at twelve. */}
-      <line x1={HUB.c} y1={HUB.ring - 4.5} x2={HUB.c} y2={HUB.ring + 4.5} stroke="var(--line)" strokeWidth={1} />
+      <line x1={HUB.c} y1={HUB.ring - 5} x2={HUB.c} y2={HUB.ring + 5} stroke="var(--line)" strokeWidth={1} />
+      {/* Past a year, the ring burns. */}
+      {red && (
+        <path d={ringPath(gap, HUB.ring)} fill="none" stroke={signal} strokeWidth={7} opacity={0.18} strokeLinecap="butt" />
+      )}
       {/* The gap itself, given a mark: the longer it's been, the further this travels. */}
-      <path
-        data-role="gap"
-        d={ringPath(gap, HUB.ring)}
-        fill="none"
-        stroke={tape}
-        strokeWidth={2.5}
-        strokeLinecap="butt"
-      />
+      <path data-role="gap" d={ringPath(gap, HUB.ring)} fill="none" stroke={signal} strokeWidth={3} strokeLinecap="butt" />
 
       {/* The well: the spool cavity, so what's *gone* is visible as space. */}
       <circle cx={HUB.c} cy={HUB.c} r={HUB.rim} fill="var(--bg-deep)" stroke="var(--line-soft)" strokeWidth={1} />
       {/* The windings that have run off. */}
       {ghosts.map((r) => (
-        <circle key={r} cx={HUB.c} cy={HUB.c} r={r} fill="none" stroke={tape} strokeWidth={0.5} strokeDasharray="1 5" opacity={0.3} />
+        <circle key={r} cx={HUB.c} cy={HUB.c} r={r} fill="none" stroke={signal} strokeWidth={0.5} strokeDasharray="1 5" opacity={0.3} />
       ))}
-      {red && (
-        <circle cx={HUB.c} cy={HUB.c} r={mid} fill="none" stroke={tape} strokeWidth={thickness + 4} opacity={0.16} />
-      )}
-      {/* The wound pack. */}
-      <circle data-role="pack" cx={HUB.c} cy={HUB.c} r={mid} fill="none" stroke={tape} strokeWidth={thickness} opacity={0.95} />
+      {/* The wound pack — graphite. Thickness still carries the reading; colour does not. */}
+      <circle data-role="pack" cx={HUB.c} cy={HUB.c} r={mid} fill="none" stroke="var(--line)" strokeWidth={thickness} />
       {thickness > 6 && (
         <>
-          <circle cx={HUB.c} cy={HUB.c} r={HUB.core + thickness * 0.35} fill="none" stroke="var(--bg)" strokeWidth={0.6} opacity={0.35} />
-          <circle cx={HUB.c} cy={HUB.c} r={HUB.core + thickness * 0.7} fill="none" stroke="var(--bg)" strokeWidth={0.6} opacity={0.35} />
+          <circle cx={HUB.c} cy={HUB.c} r={HUB.core + thickness * 0.35} fill="none" stroke="var(--bg-deep)" strokeWidth={0.6} opacity={0.5} />
+          <circle cx={HUB.c} cy={HUB.c} r={HUB.core + thickness * 0.7} fill="none" stroke="var(--bg-deep)" strokeWidth={0.6} opacity={0.5} />
         </>
       )}
       {/* The hub. */}
