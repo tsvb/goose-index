@@ -33,36 +33,53 @@ function Prongs() {
 }
 
 /** A song's gap, drawn as the thing it describes: tape left on the spool.
- * `wound` is 0 (barest — longest shelved) to 1 (fullest — played most recently). */
+ * `wound` is 0 (barest — longest shelved) to 1 (fullest — played most recently).
+ *
+ * The empty part of the spool has to be *drawn*, not merely left blank. Ink
+ * reads as importance, so a bare spool rendered as a hairline made the
+ * longest-shelved song — the whole point of the section — the quietest thing on
+ * it, while a merely-dusty song shouted. The cavity is now a filled well with
+ * the missing windings ghosted in, so emptiness has weight: the barest spool
+ * reads as a gaping hole, which is exactly what a decade-unplayed song is. */
 function Spool({ wound, red }: { wound: number; red: boolean }) {
   const thickness = (TAPE.min + wound * TAPE.span) * (HUB.rim - HUB.core);
+  const packOuter = HUB.core + thickness;
   const mid = HUB.core + thickness / 2;
   const tape = red ? "var(--ember)" : "var(--gold)";
+
+  // Ghost windings: where tape would be if the song were still in rotation.
+  const missing = HUB.rim - packOuter;
+  const ghosts = missing > 3 ? [0.28, 0.55, 0.82].map((f) => packOuter + missing * f) : [];
+
   return (
     <svg viewBox="0 0 100 100" className="w-full" aria-hidden="true">
-      {/* The tape window: how much spool there is to fill. */}
-      <circle cx={HUB.c} cy={HUB.c} r={HUB.rim} fill="none" stroke="var(--line-soft)" strokeWidth={1} />
+      {/* The well: the spool cavity, so what's *gone* is visible as space. */}
+      <circle cx={HUB.c} cy={HUB.c} r={HUB.rim} fill="var(--bg-deep)" stroke="var(--line-soft)" strokeWidth={1} />
+      {/* The windings that have run off, ghosted. */}
+      {ghosts.map((r) => (
+        <circle
+          key={r}
+          cx={HUB.c} cy={HUB.c} r={r}
+          fill="none" stroke={tape} strokeWidth={0.5}
+          strokeDasharray="1 5" opacity={0.28}
+        />
+      ))}
+      {/* Past a year, the rim glows: bare *and* hot, not bare and faint. */}
+      {red && (
+        <>
+          <circle cx={HUB.c} cy={HUB.c} r={HUB.rim} fill="none" stroke="var(--ember)" strokeWidth={1} opacity={0.55} />
+          <circle cx={HUB.c} cy={HUB.c} r={mid} fill="none" stroke={tape} strokeWidth={thickness + 4} opacity={0.16} />
+        </>
+      )}
       {/* The wound pack. */}
-      <circle cx={HUB.c} cy={HUB.c} r={mid} fill="none" stroke={tape} strokeWidth={thickness} opacity={0.9} />
-      {/* Two layer lines, so the pack reads as wound tape rather than a ring. */}
-      <circle
-        cx={HUB.c}
-        cy={HUB.c}
-        r={HUB.core + thickness * 0.35}
-        fill="none"
-        stroke="var(--bg)"
-        strokeWidth={0.6}
-        opacity={0.35}
-      />
-      <circle
-        cx={HUB.c}
-        cy={HUB.c}
-        r={HUB.core + thickness * 0.7}
-        fill="none"
-        stroke="var(--bg)"
-        strokeWidth={0.6}
-        opacity={0.35}
-      />
+      <circle data-role="pack" cx={HUB.c} cy={HUB.c} r={mid} fill="none" stroke={tape} strokeWidth={thickness} opacity={0.95} />
+      {/* Layer lines, so the pack reads as wound tape rather than a ring. */}
+      {thickness > 6 && (
+        <>
+          <circle cx={HUB.c} cy={HUB.c} r={HUB.core + thickness * 0.35} fill="none" stroke="var(--bg)" strokeWidth={0.6} opacity={0.35} />
+          <circle cx={HUB.c} cy={HUB.c} r={HUB.core + thickness * 0.7} fill="none" stroke="var(--bg)" strokeWidth={0.6} opacity={0.35} />
+        </>
+      )}
       {/* The hub. */}
       <circle cx={HUB.c} cy={HUB.c} r={HUB.core} fill="var(--surface)" stroke="var(--line)" strokeWidth={1} />
       <Prongs />

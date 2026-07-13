@@ -14,9 +14,10 @@ function row(name: string, daysSincePlayed: number, songId = daysSincePlayed): S
   };
 }
 
-/** The wound pack is the only circle drawn with a thick accent stroke. */
+/** Match the wound pack itself — not the ghost windings or the red-zone glow,
+ * which carry the same accent stroke. */
 function packs(html: string) {
-  return [...html.matchAll(/stroke="var\(--(ember|gold)\)" stroke-width="([\d.]+)"/g)].map((m) => ({
+  return [...html.matchAll(/data-role="pack"[^>]*stroke="var\(--(ember|gold)\)" stroke-width="([\d.]+)"/g)].map((m) => ({
     red: m[1] === "ember",
     thickness: Number(m[2]),
   }));
