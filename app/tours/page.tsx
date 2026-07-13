@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { SectionHeader } from "@/app/_components/section-header";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
-import { listTours } from "@/lib/queries/dimensions";
+import { listTours, tourTimeline } from "@/lib/queries/dimensions";
+import { TourTimeline } from "@/app/_components/tour-timeline";
 import { formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
@@ -15,8 +16,11 @@ export const metadata: Metadata = {
 };
 
 export default async function ToursPage() {
-  const tours = await listTours();
+  const [tours, timeline] = await Promise.all([listTours(), tourTimeline()]);
   const experience = await getExperience();
+  // Rendered server-side, so "today" is the server's day — the same clock the
+  // rest of the site's `current_date` comparisons already use.
+  const today = new Date().toISOString().slice(0, 10);
 
   if (experience === "minimal") {
     return (
@@ -57,6 +61,18 @@ export default async function ToursPage() {
           </p>
         </Container>
       </header>
+
+      {/* The minimal experience returns above; this is fancy + functional. */}
+      <Container className="pt-10">
+        <section>
+          <h2 className="mb-1 font-display text-base text-ink">The touring year</h2>
+          <p className="mb-4 font-mono text-xs text-faint">
+            Every tour across the calendar it ran on. A list makes an eleven-week summer and a two-week Europe leg look
+            the same; this doesn&apos;t.
+          </p>
+          <TourTimeline tours={timeline.tours} untouredShows={timeline.untouredShows} today={today} />
+        </section>
+      </Container>
 
       {/* List */}
       <Container className="py-10 sm:py-14">

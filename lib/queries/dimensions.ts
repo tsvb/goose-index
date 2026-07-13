@@ -255,3 +255,65 @@ export async function showsByCountry(): Promise<CountryShows[]> {
   }
   return [...merged.values()].sort((a, b) => b.shows - a.shows || a.country.localeCompare(b.country));
 }
+
+// ── The touring year ──────────────────────────────────────────────────────────
+
+export type TourSpan = {
+  tourId: number;
+  name: string;
+  start: string;
+  end: string;
+  shows: number;
+  /** Every show date on the tour, so the bar can show its rhythm and not just its span. */
+  dates: string[];
+  /** Shows still ahead. A tour can be wholly upcoming (Fall 2026) or half-run
+   * (Summer 2026), and a timeline that quietly dropped the future would be
+   * telling you the band has stopped touring. */
+  upcoming: number;
+};
+
+/**
+ * elgoose files every show with no tour under a pseudo-tour literally named
+ * "Not Part of a Tour". It is not a tour — it's the absence of one — and it
+ * spans the entire career (2014→2026, 245 shows). Drawn on a timeline it would
+ * be a twelve-year bar dwarfing every real run. Excluded here, and the shows it
+ * holds are counted separately, because "a third of all shows belong to no tour"
+ * is a fact, not a gap.
+ */
+export const NOT_A_TOUR = /^not part of a tour$/i;
+
+export async function tourTimeline(): Promise<{ tours: TourSpan[]; untouredShows: number }> {
+  const rows = allRows(await db.execute(sql`
+    select t.tour_id, t.name,
+           min(s.show_date)::text as start,
+           max(s.show_date)::text as "end",
+           count(s.show_id)::int as shows,
+           count(*) filter (where s.show_date > current_date)::int as upcoming,
+           array_agg(s.show_date::text order by s.show_date) as dates
+    from tours t
+    join shows s on s.tour_id = t.tour_id
+    group by t.tour_id, t.name
+    order by min(s.show_date) asc
+  `));
+
+  const tours: TourSpan[] = [];
+  let untouredShows = 0;
+  for (const r of rows) {
+    const name = String(r.name);
+    const shows = num(r.shows);
+    if (NOT_A_TOUR.test(name)) {
+      untouredShows += shows;
+      continue;
+    }
+    tours.push({
+      tourId: num(r.tour_id),
+      name,
+      start: String(r.start),
+      end: String(r.end),
+      shows,
+      upcoming: num(r.upcoming),
+      dates: (r.dates as string[] | null) ?? [],
+    });
+  }
+  return { tours, untouredShows };
+}
