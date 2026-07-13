@@ -1,0 +1,55 @@
+name: Bandcamp discography
+
+# Scrapes the band's Bandcamp and loads it into the database:
+#   * albums / album_tracks — the discography behind /songs?sort=album
+#   * shows.coach_notes     — the liner notes behind /stats/oracle
+#
+# elgoose knows nothing about releases, so this is the only source for either.
+#
+# Runs monthly (releases are rare, and the scrape is ~10 minutes of polite
+# requests) and on demand from the Actions tab whenever something new drops.
+
+on:
+  schedule:
+    # 05:17 UTC on the 3rd of each month. Off the hour, per GitHub's advice.
+    - cron: "17 5 3 * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: bandcamp
+  cancel-in-progress: false
+
+jobs:
+  discography:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: npm ci
+
+      # The schema has to exist before anything is written into it. Same
+      # migrate-first discipline as the production build.
+      - name: Apply schema migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:migrate
+
+      - name: Scrape Bandcamp
+        run: npm run scrape-bandcamp
+
+      - name: Load the discography
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run import-albums -- data/albums.jsonl
+
+      - name: Load the coach's notes
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run import-bandcamp -- data/albums.jsonl
