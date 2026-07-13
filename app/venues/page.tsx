@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Search } from "@/app/_components/marks";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
-import { listVenues, type VenueRow } from "@/lib/queries/dimensions";
+import { listVenues, showsByState, showsByCountry, type VenueRow } from "@/lib/queries/dimensions";
+import { VenueMap, VenueMapTable } from "@/app/_components/venue-map";
 import { locationLine, compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
@@ -52,7 +53,11 @@ export default async function VenuesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const { sort = "shows", q = "" } = await searchParams;
-  const venues = await listVenues({ sort, q });
+  const [venues, states, countries] = await Promise.all([
+    listVenues({ sort, q }),
+    showsByState(),
+    showsByCountry(),
+  ]);
   const experience = await getExperience();
   const groups = groupVenues(venues);
 
@@ -124,6 +129,20 @@ export default async function VenuesPage({
           </p>
         </Container>
       </header>
+
+      {!q && (
+        <Container className="pt-10">
+          <section>
+            <h2 className="mb-1 font-display text-base text-ink">Where they play</h2>
+            <p className="mb-4 font-mono text-xs text-faint">
+              Every show, by state. The map is the answer to &ldquo;where&rdquo;; the ledger below is the answer to
+              &ldquo;which room&rdquo;.
+            </p>
+            <VenueMap states={states} countries={countries} />
+            <VenueMapTable states={states} />
+          </section>
+        </Container>
+      )}
 
       {/* Sort + filter + grouped ledger */}
       <Container className="py-10">

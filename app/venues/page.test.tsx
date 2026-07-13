@@ -14,6 +14,8 @@ vi.mock("@/lib/queries/dimensions", () => ({
     h.lastOpts = opts;
     return h.venues;
   },
+  showsByState: async () => [{ state: "CT", shows: 135, venues: 43 }, { state: "NY", shows: 107, venues: 54 }],
+  showsByCountry: async () => [{ country: "Mexico", shows: 13, venues: 3 }],
 }));
 
 import VenuesPage from "./page";

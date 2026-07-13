@@ -189,3 +189,69 @@ export async function getVenueMeta(venueId: number): Promise<VenueRow | null> {
     .groupBy(venues.venueId);
   return row ?? null;
 }
+
+// ── Where Goose plays ─────────────────────────────────────────────────────────
+
+// Raw-SQL row helpers, matching the pattern in songs.ts / discoveries.ts.
+function allRows(result: unknown): Record<string, unknown>[] {
+  const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
+  return rows as Record<string, unknown>[];
+}
+const num = (v: unknown): number => Number(v ?? 0);
+const strOrNull = (v: unknown): string | null => (v == null ? null : String(v));
+
+export type StateShows = { state: string; shows: number; venues: number };
+export type CountryShows = { country: string; shows: number; venues: number };
+
+/**
+ * elgoose's country field is free text, so the same place arrives under more
+ * than one name: "UK" and "United Kingdom" are separate rows, and Canada shows
+ * up once per province. Left alone the map would draw the UK twice and Canada
+ * twice — so names are folded here, where the fix is one rule rather than a
+ * special case in every consumer.
+ */
+export function normalizeCountry(raw: string | null): string {
+  const c = (raw ?? "").trim();
+  if (!c) return "USA";
+  if (/^(usa|us|united states.*)$/i.test(c)) return "USA";
+  if (/^(uk|united kingdom|england|scotland|wales)$/i.test(c)) return "United Kingdom";
+  return c;
+}
+
+/** Shows and venues per US state, keyed by the USPS code the map draws with. */
+export async function showsByState(): Promise<StateShows[]> {
+  const rows = allRows(await db.execute(sql`
+    select v.state, count(distinct s.show_id)::int as shows, count(distinct v.venue_id)::int as venues
+    from shows s
+    join venues v on v.venue_id = s.venue_id
+    where s.show_date <= current_date
+      and v.state is not null
+      and (v.country is null or v.country ~* '^(usa|us|united states)')
+    group by v.state
+  `));
+  return rows
+    .map((r) => ({ state: String(r.state).toUpperCase().trim(), shows: num(r.shows), venues: num(r.venues) }))
+    .filter((r) => /^[A-Z]{2}$/.test(r.state));
+}
+
+/** Shows and venues outside the US, folded onto one row per country. */
+export async function showsByCountry(): Promise<CountryShows[]> {
+  const rows = allRows(await db.execute(sql`
+    select v.country, count(distinct s.show_id)::int as shows, count(distinct v.venue_id)::int as venues
+    from shows s
+    join venues v on v.venue_id = s.venue_id
+    where s.show_date <= current_date
+      and v.country is not null
+      and v.country !~* '^(usa|us|united states)'
+    group by v.country
+  `));
+  const merged = new Map<string, CountryShows>();
+  for (const r of rows) {
+    const country = normalizeCountry(strOrNull(r.country));
+    const at = merged.get(country) ?? { country, shows: 0, venues: 0 };
+    at.shows += num(r.shows);
+    at.venues += num(r.venues);
+    merged.set(country, at);
+  }
+  return [...merged.values()].sort((a, b) => b.shows - a.shows || a.country.localeCompare(b.country));
+}
