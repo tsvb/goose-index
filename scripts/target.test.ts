@@ -38,3 +38,14 @@ describe("announceTarget", () => {
     expect(announceTarget("not-a-url").isProd).toBe(false);
   });
 });
+
+describe("announceTarget, read-only", () => {
+  it("does not shout about writes a read-only script will never make", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const { isProd } = announceTarget("postgres://u:p@ep-x.neon.tech/neondb", { readOnly: true });
+    const printed = log.mock.calls.flat().join(" ");
+    expect(isProd).toBe(true);
+    expect(printed).toContain("reading from");
+    expect(printed).not.toContain("WRITING");
+  });
+});

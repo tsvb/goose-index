@@ -39,3 +39,13 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run verify
+
+      # verify checks the database against itself. This checks it against
+      # elgoose — the only way to catch the cache drifting from the source
+      # (a show refiled onto another tour, a date moved, a show withdrawn).
+      # Read-only.
+      - name: Audit against elgoose
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ELGOOSE_USER_AGENT: "GooseIndex/1.0 (+https://github.com/tsvb/goose-index; nightly source audit)"
+        run: npm run audit-source
