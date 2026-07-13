@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Search } from "@/app/_components/marks";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
-import { listVenues, showsByState, showsByCountry, type VenueRow } from "@/lib/queries/dimensions";
+import { listVenues, showsByState, showsByCountry, normalizeCountry, type VenueRow } from "@/lib/queries/dimensions";
 import { VenueMap, VenueMapTable } from "@/app/_components/venue-map";
 import { locationLine, compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
@@ -21,13 +21,18 @@ type SearchParams = { sort?: "shows" | "name"; q?: string };
 type VenueGroup = { id: string; label: string; kind: "state" | "country" | "other"; rows: VenueRow[] };
 const KIND_ORDER = { state: 0, country: 1, other: 2 } as const;
 
-/** US venues group under their state, everywhere else under the country, unlocated last. */
+/** US venues group under their state, everywhere else under the country, unlocated last.
+ *
+ * The country name is normalised first: elgoose's field is free text, so "UK" and
+ * "United Kingdom" arrive as different strings and the ledger listed the same
+ * country twice. Both this and the map now fold names through one rule. */
 function groupVenues(rows: VenueRow[]): VenueGroup[] {
   const groups = new Map<string, VenueGroup>();
   for (const v of rows) {
-    const intl = Boolean(v.country && v.country !== "USA");
+    const country = v.country ? normalizeCountry(v.country) : null;
+    const intl = Boolean(country && country !== "USA");
     const kind: VenueGroup["kind"] = intl ? "country" : v.state ? "state" : "other";
-    const label = kind === "country" ? v.country! : kind === "state" ? v.state! : "Unlisted";
+    const label = kind === "country" ? country! : kind === "state" ? v.state! : "Unlisted";
     const id = `g-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
     let g = groups.get(id);
     if (!g) groups.set(id, (g = { id, label, kind, rows: [] }));

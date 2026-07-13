@@ -146,3 +146,29 @@ describe("searchTours", () => {
     expect(await searchTours("zzzz")).toEqual({ rows: [], total: 0 });
   });
 });
+
+// elgoose's country field is free text, so the same country arrives under more
+// than one spelling. Left alone, /venues listed the United Kingdom twice — once
+// as "UK" and once as "United Kingdom" — and the map would have drawn it twice.
+describe("normalizeCountry", () => {
+  it("folds the spellings of one country onto one name", async () => {
+    const { normalizeCountry } = await import("./dimensions");
+    expect(normalizeCountry("UK")).toBe("United Kingdom");
+    expect(normalizeCountry("United Kingdom")).toBe("United Kingdom");
+    expect(normalizeCountry("uk")).toBe("United Kingdom");
+  });
+
+  it("folds the ways the US is written, including an empty field", async () => {
+    const { normalizeCountry } = await import("./dimensions");
+    expect(normalizeCountry("USA")).toBe("USA");
+    expect(normalizeCountry("United States")).toBe("USA");
+    expect(normalizeCountry("")).toBe("USA");
+    expect(normalizeCountry(null)).toBe("USA");
+  });
+
+  it("leaves a country it doesn't know alone rather than guessing", async () => {
+    const { normalizeCountry } = await import("./dimensions");
+    expect(normalizeCountry("Mexico")).toBe("Mexico");
+    expect(normalizeCountry("Denmark")).toBe("Denmark");
+  });
+});

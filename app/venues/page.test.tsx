@@ -16,6 +16,8 @@ vi.mock("@/lib/queries/dimensions", () => ({
   },
   showsByState: async () => [{ state: "CT", shows: 135, venues: 43 }, { state: "NY", shows: 107, venues: 54 }],
   showsByCountry: async () => [{ country: "Mexico", shows: 13, venues: 3 }],
+  // The real one folds "UK" onto "United Kingdom"; the page must call it.
+  normalizeCountry: (c: string | null) => (/^uk$/i.test(c ?? "") ? "United Kingdom" : (c || "USA")),
 }));
 
 import VenuesPage from "./page";
