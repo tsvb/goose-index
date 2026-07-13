@@ -25,6 +25,7 @@
     "import-bandcamp": "tsx scripts/import-bandcamp.ts"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "drizzle-orm": "^0.38.0",
     "next": "^15.1.0",
     "postgres": "^3.4.5",
