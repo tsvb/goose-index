@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { allowsTheme, serializeExperienceCookie, type Experience } from "@/lib/experience";
 import { Settings } from "./marks";
-import { SettingsPanel, resolveTheme, type Theme } from "./settings-panel";
+import { SettingsPanel, resolveTheme, DEFAULT_THEME, type Theme } from "./settings-panel";
 
 /** Where initial focus lands when the popover opens: the currently-selected
  *  experience option (aria-current), falling back to the first button. Takes
@@ -16,7 +16,7 @@ export function initialFocusTarget<T>(query: (selector: string) => T | null): T 
 export function SettingsMenu({ current }: { current: Experience }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
   const [isPending, startTransition] = useTransition();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -27,7 +27,7 @@ export function SettingsMenu({ current }: { current: Experience }) {
   useEffect(() => {
     const saved = resolveTheme(typeof localStorage !== "undefined" ? localStorage.getItem("ga-theme") : null);
     const attr = resolveTheme(document.documentElement.getAttribute("data-theme"));
-    setTheme(saved ?? attr ?? "dark");
+    setTheme(saved ?? attr ?? DEFAULT_THEME);
   }, []);
 
   useEffect(() => {

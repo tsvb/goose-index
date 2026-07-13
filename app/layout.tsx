@@ -5,6 +5,7 @@ import "./globals.css";
 import { SiteHeader } from "./_components/site-header";
 import { SiteFooter } from "./_components/site-footer";
 import { SkipLink } from "./_components/skip-link";
+import { DEFAULT_THEME, themeScript } from "@/lib/theme";
 import { getExperience } from "@/lib/experience.server";
 import { JsonLd } from "./_components/json-ld";
 import { siteJsonLd } from "@/lib/jsonld";
@@ -64,15 +65,13 @@ export const metadata: Metadata = {
 // per-request rather than freezing at build time.
 export const dynamic = "force-dynamic";
 
-// Set the saved theme before first paint to avoid a flash.
-const themeScript = `(function(){try{var t=localStorage.getItem('ga-theme');if(t==='light'||t==='dark'||t==='pod'||t==='xl2'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const experience = await getExperience();
   return (
     <html
       lang="en"
-      data-theme="dark"
+      data-theme={DEFAULT_THEME}
       data-experience={experience}
       className={`${bricolage.variable} ${hanken.variable} ${jetbrains.variable} ${plexSans.variable} ${plexMono.variable}`}
       suppressHydrationWarning

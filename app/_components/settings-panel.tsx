@@ -1,20 +1,32 @@
 import { EXPERIENCES, type Experience } from "@/lib/experience";
+import { THEME_VALUES, type Theme } from "@/lib/theme";
 import { Cassette, Disc, Moon, Sun } from "./marks";
 import { clsx } from "./clsx";
 
-export type Theme = "dark" | "light" | "pod" | "xl2";
+// The theme list, the default and the pre-paint script all live in lib/theme.ts
+// — layout.tsx needs them too, and an App Router route file can't export them.
+export { DEFAULT_THEME, resolveTheme, type Theme } from "@/lib/theme";
 
-const THEMES: { value: Theme; label: string; icon: typeof Moon }[] = [
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "light", label: "Light", icon: Sun },
-  { value: "pod", label: "Pod", icon: Disc },
-  { value: "xl2", label: "XL II", icon: Cassette },
-];
+/** The icon each theme wears in the menu. Keyed off THEME_VALUES so a new theme
+ * can't be added without giving it one. */
+const ICONS: Record<Theme, typeof Moon> = {
+  dark: Moon,
+  light: Sun,
+  pod: Disc,
+  xl2: Cassette,
+};
+const LABELS: Record<Theme, string> = {
+  dark: "Dark",
+  light: "Light",
+  pod: "Pod",
+  xl2: "XL II",
+};
 
-/** Narrow an untrusted value (localStorage, DOM attribute) to a Theme. */
-export function resolveTheme(value: string | null | undefined): Theme | null {
-  return THEMES.some((t) => t.value === value) ? (value as Theme) : null;
-}
+export const THEMES = THEME_VALUES.map((value) => ({
+  value,
+  label: LABELS[value],
+  icon: ICONS[value],
+}));
 
 export function SettingsPanel({
   current,
