@@ -3,57 +3,48 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { TheShelf, spoolReadings } from "./the-shelf";
 import type { ShelfRow } from "@/lib/queries/discoveries";
 
-function row(name: string, daysSincePlayed: number, songId = daysSincePlayed): ShelfRow {
+function row(name: string, daysSincePlayed: number, totalPlays = 9, songId = daysSincePlayed): ShelfRow {
   return {
     songId,
     name,
     slug: name.toLowerCase().replace(/\s+/g, "-"),
     lastPlayedDate: "2024-01-01",
-    totalPlays: 9,
+    totalPlays,
     daysSincePlayed,
   };
 }
 
-/** The pack carries the reading in its *thickness* and is drawn in graphite —
- * colour is reserved for the ring, which is the signal. So thickness comes off
- * the pack, and red-zone comes off the ring. */
-function packs(html: string) {
-  const thicknesses = [...html.matchAll(/data-role="pack"[^>]*stroke="var\(--line\)" stroke-width="([\d.]+)"/g)];
+/** Thickness comes off the pack (graphite — the song's size); the red-zone
+ * reading comes off the ring, which is the only thing carrying accent. */
+function marks(html: string) {
+  const packs = [...html.matchAll(/data-role="pack"[^>]*stroke="var\(--line\)" stroke-width="([\d.]+)"/g)];
   const rings = [...html.matchAll(/data-role="gap"[^>]*stroke="var\(--(ember|gold)\)"/g)];
-  return thicknesses.map((m, i) => ({
+  return packs.map((m, i) => ({
     thickness: Number(m[1]),
     red: rings[i]?.[1] === "ember",
   }));
 }
 
-// The spool is not decoration: the tape left on it *is* the gap. If a refactor
-// ever inverts or flattens that mapping, the section silently starts lying.
 describe("TheShelf spools", () => {
   const data = [row("Longest", 1367), row("Middle", 400), row("Shortest", 88)];
 
-  it("winds less tape the longer a song has been shelved", () => {
-    const p = packs(renderToStaticMarkup(<TheShelf data={data} />));
-    expect(p).toHaveLength(3);
-    expect(p[0].thickness).toBeLessThan(p[1].thickness);
-    expect(p[1].thickness).toBeLessThan(p[2].thickness);
+  it("runs the ring into the red only past a year on the shelf", () => {
+    const m = marks(renderToStaticMarkup(<TheShelf data={data} />));
+    expect(m).toHaveLength(3);
+    expect(m.map((x) => x.red)).toEqual([true, true, false]);
   });
 
-  it("runs into the red only past a year on the shelf", () => {
-    const p = packs(renderToStaticMarkup(<TheShelf data={data} />));
-    expect(p.map((x) => x.red)).toEqual([true, true, false]);
+  it("spends accent only on the ring — never on the tape", () => {
+    const html = renderToStaticMarkup(<TheShelf data={data} />);
+    // Colour means exactly one thing here: how long it has been. If the pack
+    // ever takes accent again, a fat spool starts out-shouting an urgent one.
+    const packsWithAccent = html.match(/data-role="pack"[^>]*var\(--(gold|ember)\)/g);
+    expect(packsWithAccent).toBeNull();
   });
 
-  it("keeps a visible pack even for the barest spool", () => {
-    const p = packs(renderToStaticMarkup(<TheShelf data={data} />));
-    expect(p[0].thickness).toBeGreaterThan(0);
-  });
-
-  it("does not collapse when every gap is identical", () => {
-    const flat = [row("A", 200, 1), row("B", 200, 2)];
-    const p = packs(renderToStaticMarkup(<TheShelf data={flat} />));
-    expect(p).toHaveLength(2);
-    expect(p[0].thickness).toBe(p[1].thickness);
-    expect(p[0].thickness).toBeGreaterThan(0);
+  it("draws one countdown ring per song", () => {
+    const html = renderToStaticMarkup(<TheShelf data={data} />);
+    expect([...html.matchAll(/data-role="gap"/g)]).toHaveLength(data.length);
   });
 
   it("still names every song and its gap in text, for screen readers", () => {
@@ -62,50 +53,61 @@ describe("TheShelf spools", () => {
       expect(html).toContain(s.name);
       expect(html).toContain(String(s.daysSincePlayed));
     }
-    // The SVG is decorative — the figures above carry the meaning.
     expect(html).toContain('aria-hidden="true"');
   });
 
   it("renders an empty state rather than dividing by zero", () => {
     expect(renderToStaticMarkup(<TheShelf data={[]} />)).toContain("No originals qualify yet");
   });
-
-  it("draws one countdown ring per song", () => {
-    const html = renderToStaticMarkup(<TheShelf data={data} />);
-    expect([...html.matchAll(/data-role="gap"/g)]).toHaveLength(data.length);
-  });
 });
 
-// Ink reads as importance. The spool alone had that backwards — the
-// longest-shelved song was the faintest mark on the page. The ring is what
-// corrects it, so its direction is the invariant that matters: the more shelved
-// a song is, the more of the ring it must fill.
+// The two channels must carry *different* facts. An earlier pass drew tape as
+// `1 - gap` — the same number twice — which told you nothing the ring hadn't
+// already said, and made a staple that vanished indistinguishable from a rarity
+// that vanished. That distinction is the reason this section is worth drawing.
 describe("spoolReadings", () => {
-  const data = [row("Longest", 1367), row("Middle", 400), row("Shortest", 88)];
-
-  it("closes the ring as the tape runs out — the two readings are complementary", () => {
-    const [longest, middle, shortest] = spoolReadings(data);
+  it("reads the ring as time since the last play", () => {
+    const [longest, middle, shortest] = spoolReadings([
+      row("Longest", 1367),
+      row("Middle", 400),
+      row("Shortest", 88),
+    ]);
     expect(longest.gap).toBeGreaterThan(middle.gap);
     expect(middle.gap).toBeGreaterThan(shortest.gap);
-    expect(longest.wound).toBeLessThan(middle.wound);
-    expect(middle.wound).toBeLessThan(shortest.wound);
+    expect(longest.gap).toBeCloseTo(1, 5);
   });
 
-  it("gives the longest-shelved song the most ink, not the least", () => {
-    const readings = spoolReadings(data);
-    const loudest = readings.indexOf(readings.reduce((a, b) => (b.gap > a.gap ? b : a)));
-    expect(loudest).toBe(0); // data is sorted oldest-first
-    expect(readings[0].gap).toBeCloseTo(1, 5);
+  it("reads the tape as how big a song is, independent of the gap", () => {
+    // Same gap throughout: tape must still separate the staple from the rarity.
+    const [rarity, mid, staple] = spoolReadings([
+      row("Rarity", 500, 6),
+      row("Mid", 500, 30),
+      row("Staple", 500, 110),
+    ]);
+    expect(rarity.wound).toBeLessThan(mid.wound);
+    expect(mid.wound).toBeLessThan(staple.wound);
+    // Identical gaps must not be smeared apart by the play counts.
+    expect(rarity.gap).toBe(staple.gap);
+  });
+
+  it("distinguishes a vanished staple from a vanished rarity", () => {
+    const [rarity, staple] = spoolReadings([row("Rarity", 1300, 7), row("Staple", 1300, 110)]);
+    // Both long gone — same ring...
+    expect(rarity.gap).toBe(staple.gap);
+    // ...but the staple is visibly the bigger song, which is the alarming case.
+    expect(staple.wound).toBeGreaterThan(rarity.wound);
   });
 
   it("keeps a visible stub of ring for the most recently played song", () => {
-    const readings = spoolReadings(data);
-    expect(readings[2].gap).toBeGreaterThan(0.0);
+    const readings = spoolReadings([row("Old", 1367), row("Fresh", 88)]);
+    expect(readings[1].gap).toBeGreaterThan(0);
   });
 
-  it("does not collapse when every gap is identical", () => {
-    const readings = spoolReadings([row("A", 200, 1), row("B", 200, 2)]);
-    expect(readings[0].gap).toBe(readings[1].gap);
-    expect(readings[0].gap).toBeGreaterThan(0);
+  it("does not collapse when every gap or every play count is identical", () => {
+    const sameGap = spoolReadings([row("A", 200, 10, 1), row("B", 200, 10, 2)]);
+    expect(sameGap[0].gap).toBe(sameGap[1].gap);
+    expect(sameGap[0].wound).toBe(sameGap[1].wound);
+    expect(sameGap[0].gap).toBeGreaterThan(0);
+    expect(sameGap[0].wound).toBeGreaterThan(0);
   });
 });

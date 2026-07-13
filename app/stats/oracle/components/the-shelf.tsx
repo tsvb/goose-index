@@ -10,12 +10,12 @@ const RED_ZONE_DAYS = 365;
 const HUB = { c: 50, hole: 5, core: 16, rim: 42, ring: 46 } as const;
 /** Never wind the tape flush to the rim or flush to the core: a spool that
  * reads as "empty" or "full" would imply a bound the data doesn't have. */
-const TAPE = { min: 0.1, span: 0.85 } as const;
+const TAPE = { min: 0.14, span: 0.8 } as const;
 /** The shortest gap still gets a visible stub of ring, or it reads as broken. */
 const MIN_SWEEP = 0.06;
 
 export type SpoolReading = {
-  /** Tape left on the hub: 0 = barest (shelved longest), 1 = fullest. */
+  /** How much tape this song has ever had: 0 = a rarity, 1 = a staple. */
   wound: number;
   /** How far the countdown ring has travelled: 0 = just played, 1 = shelved longest. */
   gap: number;
@@ -24,30 +24,42 @@ export type SpoolReading = {
 
 /** The two readings a spool carries, as pure numbers.
  *
- * Log-scaled and normalised across the set rather than against zero. Gaps are
- * heavily skewed (88–1367 days as of writing) and read multiplicatively — three
- * years shelved versus four is barely a distinction, where one month versus
- * three is a large one. On a linear scale the long tail flattens everything
- * below it into identical spools.
+ * They must encode *different* facts, or the second channel is decoration. An
+ * earlier pass drew tape as `1 - gap`, which is the same number twice: it told
+ * you nothing the ring hadn't already said.
  *
- * `wound` and `gap` are deliberately complementary. The spool alone had its
- * salience backwards: ink reads as importance, so the longest-shelved song —
- * the entire point of the section — was drawn as a hairline while a
- * merely-dusty one was a fat bright donut. The ring fixes that without
- * compromising the metaphor: as the tape runs out, the ring fills up, so the
- * song that most deserves attention is also the one carrying the most ink. */
+ *   ring  = time since the last play — the question the section asks
+ *   tape  = total plays — how big a song this is
+ *
+ * That pairing is what makes the picture worth looking at. A fat spool inside a
+ * complete ring is a *staple that has vanished*, which is genuinely alarming; a
+ * thin spool inside a complete ring is a rarity behaving like a rarity. Drawn
+ * as one number those two cases are indistinguishable, and the interesting one
+ * disappears.
+ *
+ * Both are log-scaled and normalised across the set. Gaps (88–1367 days) and
+ * play counts (6–110) are heavily skewed and read multiplicatively: three years
+ * shelved versus four is barely a distinction where one month versus three is a
+ * large one, and 100 plays versus 110 is nothing where 6 versus 20 is
+ * everything. On a linear scale the long tail flattens everything beneath it. */
 export function spoolReadings(data: ShelfRow[]): SpoolReading[] {
-  const scale = (days: number) => Math.log(Math.max(1, days));
-  const scaled = data.map((s) => scale(s.daysSincePlayed));
-  const longest = Math.max(...scaled);
-  const shortest = Math.min(...scaled);
-  const spread = longest - shortest;
+  const log = (n: number) => Math.log(Math.max(1, n));
 
-  return data.map((song, i) => {
-    const wound = spread === 0 ? 0.5 : (longest - scaled[i]) / spread;
-    const gap = Math.max(MIN_SWEEP, 1 - wound);
-    return { wound, gap, red: song.daysSincePlayed >= RED_ZONE_DAYS };
-  });
+  const gaps = data.map((s) => log(s.daysSincePlayed));
+  const gapMax = Math.max(...gaps);
+  const gapMin = Math.min(...gaps);
+  const gapSpread = gapMax - gapMin;
+
+  const plays = data.map((s) => log(s.totalPlays));
+  const playMax = Math.max(...plays);
+  const playMin = Math.min(...plays);
+  const playSpread = playMax - playMin;
+
+  return data.map((song, i) => ({
+    wound: playSpread === 0 ? 0.5 : (plays[i] - playMin) / playSpread,
+    gap: gapSpread === 0 ? 1 : Math.max(MIN_SWEEP, (gaps[i] - gapMin) / gapSpread),
+    red: song.daysSincePlayed >= RED_ZONE_DAYS,
+  }));
 }
 
 /** Clockwise from twelve. SVG arcs can't close a full circle, so the ring stops
@@ -87,16 +99,12 @@ function Prongs() {
  * songs played three months ago shouted over the one shelved for four years.
  * Colour now carries exactly one meaning: how long it's been. The pack is
  * graphite (which is also what tape actually looks like; it was never cyan),
- * and every drop of accent is spent on the ring. */
+ * and every drop of accent is spent on the ring, whose sweep is the gap. */
 function Spool({ wound, gap, red }: SpoolReading) {
   const thickness = Number(((TAPE.min + wound * TAPE.span) * (HUB.rim - HUB.core)).toFixed(2));
   const packOuter = HUB.core + thickness;
   const mid = HUB.core + thickness / 2;
   const signal = red ? "var(--ember)" : "var(--gold)";
-
-  // Ghost windings: where tape would be if the song were still in rotation.
-  const missing = HUB.rim - packOuter;
-  const ghosts = missing > 3 ? [0.3, 0.6, 0.9].map((f) => packOuter + missing * f) : [];
 
   return (
     <svg viewBox="0 0 100 100" className="w-full" aria-hidden="true">
@@ -111,13 +119,9 @@ function Spool({ wound, gap, red }: SpoolReading) {
       {/* The gap itself, given a mark: the longer it's been, the further this travels. */}
       <path data-role="gap" d={ringPath(gap, HUB.ring)} fill="none" stroke={signal} strokeWidth={3} strokeLinecap="butt" />
 
-      {/* The well: the spool cavity, so what's *gone* is visible as space. */}
+      {/* The shell window: the cavity the tape is wound in. */}
       <circle cx={HUB.c} cy={HUB.c} r={HUB.rim} fill="var(--bg-deep)" stroke="var(--line-soft)" strokeWidth={1} />
-      {/* The windings that have run off. */}
-      {ghosts.map((r) => (
-        <circle key={r} cx={HUB.c} cy={HUB.c} r={r} fill="none" stroke={signal} strokeWidth={0.5} strokeDasharray="1 5" opacity={0.3} />
-      ))}
-      {/* The wound pack — graphite. Thickness still carries the reading; colour does not. */}
+      {/* The wound pack — graphite. Thickness is the song's size; colour says nothing. */}
       <circle data-role="pack" cx={HUB.c} cy={HUB.c} r={mid} fill="none" stroke="var(--line)" strokeWidth={thickness} />
       {thickness > 6 && (
         <>
@@ -174,9 +178,11 @@ export function TheShelf({ data }: { data: ShelfRow[] }) {
           );
         })}
       </ol>
-      <p className="mt-5 font-mono text-[0.62rem] text-faint">
-        Two readings, one spool: the tape left on the hub is what remains, and the ring around it is how far the gap has
-        travelled. As a song runs out of tape, its ring closes. Past a year, both run into the red.
+      <p className="mt-5 max-w-2xl font-mono text-[0.62rem] leading-relaxed text-faint">
+        Two readings per spool: the <span className="text-muted">tape</span> on the hub is how big a song is (total
+        plays), and the <span className="text-gold">ring</span> around it is how long since it was last played, closing
+        as the gap grows. Past a year the ring runs into the <span className="text-ember">red</span>. A thick spool
+        inside a closed ring is the one to worry about — a staple the band has stopped playing.
       </p>
     </>
   );
