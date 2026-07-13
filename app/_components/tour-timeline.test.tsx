@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TourTimeline, shortName } from "./tour-timeline";
+import { TourTimeline, shortName, splitLegs } from "./tour-timeline";
 import type { TourSpan } from "@/lib/queries/dimensions";
 
 function tour(over: Partial<TourSpan> & { tourId: number; name: string; start: string; end: string }): TourSpan {
@@ -98,5 +98,87 @@ describe("TourTimeline", () => {
 
   it("renders nothing rather than an empty frame", () => {
     expect(renderToStaticMarkup(<TourTimeline tours={[]} untouredShows={0} today={TODAY} />)).toBe("");
+  });
+});
+
+// A bar from a tour's first date to its last is an ENVELOPE, not a record.
+// Summer Tour 2026 ran the east coast to Jul 4, went home for forty days, and
+// picked up the west coast on Aug 13 — drawn as one bar it claims twelve solid
+// weeks of touring, six of which never happened. 19 of 42 tours have a break of
+// two weeks or more inside them, so this is the rule, not the edge case.
+describe("splitLegs", () => {
+  it("splits a tour where the band actually went home", () => {
+    const legs = splitLegs([
+      // east coast: shows every few days, ending Jul 4
+      "2026-06-13", "2026-06-19", "2026-06-26", "2026-06-30", "2026-07-04",
+      // forty days at home, then the west coast
+      "2026-08-13", "2026-08-19", "2026-08-27", "2026-09-02",
+    ]);
+    expect(legs).toHaveLength(2);
+    expect(legs[0]).toMatchObject({ start: "2026-06-13", end: "2026-07-04" });
+    expect(legs[1]).toMatchObject({ start: "2026-08-13", end: "2026-09-02" });
+  });
+
+  it("does not split on ordinary travel days", () => {
+    // Three nights off between cities is a tour, not two tours.
+    const legs = splitLegs(["2026-06-13", "2026-06-16", "2026-06-19", "2026-06-24"]);
+    expect(legs).toHaveLength(1);
+    expect(legs[0].dates).toHaveLength(4);
+  });
+
+  it("splits at exactly a fortnight, and not at thirteen days", () => {
+    expect(splitLegs(["2026-01-01", "2026-01-15"])).toHaveLength(2); // 14 days
+    expect(splitLegs(["2026-01-01", "2026-01-14"])).toHaveLength(1); // 13 days
+  });
+
+  it("keeps every show, whatever the split", () => {
+    const dates = ["2026-06-13", "2026-06-19", "2026-07-04", "2026-08-13", "2026-09-02"];
+    expect(splitLegs(dates).flatMap((l) => l.dates).sort()).toEqual([...dates].sort());
+  });
+
+  it("handles a single show and no shows without throwing", () => {
+    expect(splitLegs(["2026-06-13"])).toHaveLength(1);
+    expect(splitLegs([])).toHaveLength(0);
+  });
+});
+
+describe("TourTimeline legs", () => {
+  it("joins the legs of one tour with a connector, not a solid bar", () => {
+    const html = renderToStaticMarkup(
+      <TourTimeline
+        today="2026-07-13"
+        untouredShows={0}
+        tours={[
+          tour({
+            tourId: 44,
+            name: "Summer Tour 2026",
+            start: "2026-06-13",
+            end: "2026-09-02",
+            shows: 4,
+            dates: ["2026-06-13", "2026-06-19", "2026-06-26", "2026-07-04", "2026-08-13", "2026-08-19", "2026-08-27", "2026-09-02"],
+          }),
+        ]}
+      />,
+    );
+    expect(html).toContain("dotted"); // the connector
+    // Two bars for one tour, both linking to the same tour.
+    expect([...html.matchAll(/href="\/tours\/44"/g)]).toHaveLength(2);
+  });
+
+  it("names the tour once, on the first leg only", () => {
+    const html = renderToStaticMarkup(
+      <TourTimeline
+        today="2026-07-13"
+        untouredShows={0}
+        tours={[
+          tour({
+            tourId: 44, name: "Summer Tour 2026", start: "2026-06-13", end: "2026-09-02", shows: 8,
+            dates: ["2026-06-13", "2026-06-19", "2026-06-26", "2026-07-04", "2026-08-13", "2026-08-19", "2026-08-27", "2026-09-02"],
+          }),
+        ]}
+      />,
+    );
+    // Repeating it on every leg would read as two separate tours.
+    expect([...html.matchAll(/>Summer</g)]).toHaveLength(1);
   });
 });

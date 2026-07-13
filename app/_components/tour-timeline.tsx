@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import type { TourSpan } from "@/lib/queries/dimensions";
 
@@ -40,6 +41,44 @@ export function shortName(name: string): string {
     .replace(/\s{2,}/g, " ")
     .replace(/^[\s—-]+|[\s—-]+$/g, "");
   return stripped || name;
+}
+
+/**
+ * A break of a fortnight is not a travel day. Two weeks with no show means the
+ * band went home, and a tour that resumes afterwards is a second leg.
+ */
+export const LEG_BREAK_DAYS = 14;
+
+export type Leg = { start: string; end: string; dates: string[] };
+
+/**
+ * Split a tour into the legs it was actually played in.
+ *
+ * A bar drawn from a tour's first date to its last is an *envelope*, not a
+ * record: Summer Tour 2026 runs Jun 13 → Sep 2, but the band played the east
+ * coast to Jul 4, went home for forty days, and picked the west coast up on Aug
+ * 13. Drawn as one bar it claims twelve solid weeks of touring, six of which
+ * didn't happen. This isn't an edge case — 19 of 42 tours have a break of two
+ * weeks or more inside them, and Fall Tour 2017 has a 49-day one.
+ *
+ * So the bar shows when they actually played, and the gap between legs is left
+ * empty, because that's what it was.
+ */
+export function splitLegs(dates: string[], breakDays = LEG_BREAK_DAYS): Leg[] {
+  const sorted = [...dates].sort();
+  if (sorted.length === 0) return [];
+  const legs: Leg[] = [];
+  let current: string[] = [sorted[0]];
+  for (let i = 1; i < sorted.length; i++) {
+    const gap = (Date.parse(sorted[i]) - Date.parse(sorted[i - 1])) / 864e5;
+    if (gap >= breakDays) {
+      legs.push({ start: current[0], end: current[current.length - 1], dates: current });
+      current = [];
+    }
+    current.push(sorted[i]);
+  }
+  legs.push({ start: current[0], end: current[current.length - 1], dates: current });
+  return legs;
 }
 
 /** Greedy interval packing: a tour drops into the first lane it doesn't collide
@@ -116,61 +155,85 @@ export function TourTimeline({
 
                 {lanes.map((lane, li) =>
                   lane.map((t) => {
-                    const from = dayOfYear(t.start);
-                    const to = dayOfYear(t.end);
-                    const left = (from / days) * 100;
-                    const width = Math.max(((to - from + 1) / days) * 100, 0.7);
+                    const legs = splitLegs(t.dates);
                     const future = t.start > today;
                     const hot = t.tourId === busiest.tourId;
+                    const colour = future ? "var(--faint)" : hot ? "var(--ember)" : "var(--gold)";
+                    const top = 2 + li * (LANE.h + LANE.gap);
+                    const pct = (iso: string) => (dayOfYear(iso) / days) * 100;
+
                     return (
-                      <Link
-                        key={t.tourId}
-                        href={`/tours/${t.tourId}`}
-                        title={`${t.name} — ${t.start} to ${t.end}, ${t.shows} ${t.shows === 1 ? "show" : "shows"}${t.upcoming ? ` (${t.upcoming} still ahead)` : ""}`}
-                        className="group absolute flex items-center rounded-[2px] transition"
-                        style={{
-                          left: `${left}%`,
-                          width: `${width}%`,
-                          top: 2 + li * (LANE.h + LANE.gap),
-                          height: LANE.h,
-                          background: future
-                            ? "transparent"
-                            : hot
-                              ? "color-mix(in srgb, var(--ember) 30%, transparent)"
-                              : "color-mix(in srgb, var(--gold) 22%, transparent)",
-                          border: `1px solid ${future ? "var(--line)" : hot ? "var(--ember)" : "color-mix(in srgb, var(--gold) 55%, transparent)"}`,
-                          borderStyle: future ? "dashed" : "solid",
-                        }}
-                      >
-                        {/* One tick per show: the bar gets a rhythm, not just a length. */}
-                        {/* The ticks get their own strip along the bottom. Drawn
-                            through the middle they ran straight through the tour's
-                            name and neither could be read. */}
-                        {t.dates.map((d) => {
-                          const at = ((dayOfYear(d) - from) / Math.max(to - from + 1, 1)) * 100;
+                      <Fragment key={t.tourId}>
+                        {/* One tour, but only the weeks it was actually played.
+                            The connector says the legs belong together; the empty
+                            space between them says the band was home. */}
+                        {legs.length > 1 && (
+                          <span
+                            aria-hidden
+                            className="absolute"
+                            style={{
+                              left: `${pct(legs[0].end)}%`,
+                              width: `${pct(legs[legs.length - 1].start) - pct(legs[0].end)}%`,
+                              top: top + LANE.h / 2,
+                              height: 1,
+                              borderTop: `1px dotted ${colour}`,
+                              opacity: 0.45,
+                            }}
+                          />
+                        )}
+
+                        {legs.map((leg, i) => {
+                          const from = dayOfYear(leg.start);
+                          const to = dayOfYear(leg.end);
+                          const width = Math.max(((to - from + 1) / days) * 100, 0.7);
                           return (
-                            <span
-                              key={d}
-                              aria-hidden
-                              className="absolute bottom-[2px] h-[5px] w-px"
+                            <Link
+                              key={leg.start}
+                              href={`/tours/${t.tourId}`}
+                              title={`${t.name} — ${t.start} to ${t.end}, ${t.shows} ${t.shows === 1 ? "show" : "shows"}${legs.length > 1 ? ` · leg ${i + 1} of ${legs.length}: ${leg.start} to ${leg.end}, ${leg.dates.length} shows` : ""}${t.upcoming ? ` (${t.upcoming} still ahead)` : ""}`}
+                              className="group absolute flex items-center rounded-[2px] transition"
                               style={{
-                                left: `${Math.min(at, 99)}%`,
-                                background: d > today ? "var(--faint)" : hot ? "var(--ember)" : "var(--gold)",
+                                left: `${(from / days) * 100}%`,
+                                width: `${width}%`,
+                                top,
+                                height: LANE.h,
+                                background: future
+                                  ? "transparent"
+                                  : hot
+                                    ? "color-mix(in srgb, var(--ember) 30%, transparent)"
+                                    : "color-mix(in srgb, var(--gold) 22%, transparent)",
+                                border: `1px solid ${future ? "var(--line)" : hot ? "var(--ember)" : "color-mix(in srgb, var(--gold) 55%, transparent)"}`,
+                                borderStyle: future ? "dashed" : "solid",
                               }}
-                            />
+                            >
+                              {leg.dates.map((d) => {
+                                const at = ((dayOfYear(d) - from) / Math.max(to - from + 1, 1)) * 100;
+                                return (
+                                  <span
+                                    key={d}
+                                    aria-hidden
+                                    className="absolute bottom-[2px] h-[5px] w-px"
+                                    style={{
+                                      left: `${Math.min(at, 99)}%`,
+                                      background: d > today ? "var(--faint)" : hot ? "var(--ember)" : "var(--gold)",
+                                    }}
+                                  />
+                                );
+                              })}
+                              {/* The name rides the first leg only — repeating it
+                                  on every leg would read as separate tours. */}
+                              {i === 0 && (
+                                <span
+                                  className="pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
+                                  style={{ color: colour }}
+                                >
+                                  {shortName(t.name)}
+                                </span>
+                              )}
+                            </Link>
                           );
                         })}
-                        {/* The name sits in the bar, not behind a hover: a
-                            timeline you can only read with a mouse is half a
-                            timeline. Narrow bars clip it rather than push the
-                            layout around — the title attribute still has it. */}
-                        <span
-                          className="pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
-                          style={{ color: future ? "var(--faint)" : hot ? "var(--ember)" : "var(--gold)" }}
-                        >
-                          {shortName(t.name)}
-                        </span>
-                      </Link>
+                      </Fragment>
                     );
                   }),
                 )}
@@ -181,9 +244,10 @@ export function TourTimeline({
       </ol>
 
       <figcaption className="mt-3 font-mono text-[0.62rem] leading-relaxed text-faint">
-        Each bar is a tour, drawn across the months it actually ran; every tick inside it is a show. Dashed bars
-        haven&apos;t happened yet. The busiest run — <span className="text-ember">{busiest.name}</span>, {busiest.shows}{" "}
-        shows — is marked.{" "}
+        Each bar is the weeks a tour was actually played, and every tick inside it is a show. A tour with a break of
+        two weeks or more is drawn as separate legs joined by a dotted line — the band went home, and a solid bar
+        through that gap would claim touring that didn&apos;t happen. Dashed bars haven&apos;t happened yet. The busiest
+        run — <span className="text-ember">{busiest.name}</span>, {busiest.shows} shows — is marked.{" "}
         {untouredShows > 0 && (
           <>
             {untouredShows} shows belong to no tour at all and aren&apos;t drawn here: one-offs, festivals and sit-ins
