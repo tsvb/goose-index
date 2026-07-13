@@ -77,9 +77,9 @@ describe("SongIndexTable sortable headers", () => {
 // album order from the query; the table only has to notice where one ends.
 describe("SongIndexTable grouped by album", () => {
   const rows: SongIndexRow[] = [
-    onAlbum({ songId: 1, name: "Big Modern!", album: { title: "BIG MODERN!", slug: "big-modern", releaseDate: "2026-06-12", trackNum: 2 } }),
-    onAlbum({ songId: 2, name: "Good2B", album: { title: "BIG MODERN!", slug: "big-modern", releaseDate: "2026-06-12", trackNum: 6 } }),
-    onAlbum({ songId: 3, name: "Rockdale", album: { title: "Chain Yer Dragon", slug: "cyd", releaseDate: "2025-08-14", trackNum: 11 } }),
+    onAlbum({ songId: 1, name: "Big Modern!", album: { title: "BIG MODERN!", slug: "big-modern", releaseDate: "2026-06-12", trackNum: 2, url: null } }),
+    onAlbum({ songId: 2, name: "Good2B", album: { title: "BIG MODERN!", slug: "big-modern", releaseDate: "2026-06-12", trackNum: 6, url: null } }),
+    onAlbum({ songId: 3, name: "Rockdale", album: { title: "Chain Yer Dragon", slug: "cyd", releaseDate: "2025-08-14", trackNum: 11, url: null } }),
     onAlbum({ songId: 4, name: "Arcadia", album: null }),
     onAlbum({ songId: 5, name: "Wysteria Lane", album: null }),
   ];

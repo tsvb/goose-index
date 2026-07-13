@@ -640,6 +640,14 @@ table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; l
 tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 7px 9px; position: sticky; left: 0; }
 .song-group-title { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--gold); }
 .song-group-note { font-family: var(--font-mono); font-size: 0.62rem; color: var(--faint); margin-left: 8px; text-transform: none; letter-spacing: 0; }
+.song-group-link:hover .song-group-buy { color: var(--gold); border-color: var(--gold); }
+.song-group-buy { font-family: var(--font-mono); font-size: 0.58rem; color: var(--faint); border: 1px solid var(--line); border-radius: 2px; padding: 1px 5px; margin-left: 8px; text-transform: none; letter-spacing: 0.04em; transition: color .15s, border-color .15s; }
+
+/* Bandcamp — the band's own store. Reuses the nugs affordance's shape but gets
+   its own colour so it doesn't read as a nugs link. */
+.nugs-show.bandcamp { color: var(--sage); border-color: color-mix(in srgb, var(--sage) 45%, transparent); background: color-mix(in srgb, var(--sage) 10%, transparent); }
+.nugs-show.bandcamp:hover { color: var(--sage-deep); border-color: var(--sage); }
+[data-experience="functional"] .nugs-show.bandcamp { color: #3b7411; border-color: #a9cf8a; background: linear-gradient(#ffffff, #eef7e8); }
 [data-experience="functional"] tr.song-group td { background: #dbe8f4; }
 [data-experience="functional"] .song-group-title { color: #1f5e93; }
 

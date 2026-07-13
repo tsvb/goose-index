@@ -18,11 +18,13 @@ vi.mock("@/lib/queries/songs", () => ({
     h.perfsQueried = true;
     return h.perfs as unknown as SongPerf[];
   },
+  getSongAlbums: async () => [],
 }));
 // Chart/table children are exercised by their own colocated tests; stubs keep
 // this test on the played/never-played branch.
 vi.mock("@/app/_components/song", () => ({
   FactRibbon: () => <div data-stub="ribbon" />,
+  AppearsOn: () => null,
   PlaysPerYearChart: () => null,
   SetPlacementBars: () => null,
   GapSparkline: () => null,

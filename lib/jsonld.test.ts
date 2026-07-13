@@ -5,7 +5,7 @@ import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
 const show: ShowDetail = {
   showId: 1, date: "2025-06-28", order: null, venue: "Madison Square Garden",
   city: "New York", state: "NY", country: "USA", tour: null, tourId: null,
-  songCount: 2, hasNotes: false, venueId: 9, permalink: null, notes: null,
+  songCount: 2, hasNotes: false, venueId: 9, permalink: null, notes: null, bandcampUrl: null,
 };
 const setlist = [
   { song: "Madhuvan" }, { song: "Hot Tea" },

@@ -95,6 +95,8 @@ export type ShowDetail = ShowSummary & {
   venueId: number | null;
   permalink: string | null;
   notes: string | null;
+  /** The band's own release of this night, when they've put one out. */
+  bandcampUrl: string | null;
 };
 
 export async function getShowDetails(date: string): Promise<ShowDetail[]> {
@@ -104,6 +106,7 @@ export async function getShowDetails(date: string): Promise<ShowDetail[]> {
       venueId: shows.venueId,
       permalink: shows.permalink,
       notes: shows.notes,
+      bandcampUrl: shows.bandcampUrl,
     })
     .from(shows)
     .leftJoin(venues, eq(venues.venueId, shows.venueId))

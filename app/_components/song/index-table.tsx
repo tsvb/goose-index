@@ -4,6 +4,7 @@ import { songHref } from "@/lib/queries/format";
 import type { SongIndexRow, SongSort } from "@/lib/queries/songs";
 import { ScrollTable } from "./scroll-table";
 import { MiniSparkline } from "./charts";
+import { bandcampHref } from "@/lib/bandcamp";
 
 /** Wire the headers to the catalog's sort URLs: `active` gets the caret + aria-sort. */
 export type SortLinks = { active?: SongSort; hrefFor: (key: SongSort) => string };
@@ -82,6 +83,16 @@ export function SongIndexTable({ rows, years, sort, rankOffset = 0, groupByAlbum
                       <span className="song-group-title">{UNRELEASED}</span>
                       <span className="song-group-note">no studio release</span>
                     </>
+                  ) : bandcampHref(r.album?.url) ? (
+                    <a
+                      href={bandcampHref(r.album?.url)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="song-group-title song-group-link"
+                      title={`Buy ${r.album!.title} from the band on Bandcamp`}
+                    >
+                      {heading} <span className="song-group-buy">Bandcamp ↗</span>
+                    </a>
                   ) : (
                     <span className="song-group-title">{heading}</span>
                   )}

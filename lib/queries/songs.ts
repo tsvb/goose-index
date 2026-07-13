@@ -120,7 +120,7 @@ export type SongSort = "played" | "rare" | "overdue" | "rotation" | "recent" | "
 const PRIMARY_ALBUM = sql`
   primary_album as (
     select distinct on (t.song_id)
-           t.song_id, al.album_id, al.title, al.slug, al.release_date, t.track_num
+           t.song_id, al.album_id, al.title, al.slug, al.release_date, al.url, t.track_num
     from album_tracks t
     join albums al on al.album_id = t.album_id
     where al.kind = 'studio' and t.song_id is not null
@@ -140,7 +140,7 @@ export type SongIndexRow = {
   lastPlayedDate: string | null; debutYear: number | null; playsPerYear: number[];
   /** The studio release this song sorts under, or null — about half of Goose's
    * originals have never been released, and every cover is unreleased by them. */
-  album: { title: string; slug: string | null; releaseDate: string | null; trackNum: number } | null;
+  album: { title: string; slug: string | null; releaseDate: string | null; trackNum: number; url: string | null } | null;
 };
 
 export async function listSongs(
@@ -190,7 +190,7 @@ export async function listSongs(
       from gapped group by song_id
     )
     select so.song_id, so.name, so.slug, so.is_original,
-           pa.title as album_title, pa.slug as album_slug,
+           pa.title as album_title, pa.slug as album_slug, pa.url as album_url,
            pa.release_date::text as album_release_date, pa.track_num as album_track_num,
            coalesce(a.times_played, 0) as times_played,
            a.current_gap, a.debut_seq, a.last_seq,
@@ -246,6 +246,7 @@ export async function listSongs(
             slug: strOrNull(r.album_slug),
             releaseDate: strOrNull(r.album_release_date),
             trackNum: num(r.album_track_num),
+            url: strOrNull(r.album_url),
           }
         : null,
     };
@@ -509,4 +510,37 @@ export async function getSongBySlug(slug: string): Promise<SongStat | null> {
     longestSeconds: longestVersions[0]?.seconds ?? null,
     playsPerYear: ppy, setPlacement, longestVersions, topVenues,
   };
+}
+
+export type SongAlbum = {
+  title: string;
+  releaseDate: string | null;
+  trackNum: number;
+  url: string | null;
+  numTracks: number;
+};
+
+/**
+ * Every studio release a song appears on, oldest first — the single, then the
+ * album it was trailing, then the session take.
+ *
+ * The song *index* has to pick one album to sort under, but a song's own page
+ * doesn't: "Iguana Song" really is on both Chateau Sessions pt III and Everything
+ * Must Go, and a fan reading about it should see both and be able to buy either.
+ */
+export async function getSongAlbums(songId: number): Promise<SongAlbum[]> {
+  const rows = allRows(await db.execute(sql`
+    select al.title, al.release_date::text as release_date, al.url, al.num_tracks, t.track_num
+    from album_tracks t
+    join albums al on al.album_id = t.album_id
+    where t.song_id = ${songId} and al.kind = 'studio'
+    order by al.release_date asc nulls last, al.title asc
+  `));
+  return rows.map((r) => ({
+    title: String(r.title),
+    releaseDate: strOrNull(r.release_date),
+    trackNum: num(r.track_num),
+    url: strOrNull(r.url),
+    numTracks: num(r.num_tracks),
+  }));
 }

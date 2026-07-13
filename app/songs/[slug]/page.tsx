@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, MetaTable, DocSection } from "@/app/_components/doc";
-import { FactRibbon, PlaysPerYearChart, SetPlacementBars, GapSparkline, PerformanceTable } from "@/app/_components/song";
-import { getSongBySlug, getSongPerformances, type SongStat } from "@/lib/queries/songs";
+import { FactRibbon, PlaysPerYearChart, SetPlacementBars, GapSparkline, PerformanceTable, AppearsOn } from "@/app/_components/song";
+import { getSongBySlug, getSongPerformances, getSongAlbums, type SongStat, type SongAlbum } from "@/lib/queries/songs";
 import { getExperience } from "@/lib/experience.server";
 import type { Experience } from "@/lib/experience";
 import { showHref, formatShortDate, formatDuration } from "@/lib/queries/format";
@@ -55,6 +55,8 @@ export default async function SongPage({ params }: Params) {
   // — a wall of zeros reads as broken. Say what's true instead.
   if (song.timesPlayed === 0) return <NeverPlayed song={song} tag={tag} experience={experience} />;
 
+  const albums = await getSongAlbums(song.songId);
+
   const perfs = await getSongPerformances(song.songId);
 
   if (experience === "minimal") {
@@ -65,6 +67,7 @@ export default async function SongPage({ params }: Params) {
           <h1>{song.name}</h1>
           <p className="doc-crumb">{tag}</p>
           <MetaTable rows={facts(song).map((f) => ({ k: f.k, v: f.v }))} />
+          <AppearsOn albums={albums} minimal />
           <DocSection title="Plays per year">
             <table className="doc-table"><tbody>{song.playsPerYear.map((y) => <tr key={y.year}><td>{y.year}</td><td className="num">{y.count}</td></tr>)}</tbody></table>
           </DocSection>
@@ -92,6 +95,7 @@ export default async function SongPage({ params }: Params) {
           <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.62rem] uppercase tracking-wider text-muted">{tag}</span>
         </div>
         <FactRibbon facts={facts(song)} />
+        <AppearsOn albums={albums} />
         <div className="song-cols mt-6">
           <div className="space-y-7">
             <section><h2 className="mb-2 font-display text-base text-ink">Plays per year</h2><PlaysPerYearChart data={song.playsPerYear} /></section>

@@ -7,6 +7,34 @@ import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
 import type { Experience } from "@/lib/experience";
 import { NugsLink } from "./nugs-link";
 import { nugsShowHref, nugsWebFallback } from "@/lib/nugs";
+import { bandcampHref } from "@/lib/bandcamp";
+
+/** The band's own release of this night, when they've put one out — 445 of the
+ * shows have one. nugs is a subscription; Bandcamp is where buying the music
+ * actually pays the band, so it goes first. */
+function ShowBandcamp({ url, minimal = false }: { url: string | null; minimal?: boolean }) {
+  const href = bandcampHref(url);
+  if (!href) return null;
+  if (minimal) {
+    return (
+      <>
+        <a href={href} target="_blank" rel="noopener noreferrer">buy on bandcamp</a>
+        {" · "}
+      </>
+    );
+  }
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="nugs-show bandcamp"
+      title="Buy this show from the band on Bandcamp"
+    >
+      ◈ Bandcamp
+    </a>
+  );
+}
 
 function ShowNugs({ date, venue, minimal = false }: { date: string; venue: string | null; minimal?: boolean }) {
   const fallback = nugsWebFallback({ date, venue });
@@ -62,7 +90,7 @@ export function ShowHeader({
               { k: "Songs", v: setlist.length === 0 ? "Setlist not yet posted" : `${setlist.length} · ${setCount} ${setCount === 1 ? "set" : "sets"}${encores > 0 ? ` + ${encores} encore${encores === 1 ? "" : "s"}` : ""}${durationLogged ? ` · ${durationLogged}` : ""}` },
               ...(show.permalink ? [{ k: "Source", v: <a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer">elgoose.net</a> }] : []),
               // Nothing to play yet — a Listen row on an empty show is a dead end.
-              ...(setlist.length > 0 ? [{ k: "Listen", v: <ShowNugs date={date} venue={show.venue} minimal /> }] : []),
+              ...(setlist.length > 0 ? [{ k: "Listen", v: <><ShowBandcamp url={show.bandcampUrl} minimal /><ShowNugs date={date} venue={show.venue} minimal /></> }] : []),
             ]}
           />
         </Doc>
@@ -94,7 +122,7 @@ export function ShowHeader({
                   {encores > 0 && <span className="w2-badge">{encores} enc</span>}
                   {durationLogged && <span className="w2-badge gold">{durationLogged}</span>}
                 </div>
-                <div className="mt-3"><ShowNugs date={date} venue={show.venue} /></div>
+                <div className="mt-3 flex flex-wrap items-center gap-1.5"><ShowBandcamp url={show.bandcampUrl} /><ShowNugs date={date} venue={show.venue} /></div>
               </>
             )}
           </div>
@@ -147,6 +175,7 @@ export function ShowHeader({
               {durationLogged && (<><span className="text-line">·</span><span><span className="text-ink">{durationLogged}</span> logged</span></>)}
               {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className="text-sage transition hover:text-ink">View on elgoose ↗</a></>)}
               <span className="text-line">·</span>
+              <ShowBandcamp url={show.bandcampUrl} />
               <ShowNugs date={date} venue={show.venue} />
             </>
           )}

@@ -6,7 +6,7 @@ import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
 const show: ShowDetail = {
   showId: 1, date: "2026-06-26", order: null, venue: "Red Hat Amphitheater",
   city: "Raleigh", state: "NC", country: "USA", tour: "Summer Tour 2026", tourId: 7,
-  songCount: 2, hasNotes: false, venueId: 9, permalink: null, notes: null,
+  songCount: 2, hasNotes: false, venueId: 9, permalink: null, notes: null, bandcampUrl: null,
 };
 const setlist = [
   { setType: "Set", setNumber: "1", trackTime: "9:00" },

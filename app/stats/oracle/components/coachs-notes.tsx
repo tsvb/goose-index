@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatShortDate, showHref } from "@/lib/queries/format";
 import type { CoachsNoteRow } from "@/lib/queries/discoveries";
+import { isBandcampUrl } from "@/lib/bandcamp";
 
 /** The coach's notes, on the paper they belong on.
  *
@@ -65,12 +66,3 @@ export function CoachsNotes({ data }: { data: CoachsNoteRow[] }) {
   );
 }
 
-/** Guard against a compromised scrape planting arbitrary outbound links. */
-function isBandcampUrl(url: string): boolean {
-  try {
-    const u = new URL(url);
-    return u.protocol === "https:" && u.hostname.endsWith(".bandcamp.com");
-  } catch {
-    return false;
-  }
-}
