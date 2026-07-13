@@ -199,5 +199,5 @@ Inspired in spirit by [dmbalmanac.com](https://dmbalmanac.com). Full data landsc
 The **code** is [MIT](LICENSE).
 
 The **data** is not mine to license. Setlists, shows, venues and songs belong to the elgoose
-community; the coach's notes belong to the band. MIT covers what's in this repository, and
-nothing more.
+community; the coach's notes belong to the band. MIT covers what's in this repository and
+nothing more — see [`NOTICE`](NOTICE).
