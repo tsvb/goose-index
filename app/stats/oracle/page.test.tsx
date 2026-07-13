@@ -66,8 +66,8 @@ beforeEach(() => {
 describe("Oracle page (fancy)", () => {
   it("renders each of the five sections with its heading and data", async () => {
     const html = await render();
-    expect(html).toContain("Never miss a Sunday show?");
-    expect(html).toContain("Flow-state matrix");
+    expect(html).toContain("Which night runs hottest?");
+    expect(html).toContain("The segue lines");
     expect(html).toContain("The shelf");
     expect(html).toContain("Deepest venues");
     expect(html).toMatch(/From the coach(&#x27;|')s desk/);
@@ -87,7 +87,7 @@ describe("Oracle page (fancy)", () => {
     expect(html).toContain('href="/stats"');
     expect(html).toContain('href="/stats/most-played"'); // switcher includes siblings
     expect(html).toContain('aria-current="page"'); // oracle is active
-    expect(html).toContain("Flow-state segues"); // methodology footnote
+    expect(html).toContain("Five readings off the catalog"); // methodology footnote
   });
 
   it("formats dates timezone-safely (never off-by-one)", async () => {

@@ -13,6 +13,8 @@ import type { DayOfWeekJamsRow } from "@/lib/queries/discoveries";
  * stubs reads as noise, while a shape reads as a week — you can see at a glance
  * that the front half of the week bulges and the back half caves in. */
 const FACE = { c: 110, baseline: 56, reach: 18, label: 92, tickIn: 66, tickOut: 72 } as const;
+/** Spoke width, in SVG units, from thinnest evidence to thickest. */
+const SPOKE = { min: 1.5, max: 7 } as const;
 
 /** Sunday (0) last, so the dial reads Mon → Sun like a calendar week. */
 const ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
@@ -40,6 +42,23 @@ export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
   const mean = played.reduce((sum, d) => sum + d.avgJams, 0) / played.length;
   const widest = Math.max(...played.map((d) => Math.abs(d.avgJams - mean)), 0.0001);
   const hottest = played.reduce((a, b) => (b.avgJams > a.avgJams ? b : a), played[0]);
+
+  // Length is the deviation; thickness is how many shows stand behind it.
+  //
+  // Without this the dial grants a night the band has played 25 times exactly
+  // the same authority as one they've played 221 times, which is how a chart
+  // talks someone into a claim the data can't support. Log-scaled: the counts
+  // span an order of magnitude (25–221), and a linear scale would render every
+  // weeknight equally thin next to the weekend.
+  const bestEvidenced = played.reduce((a, b) => (b.totalShows > a.totalShows ? b : a), played[0]);
+  const mostShows = bestEvidenced.totalShows;
+  const fewestShows = Math.min(...played.map((d) => d.totalShows));
+  const evidenceSpread = Math.log(mostShows) - Math.log(fewestShows);
+  const widthFor = (d: DayOfWeekJamsRow) => {
+    if (evidenceSpread <= 0) return (SPOKE.min + SPOKE.max) / 2;
+    const t = (Math.log(d.totalShows) - Math.log(fewestShows)) / evidenceSpread;
+    return SPOKE.min + t * (SPOKE.max - SPOKE.min);
+  };
 
   const radiusFor = (d: DayOfWeekJamsRow) =>
     d.totalShows === 0 ? FACE.baseline : FACE.baseline + ((d.avgJams - mean) / widest) * FACE.reach;
@@ -91,10 +110,11 @@ export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
           const hot = d.dow === hottest.dow;
           const above = d.avgJams >= mean;
           const colour = hot ? "var(--ember)" : above ? "var(--gold)" : "var(--faint)";
+          const width = widthFor(d);
           return (
             <g key={d.dow}>
-              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={colour} strokeWidth={4} />
-              <circle cx={to.x} cy={to.y} r={3.2} fill={colour} />
+              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={colour} strokeWidth={width} />
+              <circle cx={to.x} cy={to.y} r={Math.max(2, width / 2)} fill={colour} />
             </g>
           );
         })}
@@ -138,9 +158,11 @@ export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
 
       <p className="max-w-xl text-center font-mono text-[0.62rem] leading-relaxed text-faint">
         Spokes read against the week&apos;s mean, not zero — outward is a jammier night than usual, inward a leaner one.
-        The band is at its loosest on a <span className="text-ember">{hottest.dayName}</span> (
-        {hottest.avgJams.toFixed(2)} jams a show, {(hottest.avgJams - mean >= 0 ? "+" : "−") +
-          Math.abs(hottest.avgJams - mean).toFixed(2)} on the week).
+        Thickness is how many shows stand behind the reading.{" "}
+        <span className="text-ember">{hottest.dayName}</span> runs loosest ({hottest.avgJams.toFixed(2)} jams a show,{" "}
+        {(hottest.avgJams - mean >= 0 ? "+" : "−") + Math.abs(hottest.avgJams - mean).toFixed(2)} on the week) — but on{" "}
+        {hottest.totalShows} {hottest.totalShows === 1 ? "show" : "shows"}, against {mostShows} on a{" "}
+        {bestEvidenced.dayName}. A thin spoke is thin evidence.
       </p>
     </div>
   );

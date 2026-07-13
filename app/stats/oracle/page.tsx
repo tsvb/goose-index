@@ -131,18 +131,18 @@ export default async function OraclePage() {
     <StatsShell cut={CUT_META}>
       <div className="space-y-12">
         <OracleSection
-          title="Never miss a Sunday show?"
-          blurb="Jam-tagged performances per show, by day of the week — read against the week's own mean."
+          title="Which night runs hottest?"
+          blurb="Jam-tagged performances per show by weekday, read against the week's own mean. Spoke thickness is how many shows stand behind the reading."
         >
           <DayOfWeekDial data={dow} />
         </OracleSection>
 
         <OracleSection
-          title="Flow-state matrix"
+          title="The segue lines"
           blurb={
             transitions.length > 0
-              ? `Top ${transitions.length} segued transitions across every show, ranked by frequency.`
-              : "Top segued transitions across every show, ranked by frequency."
+              ? `The ${transitions.length} pairs the band welds together most often, across every show.`
+              : "The pairs the band welds together most often, across every show."
           }
         >
           <TransitionsList data={transitions} />
@@ -150,21 +150,21 @@ export default async function OraclePage() {
 
         <OracleSection
           title="The shelf"
-          blurb="Originals with the longest current gap since they were last played."
+          blurb="Originals gathering dust: the ring is how long since the last play, the tape is how big a song it is."
         >
           <TheShelf data={shelf} />
         </OracleSection>
 
         <OracleSection
           title="Deepest venues"
-          blurb="Venues with the highest share of jam-tagged performances (min 3 shows)."
+          blurb="The rooms that pull the most jams, as a share of everything played there (min 3 shows)."
         >
           <VenueDepth data={venues} />
         </OracleSection>
 
         <OracleSection
           title="From the coach's desk"
-          blurb="Notes pulled from official bandcamp releases."
+          blurb="The band's own liner notes, lifted from their official Bandcamp releases."
         >
           <CoachsNotes data={notes} />
         </OracleSection>

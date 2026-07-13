@@ -22,5 +22,5 @@ export const CUTS: CutMeta[] = [
   { slug: "set-stats", title: "Set Stats", blurb: "Openers and encores.",
     note: "Openers and encores counted across every played show · top 15 per bucket" },
   { slug: "oracle", title: "Oracle", blurb: "Wild discoveries and deep patterns.",
-    note: "Flow-state segues, dusty originals, and venues that pull the deepest jams." },
+    note: "Five readings off the catalog: the jammiest night of the week, the segues the band welds together, originals gathering dust, the rooms that pull the deepest jams, and the band's own liner notes." },
 ];
