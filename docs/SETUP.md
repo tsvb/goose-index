@@ -13,20 +13,32 @@
 6. `npm run verify`       — confirm the data is correct
 7. `npm run dev`          — start the app at http://localhost:3000
 
-A successful `sync` reports roughly:
-
-```
-sync complete: { venues: 591, tours: 43, songs: 614, shows: 853, performances: 7416 }
-```
-
-and `verify` ends with `VERIFY OK` (all checks pass). These counts grow over time as
-Goose plays more shows.
+`sync` finishes by reporting what it wrote, and `verify` ends with `VERIFY OK`. The counts
+climb as Goose plays more shows, so treat any number quoted in docs as a snapshot, not a
+target — `verify` is what tells you the data is sound.
 
 ## Useful commands
 - `npm test` — offline test suite (fixtures + in-memory PGlite; no network/DB needed)
 - `npm run typecheck` — TypeScript strict check
 - `npm run capture-fixtures` — refresh test fixtures from the live API
 - `npm run db:down` — stop the database
+
+## Coach's notes (optional)
+
+The "From the coach's desk" section on `/stats/oracle` is the band's own liner notes, which
+live on Bandcamp rather than in elgoose. They're loaded by a separate two-step pipeline, and
+the site works fine without them — the section simply renders empty.
+
+```bash
+npm run scrape-bandcamp                              # ~10 min, resumable, caches to data/
+npm run import-bandcamp -- data/albums.jsonl --dry-run
+npm run import-bandcamp -- data/albums.jsonl
+```
+
+On macOS the scraper needs a certificate bundle:
+`SSL_CERT_FILE=$(python3 -c 'import certifi;print(certifi.where())') npm run scrape-bandcamp`.
+
+See [`scripts/README-bandcamp.md`](../scripts/README-bandcamp.md).
 
 ## Notes on the data source
 - The spine is the keyless [elgoose.net v2 API](https://elgoose.net/api/docs.php).

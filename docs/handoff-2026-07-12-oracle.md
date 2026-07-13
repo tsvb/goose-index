@@ -1,16 +1,31 @@
 # Handoff — Oracle analytics + Bandcamp pipeline
 
-_Session date: 2026-07-12. Written for a fresh (local) Claude Code session to pick up._
+_Session date: 2026-07-12._
 
-## TL;DR
+> **Historical snapshot — every task below is done.** Kept as a record of how the Oracle cut
+> and the Bandcamp pipeline were built, and of the deploy incident that produced the current
+> migrate-on-build setup. It is **not** a to-do list; nothing here is outstanding.
+>
+> Closed on 2026-07-13:
+> - **Deploy hardening** — `vercel-build` now runs `db:migrate && next build`, gated to
+>   production. See [`DEPLOY.md`](DEPLOY.md).
+> - **Non-songs on The Shelf** — jams, bracketed segments and interstitials are filtered
+>   by naming convention in `lib/queries/discoveries.ts`.
+> - **The flat day-of-week chart** — re-cut as a dial reading deviation from the week's mean,
+>   with spoke thickness carrying sample size.
+> - **Coach's notes** — the pipeline is documented in [`SETUP.md`](SETUP.md); re-run it to
+>   pick up new releases.
+>
+> For current state see [`../README.md`](../README.md) and [`DEPLOY.md`](DEPLOY.md).
 
-The **Oracle** stats cut (`/stats/oracle`) is **built, merged to `main`, deployed, and
-live** at <https://www.gooseindex.com/stats/oracle>. Prod Neon has the migration applied
-and **447 shows of coach's-notes data** imported. Tree is clean, `main` @ `d8be2d4`,
-**420/420 tests pass**, `tsc --noEmit` clean.
+## TL;DR (as of 2026-07-12)
 
-There is **one recommended next task** (deploy hardening) and a couple of optional data
-polish items. Details below.
+The **Oracle** stats cut (`/stats/oracle`) was built, merged, and deployed. Prod Neon had the
+migration applied and **447 shows of coach's-notes data** imported. `main` @ `d8be2d4`,
+**420/420 tests**, `tsc --noEmit` clean.
+
+The Oracle page has since been substantially redrawn — spools, a dial, VU meters and a J-card
+in place of the original cards and bars — so the component descriptions below are historical.
 
 ## What shipped
 
@@ -91,16 +106,25 @@ string. `docs/DEPLOY.md` now has a "Schema changes" warning.
      on the new route until merge — expected. The gate keys off `VERCEL` (unset
      off-platform), so local + Action runs are unchanged.
 
-2. **[Optional] The Shelf surfaces non-songs.** "Jam", "Trevor Reads Poetry" are flagged
-   `songs.is_original = true` with ≥6 plays. Fix in data (untag), or bump `SHELF_MIN_PLAYS`
-   / add an exclusion in `lib/queries/discoveries.ts`. Most of the list is legit.
+2. ~~**[Optional] The Shelf surfaces non-songs.**~~ **✅ DONE (2026-07-13).** elgoose tags
+   improvised jams, bracketed ambient segments and interstitials as `is_original` songs, and
+   with a limit of 10 they were pushing three real shelved originals off the list entirely.
+   `lib/queries/discoveries.ts` now filters on the *naming conventions* (a name ending in
+   "Jam", a bracketed name, "Interlude n") rather than a fixed denylist, so the nightly sync
+   can add new ones without the exclusion going stale. Two stragglers that follow no
+   convention are named in `SHELF_EXCLUDED_NAMES`.
 
-3. **[Optional] Day-of-week chart is visually flat** — jams/show really is even across days;
-   the per-bar numbers carry it. Could re-cut as "share of shows with an extended jam" for
-   more contrast.
+3. ~~**[Optional] Day-of-week chart is visually flat.**~~ **✅ DONE (2026-07-13).** The flatness
+   was real but the diagnosis was wrong: a from-zero bar chart spends all its ink on the part
+   the days share. It's now a dial plotting each day's **deviation from the week's own mean**,
+   which shows the variance honestly instead of hiding it — and reveals that Monday is by far
+   the jammiest night while Sunday, the section's original namesake, is dead average.
+   Spoke *thickness* carries sample size, because Monday's reading rests on far fewer shows
+   than the weekend's and a chart that hides that is overclaiming.
 
-4. **[Ongoing] Refreshing coach's notes as new shows post.** Re-run the pipeline (below),
-   or fold it into the nightly Action. On macOS the Python scraper needs certs:
+4. **[Ongoing] Refreshing coach's notes as new shows post.** Re-run the pipeline — now
+   documented in [`SETUP.md`](SETUP.md) — or fold it into the nightly Action. On macOS the
+   Python scraper needs certs:
    `SSL_CERT_FILE=$(python3 -c 'import certifi;print(certifi.where())') npm run scrape-bandcamp`.
 
 ## Commands

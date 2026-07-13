@@ -1,49 +1,126 @@
 # Goose Index
 
-A functional, dynamic index for aggregating data and statistics about the band
-**Goose** — inspired *in spirit* by [dmbalmanac.com](https://dmbalmanac.com), built on
-the modern live-performance record maintained at [elgoose.net](https://elgoose.net).
+A complete index of every [Goose](https://www.goosetheband.com) show: setlists with segues
+and jams, songs, venues, tours, and statistics drawn from them. Built on the community
+live-performance record at [elgoose.net](https://elgoose.net), inspired in spirit by
+[dmbalmanac.com](https://dmbalmanac.com).
 
-> Non-commercial fan project. Live-performance data is sourced from the community
-> database at elgoose.net, which is cached locally and attributed prominently.
+Live at **[www.gooseindex.com](https://www.gooseindex.com)**.
 
-## Roadmap
+> Non-commercial fan project, not affiliated with Goose. Live-performance data comes from
+> the community database at elgoose.net, is cached locally, and is credited on every page.
 
-| Phase | Feature | Status |
-|-------|---------|--------|
-| **0** | **Data Foundation** — sync elgoose → our own database, verified | ✅ done |
-| **1** | **Show Browsing & Discovery** — browse shows by year/tour/venue, rich setlist pages (segues, jams, track times), search, "On This Day", upcoming shows | ✅ done |
-| **2** | **Song Stats & History** — per-song pages, sortable song index, `/stats` hub, gaps/bustouts, debuts (Spotify discography deferred to 2.5) | ✅ done |
-| 3 | Jam & Set-Flow Analytics — jam charts, segue networks, era-aware analysis | planned |
-| 4 | Personal Fan Tracking — "shows I've seen", personal stats, song life-list | planned |
+## What it does
 
-**Experience modes** (cross-cutting, ✅ shipped): every page renders in your choice of
-**3.0** (the immersive default), **2.0** (dense, utility-first, in a glossy Web 2.0 skin), or
-**1.0** (plain semantic markup with embedded `schema.org` JSON-LD). Pick from the settings
-popover in the header — the choice is remembered per visitor. 3.0 also carries three
-appearance themes: Dark, Light, and Pod (matte graphite, banana-yellow accent).
+| | |
+|---|---|
+| **Shows** | Every show, with full setlists — segues, jams, track times, footnotes. Each set is also drawn as a strip of tape, so a song is as wide as it is long and a segued run is unbroken. |
+| **Songs** | Per-song history: every performance, gaps, debuts, bust-outs, covers. |
+| **Stats** | Six cuts — Most Played, Rarities, Most Overdue, Debuts, Set Stats, and [Oracle](https://www.gooseindex.com/stats/oracle). |
+| **Browse** | By venue, tour, year, and On This Day. Full-text search. |
+| **Live** | While a show is on stage, the setlist re-pulls from elgoose and the page refreshes itself. |
 
-Each phase has its own design spec under [`docs/superpowers/specs/`](docs/superpowers/specs/).
+Scale, as of 2026-07-13: **823 shows** played (from 2014-09-27), **615 songs**,
+**592 venues**, **7,504 performances**. These grow nightly; the live counts are on
+[/stats](https://www.gooseindex.com/stats).
 
-## Live site & deployment
+## Editions and themes
 
-Live at **[www.gooseindex.com](https://www.gooseindex.com)** — runs on **Vercel** (Next.js)
-reading from **Neon** (managed Postgres), refreshed nightly by a
-GitHub Action. See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the full runbook.
+Every page renders in one of three editions, chosen from the gear in the header and
+remembered per visitor:
+
+| Edition | What you get |
+|---|---|
+| **3.0** | Charts, themes, motion. The default. |
+| **2.0** | The same charts, in a glossy Web 2.0 skin. No themes, no motion. |
+| **1.0** | A plain document. Tables, no charts. |
+
+3.0 carries four themes: **XL II** (the default — graphite chassis, chrome accent, one warm
+filament), Dark, Light, and Pod. Themes apply to 3.0 only.
+
+## How the charts work
+
+The statistics pages don't use a generic chart component, and that's deliberate. Three rules
+hold across them, and a change that breaks one is a bug even if it renders:
+
+1. **Each question gets the form its number actually is.** A duration is drawn as a length
+   (the setlist tape). A week is a cycle, so it gets a dial. A segue is a sequence, so it's
+   set in setlist notation. A jam share is a level, so it gets a meter with a red zone. A
+   gap is a countdown, so it closes a ring.
+2. **Colour means exactly one thing per section.** On The Shelf it means *how long since the
+   last play* — and nothing else, which is why the tape on each spool is drawn in graphite.
+   Ink follows significance: the song that most deserves your attention carries the most of it.
+3. **A claim never travels without its evidence.** The day-of-week dial names the jammiest
+   night, but its spokes are thickened by how many shows stand behind each reading — because
+   the hottest night rests on far fewer shows than the quietest one, and a chart that hides
+   that is talking you into a conclusion its data can't support.
+
+Skewed data is log-scaled (gaps span 88–1367 days, play counts 6–110); a linear scale
+flattens the long tail into indistinguishable marks. Where the data is too thin to be honest
+about — a set with few logged track times — the chart draws nothing rather than something
+misleading.
+
+## Architecture
+
+```
+elgoose.net ──(nightly GitHub Action: npm run sync)──▶ Neon Postgres ◀──(reads)── Vercel (Next.js) ──▶ visitors
+```
+
+The web app only ever **reads** at request time. Every write happens out of band in the sync
+job, so page loads never depend on the elgoose API being up.
+
+- **Next.js (App Router) + TypeScript** — server-rendered; no client-side charting library.
+  Every chart is hand-rolled SVG against design tokens, so it reskins with the theme.
+- **Postgres + Drizzle ORM** — a cached copy of the live-performance record.
+- **Vitest** — the suite runs fully offline against fixtures and in-memory PGlite. No network,
+  no database required.
+- **Vercel Web Analytics** — cookieless page-view counts, on every edition.
 
 ## Getting started
 
-See [`docs/SETUP.md`](docs/SETUP.md). In short: `npm install`, `npm run db:up`,
-`npm run db:migrate`, `npm run sync`, `npm run verify`. Phase 0 currently syncs
-~853 shows, ~614 songs, 591 venues, and ~7,400 performances into local Postgres.
+See [`docs/SETUP.md`](docs/SETUP.md). In short:
 
-## Tech
+```bash
+npm install
+npm run db:up        # local Postgres via docker compose
+npm run db:migrate
+npm run sync         # pull elgoose.net -> Postgres
+npm run verify       # expect: VERIFY OK
+npm run dev          # http://localhost:3000
+```
 
-- **Next.js + TypeScript** — the web app and shared data layer
-- **PostgreSQL + Drizzle ORM** — our cached copy of the live-performance record
-- **Vitest** — test-first development
+Checks: `npm test` (offline) and `npm run typecheck`.
 
-## Data sources
+## Deployment
 
-See [`docs/research/2026-06-26-data-landscape.md`](docs/research/2026-06-26-data-landscape.md)
-for the full landscape. The spine is the keyless [elgoose.net v2 API](https://elgoose.net/api/docs.php).
+Vercel (Next.js) reading from Neon (managed Postgres). Full runbook in
+[`docs/DEPLOY.md`](docs/DEPLOY.md). Two things worth knowing up front:
+
+- **Production builds migrate the database before they build.** `vercel-build` runs
+  `db:migrate && next build`, so schema can't lag the code that depends on it. A bad
+  migration fails the deploy instead of shipping a broken route.
+- **Preview builds deliberately do not migrate.** Previews read the *production* database,
+  so letting them migrate would let any pushed branch alter the production schema before
+  review. A preview of a schema-changing branch will 500 on the new route until it merges.
+  That's expected.
+
+## Roadmap
+
+| Phase | | Status |
+|---|---|---|
+| **0** | **Data foundation** — sync elgoose → Postgres, verified | done |
+| **1** | **Shows & discovery** — setlists, search, On This Day, upcoming | done |
+| **2** | **Songs & stats** — per-song pages, song index, `/stats` cuts | done |
+| **3** | **Jam & set-flow analytics** — segue lines, jam density by night and venue, the shelf | Oracle ships the first cut; era-aware analysis still open |
+| 4 | **Fan tracking** — shows I've seen, personal stats, song life-list | planned |
+
+Design specs for each phase are under [`docs/superpowers/specs/`](docs/superpowers/specs/).
+
+## Data source and attribution
+
+The spine is the keyless [elgoose.net v2 API](https://elgoose.net/api/docs.php). Show notes
+under "From the coach's desk" are the band's own liner notes, scraped from their official
+[Bandcamp](https://goosetheband.bandcamp.com) releases — see
+[`scripts/README-bandcamp.md`](scripts/README-bandcamp.md).
+
+Full landscape: [`docs/research/2026-06-26-data-landscape.md`](docs/research/2026-06-26-data-landscape.md).

@@ -65,6 +65,14 @@ DATABASE_URL='<neon-pooled-url>' npm run verify        # expect: VERIFY OK
    live site is `https://www.gooseindex.com` (step 6). The old
    `goose-almanac-*.vercel.app` alias is pinned to a pre-rename deployment — don't use it.
 
+### Web Analytics — ✅ enabled
+
+`<Analytics />` (`@vercel/analytics`) renders from `app/layout.tsx`, so it covers all three
+editions, including 1.0. It is cookieless and needs no consent banner. Vercel serves the
+script from a **randomised path** (e.g. `/ae9a…/script.js`) to survive ad-blockers, so don't
+expect to find the strings `insights` or `analytics` in the page source — check for
+`window.va` instead.
+
 ### 5. Nightly data refresh (GitHub Action)
 
 A scheduled workflow (`.github/workflows/sync.yml`) re-runs `npm run sync` + `npm run verify`
