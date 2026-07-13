@@ -16,6 +16,7 @@ const SORTS: { key: SongSort; label: string }[] = [
   { key: "played", label: "Most played" }, { key: "rare", label: "Rarest" },
   { key: "overdue", label: "Most overdue" }, { key: "rotation", label: "Rotation" },
   { key: "recent", label: "Recently played" }, { key: "debut", label: "By debut" }, { key: "az", label: "A–Z" },
+  { key: "album", label: "By album" },
 ];
 
 // /songs?sort=overdue is the same cut as /stats/current-gaps — say so on both pages.
@@ -57,11 +58,12 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
             <button type="submit">Filter</button>
           </form>
           <table className="doc-table">
-            <thead><tr><th>Song</th><th className="num">Played</th><th className="num">Gap</th><th>Last</th><th>Debut</th></tr></thead>
+            <thead><tr><th>Song</th><th>Album</th><th className="num">Played</th><th className="num">Gap</th><th>Last</th><th>Debut</th></tr></thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.songId}>
                   <td><Link href={`/songs/${r.slug}`}>{r.name}</Link>{!r.isOriginal ? " (cover)" : ""}</td>
+                  <td>{r.album ? r.album.title : "—"}</td>
                   <td className="num">{r.timesPlayed}</td><td className="num">{r.currentGap ?? "—"}</td>
                   <td>{r.lastPlayedDate ?? "—"}</td><td>{r.debutYear ?? "—"}</td>
                 </tr>
@@ -140,7 +142,7 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
             {OVERDUE_NOTE}<Link href="/stats/current-gaps" className="underline hover:text-gold">Most Overdue</Link> in Stats.
           </p>
         )}
-        <SongIndexTable rows={rows} years={yearsForTable} rankOffset={(page - 1) * PER_PAGE} sort={{ active: sort, hrefFor: (key) => buildHref({ sort: key, facet, q }) }} />
+        <SongIndexTable rows={rows} years={yearsForTable} rankOffset={(page - 1) * PER_PAGE} groupByAlbum={sort === "album"} sort={{ active: sort, hrefFor: (key) => buildHref({ sort: key, facet, q }) }} />
 
         {/* Pagination */}
         {totalPages > 1 && (

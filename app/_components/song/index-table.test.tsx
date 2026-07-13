@@ -1,13 +1,19 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { SongIndexTable } from "./index-table";
+import { SongIndexTable, albumHeading, UNRELEASED } from "./index-table";
 import type { SongIndexRow } from "@/lib/queries/songs";
 
 const row: SongIndexRow = {
   songId: 1, name: "Hot Tea", slug: "hot-tea", isOriginal: true,
   timesPlayed: 187, rotationPct: 29, currentGap: 3, lastPlayedDate: "2026-06-12",
   debutYear: 2017, playsPerYear: [2, 5, 4, 1, 7, 9, 10, 8, 6, 5],
+  album: null,
 };
+
+const onAlbum = (over: Partial<SongIndexRow> & { songId: number; name: string }): SongIndexRow => ({
+  ...row, slug: over.name.toLowerCase().replace(/\W+/g, "-"), ...over,
+});
+const YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
 describe("SongIndexTable", () => {
   it("links the song and pins the identity column", () => {
     const html = renderToStaticMarkup(<SongIndexTable rows={[row]} years={[2017,2018,2019,2020,2021,2022,2023,2024,2025,2026]} />);
@@ -64,5 +70,45 @@ describe("SongIndexTable sortable headers", () => {
     expect(html).toContain('aria-sort="ascending"');
     expect(html).toContain('href="/songs"');            // clicking Played returns to the descending default
     expect(html).toContain("▴");
+  });
+});
+
+// Sorting by album groups the catalog into a discography. The rows arrive in
+// album order from the query; the table only has to notice where one ends.
+describe("SongIndexTable grouped by album", () => {
+  const rows: SongIndexRow[] = [
+    onAlbum({ songId: 1, name: "Big Modern!", album: { title: "BIG MODERN!", slug: "big-modern", releaseDate: "2026-06-12", trackNum: 2 } }),
+    onAlbum({ songId: 2, name: "Good2B", album: { title: "BIG MODERN!", slug: "big-modern", releaseDate: "2026-06-12", trackNum: 6 } }),
+    onAlbum({ songId: 3, name: "Rockdale", album: { title: "Chain Yer Dragon", slug: "cyd", releaseDate: "2025-08-14", trackNum: 11 } }),
+    onAlbum({ songId: 4, name: "Arcadia", album: null }),
+    onAlbum({ songId: 5, name: "Wysteria Lane", album: null }),
+  ];
+
+  it("opens a section per album, and only when the album changes", () => {
+    const html = renderToStaticMarkup(<SongIndexTable rows={rows} years={YEARS} groupByAlbum />);
+    // Two songs from BIG MODERN! share one heading, not two.
+    expect(html.match(/BIG MODERN!/g)).toHaveLength(1);
+    expect(html).toContain("Chain Yer Dragon");
+    expect(html.match(/class="song-group"/g)).toHaveLength(3); // 2 albums + Unreleased
+  });
+
+  it("gathers songs with no studio release under Unreleased, at the end", () => {
+    const html = renderToStaticMarkup(<SongIndexTable rows={rows} years={YEARS} groupByAlbum />);
+    expect(html).toContain(UNRELEASED);
+    expect(html).toContain("no studio release");
+    // About half of Goose's originals have never been released — it's a finding,
+    // so it gets a heading rather than a blank cell.
+    expect(html.indexOf(UNRELEASED)).toBeGreaterThan(html.indexOf("Chain Yer Dragon"));
+  });
+
+  it("stamps the release year on the heading", () => {
+    expect(albumHeading(rows[0])).toBe("BIG MODERN! · 2026");
+    expect(albumHeading(rows[3])).toBe(UNRELEASED);
+  });
+
+  it("draws no sections at all under any other sort", () => {
+    const html = renderToStaticMarkup(<SongIndexTable rows={rows} years={YEARS} />);
+    expect(html).not.toContain("song-group");
+    expect(html).not.toContain(UNRELEASED);
   });
 });

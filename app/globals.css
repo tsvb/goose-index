@@ -634,6 +634,15 @@ table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; l
   table.song-table th.song-pin, table.song-table td.song-pin { max-width: 44vw; }
   .song-pin-stat { display: block; font-size: 0.62rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 }
+/* Album sections in the song index. A heading row, not a column: the tracklist
+   is incomplete by design (only songs the band has played live appear), so a
+   column of track numbers would show gaps and read as broken. */
+tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 7px 9px; position: sticky; left: 0; }
+.song-group-title { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--gold); }
+.song-group-note { font-family: var(--font-mono); font-size: 0.62rem; color: var(--faint); margin-left: 8px; text-transform: none; letter-spacing: 0; }
+[data-experience="functional"] tr.song-group td { background: #dbe8f4; }
+[data-experience="functional"] .song-group-title { color: #1f5e93; }
+
 .song-cover { font-size: 0.65rem; color: var(--faint); margin-left: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
 .song-bust { font-size: 0.62rem; color: var(--ember, #ff8a3d); border: 1px solid color-mix(in srgb, var(--ember, #ff8a3d) 45%, transparent); border-radius: 999px; padding: 1px 7px; margin-right: 6px; }
 .song-jam { font-size: 0.62rem; color: var(--gold); }

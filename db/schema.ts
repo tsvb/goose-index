@@ -1,4 +1,4 @@
-import { pgTable, integer, text, boolean, date, index, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, integer, text, boolean, date, index, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import type { PgDatabase } from "drizzle-orm/pg-core";
 
 export const artists = pgTable("artists", {
@@ -71,6 +71,42 @@ export const performances = pgTable("performances", {
 }, (t) => ({
   showIdx: index("perf_show_idx").on(t.showId),
   songIdx: index("perf_song_idx").on(t.songId),
+}));
+
+// The discography, from the band's Bandcamp. elgoose is a setlist database and
+// knows nothing about releases, so "which album is this song on?" can only be
+// answered from here.
+//
+// `kind` separates the two things Bandcamp lumps together: 'studio' is the
+// discography proper (LPs, EPs, singles, Ted Tapes, Chateau Sessions) and 'live'
+// is an official live album (Live at MSG, Radio City…). The ~460 dated
+// show-tape releases aren't albums at all and aren't imported. Live albums are
+// stored but not used by the album sort — a song being on a live tape doesn't
+// answer "which album is it on", and including them would put nearly every song
+// on an "album".
+export const albums = pgTable("albums", {
+  albumId: text("album_id").primaryKey(), // bandcamp's id
+  title: text("title").notNull(),
+  slug: text("slug"),
+  releaseDate: date("release_date"),
+  numTracks: integer("num_tracks").notNull().default(0),
+  url: text("url"),
+  kind: text("kind").notNull().default("studio"),
+});
+
+// A track is a position on a release. `song_id` is null when the track can't be
+// matched to a song in the catalog — an interlude, an intro, a title elgoose
+// spells differently — and a null is kept rather than dropped so the tracklist
+// stays a faithful record of the release.
+export const albumTracks = pgTable("album_tracks", {
+  albumId: text("album_id").notNull().references(() => albums.albumId),
+  trackNum: integer("track_num").notNull(),
+  title: text("title").notNull(),
+  songId: integer("song_id").references(() => songs.songId),
+  durationSec: integer("duration_sec"),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.albumId, t.trackNum] }),
+  songIdx: index("album_tracks_song_idx").on(t.songId),
 }));
 
 // Single-row coordination state for the live-show incremental sync: the

@@ -101,7 +101,31 @@ export type SongStat = {
 
 // ── Song Index ────────────────────────────────────────────────────────────────
 
-export type SongSort = "played" | "rare" | "overdue" | "rotation" | "recent" | "debut" | "az";
+export type SongSort = "played" | "rare" | "overdue" | "rotation" | "recent" | "debut" | "az" | "album";
+
+/**
+ * The album a song sorts under, when it's on more than one.
+ *
+ * A song can appear on several studio releases — an advance single and then the
+ * LP (`Good2B` → *BIG MODERN!*), or a session version and then the album
+ * (`Iguana Song` on *Chateau Sessions pt III* and *Everything Must Go*). "Which
+ * album is it on?" has one answer a fan means: the album, not its own trailer.
+ * So the biggest release wins, earliest breaking a tie.
+ *
+ * Live albums are excluded. A song being on *Live at Madison Square Garden*
+ * doesn't answer the question, and counting them would put nearly every song
+ * "on an album" — which would make the sort useless and the unreleased half
+ * invisible.
+ */
+const PRIMARY_ALBUM = sql`
+  primary_album as (
+    select distinct on (t.song_id)
+           t.song_id, al.album_id, al.title, al.slug, al.release_date, t.track_num
+    from album_tracks t
+    join albums al on al.album_id = t.album_id
+    where al.kind = 'studio' and t.song_id is not null
+    order by t.song_id, al.num_tracks desc, al.release_date asc
+  )`;
 
 /**
  * "Most overdue" is a cut, not just an ordering: without a plays floor the top
@@ -114,6 +138,9 @@ export type SongIndexRow = {
   songId: number; name: string; slug: string; isOriginal: boolean;
   timesPlayed: number; rotationPct: number; currentGap: number | null;
   lastPlayedDate: string | null; debutYear: number | null; playsPerYear: number[];
+  /** The studio release this song sorts under, or null — about half of Goose's
+   * originals have never been released, and every cover is unreleased by them. */
+  album: { title: string; slug: string | null; releaseDate: string | null; trackNum: number } | null;
 };
 
 export async function listSongs(
@@ -147,10 +174,15 @@ export async function listSongs(
     sort === "recent" ? sql`last_seq desc nulls last` :
     sort === "debut" ? sql`debut_seq desc nulls last` :
     sort === "az" ? sql`lower(name) asc` :
+    // Newest release first, then the running order of the album itself — a
+    // discography read top to bottom. Songs with no release fall to the end
+    // (nulls last), where the page gathers them under "Unreleased".
+    sort === "album" ? sql`album_release_date desc nulls last, album_title asc, album_track_num asc, lower(name) asc` :
     sql`times_played desc, lower(name) asc`;
 
   const rows = allRows(await db.execute(sql`
     with ${SHOW_SEQ},
+    ${PRIMARY_ALBUM},
     agg as (
       select song_id, count(*)::int as times_played,
              min(seq) as debut_seq, max(seq) as last_seq,
@@ -158,6 +190,8 @@ export async function listSongs(
       from gapped group by song_id
     )
     select so.song_id, so.name, so.slug, so.is_original,
+           pa.title as album_title, pa.slug as album_slug,
+           pa.release_date::text as album_release_date, pa.track_num as album_track_num,
            coalesce(a.times_played, 0) as times_played,
            a.current_gap, a.debut_seq, a.last_seq,
            (select max(show_date)::text from song_show ssh where ssh.song_id = so.song_id) as last_date,
@@ -166,6 +200,7 @@ export async function listSongs(
                   greatest((select count(*) from show_seq where seq >= a.debut_seq), 1)) * 1000) / 10 as rotation
     from songs so
     left join agg a on a.song_id = so.song_id
+    left join primary_album pa on pa.song_id = so.song_id
     where coalesce(a.times_played, 0) > 0 ${facetCond} ${qCond} ${overdueCond}
     order by ${orderBy}
     limit ${perPage} offset ${(page - 1) * perPage}
@@ -205,6 +240,14 @@ export async function listSongs(
       lastPlayedDate: strOrNull(r.last_date),
       debutYear: r.debut_date ? new Date(String(r.debut_date)).getUTCFullYear() : null,
       playsPerYear: years.map((y) => byYear.get(y) ?? 0),
+      album: r.album_title
+        ? {
+            title: String(r.album_title),
+            slug: strOrNull(r.album_slug),
+            releaseDate: strOrNull(r.album_release_date),
+            trackNum: num(r.album_track_num),
+          }
+        : null,
     };
   });
   return { rows: pageRows, total };
