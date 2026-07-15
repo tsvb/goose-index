@@ -29,5 +29,5 @@ export async function sendMagicLink(msg: MagicLinkMessage, fetchImpl: typeof fet
       text: `Click to continue:\n\n${msg.url}\n\nThis link works once and expires in 15 minutes. If you didn't request it, ignore this email.`,
     }),
   });
-  if (!res.ok) throw new Error(`Resend responded ${res.status}: ${await res.text()}`);
+  if (!res.ok) throw new Error(`Resend responded ${res.status}`);
 }
