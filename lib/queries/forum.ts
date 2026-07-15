@@ -155,3 +155,21 @@ export async function getMemberProfile(usernameLower: string): Promise<MemberPro
     })),
   };
 }
+
+export async function getPostForEdit(postId: number): Promise<{
+  id: number; threadId: number; threadTitle: string; authorId: number; author: string; body: string; deleted: boolean;
+} | null> {
+  const rows = allRows(await db.execute(sql`
+    select p.id, p.thread_id, p.author_id, p.body, p.deleted_at, t.title as thread_title, u.username as author
+    from forum_posts p
+    join forum_threads t on t.id = p.thread_id
+    join users u on u.id = p.author_id
+    where p.id = ${postId}
+  `));
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  return {
+    id: num(r.id), threadId: num(r.thread_id), threadTitle: str(r.thread_title),
+    authorId: num(r.author_id), author: str(r.author), body: str(r.body), deleted: r.deleted_at != null,
+  };
+}

@@ -6,12 +6,15 @@ import { Doc, Breadcrumb } from "@/app/_components/doc";
 import { JsonLd } from "@/app/_components/json-ld";
 import { forumThreadJsonLd } from "@/lib/jsonld";
 import { getExperience } from "@/lib/experience.server";
+import { currentUser } from "@/lib/auth/session.server";
 import { getThread, getPosts } from "@/lib/queries/forum";
 import { POSTS_PER_PAGE } from "@/lib/forum/constants";
 import { parseThreadKey, threadPath, boardPath } from "@/lib/forum/urls";
 import { PostCard } from "../../_components/post-card";
 import { Pager } from "../../_components/pager";
 import { UserStrip } from "../../_components/user-strip";
+import { Composer } from "../../_components/composer";
+import { replyAction } from "../../actions";
 
 type Params = Promise<{ key: string }>;
 type SearchParams = Promise<{ page?: string }>;
@@ -33,8 +36,27 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
   const page = Math.min(totalPages, Math.max(1, parseInt(sp.page ?? "1", 10) || 1)); // "unread" → 1 until Task 19
   if (parsed.slug !== thread.slug) redirect(threadPath(thread.id, thread.slug, page)); // canonical URL
 
-  const [posts, experience] = await Promise.all([getPosts(thread.id, page), getExperience()]);
+  const [posts, experience, viewer] = await Promise.all([getPosts(thread.id, page), getExperience(), currentUser()]);
   const pager = <Pager current={page} total={totalPages} href={(p) => threadPath(thread.id, thread.slug, p)} />;
+
+  const controlsFor = (p: (typeof posts)[number]) =>
+    viewer && !p.deleted && (p.authorId === viewer.id || viewer.role === "admin")
+      ? <Link href={`/forum/posts/${p.id}/edit`} className="text-muted hover:underline">Edit</Link>
+      : undefined;
+
+  const composer = !viewer ? (
+    <p className="text-sm text-muted">
+      <Link href="/forum/login" className="underline">Log in</Link> or{" "}
+      <Link href="/forum/join" className="underline">join</Link> to reply.
+    </p>
+  ) : thread.locked && viewer.role !== "admin" ? (
+    <p className="text-sm text-muted">🔒 This thread is locked.</p>
+  ) : (
+    <div className="max-w-2xl">
+      {thread.locked && <p className="mb-2 text-xs text-muted">Posting as admin — thread is locked.</p>}
+      <Composer action={replyAction} hidden={{ threadId: thread.id }} submitLabel="Post reply" />
+    </div>
+  );
 
   if (experience === "minimal") {
     return (
@@ -48,7 +70,8 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
           <UserStrip />
           {/* structured data describes the thread from its OP — only valid on page 1 */}
           {page === 1 && <JsonLd data={forumThreadJsonLd(thread, posts)} />}
-          {posts.map((p) => <PostCard key={p.id} post={p} experience={experience} />)}
+          {posts.map((p) => <PostCard key={p.id} post={p} experience={experience} controls={controlsFor(p)} />)}
+          {composer}
           {pager}
         </Doc>
       </Container>
@@ -70,8 +93,9 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
       </div>
       <div className="mt-4">{pager}</div>
       <div className="mt-4 flex flex-col gap-3">
-        {posts.map((p) => <PostCard key={p.id} post={p} experience={experience} />)}
+        {posts.map((p) => <PostCard key={p.id} post={p} experience={experience} controls={controlsFor(p)} />)}
       </div>
+      <div className="mt-6">{composer}</div>
       <div className="mt-4">{pager}</div>
     </Container>
   );

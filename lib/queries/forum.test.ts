@@ -117,3 +117,16 @@ describe("getMemberProfile", () => {
     expect(await getMemberProfile("ghost")).toBeNull();
   });
 });
+
+describe("getPostForEdit", () => {
+  it("returns raw body + ownership; null for unknown", async () => {
+    const posts = await getPosts(threadId, 1);
+    const { getPostForEdit } = await import("./forum");
+    const p = await getPostForEdit(posts[0].id);
+    expect(p?.body).toBe("the [b]op[/b]");
+    expect(p?.authorId).toBe(tim.id);
+    expect(p?.author).toBe("Tim");
+    expect(p?.threadTitle).toBe("First thread");
+    expect(await getPostForEdit(999999)).toBeNull();
+  });
+});
