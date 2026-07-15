@@ -64,16 +64,25 @@ export async function getBoard(slug: string): Promise<BoardInfo | null> {
   return { id: num(r.id), slug: str(r.slug), title: str(r.title), description: str(r.description), threadCount: num(r.thread_count) };
 }
 
-export async function getThreadRows(boardId: number, page: number): Promise<ThreadRow[]> {
+export async function getThreadRows(
+  boardId: number, page: number,
+  viewer?: { userId: number; markAllReadAt: Date | null } | null,
+): Promise<ThreadRow[]> {
   const offset = (cleanPage(page) - 1) * THREADS_PER_PAGE;
+  const viewerId = viewer?.userId ?? -1;
+  const since = viewer?.markAllReadAt?.toISOString() ?? "1970-01-01T00:00:00Z";
   const rows = allRows(await db.execute(sql`
     select t.id, t.slug, t.title, t.reply_count, t.pinned, t.locked,
            a.username as author, lu.username as last_post_author,
-           to_char(t.last_post_at at time zone 'UTC', 'YYYY-MM-DD HH24:MI') as last_post_at
+           to_char(t.last_post_at at time zone 'UTC', 'YYYY-MM-DD HH24:MI') as last_post_at,
+           (${viewerId} <> -1
+             and t.last_post_at > ${since}::timestamptz
+             and (m.last_read_post_id is null or m.last_read_post_id < t.last_post_id)) as unread
     from forum_threads t
     join users a on a.id = t.author_id
     left join forum_posts lp on lp.id = t.last_post_id
     left join users lu on lu.id = lp.author_id
+    left join forum_read_markers m on m.thread_id = t.id and m.user_id = ${viewerId}
     where t.board_id = ${boardId}
     order by t.pinned desc, t.last_post_at desc, t.id desc
     limit ${THREADS_PER_PAGE} offset ${offset}
@@ -82,8 +91,27 @@ export async function getThreadRows(boardId: number, page: number): Promise<Thre
     id: num(r.id), slug: str(r.slug), title: str(r.title), author: str(r.author),
     replyCount: num(r.reply_count), pinned: bool(r.pinned), locked: bool(r.locked),
     lastPostAuthor: str(r.last_post_author), lastPostAt: str(r.last_post_at),
-    unread: false, // Task 19 wires the signed-in viewer
+    unread: bool(r.unread),
   }));
+}
+
+/** First post past the viewer's read marker; null when fully read (or never posted to). */
+export async function firstUnread(threadId: number, userId: number): Promise<{ page: number; postId: number } | null> {
+  const rows = allRows(await db.execute(sql`
+    with marker as (
+      select last_read_post_id from forum_read_markers
+      where thread_id = ${threadId} and user_id = ${userId}
+    )
+    select p.id,
+           (select count(*)::int from forum_posts q where q.thread_id = ${threadId} and q.id <= p.id) as position
+    from forum_posts p
+    where p.thread_id = ${threadId}
+      and p.id > coalesce((select last_read_post_id from marker), 0)
+    order by p.id asc
+    limit 1
+  `));
+  if (rows.length === 0) return null;
+  return { postId: num(rows[0].id), page: Math.ceil(num(rows[0].position) / POSTS_PER_PAGE) };
 }
 
 export async function getThread(id: number): Promise<ThreadInfo | null> {

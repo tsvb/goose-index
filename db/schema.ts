@@ -220,4 +220,15 @@ export const forumReactions = pgTable("forum_reactions", {
   pk: primaryKey({ columns: [t.postId, t.userId] }),
 }));
 
+// High-water mark of the last post a member has seen in a thread — never
+// moves backwards. See lib/forum/mutations.ts#markThreadRead.
+export const forumReadMarkers = pgTable("forum_read_markers", {
+  userId: integer("user_id").notNull().references(() => users.id),
+  threadId: integer("thread_id").notNull().references(() => forumThreads.id),
+  lastReadPostId: integer("last_read_post_id").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.threadId] }),
+}));
+
 export type AppDb = PgDatabase<any, Record<string, never>, any>;

@@ -7,7 +7,8 @@ import { JsonLd } from "@/app/_components/json-ld";
 import { forumThreadJsonLd } from "@/lib/jsonld";
 import { getExperience } from "@/lib/experience.server";
 import { currentUser } from "@/lib/auth/session.server";
-import { getThread, getPosts } from "@/lib/queries/forum";
+import { getThread, getPosts, firstUnread } from "@/lib/queries/forum";
+import { markThreadRead } from "@/lib/forum/mutations";
 import { POSTS_PER_PAGE } from "@/lib/forum/constants";
 import { parseThreadKey, threadPath, boardPath } from "@/lib/forum/urls";
 import { PostCard, ReactionBar } from "../../_components/post-card";
@@ -33,14 +34,23 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
   if (!thread) notFound();
 
   const totalPages = Math.max(1, Math.ceil((thread.replyCount + 1) / POSTS_PER_PAGE));
-  const page = Math.min(totalPages, Math.max(1, parseInt(sp.page ?? "1", 10) || 1)); // "unread" → 1 until Task 19
+  const viewer = await currentUser();
+  if (sp.page === "unread" && viewer) {
+    const fu = await firstUnread(thread.id, viewer.id);
+    redirect(fu
+      ? `${threadPath(thread.id, thread.slug, fu.page)}#post-${fu.postId}`
+      : threadPath(thread.id, thread.slug, totalPages));
+  }
+  const page = Math.min(totalPages, Math.max(1, parseInt(sp.page ?? "1", 10) || 1)); // "unread" → 1 for signed-out visitors
   if (parsed.slug !== thread.slug) redirect(threadPath(thread.id, thread.slug, page)); // canonical URL
 
-  const viewer = await currentUser();
   const [posts, experience] = await Promise.all([
     getPosts(thread.id, page, { viewerId: viewer?.id ?? null, includeDeletedBodies: viewer?.role === "admin" }),
     getExperience(),
   ]);
+  if (viewer && posts.length > 0) {
+    await markThreadRead(viewer.id, thread.id, posts[posts.length - 1].id);
+  }
   const pager = <Pager current={page} total={totalPages} href={(p) => threadPath(thread.id, thread.slug, p)} />;
 
   const backPath = threadPath(thread.id, thread.slug, page);

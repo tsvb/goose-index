@@ -161,3 +161,22 @@ describe("toggleReaction", () => {
     expect(rows).toHaveLength(1); // still exactly one
   });
 });
+
+describe("read markers", () => {
+  it("upserts forward-only and mark-all-read stamps the user", async () => {
+    const { markThreadRead, markAllForumsRead } = await import("./mutations");
+    const { forumReadMarkers } = await import("@/db/schema");
+    const reader = await makeUser("Reader");
+    const board = await boardId("off-topic");
+    const t = await createThread(reader, board, "Read me", "op");
+    if (!t.ok) throw new Error("setup");
+    await markThreadRead(reader.id, t.value.threadId, 10);
+    await markThreadRead(reader.id, t.value.threadId, 5); // must not regress
+    const [m] = await ctx.db.select().from(forumReadMarkers)
+      .where(eq(forumReadMarkers.userId, reader.id));
+    expect(m.lastReadPostId).toBe(10);
+    await markAllForumsRead(reader.id);
+    const [u] = await ctx.db.select().from(users).where(eq(users.id, reader.id));
+    expect(u.markAllReadAt).not.toBeNull();
+  });
+});

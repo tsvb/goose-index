@@ -57,6 +57,13 @@
       "when": 1784142370064,
       "tag": "0007_cuddly_ink",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784143422189,
+      "tag": "0008_lumpy_the_leader",
+      "breakpoints": true
     }
   ]
 }

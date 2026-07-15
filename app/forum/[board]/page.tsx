@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb } from "@/app/_components/doc";
 import { getExperience } from "@/lib/experience.server";
+import { currentUser } from "@/lib/auth/session.server";
 import { getBoard, getThreadRows } from "@/lib/queries/forum";
 import { THREADS_PER_PAGE } from "@/lib/forum/constants";
 import { boardPath } from "@/lib/forum/urls";
@@ -24,7 +25,11 @@ export default async function BoardPage({ params, searchParams }: { params: Para
   const info = await getBoard(board);
   if (!info) notFound();
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
-  const [rows, experience] = await Promise.all([getThreadRows(info.id, page), getExperience()]);
+  const viewer = await currentUser();
+  const [rows, experience] = await Promise.all([
+    getThreadRows(info.id, page, viewer ? { userId: viewer.id, markAllReadAt: viewer.markAllReadAt } : null),
+    getExperience(),
+  ]);
   const totalPages = Math.max(1, Math.ceil(info.threadCount / THREADS_PER_PAGE));
 
   const newThread = (

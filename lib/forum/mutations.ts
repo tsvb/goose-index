@@ -1,5 +1,5 @@
 import { db } from "@/db/client";
-import { forumBoards, forumPosts, forumReactions, forumThreads, users } from "@/db/schema";
+import { forumBoards, forumPosts, forumReactions, forumReadMarkers, forumThreads, users } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { threadSlug } from "./slugs";
 import { TITLE_MIN, TITLE_MAX, BODY_MAX, POSTS_PER_PAGE } from "./constants";
@@ -131,4 +131,20 @@ export async function toggleReaction(
       .onConflictDoNothing({ target: [forumReactions.postId, forumReactions.userId] });
   }
   return { ok: true, value: null };
+}
+
+/** High-water mark: never moves backwards. */
+export async function markThreadRead(userId: number, threadId: number, lastReadPostId: number): Promise<void> {
+  await db.insert(forumReadMarkers).values({ userId, threadId, lastReadPostId })
+    .onConflictDoUpdate({
+      target: [forumReadMarkers.userId, forumReadMarkers.threadId],
+      set: {
+        lastReadPostId: sql`greatest(${forumReadMarkers.lastReadPostId}, ${lastReadPostId})`,
+        updatedAt: new Date(),
+      },
+    });
+}
+
+export async function markAllForumsRead(userId: number): Promise<void> {
+  await db.update(users).set({ markAllReadAt: new Date() }).where(eq(users.id, userId));
 }

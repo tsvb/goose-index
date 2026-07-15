@@ -144,3 +144,26 @@ describe("getPostForEdit", () => {
     expect(await getPostForEdit(999999)).toBeNull();
   });
 });
+
+describe("unread", () => {
+  it("flags threads and finds the first unread post", async () => {
+    const { markThreadRead } = await import("@/lib/forum/mutations");
+    const { firstUnread } = await import("./forum");
+    const [reader] = await ctx.db.insert(users).values({
+      username: "Unreader", usernameLower: "unreader", emailLower: "u@x.co",
+    }).returning({ id: users.id });
+    const viewer = { userId: reader.id, markAllReadAt: null };
+
+    let rows = await getThreadRows(boardId, 1, viewer);
+    expect(rows.find((r) => r.id === threadId)?.unread).toBe(true); // never visited
+
+    const posts = await getPosts(threadId, 1);
+    const fu = await firstUnread(threadId, reader.id);
+    expect(fu).toEqual({ page: 1, postId: posts[0].id });
+
+    await markThreadRead(reader.id, threadId, posts[posts.length - 1].id);
+    rows = await getThreadRows(boardId, 1, viewer);
+    expect(rows.find((r) => r.id === threadId)?.unread).toBe(false);
+    expect(await firstUnread(threadId, reader.id)).toBeNull();
+  });
+});
