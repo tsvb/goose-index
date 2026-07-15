@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
 import type { AppDb } from "../../db/schema";
 import {
-  checkFloors, checkIntegrity, checkSpotShow, checkEarliestShow, summarize, type CheckResult,
+  checkFloors, checkIntegrity, checkSpotShow, checkEarliestShow, checkForumCounters, summarize,
+  type CheckResult,
 } from "./checks";
 
 async function scalar(db: AppDb, q: ReturnType<typeof sql>): Promise<number> {
@@ -45,11 +46,23 @@ export async function runVerify(deps: { db: AppDb }): Promise<{ ok: boolean; res
   const spotNotes = await text(db, sql`select notes as v from shows where show_date = '2022-06-24' limit 1`);
   const earliest = await text(db, sql`select min(show_date)::text as v from shows`);
 
+  const forumDrift = {
+    boardThreads: await scalar(db, sql`select count(*)::int as n from forum_boards b
+      where b.thread_count <> (select count(*) from forum_threads t where t.board_id = b.id)`),
+    boardPosts: await scalar(db, sql`select count(*)::int as n from forum_boards b
+      where b.post_count <> (select count(*) from forum_posts p join forum_threads t on t.id = p.thread_id where t.board_id = b.id)`),
+    threadReplies: await scalar(db, sql`select count(*)::int as n from forum_threads t
+      where t.reply_count <> (select count(*) - 1 from forum_posts p where p.thread_id = t.id)`),
+    userPosts: await scalar(db, sql`select count(*)::int as n from users u
+      where u.post_count <> (select count(*) from forum_posts p where p.author_id = u.id)`),
+  };
+
   const results: CheckResult[] = [
     ...checkFloors(counts),
     ...checkIntegrity(orphans),
     checkSpotShow({ performanceCount: spotCount, notes: spotNotes }),
     checkEarliestShow(earliest),
+    ...checkForumCounters(forumDrift),
   ];
   return summarize(results);
 }

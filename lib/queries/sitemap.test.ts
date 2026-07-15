@@ -70,4 +70,11 @@ describe("sitemap queries", () => {
     const { allVenueIds } = await import("./sitemap");
     expect(await allVenueIds()).toEqual([1]);
   });
+
+  it("allBoardSlugs returns every seeded forum board", async () => {
+    const { allBoardSlugs } = await import("./sitemap");
+    expect((await allBoardSlugs()).sort()).toEqual(
+      ["introductions", "off-topic", "setlists-and-stats", "site-feedback", "tapes-and-media", "tour-talk"].sort(),
+    );
+  });
 });

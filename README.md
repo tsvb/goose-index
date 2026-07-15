@@ -121,6 +121,8 @@ job, so page loads never depend on the elgoose API being up.
 - **Postgres + Drizzle** — a cached copy of the live-performance record.
 - **Vitest** — the suite runs fully offline (fixtures + in-memory PGlite). No network, no database.
 - **Vercel Web Analytics** — cookieless page views, on every edition.
+- **The Forum** — passwordless (magic-link) accounts via [Resend](https://resend.com), BBCode
+  posts, reactions, and moderation, layered on the same read-mostly Postgres.
 
 <details>
 <summary><b>Getting started</b></summary>
@@ -173,6 +175,7 @@ Two things worth knowing up front:
 | **1** | Shows & discovery — setlists, search, On This Day, upcoming | done |
 | **2** | Songs & stats — per-song pages, song index, `/stats` cuts | done |
 | **3** | Jam & set-flow analytics — segue lines, jam density by night and venue, the shelf | Oracle ships the first cut; era-aware analysis still open |
+| **F** | **The Forum** — XenForo-style boards, magic-link accounts, BBCode, reactions, moderation | ✅ done |
 | 4 | Fan tracking — shows I've seen, personal stats, song life-list | planned |
 
 Design specs per phase: [`docs/superpowers/specs/`](docs/superpowers/specs/).

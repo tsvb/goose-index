@@ -6,6 +6,7 @@ vi.mock("@/lib/queries/sitemap", () => ({
   allYears: async () => [2021, 2022],
   allTourIds: async () => [5],
   allVenueIds: async () => [9],
+  allBoardSlugs: async () => ["tour-talk"],
 }));
 
 import sitemap from "./sitemap";
@@ -27,5 +28,12 @@ describe("sitemap", () => {
     expect(urls).toContain(`${SITE_URL}/venues/9`);
     expect(urls).toContain(`${SITE_URL}/shows/2021-07-03`);
     expect(urls).toContain(`${SITE_URL}/songs/hot-tea`);
+  });
+
+  it("includes /forum and per-board URLs, but no thread URLs", async () => {
+    const urls = (await sitemap()).map((e) => e.url);
+    expect(urls).toContain(`${SITE_URL}/forum`);
+    expect(urls).toContain(`${SITE_URL}/forum/tour-talk`);
+    expect(urls.some((u) => u.includes("/forum/tour-talk/"))).toBe(false);
   });
 });

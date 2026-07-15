@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  checkFloors, checkIntegrity, checkSpotShow, checkEarliestShow, summarize,
+  checkFloors, checkIntegrity, checkSpotShow, checkEarliestShow, checkForumCounters, summarize,
 } from "./checks";
 
 describe("checkFloors", () => {
@@ -33,6 +33,15 @@ describe("checkEarliestShow", () => {
   it("expects 2014-09-27 (Goose's earliest show)", () => {
     expect(checkEarliestShow("2014-09-27").pass).toBe(true);
     expect(checkEarliestShow("2012-01-12").pass).toBe(false);
+  });
+});
+
+describe("checkForumCounters", () => {
+  it("passes at zero drift, fails otherwise", () => {
+    expect(checkForumCounters({ boardThreads: 0, boardPosts: 0, threadReplies: 0, userPosts: 0 })
+      .every((r) => r.pass)).toBe(true);
+    const drifted = checkForumCounters({ boardThreads: 1, boardPosts: 0, threadReplies: 0, userPosts: 0 });
+    expect(drifted.some((r) => !r.pass)).toBe(true);
   });
 });
 

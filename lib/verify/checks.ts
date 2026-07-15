@@ -37,6 +37,17 @@ export function checkEarliestShow(earliest: string | null): CheckResult {
     detail: `earliest=${earliest}` };
 }
 
+export function checkForumCounters(drift: {
+  boardThreads: number; boardPosts: number; threadReplies: number; userPosts: number;
+}): CheckResult[] {
+  return [
+    zero("board thread_count matches threads", drift.boardThreads),
+    zero("board post_count matches posts", drift.boardPosts),
+    zero("thread reply_count matches posts", drift.threadReplies),
+    zero("user post_count matches posts", drift.userPosts),
+  ];
+}
+
 export function summarize(results: CheckResult[]): { ok: boolean; results: CheckResult[] } {
   return { ok: results.every((r) => r.pass), results };
 }

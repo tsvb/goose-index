@@ -95,6 +95,54 @@ The canonical origin is the `SITE_URL` constant in `lib/site.ts`; `app/sitemap.t
 
 ---
 
+## Forum
+
+The forum (passwordless accounts, boards, BBCode posts) needs three more Vercel environment
+variables and a verified sending domain before it can send a real magic-link email.
+
+### Env vars
+
+Add these in **Project → Settings → Environment Variables**, same place as `DATABASE_URL`:
+
+| Name | Value |
+|------|-------|
+| `RESEND_API_KEY` | API key from the [Resend](https://resend.com) dashboard. Without it, `lib/auth/email.ts` falls back to printing the magic link to the server log instead of sending — fine for local dev, not for production. |
+| `AUTH_EMAIL_FROM` | The verified send-from address, e.g. `Goose Index <forum@gooseindex.com>`. |
+| `AUTH_SECRET` | A random signing secret for magic-link tokens. Generate one with `openssl rand -hex 32` — don't reuse a value from another project. |
+
+### Verify the sending domain
+
+Magic-link email won't deliver reliably until `gooseindex.com` is a **verified domain** in
+Resend:
+
+1. In the Resend dashboard, **Domains → Add Domain** → `gooseindex.com`.
+2. Add the DKIM and SPF (and DMARC, if offered) records it gives you to the domain's DNS.
+3. Wait for Resend to show the domain as **Verified** before relying on it in production.
+
+### First admin
+
+No one is an admin until you make them one. Bootstrap yourself against the **production**
+database (the pooled Neon `DATABASE_URL`, same string used elsewhere in this doc):
+
+```bash
+DATABASE_URL='<neon-pooled-url>' npm run make-admin -- tim@timvbs.com
+```
+
+### Verify
+
+`npm run verify` now also checks forum counter drift (board `thread_count`/`post_count`,
+thread `reply_count`, user `post_count` against the underlying rows) — still expect
+`VERIFY OK`, and treat any forum-counter failure as a real bug in `lib/forum/mutations.ts`,
+not something to wave through.
+
+### Launch rule
+
+**Announce nothing about the forum — no link, no post, no mention — until this whole phase
+is deployed to production with throttles and the honeypot live.** Half-shipped moderation on
+a public, unmoderated board is how a fan site gets spammed on day one.
+
+---
+
 ## Redeploying / updating the site
 
 - **Code changes:** push to `main` → Vercel auto-deploys.

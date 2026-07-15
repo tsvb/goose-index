@@ -2,6 +2,11 @@ import { db } from "@/db/client";
 import { shows, songs } from "@/db/schema";
 import { asc, isNotNull, sql } from "drizzle-orm";
 
+function allRows(result: unknown): Record<string, unknown>[] {
+  const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
+  return rows as Record<string, unknown>[];
+}
+
 /** Every distinct show date — two-show days share one /shows/[date] page. */
 export async function allShowDates(): Promise<string[]> {
   const rows = await db
@@ -49,4 +54,10 @@ export async function allTourIds(): Promise<number[]> {
     .where(isNotNull(shows.tourId))
     .orderBy(asc(shows.tourId));
   return rows.map((r) => r.id as number);
+}
+
+/** Every forum board slug — /forum/[board] pages. Threads stay out of the sitemap in v1. */
+export async function allBoardSlugs(): Promise<string[]> {
+  const rows = allRows(await db.execute(sql`select slug from forum_boards order by position`));
+  return rows.map((r) => String(r.slug));
 }
