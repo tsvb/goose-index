@@ -8,6 +8,7 @@ import {
   setPostDeleted, setThreadLocked, setThreadPinned, banUser, unbanUser, resolveReport,
 } from "@/lib/forum/mutations";
 import { threadPath } from "@/lib/forum/urls";
+import { safeBack } from "@/lib/forum/safe-back";
 import type { ForumFormState } from "./_components/composer";
 
 const str = (fd: FormData, k: string): string => {
@@ -15,14 +16,6 @@ const str = (fd: FormData, k: string): string => {
   return typeof v === "string" ? v : "";
 };
 const int = (fd: FormData, k: string): number => parseInt(str(fd, k), 10) || 0;
-
-/** Only same-origin forum paths are valid redirect targets: a leading "/" not
- *  followed by "/" or "\" (which browsers can normalize into a protocol-relative
- *  off-site URL). Everything else falls back to /forum. Exported for testing. */
-export function safeBack(fd: FormData, fallback = "/forum"): string {
-  const back = str(fd, "back");
-  return /^\/(?![/\\])/.test(back) ? back : fallback;
-}
 
 export async function newThreadAction(_prev: ForumFormState, fd: FormData): Promise<ForumFormState> {
   const boardSlug = str(fd, "boardSlug");

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { safeBack } from "./actions";
+import { safeBack } from "@/lib/forum/safe-back";
 
 const fd = (back: string | null) => {
   const f = new FormData();
