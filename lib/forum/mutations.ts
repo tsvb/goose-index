@@ -166,3 +166,45 @@ export async function resolveReport(admin: SessionUser, reportId: number): Promi
     .where(eq(forumReports.id, reportId));
   return { ok: true, value: null };
 }
+
+export async function setPostDeleted(admin: SessionUser, postId: number, deleted: boolean): Promise<MutationResult<null>> {
+  if (admin.role !== "admin") return fail("Admins only.");
+  const [post] = await db.select({ id: forumPosts.id }).from(forumPosts).where(eq(forumPosts.id, postId));
+  if (!post) return fail("That post doesn't exist.");
+  await db.update(forumPosts).set(
+    deleted ? { deletedAt: new Date(), deletedById: admin.id } : { deletedAt: null, deletedById: null },
+  ).where(eq(forumPosts.id, postId));
+  return { ok: true, value: null };
+}
+
+export async function setThreadLocked(admin: SessionUser, threadId: number, locked: boolean): Promise<MutationResult<null>> {
+  if (admin.role !== "admin") return fail("Admins only.");
+  await db.update(forumThreads).set({ locked }).where(eq(forumThreads.id, threadId));
+  return { ok: true, value: null };
+}
+
+export async function setThreadPinned(admin: SessionUser, threadId: number, pinned: boolean): Promise<MutationResult<null>> {
+  if (admin.role !== "admin") return fail("Admins only.");
+  await db.update(forumThreads).set({ pinned }).where(eq(forumThreads.id, threadId));
+  return { ok: true, value: null };
+}
+
+export async function banUser(admin: SessionUser, usernameLower: string, reasonRaw: string): Promise<MutationResult<null>> {
+  if (admin.role !== "admin") return fail("Admins only.");
+  const [target] = await db.select({ id: users.id, role: users.role }).from(users)
+    .where(eq(users.usernameLower, usernameLower.toLowerCase()));
+  if (!target) return fail("No such member.");
+  if (target.role === "admin") return fail("Admins can't be banned.");
+  const reason = reasonRaw.trim();
+  await db.update(users).set({ bannedAt: new Date(), bannedReason: reason || null }).where(eq(users.id, target.id));
+  return { ok: true, value: null };
+}
+
+export async function unbanUser(admin: SessionUser, usernameLower: string): Promise<MutationResult<null>> {
+  if (admin.role !== "admin") return fail("Admins only.");
+  const [target] = await db.select({ id: users.id }).from(users)
+    .where(eq(users.usernameLower, usernameLower.toLowerCase()));
+  if (!target) return fail("No such member.");
+  await db.update(users).set({ bannedAt: null, bannedReason: null }).where(eq(users.id, target.id));
+  return { ok: true, value: null };
+}

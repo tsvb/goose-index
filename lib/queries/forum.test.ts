@@ -196,3 +196,12 @@ describe("getOpenReports", () => {
     expect(open.some((r) => r.postId === posts[0].id && r.reporter === "Filer" && r.threadTitle === "First thread")).toBe(true);
   });
 });
+
+describe("getRecentMembers", () => {
+  it("lists newest members with ban state", async () => {
+    const { getRecentMembers } = await import("./forum");
+    const members = await getRecentMembers(50);
+    expect(members.length).toBeGreaterThan(0);
+    expect(members[0]).toMatchObject({ username: expect.any(String), banned: expect.any(Boolean) });
+  });
+});

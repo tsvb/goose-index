@@ -204,3 +204,40 @@ describe("reports", () => {
     expect(after.resolvedById).toBe(admin.id);
   });
 });
+
+describe("admin powers", () => {
+  it("soft-delete/restore, lock, pin, ban/unban — all admin-gated", async () => {
+    const { setPostDeleted, setThreadLocked, setThreadPinned, banUser, unbanUser } = await import("./mutations");
+    const member = await makeUser("Civilian");
+    const admin = await makeUser("Admin4", { role: "admin" });
+    const board = await boardId("off-topic");
+    const t = await createThread(member, board, "Moderate me", "op");
+    if (!t.ok) throw new Error("setup");
+    const [post] = await ctx.db.select().from(forumPosts).where(eq(forumPosts.threadId, t.value.threadId));
+
+    expect((await setPostDeleted(member, post.id, true)).ok).toBe(false);
+    expect((await setPostDeleted(admin, post.id, true)).ok).toBe(true);
+    let [p] = await ctx.db.select().from(forumPosts).where(eq(forumPosts.id, post.id));
+    expect(p.deletedAt).not.toBeNull();
+    expect(p.deletedById).toBe(admin.id);
+    expect((await setPostDeleted(admin, post.id, false)).ok).toBe(true);
+    [p] = await ctx.db.select().from(forumPosts).where(eq(forumPosts.id, post.id));
+    expect(p.deletedAt).toBeNull();
+
+    expect((await setThreadLocked(admin, t.value.threadId, true)).ok).toBe(true);
+    expect((await setThreadPinned(admin, t.value.threadId, true)).ok).toBe(true);
+    const [th] = await ctx.db.select().from(forumThreads).where(eq(forumThreads.id, t.value.threadId));
+    expect(th.locked && th.pinned).toBe(true);
+
+    expect((await banUser(member, "civilian", "no")).ok).toBe(false);
+    expect((await banUser(admin, "ghost-user", "no")).ok).toBe(false);
+    expect((await banUser(admin, "admin4", "no")).ok).toBe(false); // can't ban admins
+    expect((await banUser(admin, "civilian", "spamming")).ok).toBe(true);
+    let [u] = await ctx.db.select().from(users).where(eq(users.id, member.id));
+    expect(u.bannedAt).not.toBeNull();
+    expect(u.bannedReason).toBe("spamming");
+    expect((await unbanUser(admin, "civilian")).ok).toBe(true);
+    [u] = await ctx.db.select().from(users).where(eq(users.id, member.id));
+    expect(u.bannedAt).toBeNull();
+  });
+});

@@ -17,7 +17,10 @@ import { Pager } from "../../_components/pager";
 import { UserStrip } from "../../_components/user-strip";
 import { Composer } from "../../_components/composer";
 import { QuoteButton } from "../../_components/quote-button";
-import { replyAction, reportAction } from "../../actions";
+import {
+  replyAction, reportAction,
+  adminSetPostDeletedAction, adminSetThreadLockedAction, adminSetThreadPinnedAction,
+} from "../../actions";
 
 type Params = Promise<{ key: string }>;
 type SearchParams = Promise<{ page?: string; quote?: string }>;
@@ -56,6 +59,23 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
   const pager = <Pager current={page} total={totalPages} href={(p) => threadPath(thread.id, thread.slug, p)} />;
 
   const backPath = threadPath(thread.id, thread.slug, page);
+  const adminButton = "border border-line px-2 py-0.5 font-mono text-xs text-muted hover:text-ink";
+  const adminThreadControls = viewer?.role === "admin" && (
+    <span className="flex items-center gap-2">
+      <form action={adminSetThreadLockedAction}>
+        <input type="hidden" name="threadId" value={thread.id} />
+        <input type="hidden" name="locked" value={thread.locked ? "0" : "1"} />
+        <input type="hidden" name="back" value={backPath} />
+        <button type="submit" className={adminButton}>{thread.locked ? "Unlock" : "Lock"}</button>
+      </form>
+      <form action={adminSetThreadPinnedAction}>
+        <input type="hidden" name="threadId" value={thread.id} />
+        <input type="hidden" name="pinned" value={thread.pinned ? "0" : "1"} />
+        <input type="hidden" name="back" value={backPath} />
+        <button type="submit" className={adminButton}>{thread.pinned ? "Unpin" : "Pin"}</button>
+      </form>
+    </span>
+  );
   const controlsFor = (p: (typeof posts)[number]) => (
     <>
       <ReactionBar post={p} backPath={backPath}
@@ -78,6 +98,14 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
             <button type="submit" className="border border-line px-2 py-0.5 text-xs">Send</button>
           </form>
         </details>
+      )}
+      {viewer?.role === "admin" && (
+        <form action={adminSetPostDeletedAction} className="inline">
+          <input type="hidden" name="postId" value={p.id} />
+          <input type="hidden" name="deleted" value={p.deleted ? "0" : "1"} />
+          <input type="hidden" name="back" value={backPath} />
+          <button type="submit" className="text-muted hover:underline">{p.deleted ? "Restore" : "Delete"}</button>
+        </form>
       )}
     </>
   );
@@ -117,7 +145,10 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
             { href: "/", label: "Goose Index" }, { href: "/forum", label: "Forum" },
             { href: boardPath(thread.boardSlug), label: thread.boardTitle }, { label: thread.title },
           ]} />
-          <h1>{thread.pinned && "📌 "}{thread.locked && "🔒 "}{thread.title}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1>{thread.pinned && "📌 "}{thread.locked && "🔒 "}{thread.title}</h1>
+            {adminThreadControls}
+          </div>
           <UserStrip />
           {/* structured data describes the thread from its OP — only valid on page 1 */}
           {page === 1 && <JsonLd data={forumThreadJsonLd(thread, posts)} />}
@@ -136,9 +167,12 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
             <Link href="/forum" className="hover:underline">Forum</Link> ›{" "}
             <Link href={boardPath(thread.boardSlug)} className="hover:underline">{thread.boardTitle}</Link>
           </p>
-          <h1 className={experience === "fancy" ? "font-display text-3xl tracking-tight" : "text-2xl font-bold"}>
-            {thread.pinned && "📌 "}{thread.locked && "🔒 "}{thread.title}
-          </h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className={experience === "fancy" ? "font-display text-3xl tracking-tight" : "text-2xl font-bold"}>
+              {thread.pinned && "📌 "}{thread.locked && "🔒 "}{thread.title}
+            </h1>
+            {adminThreadControls}
+          </div>
         </div>
         <UserStrip />
       </div>

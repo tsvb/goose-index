@@ -3,7 +3,10 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth/session.server";
-import { createThread, createPost, editPost, toggleReaction, markAllForumsRead, reportPost } from "@/lib/forum/mutations";
+import {
+  createThread, createPost, editPost, toggleReaction, markAllForumsRead, reportPost,
+  setPostDeleted, setThreadLocked, setThreadPinned, banUser, unbanUser, resolveReport,
+} from "@/lib/forum/mutations";
 import { threadPath } from "@/lib/forum/urls";
 import type { ForumFormState } from "./_components/composer";
 
@@ -68,4 +71,46 @@ export async function reportAction(fd: FormData): Promise<void> {
   const user = await requireUser(back);
   await reportPost(user, postId, str(fd, "reason"));
   redirect(`${back}#post-${postId}`);
+}
+
+async function adminRedirect(back: string): Promise<never> {
+  revalidatePath("/forum");
+  redirect(back);
+}
+
+export async function adminSetPostDeletedAction(fd: FormData): Promise<void> {
+  const user = await requireUser("/forum");
+  await setPostDeleted(user, int(fd, "postId"), str(fd, "deleted") === "1");
+  await adminRedirect(safeBack(fd));
+}
+
+export async function adminSetThreadLockedAction(fd: FormData): Promise<void> {
+  const user = await requireUser("/forum");
+  await setThreadLocked(user, int(fd, "threadId"), str(fd, "locked") === "1");
+  await adminRedirect(safeBack(fd));
+}
+
+export async function adminSetThreadPinnedAction(fd: FormData): Promise<void> {
+  const user = await requireUser("/forum");
+  await setThreadPinned(user, int(fd, "threadId"), str(fd, "pinned") === "1");
+  await adminRedirect(safeBack(fd));
+}
+
+export async function adminBanAction(fd: FormData): Promise<void> {
+  const user = await requireUser("/forum/admin");
+  await banUser(user, str(fd, "username"), str(fd, "reason"));
+  await adminRedirect("/forum/admin");
+}
+
+export async function adminUnbanAction(fd: FormData): Promise<void> {
+  const user = await requireUser("/forum/admin");
+  await unbanUser(user, str(fd, "username"));
+  await adminRedirect("/forum/admin");
+}
+
+export async function adminResolveReportAction(fd: FormData): Promise<void> {
+  const user = await requireUser("/forum/admin");
+  if (str(fd, "alsoDelete") === "1") await setPostDeleted(user, int(fd, "postId"), true);
+  await resolveReport(user, int(fd, "reportId"));
+  await adminRedirect("/forum/admin");
 }

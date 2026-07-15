@@ -239,3 +239,17 @@ export async function getOpenReports(): Promise<{
     threadId: num(r.thread_id), threadSlug: str(r.thread_slug), threadTitle: str(r.thread_title),
   }));
 }
+
+export async function getRecentMembers(limit = 20): Promise<{
+  id: number; username: string; joined: string; postCount: number; banned: boolean; bannedReason: string | null;
+}[]> {
+  const rows = allRows(await db.execute(sql`
+    select id, username, post_count, banned_at, banned_reason,
+           to_char(joined_at at time zone 'UTC', 'YYYY-MM-DD') as joined
+    from users order by id desc limit ${limit}
+  `));
+  return rows.map((r) => ({
+    id: num(r.id), username: str(r.username), joined: str(r.joined), postCount: num(r.post_count),
+    banned: r.banned_at != null, bannedReason: strOrNull(r.banned_reason),
+  }));
+}
