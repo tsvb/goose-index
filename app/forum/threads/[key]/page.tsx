@@ -7,18 +7,20 @@ import { JsonLd } from "@/app/_components/json-ld";
 import { forumThreadJsonLd } from "@/lib/jsonld";
 import { getExperience } from "@/lib/experience.server";
 import { currentUser } from "@/lib/auth/session.server";
-import { getThread, getPosts, firstUnread } from "@/lib/queries/forum";
+import { getThread, getPosts, firstUnread, getPostForEdit } from "@/lib/queries/forum";
 import { markThreadRead } from "@/lib/forum/mutations";
 import { POSTS_PER_PAGE } from "@/lib/forum/constants";
 import { parseThreadKey, threadPath, boardPath } from "@/lib/forum/urls";
+import { quoteBBCode } from "@/lib/forum/quote";
 import { PostCard, ReactionBar } from "../../_components/post-card";
 import { Pager } from "../../_components/pager";
 import { UserStrip } from "../../_components/user-strip";
 import { Composer } from "../../_components/composer";
+import { QuoteButton } from "../../_components/quote-button";
 import { replyAction } from "../../actions";
 
 type Params = Promise<{ key: string }>;
-type SearchParams = Promise<{ page?: string }>;
+type SearchParams = Promise<{ page?: string; quote?: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const parsed = parseThreadKey((await params).key);
@@ -61,8 +63,19 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
       {viewer && !p.deleted && (p.authorId === viewer.id || viewer.role === "admin") && (
         <Link href={`/forum/posts/${p.id}/edit`} className="text-muted hover:underline">Edit</Link>
       )}
+      {viewer && !p.deleted && p.body != null && (
+        <QuoteButton author={p.author} body={p.body}
+          fallbackHref={`${threadPath(thread.id, thread.slug)}?page=${totalPages}&quote=${p.id}#composer`} />
+      )}
     </>
   );
+
+  let initialBody = "";
+  const quoteId = parseInt(sp.quote ?? "", 10);
+  if (viewer && quoteId) {
+    const q = await getPostForEdit(quoteId);
+    if (q && !q.deleted && q.threadId === thread.id) initialBody = quoteBBCode(q.author, q.body);
+  }
 
   const composer = !viewer ? (
     <p className="text-sm text-muted">
@@ -74,7 +87,7 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
   ) : (
     <div className="max-w-2xl">
       {thread.locked && <p className="mb-2 text-xs text-muted">Posting as admin — thread is locked.</p>}
-      <Composer action={replyAction} hidden={{ threadId: thread.id }} submitLabel="Post reply" />
+      <Composer action={replyAction} hidden={{ threadId: thread.id }} submitLabel="Post reply" initialBody={initialBody} />
     </div>
   );
 
