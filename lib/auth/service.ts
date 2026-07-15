@@ -8,6 +8,11 @@ export const TOKEN_TTL_MS = 15 * 60_000;
 export const SESSION_TTL_MS = 90 * 24 * 3_600_000;
 export const SLIDE_AFTER_MS = 7 * 24 * 3_600_000;
 
+function isUniqueViolation(e: unknown): boolean {
+  const err = e as { code?: string; cause?: { code?: string } };
+  return err?.code === "23505" || err?.cause?.code === "23505";
+}
+
 export type SessionUser = {
   id: number; username: string; role: "member" | "admin"; signature: string | null;
   postCount: number; joinedAt: Date; markAllReadAt: Date | null;
@@ -98,9 +103,16 @@ export async function verifyToken(rawToken: string, usernameOverride?: string): 
     const clash = await db.select({ id: users.id }).from(users)
       .where(eq(users.usernameLower, vu.username.toLowerCase()));
     if (clash.length > 0) return { status: "username-taken" }; // token NOT consumed
-    const [u] = await db.insert(users).values({
-      username: vu.username, usernameLower: vu.username.toLowerCase(), emailLower: t.emailLower,
-    }).returning({ id: users.id, username: users.username });
+
+    let u: { id: number; username: string };
+    try {
+      [u] = await db.insert(users).values({
+        username: vu.username, usernameLower: vu.username.toLowerCase(), emailLower: t.emailLower,
+      }).returning({ id: users.id, username: users.username });
+    } catch (e) {
+      if (isUniqueViolation(e)) return { status: "username-taken" }; // lost a signup race
+      throw e;
+    }
     userId = u.id; username = u.username;
   } else {
     if (!t.userId) return { status: "invalid" };

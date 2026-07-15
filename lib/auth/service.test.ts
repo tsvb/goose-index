@@ -101,6 +101,14 @@ describe("verifyToken — signup", () => {
     if (v.status === "ok") expect(v.username).toBe("Racer_alt");
   });
 
+  it("returns username-taken when the insert itself hits the unique constraint", async () => {
+    const r = await requestSignup("Racewinner", "racewinner@x.co", null);
+    if (r.status !== "sent") throw new Error("setup");
+    // Simulate losing the race: the name is taken AFTER the token was issued.
+    await ctx.db.insert(users).values({ username: "Racewinner", usernameLower: "racewinner", emailLower: "sniper@x.co" });
+    expect((await verifyToken(r.token)).status).toBe("username-taken");
+  });
+
   it("expired and garbage tokens are rejected", async () => {
     const r = await requestSignup("Expiry", "expiry@x.co", null);
     if (r.status !== "sent") throw new Error("setup");
