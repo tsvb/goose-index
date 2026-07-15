@@ -19,7 +19,7 @@ export type BoardIndexCategory = { id: number; title: string; boards: BoardSumma
 export type BoardInfo = { id: number; slug: string; title: string; description: string; threadCount: number };
 export type ThreadRow = { id: number; slug: string; title: string; author: string; replyCount: number; pinned: boolean; locked: boolean; lastPostAuthor: string; lastPostAt: string; unread: boolean };
 export type ThreadInfo = { id: number; slug: string; title: string; boardId: number; boardSlug: string; boardTitle: string; locked: boolean; pinned: boolean; replyCount: number };
-export type PostView = { id: number; authorId: number; author: string; authorPostCount: number; authorJoined: string; authorSignature: string | null; body: string | null; deleted: boolean; at: string; editedAt: string | null };
+export type PostView = { id: number; authorId: number; author: string; authorPostCount: number; authorJoined: string; authorSignature: string | null; body: string | null; deleted: boolean; at: string; editedAt: string | null; reactions: { like: number; honk: number; mine: "like" | "honk" | null } };
 export type MemberProfile = { username: string; role: string; joined: string; postCount: number; signature: string | null; recent: { postId: number; threadId: number; threadSlug: string; threadTitle: string; at: string; snippet: string }[] };
 
 export async function getBoardIndex(): Promise<BoardIndexCategory[]> {
@@ -103,15 +103,20 @@ export async function getThread(id: number): Promise<ThreadInfo | null> {
 }
 
 export async function getPosts(
-  threadId: number, page: number, opts: { includeDeletedBodies?: boolean } = {},
+  threadId: number, page: number,
+  opts: { includeDeletedBodies?: boolean; viewerId?: number | null } = {},
 ): Promise<PostView[]> {
-  const offset = (cleanPage(page) - 1) * POSTS_PER_PAGE;
+  const offset = (Math.max(1, page) - 1) * POSTS_PER_PAGE;
+  const viewerId = opts.viewerId ?? -1;
   const rows = allRows(await db.execute(sql`
     select p.id, p.author_id, p.body, p.deleted_at,
            to_char(p.created_at at time zone 'UTC', 'YYYY-MM-DD HH24:MI') as at,
            to_char(p.edited_at at time zone 'UTC', 'YYYY-MM-DD HH24:MI') as edited_at,
            u.username as author, u.post_count as author_post_count, u.signature as author_signature,
-           to_char(u.joined_at at time zone 'UTC', 'YYYY-MM-DD') as author_joined
+           to_char(u.joined_at at time zone 'UTC', 'YYYY-MM-DD') as author_joined,
+           (select count(*)::int from forum_reactions r where r.post_id = p.id and r.kind = 'like') as likes,
+           (select count(*)::int from forum_reactions r where r.post_id = p.id and r.kind = 'honk') as honks,
+           (select r.kind from forum_reactions r where r.post_id = p.id and r.user_id = ${viewerId}) as mine
     from forum_posts p join users u on u.id = p.author_id
     where p.thread_id = ${threadId}
     order by p.id asc
@@ -125,6 +130,7 @@ export async function getPosts(
       authorSignature: strOrNull(r.author_signature),
       body: deleted && !opts.includeDeletedBodies ? null : str(r.body),
       deleted, at: str(r.at), editedAt: strOrNull(r.edited_at),
+      reactions: { like: num(r.likes), honk: num(r.honks), mine: (strOrNull(r.mine) as "like" | "honk" | null) },
     };
   });
 }

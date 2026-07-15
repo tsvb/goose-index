@@ -4,6 +4,7 @@ import type { PostView } from "@/lib/queries/forum";
 import type { Experience } from "@/lib/experience";
 import { BBCodeBody } from "@/lib/forum/bbcode-render";
 import { clsx } from "@/app/_components/clsx";
+import { reactAction } from "../actions";
 
 function Body({ post }: { post: PostView }) {
   if (!post.deleted) return <BBCodeBody source={post.body ?? ""} />;
@@ -48,5 +49,29 @@ export function PostCard({ post, experience, controls }: { post: PostView; exper
         {controls && <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">{controls}</div>}
       </div>
     </article>
+  );
+}
+
+export function ReactionBar({ post, canReact, backPath }: { post: PostView; canReact: boolean; backPath: string }) {
+  const { like, honk, mine } = post.reactions;
+  if (!canReact) {
+    return (like > 0 || honk > 0)
+      ? <span className="font-mono text-xs text-muted">👍 {like} · 🪿 {honk}</span>
+      : null;
+  }
+  return (
+    <span className="flex items-center gap-2">
+      {(["like", "honk"] as const).map((kind) => (
+        <form key={kind} action={reactAction}>
+          <input type="hidden" name="postId" value={post.id} />
+          <input type="hidden" name="kind" value={kind} />
+          <input type="hidden" name="back" value={backPath} />
+          <button type="submit"
+            className={clsx("border border-line px-2 py-0.5 font-mono text-xs hover:border-line-soft", mine === kind && "font-bold")}>
+            {kind === "like" ? `👍 ${like}` : `🪿 ${honk}`}
+          </button>
+        </form>
+      ))}
+    </span>
   );
 }

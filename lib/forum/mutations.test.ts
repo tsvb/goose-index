@@ -121,3 +121,27 @@ describe("editPost", () => {
     expect((await editPost(tim, post.id, "zombie")).ok).toBe(false);
   });
 });
+
+describe("toggleReaction", () => {
+  it("adds, replaces, and removes; refuses own posts and deleted posts", async () => {
+    const { toggleReaction } = await import("./mutations");
+    const author = await makeUser("ReactAuthor");
+    const fan = await makeUser("ReactFan");
+    const board = await boardId("off-topic");
+    const t = await createThread(author, board, "React to me", "op");
+    if (!t.ok) throw new Error("setup");
+    const [post] = await ctx.db.select().from(forumPosts).where(eq(forumPosts.threadId, t.value.threadId));
+
+    expect((await toggleReaction(author, post.id, "like")).ok).toBe(false); // own post
+    expect((await toggleReaction(fan, post.id, "like")).ok).toBe(true);     // add
+    expect((await toggleReaction(fan, post.id, "honk")).ok).toBe(true);     // replace
+    const { forumReactions } = await import("@/db/schema");
+    let rows = await ctx.db.select().from(forumReactions).where(eq(forumReactions.postId, post.id));
+    expect(rows).toEqual([expect.objectContaining({ kind: "honk", userId: fan.id })]);
+    expect((await toggleReaction(fan, post.id, "honk")).ok).toBe(true);     // toggle off
+    rows = await ctx.db.select().from(forumReactions).where(eq(forumReactions.postId, post.id));
+    expect(rows).toHaveLength(0);
+    await ctx.db.update(forumPosts).set({ deletedAt: new Date() }).where(eq(forumPosts.id, post.id));
+    expect((await toggleReaction(fan, post.id, "like")).ok).toBe(false);    // deleted post
+  });
+});

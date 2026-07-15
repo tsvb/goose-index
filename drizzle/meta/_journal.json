@@ -50,6 +50,13 @@
       "when": 1784135910727,
       "tag": "0006_forum_seed",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784142370064,
+      "tag": "0007_cuddly_ink",
+      "breakpoints": true
     }
   ]
 }

@@ -209,4 +209,15 @@ export const forumPosts = pgTable("forum_posts", {
   authorIdx: index("forum_posts_author_idx").on(t.authorId, t.id),
 }));
 
+// One reaction per member per post (XenForo-style) — same kind toggles off,
+// a different kind replaces it. See lib/forum/mutations.ts#toggleReaction.
+export const forumReactions = pgTable("forum_reactions", {
+  postId: integer("post_id").notNull().references(() => forumPosts.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  kind: text("kind").notNull(), // like | honk
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.postId, t.userId] }),
+}));
+
 export type AppDb = PgDatabase<any, Record<string, never>, any>;

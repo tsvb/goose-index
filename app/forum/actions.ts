@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth/session.server";
-import { createThread, createPost, editPost } from "@/lib/forum/mutations";
+import { createThread, createPost, editPost, toggleReaction } from "@/lib/forum/mutations";
 import { threadPath } from "@/lib/forum/urls";
 import type { ForumFormState } from "./_components/composer";
 
@@ -37,4 +37,14 @@ export async function editPostAction(_prev: ForumFormState, fd: FormData): Promi
   const r = await editPost(user, postId, str(fd, "body"));
   if (!r.ok) return { error: r.error, draftBody: str(fd, "body") };
   redirect(`${threadPath(r.value.threadId, r.value.threadSlug, r.value.page)}#post-${postId}`);
+}
+
+export async function reactAction(fd: FormData): Promise<void> {
+  const postId = int(fd, "postId");
+  const kind = str(fd, "kind") === "honk" ? "honk" as const : "like" as const;
+  const back = str(fd, "back") || "/forum";
+  const user = await requireUser(back);
+  await toggleReaction(user, postId, kind); // low-stakes: failures just fall through to the redirect
+  revalidatePath(back);
+  redirect(`${back}#post-${postId}`);
 }

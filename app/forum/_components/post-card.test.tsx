@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { PostCard } from "./post-card";
+import { PostCard, ReactionBar } from "./post-card";
 import type { PostView } from "@/lib/queries/forum";
 
 const post: PostView = {
   id: 7, authorId: 1, author: "Tim", authorPostCount: 42, authorJoined: "2026-07-01",
   authorSignature: null, body: "hello [b]world[/b]", deleted: false, at: "2026-07-15 01:00", editedAt: null,
+  reactions: { like: 0, honk: 0, mine: null },
 };
 
 describe("PostCard", () => {
@@ -30,4 +31,13 @@ describe("PostCard", () => {
     expect(html).toContain("Removed by a moderator");
     expect(html).toContain("<strong>world</strong>");
   });
+});
+
+const reacted = { ...post, reactions: { like: 3, honk: 1, mine: "like" as const } };
+it("ReactionBar shows counts; buttons only when canReact", () => {
+  const readOnly = renderToStaticMarkup(<ReactionBar post={reacted} canReact={false} backPath="/forum/threads/1-x" />);
+  expect(readOnly).toContain("👍 3");
+  expect(readOnly).not.toContain("<button");
+  const active = renderToStaticMarkup(<ReactionBar post={reacted} canReact={true} backPath="/forum/threads/1-x" />);
+  expect(active).toContain("<button");
 });

@@ -1,5 +1,5 @@
 import { db } from "@/db/client";
-import { forumBoards, forumPosts, forumThreads, users } from "@/db/schema";
+import { forumBoards, forumPosts, forumReactions, forumThreads, users } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { threadSlug } from "./slugs";
 import { TITLE_MIN, TITLE_MAX, BODY_MAX, POSTS_PER_PAGE } from "./constants";
@@ -106,4 +106,28 @@ export async function editPost(
   await db.update(forumPosts).set({ body: b.body, editedAt: new Date(), editedById: user.id })
     .where(eq(forumPosts.id, postId));
   return { ok: true, value: { threadId: row.threadId, threadSlug: row.threadSlug, page: await postPage(row.threadId, postId) } };
+}
+
+export async function toggleReaction(
+  user: SessionUser, postId: number, kind: "like" | "honk",
+): Promise<MutationResult<null>> {
+  const ban = bannedError(user);
+  if (ban) return fail(ban);
+  const [post] = await db.select({ authorId: forumPosts.authorId, deletedAt: forumPosts.deletedAt })
+    .from(forumPosts).where(eq(forumPosts.id, postId));
+  if (!post || post.deletedAt) return fail("That post can't be reacted to.");
+  if (post.authorId === user.id) return fail("No reacting to your own posts.");
+
+  const [existing] = await db.select({ kind: forumReactions.kind }).from(forumReactions)
+    .where(sql`${forumReactions.postId} = ${postId} and ${forumReactions.userId} = ${user.id}`);
+  if (existing?.kind === kind) {
+    await db.delete(forumReactions)
+      .where(sql`${forumReactions.postId} = ${postId} and ${forumReactions.userId} = ${user.id}`);
+  } else if (existing) {
+    await db.update(forumReactions).set({ kind })
+      .where(sql`${forumReactions.postId} = ${postId} and ${forumReactions.userId} = ${user.id}`);
+  } else {
+    await db.insert(forumReactions).values({ postId, userId: user.id, kind });
+  }
+  return { ok: true, value: null };
 }

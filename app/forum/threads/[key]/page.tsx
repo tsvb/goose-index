@@ -10,7 +10,7 @@ import { currentUser } from "@/lib/auth/session.server";
 import { getThread, getPosts } from "@/lib/queries/forum";
 import { POSTS_PER_PAGE } from "@/lib/forum/constants";
 import { parseThreadKey, threadPath, boardPath } from "@/lib/forum/urls";
-import { PostCard } from "../../_components/post-card";
+import { PostCard, ReactionBar } from "../../_components/post-card";
 import { Pager } from "../../_components/pager";
 import { UserStrip } from "../../_components/user-strip";
 import { Composer } from "../../_components/composer";
@@ -36,13 +36,23 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
   const page = Math.min(totalPages, Math.max(1, parseInt(sp.page ?? "1", 10) || 1)); // "unread" → 1 until Task 19
   if (parsed.slug !== thread.slug) redirect(threadPath(thread.id, thread.slug, page)); // canonical URL
 
-  const [posts, experience, viewer] = await Promise.all([getPosts(thread.id, page), getExperience(), currentUser()]);
+  const viewer = await currentUser();
+  const [posts, experience] = await Promise.all([
+    getPosts(thread.id, page, { viewerId: viewer?.id ?? null, includeDeletedBodies: viewer?.role === "admin" }),
+    getExperience(),
+  ]);
   const pager = <Pager current={page} total={totalPages} href={(p) => threadPath(thread.id, thread.slug, p)} />;
 
-  const controlsFor = (p: (typeof posts)[number]) =>
-    viewer && !p.deleted && (p.authorId === viewer.id || viewer.role === "admin")
-      ? <Link href={`/forum/posts/${p.id}/edit`} className="text-muted hover:underline">Edit</Link>
-      : undefined;
+  const backPath = threadPath(thread.id, thread.slug, page);
+  const controlsFor = (p: (typeof posts)[number]) => (
+    <>
+      <ReactionBar post={p} backPath={backPath}
+        canReact={!!viewer && !viewer.bannedAt && viewer.id !== p.authorId && !p.deleted} />
+      {viewer && !p.deleted && (p.authorId === viewer.id || viewer.role === "admin") && (
+        <Link href={`/forum/posts/${p.id}/edit`} className="text-muted hover:underline">Edit</Link>
+      )}
+    </>
+  );
 
   const composer = !viewer ? (
     <p className="text-sm text-muted">

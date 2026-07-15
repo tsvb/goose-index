@@ -105,6 +105,20 @@ describe("getThread + getPosts", () => {
     const page1 = await getPosts(threadId, 1);
     expect(await getPosts(threadId, 0)).toEqual(page1); // clamps up to 1
   });
+  it("counts reactions and reports the viewer's own", async () => {
+    const { forumReactions } = await import("@/db/schema");
+    const [other] = await ctx.db.insert(users).values({
+      username: "Reactor", usernameLower: "reactor", emailLower: "r@x.co",
+    }).returning({ id: users.id });
+    const posts = await getPosts(threadId, 1);
+    await ctx.db.insert(forumReactions).values([
+      { postId: posts[0].id, userId: other.id, kind: "like" },
+    ]);
+    const anon = await getPosts(threadId, 1);
+    expect(anon[0].reactions).toEqual({ like: 1, honk: 0, mine: null });
+    const viewed = await getPosts(threadId, 1, { viewerId: other.id });
+    expect(viewed[0].reactions.mine).toBe("like");
+  });
 });
 
 describe("getMemberProfile", () => {
