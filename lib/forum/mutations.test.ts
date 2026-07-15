@@ -180,3 +180,27 @@ describe("read markers", () => {
     expect(u.markAllReadAt).not.toBeNull();
   });
 });
+
+describe("reports", () => {
+  it("files and resolves; validates reason; admin-gates resolution", async () => {
+    const { reportPost, resolveReport } = await import("./mutations");
+    const { forumReports } = await import("@/db/schema");
+    const author = await makeUser("Reportee");
+    const snitch = await makeUser("Snitch");
+    const admin = await makeUser("Admin3", { role: "admin" });
+    const board = await boardId("off-topic");
+    const t = await createThread(author, board, "Report me", "op");
+    if (!t.ok) throw new Error("setup");
+    const [post] = await ctx.db.select().from(forumPosts).where(eq(forumPosts.threadId, t.value.threadId));
+
+    expect((await reportPost(snitch, post.id, "x")).ok).toBe(false);            // too short
+    expect((await reportPost(snitch, 999999, "spam post")).ok).toBe(false);     // no post
+    expect((await reportPost(snitch, post.id, "spam post")).ok).toBe(true);
+    const [rep] = await ctx.db.select().from(forumReports);
+    expect((await resolveReport(snitch, rep.id)).ok).toBe(false);               // not admin
+    expect((await resolveReport(admin, rep.id)).ok).toBe(true);
+    const [after] = await ctx.db.select().from(forumReports);
+    expect(after.resolvedAt).not.toBeNull();
+    expect(after.resolvedById).toBe(admin.id);
+  });
+});

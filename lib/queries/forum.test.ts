@@ -180,3 +180,19 @@ describe("getOnlineMembers", () => {
     expect(online).not.toContain("Gone");
   });
 });
+
+describe("getOpenReports", () => {
+  it("lists unresolved reports with context", async () => {
+    const { reportPost } = await import("@/lib/forum/mutations");
+    const { getOpenReports } = await import("./forum");
+    const [reporter] = await ctx.db.insert(users).values({
+      username: "Filer", usernameLower: "filer", emailLower: "filer@x.co",
+    }).returning();
+    const posts = await getPosts(threadId, 1);
+    const su = { id: reporter.id, username: "Filer", role: "member" as const, signature: null, postCount: 0,
+      joinedAt: reporter.joinedAt, markAllReadAt: null, bannedAt: null, bannedReason: null };
+    await reportPost(su, posts[0].id, "testing the queue");
+    const open = await getOpenReports();
+    expect(open.some((r) => r.postId === posts[0].id && r.reporter === "Filer" && r.threadTitle === "First thread")).toBe(true);
+  });
+});

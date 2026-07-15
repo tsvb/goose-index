@@ -1,5 +1,5 @@
 import { db } from "@/db/client";
-import { forumBoards, forumPosts, forumReactions, forumReadMarkers, forumThreads, users } from "@/db/schema";
+import { forumBoards, forumPosts, forumReactions, forumReadMarkers, forumReports, forumThreads, users } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { threadSlug } from "./slugs";
 import { TITLE_MIN, TITLE_MAX, BODY_MAX, POSTS_PER_PAGE } from "./constants";
@@ -147,4 +147,22 @@ export async function markThreadRead(userId: number, threadId: number, lastReadP
 
 export async function markAllForumsRead(userId: number): Promise<void> {
   await db.update(users).set({ markAllReadAt: new Date() }).where(eq(users.id, userId));
+}
+
+export async function reportPost(user: SessionUser, postId: number, reasonRaw: string): Promise<MutationResult<null>> {
+  const ban = bannedError(user);
+  if (ban) return fail(ban);
+  const reason = reasonRaw.trim();
+  if (reason.length < 3 || reason.length > 500) return fail("Reports need a reason (3–500 characters).");
+  const [post] = await db.select({ id: forumPosts.id }).from(forumPosts).where(eq(forumPosts.id, postId));
+  if (!post) return fail("That post doesn't exist.");
+  await db.insert(forumReports).values({ postId, reporterId: user.id, reason });
+  return { ok: true, value: null };
+}
+
+export async function resolveReport(admin: SessionUser, reportId: number): Promise<MutationResult<null>> {
+  if (admin.role !== "admin") return fail("Admins only.");
+  await db.update(forumReports).set({ resolvedAt: new Date(), resolvedById: admin.id })
+    .where(eq(forumReports.id, reportId));
+  return { ok: true, value: null };
 }

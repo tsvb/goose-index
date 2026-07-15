@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth/session.server";
-import { createThread, createPost, editPost, toggleReaction, markAllForumsRead } from "@/lib/forum/mutations";
+import { createThread, createPost, editPost, toggleReaction, markAllForumsRead, reportPost } from "@/lib/forum/mutations";
 import { threadPath } from "@/lib/forum/urls";
 import type { ForumFormState } from "./_components/composer";
 
@@ -60,4 +60,12 @@ export async function markAllReadAction(): Promise<void> {
   await markAllForumsRead(user.id);
   revalidatePath("/forum");
   redirect("/forum");
+}
+
+export async function reportAction(fd: FormData): Promise<void> {
+  const postId = int(fd, "postId");
+  const back = safeBack(fd);
+  const user = await requireUser(back);
+  await reportPost(user, postId, str(fd, "reason"));
+  redirect(`${back}#post-${postId}`);
 }

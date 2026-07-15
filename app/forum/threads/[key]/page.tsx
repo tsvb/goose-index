@@ -17,7 +17,7 @@ import { Pager } from "../../_components/pager";
 import { UserStrip } from "../../_components/user-strip";
 import { Composer } from "../../_components/composer";
 import { QuoteButton } from "../../_components/quote-button";
-import { replyAction } from "../../actions";
+import { replyAction, reportAction } from "../../actions";
 
 type Params = Promise<{ key: string }>;
 type SearchParams = Promise<{ page?: string; quote?: string }>;
@@ -66,6 +66,18 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
       {viewer && !p.deleted && p.body != null && (
         <QuoteButton author={p.author} body={p.body}
           fallbackHref={`${threadPath(thread.id, thread.slug)}?page=${totalPages}&quote=${p.id}#composer`} />
+      )}
+      {viewer && !p.deleted && p.authorId !== viewer.id && (
+        <details className="inline-block">
+          <summary className="cursor-pointer text-muted hover:underline">Report</summary>
+          <form action={reportAction} className="mt-1 flex items-center gap-2">
+            <input type="hidden" name="postId" value={p.id} />
+            <input type="hidden" name="back" value={backPath} />
+            <input name="reason" required minLength={3} maxLength={500} placeholder="What's wrong?"
+              className="border border-line bg-transparent px-2 py-0.5 text-xs" />
+            <button type="submit" className="border border-line px-2 py-0.5 text-xs">Send</button>
+          </form>
+        </details>
       )}
     </>
   );

@@ -231,4 +231,16 @@ export const forumReadMarkers = pgTable("forum_read_markers", {
   pk: primaryKey({ columns: [t.userId, t.threadId] }),
 }));
 
+// Member-filed reports on a post, queued for admin review. See
+// lib/forum/mutations.ts#reportPost / #resolveReport.
+export const forumReports = pgTable("forum_reports", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  postId: integer("post_id").notNull().references(() => forumPosts.id),
+  reporterId: integer("reporter_id").notNull().references(() => users.id),
+  reason: text("reason").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  resolvedById: integer("resolved_by_id").references(() => users.id),
+});
+
 export type AppDb = PgDatabase<any, Record<string, never>, any>;

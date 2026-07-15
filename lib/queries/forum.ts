@@ -216,3 +216,26 @@ export async function getOnlineMembers(): Promise<string[]> {
   `));
   return rows.map((r) => str(r.username));
 }
+
+export async function getOpenReports(): Promise<{
+  id: number; reason: string; at: string; reporter: string; postId: number;
+  postAuthor: string; postExcerpt: string; threadId: number; threadSlug: string; threadTitle: string;
+}[]> {
+  const rows = allRows(await db.execute(sql`
+    select rep.id, rep.reason, to_char(rep.created_at at time zone 'UTC', 'YYYY-MM-DD HH24:MI') as at,
+           ru.username as reporter, p.id as post_id, pu.username as post_author,
+           left(p.body, 300) as post_excerpt, t.id as thread_id, t.slug as thread_slug, t.title as thread_title
+    from forum_reports rep
+    join users ru on ru.id = rep.reporter_id
+    join forum_posts p on p.id = rep.post_id
+    join users pu on pu.id = p.author_id
+    join forum_threads t on t.id = p.thread_id
+    where rep.resolved_at is null
+    order by rep.id asc
+  `));
+  return rows.map((r) => ({
+    id: num(r.id), reason: str(r.reason), at: str(r.at), reporter: str(r.reporter),
+    postId: num(r.post_id), postAuthor: str(r.post_author), postExcerpt: str(r.post_excerpt),
+    threadId: num(r.thread_id), threadSlug: str(r.thread_slug), threadTitle: str(r.thread_title),
+  }));
+}
