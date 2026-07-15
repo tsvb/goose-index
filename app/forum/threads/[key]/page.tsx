@@ -46,7 +46,8 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
           ]} />
           <h1>{thread.pinned && "📌 "}{thread.locked && "🔒 "}{thread.title}</h1>
           <UserStrip />
-          <JsonLd data={forumThreadJsonLd(thread, posts)} />
+          {/* structured data describes the thread from its OP — only valid on page 1 */}
+          {page === 1 && <JsonLd data={forumThreadJsonLd(thread, posts)} />}
           {posts.map((p) => <PostCard key={p.id} post={p} experience={experience} />)}
           {pager}
         </Doc>
