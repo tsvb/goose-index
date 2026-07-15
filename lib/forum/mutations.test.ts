@@ -1,6 +1,6 @@
 import { describe, it, expect, afterAll, vi } from "vitest";
 import { makeTestDb } from "@/db/testing";
-import { forumBoards, forumThreads, forumPosts, users } from "@/db/schema";
+import { forumBoards, forumThreads, forumPosts, forumReactions, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import type { SessionUser } from "@/lib/auth/service";
 
@@ -143,5 +143,21 @@ describe("toggleReaction", () => {
     expect(rows).toHaveLength(0);
     await ctx.db.update(forumPosts).set({ deletedAt: new Date() }).where(eq(forumPosts.id, post.id));
     expect((await toggleReaction(fan, post.id, "like")).ok).toBe(false);    // deleted post
+  });
+
+  it("a duplicate add is idempotent (no PK-violation throw on double-submit)", async () => {
+    const { toggleReaction } = await import("./mutations");
+    const author = await makeUser("DupAuthor");
+    const fan = await makeUser("DupFan");
+    const board = await boardId("off-topic");
+    const t = await createThread(author, board, "Dup react", "op");
+    if (!t.ok) throw new Error("setup");
+    const [post] = await ctx.db.select().from(forumPosts).where(eq(forumPosts.threadId, t.value.threadId));
+    expect((await toggleReaction(fan, post.id, "like")).ok).toBe(true);
+    // Simulate a raced second insert of the same kind (marker still present):
+    await ctx.db.insert(forumReactions).values({ postId: post.id, userId: fan.id, kind: "like" })
+      .onConflictDoNothing({ target: [forumReactions.postId, forumReactions.userId] });
+    const rows = await ctx.db.select().from(forumReactions).where(eq(forumReactions.postId, post.id));
+    expect(rows).toHaveLength(1); // still exactly one
   });
 });

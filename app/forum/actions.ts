@@ -13,6 +13,12 @@ const str = (fd: FormData, k: string): string => {
 };
 const int = (fd: FormData, k: string): number => parseInt(str(fd, k), 10) || 0;
 
+/** Only same-origin forum paths are valid redirect targets — never an absolute URL. */
+function safeBack(fd: FormData, fallback = "/forum"): string {
+  const back = str(fd, "back");
+  return back.startsWith("/") && !back.startsWith("//") ? back : fallback;
+}
+
 export async function newThreadAction(_prev: ForumFormState, fd: FormData): Promise<ForumFormState> {
   const boardSlug = str(fd, "boardSlug");
   const user = await requireUser(`/forum/${boardSlug}/new`);
@@ -42,7 +48,7 @@ export async function editPostAction(_prev: ForumFormState, fd: FormData): Promi
 export async function reactAction(fd: FormData): Promise<void> {
   const postId = int(fd, "postId");
   const kind = str(fd, "kind") === "honk" ? "honk" as const : "like" as const;
-  const back = str(fd, "back") || "/forum";
+  const back = safeBack(fd);
   const user = await requireUser(back);
   await toggleReaction(user, postId, kind); // low-stakes: failures just fall through to the redirect
   revalidatePath(back);

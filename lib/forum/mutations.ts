@@ -127,7 +127,8 @@ export async function toggleReaction(
     await db.update(forumReactions).set({ kind })
       .where(sql`${forumReactions.postId} = ${postId} and ${forumReactions.userId} = ${user.id}`);
   } else {
-    await db.insert(forumReactions).values({ postId, userId: user.id, kind });
+    await db.insert(forumReactions).values({ postId, userId: user.id, kind })
+      .onConflictDoNothing({ target: [forumReactions.postId, forumReactions.userId] });
   }
   return { ok: true, value: null };
 }
