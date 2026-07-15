@@ -3,6 +3,7 @@ import { users, sessions, loginTokens } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { newToken, hashToken } from "./crypto";
 import { validateUsername, validateEmail } from "./validate";
+import { SIGNATURE_MAX } from "@/lib/forum/constants";
 
 export const TOKEN_TTL_MS = 15 * 60_000;
 export const SESSION_TTL_MS = 90 * 24 * 3_600_000;
@@ -162,7 +163,7 @@ export async function deleteSession(rawToken: string): Promise<void> {
 
 export async function updateSignature(userId: number, raw: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const signature = raw.trim();
-  if (signature.length > 200) return { ok: false, error: "Signatures max out at 200 characters." };
+  if (signature.length > SIGNATURE_MAX) return { ok: false, error: `Signatures max out at ${SIGNATURE_MAX} characters.` };
   await db.update(users).set({ signature: signature || null }).where(eq(users.id, userId));
   return { ok: true };
 }
