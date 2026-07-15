@@ -1,7 +1,7 @@
 import { describe, it, expect, afterAll, vi } from "vitest";
 import { makeTestDb } from "@/db/testing";
 import { forumBoards, forumThreads, forumPosts, forumReactions, users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { SessionUser } from "@/lib/auth/service";
 
 let _testDb: Awaited<ReturnType<typeof makeTestDb>>["db"] | null = null;
@@ -36,6 +36,13 @@ async function makeUser(name: string, opts: { banned?: boolean; role?: "member" 
 }
 const boardId = async (slug: string) =>
   (await ctx.db.select({ id: forumBoards.id }).from(forumBoards).where(eq(forumBoards.slug, slug)))[0].id;
+/** Backdate the user's newest post so the postGate interval throttle doesn't trip between seed calls. */
+async function coolDown(userId: number, seconds = 65) {
+  await ctx.db.execute(sql`
+    update forum_posts set created_at = now() - interval '1 second' * ${seconds}
+    where id = (select max(id) from forum_posts where author_id = ${userId})
+  `);
+}
 
 describe("createThread", () => {
   it("creates thread + first post and maintains every counter", async () => {
@@ -77,10 +84,12 @@ describe("createPost", () => {
     const t = await createThread(tim, board, "Hello from Connecticut", "op");
     if (!t.ok) throw new Error("setup");
     for (let i = 0; i < POSTS_PER_PAGE - 1; i++) {
+      await coolDown(tim.id); // clear the interval throttle between back-to-back replies
       const r = await createPost(tim, t.value.threadId, `reply ${i}`);
       expect(r.ok).toBe(true);
       if (r.ok) expect(r.value.page).toBe(1); // posts 2..20 fill page 1
     }
+    await coolDown(tim.id);
     const overflow = await createPost(tim, t.value.threadId, "reply 20");
     expect(overflow.ok).toBe(true);
     if (overflow.ok) expect(overflow.value.page).toBe(2); // post 21 opens page 2
@@ -96,6 +105,7 @@ describe("createPost", () => {
     const t = await createThread(tim, board, "Lock me", "op");
     if (!t.ok) throw new Error("setup");
     await ctx.db.update(forumThreads).set({ locked: true }).where(eq(forumThreads.id, t.value.threadId));
+    await coolDown(tim.id); // so the rejection below is the lock, not the interval throttle
     expect((await createPost(tim, t.value.threadId, "no")).ok).toBe(false);
     expect((await createPost(admin, t.value.threadId, "yes")).ok).toBe(true);
   });

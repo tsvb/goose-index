@@ -6,6 +6,7 @@ import { after } from "next/server";
 import { requestSignup, requestLogin, verifyToken, deleteSession, requestEmailChange, updateSignature } from "@/lib/auth/service";
 import { sendMagicLink, authOrigin } from "@/lib/auth/email";
 import { setSessionCookie, clearSessionCookie, clientIp, SESSION_COOKIE, requireUser } from "@/lib/auth/session.server";
+import { checkFormStamp } from "@/lib/auth/formstamp";
 
 export type AuthFormState = { error?: string; sent?: boolean; usernameTaken?: boolean };
 
@@ -17,6 +18,9 @@ const str = (fd: FormData, k: string): string => {
 const verifyUrl = (token: string) => `${authOrigin()}/forum/verify?token=${token}`;
 
 export async function joinAction(_prev: AuthFormState, fd: FormData): Promise<AuthFormState> {
+  if (str(fd, "website") !== "" || !checkFormStamp(str(fd, "stamp"))) {
+    return { sent: true }; // silent drop — bots get the success page
+  }
   const r = await requestSignup(str(fd, "username"), str(fd, "email"), await clientIp());
   if (r.status === "error") return { error: r.error };
   // after(): the send happens post-response — no latency difference between account/no-account paths
@@ -64,7 +68,7 @@ export async function settingsAction(_prev: AuthFormState, fd: FormData): Promis
 
 export async function emailChangeAction(_prev: AuthFormState, fd: FormData): Promise<AuthFormState> {
   const user = await requireUser("/forum/settings");
-  const r = await requestEmailChange(user.id, str(fd, "email"));
+  const r = await requestEmailChange(user.id, str(fd, "email"), await clientIp());
   if (r.status === "error") return { error: r.error };
   after(() => sendMagicLink({ to: r.emailLower, url: verifyUrl(r.token), kind: "email-change" }));
   return { sent: true };

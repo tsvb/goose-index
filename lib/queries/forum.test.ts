@@ -1,7 +1,7 @@
 import { describe, it, expect, afterAll, vi, beforeAll } from "vitest";
 import { makeTestDb } from "@/db/testing";
 import { forumBoards, forumThreads, forumPosts, users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { SessionUser } from "@/lib/auth/service";
 
 let _testDb: Awaited<ReturnType<typeof makeTestDb>>["db"] | null = null;
@@ -26,6 +26,14 @@ let tim: SessionUser;
 let boardId = 0;
 let threadId = 0;
 
+/** Backdate the user's newest post so the postGate interval throttle doesn't trip between seed calls. */
+async function coolDown(userId: number, seconds = 65) {
+  await ctx.db.execute(sql`
+    update forum_posts set created_at = now() - interval '1 second' * ${seconds}
+    where id = (select max(id) from forum_posts where author_id = ${userId})
+  `);
+}
+
 beforeAll(async () => {
   const [u] = await ctx.db.insert(users).values({
     username: "Tim", usernameLower: "tim", emailLower: "tim@x.co", signature: "[i]honk[/i]",
@@ -36,7 +44,9 @@ beforeAll(async () => {
   const t = await createThread(tim, boardId, "First thread", "the [b]op[/b]");
   if (!t.ok) throw new Error("seed failed");
   threadId = t.value.threadId;
+  await coolDown(tim.id);
   await createPost(tim, threadId, "first reply");
+  await coolDown(tim.id);
   const t2 = await createThread(tim, boardId, "Pinned thread", "pin me");
   if (!t2.ok) throw new Error("seed failed");
   await ctx.db.update(forumThreads).set({ pinned: true }).where(eq(forumThreads.id, t2.value.threadId));

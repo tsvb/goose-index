@@ -121,7 +121,10 @@ describe("verifyToken — signup", () => {
 
 describe("sessions", () => {
   it("expired sessions are deleted and return null", async () => {
-    const r = await requestLogin("verify@x.co", null);
+    // Distinct email per test — the issuance limiter caps a single email at 3 tokens/hour,
+    // and "verify@x.co" already spent its budget in the describe block above.
+    await ctx.db.insert(users).values({ username: "Sess1", usernameLower: "sess1", emailLower: "sess1@x.co" });
+    const r = await requestLogin("sess1@x.co", null);
     if (r.status !== "sent") throw new Error("setup");
     const v = await verifyToken(r.token);
     if (v.status !== "ok") throw new Error("setup");
@@ -133,7 +136,8 @@ describe("sessions", () => {
   });
 
   it("old sessions slide forward on use", async () => {
-    const r = await requestLogin("verify@x.co", null);
+    await ctx.db.insert(users).values({ username: "Sess2", usernameLower: "sess2", emailLower: "sess2@x.co" });
+    const r = await requestLogin("sess2@x.co", null);
     if (r.status !== "sent") throw new Error("setup");
     const v = await verifyToken(r.token);
     if (v.status !== "ok") throw new Error("setup");
@@ -145,7 +149,8 @@ describe("sessions", () => {
   });
 
   it("deleteSession logs out", async () => {
-    const r = await requestLogin("verify@x.co", null);
+    await ctx.db.insert(users).values({ username: "Sess3", usernameLower: "sess3", emailLower: "sess3@x.co" });
+    const r = await requestLogin("sess3@x.co", null);
     if (r.status !== "sent") throw new Error("setup");
     const v = await verifyToken(r.token);
     if (v.status !== "ok") throw new Error("setup");
@@ -168,5 +173,19 @@ describe("updateSignature", () => {
     const [u] = await ctx.db.select({ id: users.id }).from(users);
     const r = await (await import("./service")).updateSignature(u.id, "x".repeat(201));
     expect(r.ok).toBe(false);
+  });
+});
+
+describe("issuance rate limits", () => {
+  it("caps links per email at 3/hour", async () => {
+    await ctx.db.insert(users).values({
+      username: "Limited", usernameLower: "limited", emailLower: "limited@x.co",
+    });
+    for (let i = 0; i < 3; i++) {
+      const r = await requestLogin("limited@x.co", "9.9.9.9");
+      expect(r.status).toBe("sent");
+    }
+    const fourth = await requestLogin("limited@x.co", "9.9.9.9");
+    expect(fourth.status).toBe("error");
   });
 });

@@ -3,6 +3,7 @@ import { forumBoards, forumPosts, forumReactions, forumReadMarkers, forumReports
 import { eq, sql } from "drizzle-orm";
 import { threadSlug } from "./slugs";
 import { TITLE_MIN, TITLE_MAX, BODY_MAX, POSTS_PER_PAGE } from "./constants";
+import { postGate, threadGate } from "./throttle";
 import type { SessionUser } from "@/lib/auth/service";
 
 export type MutationResult<T> = { ok: true; value: T } | { ok: false; error: string };
@@ -38,6 +39,10 @@ export async function createThread(
   }
   const b = cleanBody(bodyRaw);
   if (!b.ok) return fail(b.error);
+  const tg = await threadGate(user);
+  if (!tg.ok) return fail(tg.error);
+  const pg = await postGate(user, b.body);
+  if (!pg.ok) return fail(pg.error);
   const [board] = await db.select({ id: forumBoards.id }).from(forumBoards).where(eq(forumBoards.id, boardId));
   if (!board) return fail("That board doesn't exist.");
 
@@ -66,6 +71,8 @@ export async function createPost(
   if (ban) return fail(ban);
   const b = cleanBody(bodyRaw);
   if (!b.ok) return fail(b.error);
+  const pg = await postGate(user, b.body);
+  if (!pg.ok) return fail(pg.error);
   const [thread] = await db.select({
     id: forumThreads.id, slug: forumThreads.slug, locked: forumThreads.locked, boardId: forumThreads.boardId,
   }).from(forumThreads).where(eq(forumThreads.id, threadId));

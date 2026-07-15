@@ -6,10 +6,17 @@ const stub: AuthAction = async () => ({});
 
 describe("auth forms", () => {
   it("JoinForm renders username + email inputs with old-school constraints", () => {
-    const html = renderToStaticMarkup(<JoinForm action={stub} />);
+    const html = renderToStaticMarkup(<JoinForm action={stub} stamp="1.abc" />);
     expect(html).toContain('name="username"');
     expect(html).toContain('name="email"');
     expect(html).toContain('pattern="[A-Za-z0-9_-]+"');
+  });
+  it("JoinForm carries a hidden stamp and a visually hidden honeypot field", () => {
+    const html = renderToStaticMarkup(<JoinForm action={stub} stamp="1.abc" />);
+    expect(html).toContain('name="stamp"');
+    expect(html).toContain('value="1.abc"');
+    expect(html).toContain('name="website"');
+    expect(html).toContain('tabindex="-1"');
   });
   it("LoginForm renders only an email input", () => {
     const html = renderToStaticMarkup(<LoginForm action={stub} />);

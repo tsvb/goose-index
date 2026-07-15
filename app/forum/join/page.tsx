@@ -5,6 +5,7 @@ import { Doc, Breadcrumb } from "@/app/_components/doc";
 import { getExperience } from "@/lib/experience.server";
 import { JoinForm } from "../_components/forms";
 import { joinAction } from "../auth-actions";
+import { issueFormStamp } from "@/lib/auth/formstamp";
 
 export const metadata: Metadata = { title: "Join the forum", robots: { index: false } };
 
@@ -13,7 +14,7 @@ export default async function JoinPage() {
   const body = (
     <>
       <p className="mt-2 text-sm text-muted">Pick a username, get a magic link — no password, ever.</p>
-      <div className="mt-6"><JoinForm action={joinAction} /></div>
+      <div className="mt-6"><JoinForm action={joinAction} stamp={issueFormStamp()} /></div>
       <p className="mt-6 text-sm">Already a member? <Link className="underline" href="/forum/login">Log in</Link></p>
     </>
   );

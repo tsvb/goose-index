@@ -8,7 +8,7 @@ export type AuthAction = (prev: AuthFormState, fd: FormData) => Promise<AuthForm
 const field = "border border-line bg-transparent px-2 py-1";
 const btn = "border border-line px-3 py-1 hover:border-line-soft";
 
-export function JoinForm({ action }: { action: AuthAction }) {
+export function JoinForm({ action, stamp }: { action: AuthAction; stamp: string }) {
   const [state, formAction] = useActionState(action, {} as AuthFormState);
   if (state.sent) {
     return <p>Check your email — we sent a link to finish joining. It works once and expires in 15 minutes.</p>;
@@ -22,6 +22,10 @@ export function JoinForm({ action }: { action: AuthAction }) {
       <label className="flex flex-col gap-1">Email
         <input name="email" type="email" required className={field} />
       </label>
+      <input type="hidden" name="stamp" value={stamp} />
+      <div aria-hidden="true" className="absolute -left-[9999px] top-auto h-px w-px overflow-hidden">
+        <label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label>
+      </div>
       {state.error && <p role="alert" className="text-red-600">{state.error}</p>}
       <button type="submit" className={btn}>Join the forum</button>
     </form>
