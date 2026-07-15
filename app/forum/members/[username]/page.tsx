@@ -6,6 +6,7 @@ import { Doc, Breadcrumb } from "@/app/_components/doc";
 import { getExperience } from "@/lib/experience.server";
 import { getMemberProfile } from "@/lib/queries/forum";
 import { BBCodeInline } from "@/lib/forum/bbcode-render";
+import { Avatar } from "@/lib/forum/avatar";
 import { threadPath } from "@/lib/forum/urls";
 
 type Params = Promise<{ username: string }>;
@@ -55,7 +56,10 @@ export default async function MemberPage({ params }: { params: Params }) {
       <Container className="py-8">
         <Doc>
           <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { href: "/forum", label: "Forum" }, { label: profile.username }]} />
-          <h1>{profile.username}</h1>
+          <div className="flex items-center gap-4">
+            <Avatar username={profile.username} size={64} />
+            <h1>{profile.username}</h1>
+          </div>
           {facts}
           {recent}
         </Doc>
@@ -64,7 +68,10 @@ export default async function MemberPage({ params }: { params: Params }) {
   }
   return (
     <Container className="py-10">
-      <h1 className={experience === "fancy" ? "font-display text-3xl tracking-tight" : "text-2xl font-bold"}>{profile.username}</h1>
+      <div className="flex items-center gap-4">
+        <Avatar username={profile.username} size={64} />
+        <h1 className={experience === "fancy" ? "font-display text-3xl tracking-tight" : "text-2xl font-bold"}>{profile.username}</h1>
+      </div>
       {facts}
       {recent}
     </Container>

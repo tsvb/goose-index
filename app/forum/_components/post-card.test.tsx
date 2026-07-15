@@ -31,6 +31,18 @@ describe("PostCard", () => {
     expect(html).toContain("Removed by a moderator");
     expect(html).toContain("<strong>world</strong>");
   });
+  it("renders the author's signature under the body", () => {
+    const html = renderToStaticMarkup(
+      <PostCard post={{ ...post, authorSignature: "[i]we honk[/i]" }} experience="fancy" />,
+    );
+    expect(html).toContain("<em>we honk</em>");
+  });
+  it("suppresses the signature when showSignature is false", () => {
+    const html = renderToStaticMarkup(
+      <PostCard post={{ ...post, authorSignature: "[i]we honk[/i]" }} experience="minimal" showSignature={false} />,
+    );
+    expect(html).not.toContain("we honk");
+  });
 });
 
 const reacted = { ...post, reactions: { like: 3, honk: 1, mine: "like" as const } };

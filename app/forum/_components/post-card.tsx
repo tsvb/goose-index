@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { PostView } from "@/lib/queries/forum";
 import type { Experience } from "@/lib/experience";
-import { BBCodeBody } from "@/lib/forum/bbcode-render";
+import { BBCodeBody, BBCodeInline } from "@/lib/forum/bbcode-render";
+import { Avatar } from "@/lib/forum/avatar";
 import { clsx } from "@/app/_components/clsx";
 import { reactAction } from "../actions";
 
@@ -20,7 +21,7 @@ function Body({ post }: { post: PostView }) {
   );
 }
 
-export function PostCard({ post, experience, controls }: { post: PostView; experience: Experience; controls?: ReactNode }) {
+export function PostCard({ post, experience, controls, showSignature = true }: { post: PostView; experience: Experience; controls?: ReactNode; showSignature?: boolean }) {
   const meta = `${post.at}${post.editedAt ? ` · edited ${post.editedAt}` : ""}`;
   if (experience === "minimal") {
     return (
@@ -29,6 +30,11 @@ export function PostCard({ post, experience, controls }: { post: PostView; exper
           <Link href={`/forum/members/${post.author}`} className="underline">{post.author}</Link> · {meta}
         </p>
         <Body post={post} />
+        {showSignature && !post.deleted && post.authorSignature && (
+          <div className="mt-3 border-t border-line pt-2 text-xs text-muted">
+            <BBCodeInline source={post.authorSignature} />
+          </div>
+        )}
         {controls}
         <hr />
       </article>
@@ -39,6 +45,7 @@ export function PostCard({ post, experience, controls }: { post: PostView; exper
     <article id={`post-${post.id}`}
       className={clsx("flex flex-col gap-3 border border-line p-4 sm:flex-row", fancy && "surface-card rounded-lg")}>
       <aside className="w-full shrink-0 text-xs text-muted sm:w-36">
+        <div className="mb-2"><Avatar username={post.author} /></div>
         <Link href={`/forum/members/${post.author}`} className="font-medium text-ink hover:underline">{post.author}</Link>
         <p className="mt-1 font-mono">joined {post.authorJoined}</p>
         <p className="font-mono">{post.authorPostCount} posts</p>
@@ -46,6 +53,11 @@ export function PostCard({ post, experience, controls }: { post: PostView; exper
       <div className="min-w-0 flex-1 text-sm">
         <p className="font-mono text-[0.65rem] text-faint">#{post.id} · {meta}</p>
         <div className="mt-2"><Body post={post} /></div>
+        {showSignature && !post.deleted && post.authorSignature && (
+          <div className="mt-3 border-t border-line pt-2 text-xs text-muted">
+            <BBCodeInline source={post.authorSignature} />
+          </div>
+        )}
         {controls && <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">{controls}</div>}
       </div>
     </article>

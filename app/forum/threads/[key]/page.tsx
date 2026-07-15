@@ -79,6 +79,12 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
   );
 
   if (experience === "minimal") {
+    const seenAuthors = new Set<number>();
+    const showSig = (p: (typeof posts)[number]) => {
+      if (seenAuthors.has(p.authorId)) return false;
+      seenAuthors.add(p.authorId);
+      return true;
+    };
     return (
       <Container className="py-8">
         <Doc>
@@ -90,7 +96,7 @@ export default async function ThreadPage({ params, searchParams }: { params: Par
           <UserStrip />
           {/* structured data describes the thread from its OP — only valid on page 1 */}
           {page === 1 && <JsonLd data={forumThreadJsonLd(thread, posts)} />}
-          {posts.map((p) => <PostCard key={p.id} post={p} experience={experience} controls={controlsFor(p)} />)}
+          {posts.map((p) => <PostCard key={p.id} post={p} experience={experience} controls={controlsFor(p)} showSignature={showSig(p)} />)}
           {composer}
           {pager}
         </Doc>
