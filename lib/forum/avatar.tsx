@@ -16,7 +16,7 @@ export function Avatar({ username, size = 40 }: { username: string; size?: numbe
   const fill = PALETTE[h % PALETTE.length];
   const cells: boolean[] = Array.from({ length: 15 }, (_, i) => ((h >> (i * 2)) & 3) > 1);
   return (
-    <svg width={size} height={size} viewBox="0 0 5 5" role="img" aria-label={`${normalized} avatar`}
+    <svg width={size} height={size} viewBox="0 0 5 5" role="img" aria-label={`${username} avatar`}
       className="rounded-sm border border-line">
       {Array.from({ length: 5 }, (_, y) =>
         Array.from({ length: 5 }, (_, x) => {

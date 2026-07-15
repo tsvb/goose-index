@@ -2,15 +2,18 @@ import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Avatar } from "./avatar";
 
+const visual = (html: string) => html.replace(/aria-label="[^"]*"/, ""); // compare pixels + color, ignore label
+
 describe("Avatar", () => {
-  it("is deterministic for a username, case-insensitively", () => {
+  it("is visually deterministic for a username, case-insensitively", () => {
     const a = renderToStaticMarkup(<Avatar username="HonkFan" />);
-    expect(renderToStaticMarkup(<Avatar username="honkfan" />)).toBe(a);
+    const b = renderToStaticMarkup(<Avatar username="honkfan" />);
+    expect(visual(a)).toBe(visual(b)); // same pixels + color regardless of case
+    expect(a).toContain('aria-label="HonkFan avatar"'); // label keeps display case
     expect(a).toContain("<svg");
-    expect(a).toContain('aria-label="honkfan avatar"'); // label normalized to lowercase for determinism
   });
   it("differs between usernames", () => {
-    expect(renderToStaticMarkup(<Avatar username="alpha" />))
-      .not.toBe(renderToStaticMarkup(<Avatar username="omega" />));
+    expect(visual(renderToStaticMarkup(<Avatar username="alpha" />)))
+      .not.toBe(visual(renderToStaticMarkup(<Avatar username="omega" />)));
   });
 });
