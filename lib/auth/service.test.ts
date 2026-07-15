@@ -186,6 +186,20 @@ describe("issuance rate limits", () => {
       expect(r.status).toBe("sent");
     }
     const fourth = await requestLogin("limited@x.co", "9.9.9.9");
-    expect(fourth.status).toBe("error");
+    // Rate-limited login must be indistinguishable from an unknown email (enumeration-safe),
+    // not a visible "error" state — see the enumeration-safety test below.
+    expect(fourth.status).toBe("silent");
+  });
+
+  it("login rate-limit is enumeration-safe: throttled real email looks identical to unknown", async () => {
+    await ctx.db.insert(users).values({ username: "RealUser", usernameLower: "realuser", emailLower: "realuser@x.co" });
+    const outcomes: string[] = [];
+    for (let i = 0; i < 5; i++) outcomes.push((await requestLogin("realuser@x.co", "7.7.7.7")).status);
+    // first 3 send, then throttled — but throttled must read as "silent", never "error"
+    expect(outcomes.filter((s) => s === "error")).toHaveLength(0);
+    expect(outcomes).toContain("sent");
+    expect(outcomes).toContain("silent");
+    // an unknown email is also "silent" — indistinguishable
+    expect((await requestLogin("ghost-never@x.co", "7.7.7.7")).status).toBe("silent");
   });
 });

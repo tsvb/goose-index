@@ -87,7 +87,9 @@ export async function requestLogin(emailRaw: string, ip: string | null):
     const token = await issueToken({ purpose: "login", emailLower: ve.emailLower, userId: found[0].id, ip });
     return { status: "sent", token, emailLower: ve.emailLower };
   } catch (e) {
-    if (e instanceof RateLimitError) return { status: "error", error: RATE_LIMIT_MSG };
+    // A rate-limited real email must look identical to an unknown email (no token issued
+    // either way), or the distinct "error" state becomes an account-enumeration oracle.
+    if (e instanceof RateLimitError) return { status: "silent" };
     throw e;
   }
 }
