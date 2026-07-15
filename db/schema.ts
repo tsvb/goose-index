@@ -158,4 +158,55 @@ export const loginTokens = pgTable("login_tokens", {
   usedAt: timestamp("used_at", { withTimezone: true }),
 }, (t) => ({ emailIdx: index("login_tokens_email_idx").on(t.emailLower) }));
 
+// ---- Forum ----
+
+export const forumCategories = pgTable("forum_categories", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  title: text("title").notNull(),
+  position: integer("position").notNull(),
+});
+
+export const forumBoards = pgTable("forum_boards", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  categoryId: integer("category_id").notNull().references(() => forumCategories.id),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  position: integer("position").notNull(),
+  threadCount: integer("thread_count").notNull().default(0), // denormalized; verified by lib/verify
+  postCount: integer("post_count").notNull().default(0),
+  lastPostId: integer("last_post_id"),
+});
+
+export const forumThreads = pgTable("forum_threads", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  boardId: integer("board_id").notNull().references(() => forumBoards.id),
+  authorId: integer("author_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  slug: text("slug").notNull(),
+  pinned: boolean("pinned").notNull().default(false),
+  locked: boolean("locked").notNull().default(false),
+  replyCount: integer("reply_count").notNull().default(0), // posts - 1 (tombstones included)
+  lastPostId: integer("last_post_id"),
+  lastPostAt: timestamp("last_post_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  boardIdx: index("forum_threads_board_idx").on(t.boardId, t.pinned, t.lastPostAt),
+}));
+
+export const forumPosts = pgTable("forum_posts", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  threadId: integer("thread_id").notNull().references(() => forumThreads.id),
+  authorId: integer("author_id").notNull().references(() => users.id),
+  body: text("body").notNull(),               // raw BBCode source, ≤ BODY_MAX
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  editedAt: timestamp("edited_at", { withTimezone: true }),
+  editedById: integer("edited_by_id").references(() => users.id),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }), // soft delete → tombstone
+  deletedById: integer("deleted_by_id").references(() => users.id),
+}, (t) => ({
+  threadIdx: index("forum_posts_thread_idx").on(t.threadId, t.id),
+  authorIdx: index("forum_posts_author_idx").on(t.authorId, t.id),
+}));
+
 export type AppDb = PgDatabase<any, Record<string, never>, any>;
