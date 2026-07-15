@@ -61,3 +61,31 @@ export function VerifyForm({ action, token }: { action: AuthAction; token: strin
     </form>
   );
 }
+
+export function SettingsForm({ action, initialSignature }: { action: AuthAction; initialSignature: string }) {
+  const [state, formAction] = useActionState(action, {} as AuthFormState);
+  return (
+    <form action={formAction} className="flex max-w-md flex-col gap-3 text-sm">
+      <label className="flex flex-col gap-1">Signature — shown under your posts ([b], [i], [url] allowed)
+        <textarea name="signature" maxLength={200} rows={3} defaultValue={initialSignature} className={field} />
+      </label>
+      {state.error && <p role="alert" className="text-red-600">{state.error}</p>}
+      {state.sent && <p>Saved.</p>}
+      <button type="submit" className={btn}>Save signature</button>
+    </form>
+  );
+}
+
+export function EmailChangeForm({ action }: { action: AuthAction }) {
+  const [state, formAction] = useActionState(action, {} as AuthFormState);
+  if (state.sent) return <p>Confirmation link sent to the new address. It works once and expires in 15 minutes.</p>;
+  return (
+    <form action={formAction} className="flex max-w-md flex-col gap-3 text-sm">
+      <label className="flex flex-col gap-1">New email — we&apos;ll send a confirmation link before anything changes
+        <input name="email" type="email" required className={field} />
+      </label>
+      {state.error && <p role="alert" className="text-red-600">{state.error}</p>}
+      <button type="submit" className={btn}>Change email</button>
+    </form>
+  );
+}

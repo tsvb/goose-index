@@ -159,3 +159,10 @@ export async function getSessionUser(rawToken: string): Promise<SessionUser | nu
 export async function deleteSession(rawToken: string): Promise<void> {
   await db.delete(sessions).where(eq(sessions.tokenHash, hashToken(rawToken)));
 }
+
+export async function updateSignature(userId: number, raw: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const signature = raw.trim();
+  if (signature.length > 200) return { ok: false, error: "Signatures max out at 200 characters." };
+  await db.update(users).set({ signature: signature || null }).where(eq(users.id, userId));
+  return { ok: true };
+}

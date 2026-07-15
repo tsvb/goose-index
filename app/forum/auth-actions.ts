@@ -3,9 +3,9 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { after } from "next/server";
-import { requestSignup, requestLogin, verifyToken, deleteSession } from "@/lib/auth/service";
+import { requestSignup, requestLogin, verifyToken, deleteSession, requestEmailChange, updateSignature } from "@/lib/auth/service";
 import { sendMagicLink, authOrigin } from "@/lib/auth/email";
-import { setSessionCookie, clearSessionCookie, clientIp, SESSION_COOKIE } from "@/lib/auth/session.server";
+import { setSessionCookie, clearSessionCookie, clientIp, SESSION_COOKIE, requireUser } from "@/lib/auth/session.server";
 
 export type AuthFormState = { error?: string; sent?: boolean; usernameTaken?: boolean };
 
@@ -53,4 +53,19 @@ export async function logoutAction(): Promise<void> {
   if (token) await deleteSession(token);
   await clearSessionCookie();
   redirect("/forum");
+}
+
+export async function settingsAction(_prev: AuthFormState, fd: FormData): Promise<AuthFormState> {
+  const user = await requireUser("/forum/settings");
+  const r = await updateSignature(user.id, str(fd, "signature"));
+  if (!r.ok) return { error: r.error };
+  return { sent: true }; // rendered as "Saved."
+}
+
+export async function emailChangeAction(_prev: AuthFormState, fd: FormData): Promise<AuthFormState> {
+  const user = await requireUser("/forum/settings");
+  const r = await requestEmailChange(user.id, str(fd, "email"));
+  if (r.status === "error") return { error: r.error };
+  after(() => sendMagicLink({ to: r.emailLower, url: verifyUrl(r.token), kind: "email-change" }));
+  return { sent: true };
 }

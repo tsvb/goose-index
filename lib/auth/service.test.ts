@@ -153,3 +153,20 @@ describe("sessions", () => {
     expect(await getSessionUser(v.sessionToken)).toBeNull();
   });
 });
+
+describe("updateSignature", () => {
+  it("saves a trimmed signature and clears an empty one", async () => {
+    const [u] = await ctx.db.select({ id: users.id }).from(users);
+    expect(await (await import("./service")).updateSignature(u.id, "  We honk at dawn  ")).toEqual({ ok: true });
+    let [row] = await ctx.db.select({ signature: users.signature }).from(users).where(eq(users.id, u.id));
+    expect(row.signature).toBe("We honk at dawn");
+    await (await import("./service")).updateSignature(u.id, "   ");
+    [row] = await ctx.db.select({ signature: users.signature }).from(users).where(eq(users.id, u.id));
+    expect(row.signature).toBeNull();
+  });
+  it("rejects signatures over 200 chars", async () => {
+    const [u] = await ctx.db.select({ id: users.id }).from(users);
+    const r = await (await import("./service")).updateSignature(u.id, "x".repeat(201));
+    expect(r.ok).toBe(false);
+  });
+});
