@@ -99,6 +99,12 @@ describe("getThread + getPosts", () => {
     expect(admin[1].body).toBe("first reply");
     await ctx.db.update(forumPosts).set({ deletedAt: null }).where(eq(forumPosts.id, posts[1].id));
   });
+  it("tolerates garbage page numbers instead of throwing", async () => {
+    await expect(getThreadRows(boardId, NaN)).resolves.toBeDefined();
+    await expect(getPosts(threadId, 2.5)).resolves.toBeDefined();
+    const page1 = await getPosts(threadId, 1);
+    expect(await getPosts(threadId, 0)).toEqual(page1); // clamps up to 1
+  });
 });
 
 describe("getMemberProfile", () => {

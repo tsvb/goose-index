@@ -10,6 +10,8 @@ const num = (v: unknown): number => Number(v ?? 0);
 const str = (v: unknown): string => String(v ?? "");
 const strOrNull = (v: unknown): string | null => (v == null ? null : String(v));
 const bool = (v: unknown): boolean => v === true || v === "t";
+/** User-supplied page numbers arrive as anything; queries only accept whole pages ≥ 1. */
+const cleanPage = (page: number): number => (Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1);
 
 export type BoardLastPost = { threadId: number; threadSlug: string; threadTitle: string; author: string; at: string };
 export type BoardSummary = { id: number; slug: string; title: string; description: string; threadCount: number; postCount: number; lastPost: BoardLastPost | null };
@@ -63,7 +65,7 @@ export async function getBoard(slug: string): Promise<BoardInfo | null> {
 }
 
 export async function getThreadRows(boardId: number, page: number): Promise<ThreadRow[]> {
-  const offset = (Math.max(1, page) - 1) * THREADS_PER_PAGE;
+  const offset = (cleanPage(page) - 1) * THREADS_PER_PAGE;
   const rows = allRows(await db.execute(sql`
     select t.id, t.slug, t.title, t.reply_count, t.pinned, t.locked,
            a.username as author, lu.username as last_post_author,
@@ -103,7 +105,7 @@ export async function getThread(id: number): Promise<ThreadInfo | null> {
 export async function getPosts(
   threadId: number, page: number, opts: { includeDeletedBodies?: boolean } = {},
 ): Promise<PostView[]> {
-  const offset = (Math.max(1, page) - 1) * POSTS_PER_PAGE;
+  const offset = (cleanPage(page) - 1) * POSTS_PER_PAGE;
   const rows = allRows(await db.execute(sql`
     select p.id, p.author_id, p.body, p.deleted_at,
            to_char(p.created_at at time zone 'UTC', 'YYYY-MM-DD HH24:MI') as at,
