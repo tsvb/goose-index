@@ -119,6 +119,18 @@ describe("verifyToken — signup", () => {
   });
 });
 
+describe("verifyToken — email-change race", () => {
+  it("returns invalid (not a throw) when the new email got taken before the link was confirmed", async () => {
+    await ctx.db.insert(users).values({ username: "Changer", usernameLower: "changer", emailLower: "changer@x.co" });
+    const [u] = await ctx.db.select({ id: users.id }).from(users).where(eq(users.usernameLower, "changer"));
+    const r = await requestEmailChange(u.id, "sniped-email@x.co");
+    if (r.status !== "sent") throw new Error("setup");
+    // Someone else claims the target email address after the token was issued but before it's confirmed.
+    await ctx.db.insert(users).values({ username: "Sniper", usernameLower: "sniper", emailLower: "sniped-email@x.co" });
+    await expect(verifyToken(r.token)).resolves.toEqual({ status: "invalid" });
+  });
+});
+
 describe("sessions", () => {
   it("expired sessions are deleted and return null", async () => {
     // Distinct email per test — the issuance limiter caps a single email at 3 tokens/hour,

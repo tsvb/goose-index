@@ -9,7 +9,7 @@ import type { SessionUser } from "@/lib/auth/service";
 export type MutationResult<T> = { ok: true; value: T } | { ok: false; error: string };
 const fail = (error: string): { ok: false; error: string } => ({ ok: false, error });
 
-function bannedError(user: SessionUser): string | null {
+export function bannedError(user: SessionUser): string | null {
   if (!user.bannedAt) return null;
   return user.bannedReason ? `You're banned from posting: ${user.bannedReason}` : "You're banned from posting.";
 }

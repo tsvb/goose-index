@@ -7,6 +7,7 @@ import { requestSignup, requestLogin, verifyToken, deleteSession, requestEmailCh
 import { sendMagicLink, authOrigin } from "@/lib/auth/email";
 import { setSessionCookie, clearSessionCookie, clientIp, SESSION_COOKIE, requireUser } from "@/lib/auth/session.server";
 import { checkFormStamp } from "@/lib/auth/formstamp";
+import { bannedError } from "@/lib/forum/mutations";
 
 export type AuthFormState = { error?: string; sent?: boolean; usernameTaken?: boolean };
 
@@ -61,6 +62,8 @@ export async function logoutAction(): Promise<void> {
 
 export async function settingsAction(_prev: AuthFormState, fd: FormData): Promise<AuthFormState> {
   const user = await requireUser("/forum/settings");
+  const ban = bannedError(user);
+  if (ban) return { error: ban };
   const r = await updateSignature(user.id, str(fd, "signature"));
   if (!r.ok) return { error: r.error };
   return { sent: true }; // rendered as "Saved."
@@ -68,6 +71,8 @@ export async function settingsAction(_prev: AuthFormState, fd: FormData): Promis
 
 export async function emailChangeAction(_prev: AuthFormState, fd: FormData): Promise<AuthFormState> {
   const user = await requireUser("/forum/settings");
+  const ban = bannedError(user);
+  if (ban) return { error: ban };
   const r = await requestEmailChange(user.id, str(fd, "email"), await clientIp());
   if (r.status === "error") return { error: r.error };
   after(() => sendMagicLink({ to: r.emailLower, url: verifyUrl(r.token), kind: "email-change" }));

@@ -151,7 +151,12 @@ export async function verifyToken(rawToken: string, usernameOverride?: string): 
   } else {
     if (!t.userId) return { status: "invalid" };
     if (t.purpose === "email-change") {
-      await db.update(users).set({ emailLower: t.emailLower }).where(eq(users.id, t.userId));
+      try {
+        await db.update(users).set({ emailLower: t.emailLower }).where(eq(users.id, t.userId));
+      } catch (e) {
+        if (isUniqueViolation(e)) return { status: "invalid" }; // email got taken between issue and confirm
+        throw e;
+      }
     }
     const [u] = await db.select({ id: users.id, username: users.username }).from(users).where(eq(users.id, t.userId));
     if (!u) return { status: "invalid" };
