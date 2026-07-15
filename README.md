@@ -175,7 +175,7 @@ Two things worth knowing up front:
 | **1** | Shows & discovery — setlists, search, On This Day, upcoming | done |
 | **2** | Songs & stats — per-song pages, song index, `/stats` cuts | done |
 | **3** | Jam & set-flow analytics — segue lines, jam density by night and venue, the shelf | Oracle ships the first cut; era-aware analysis still open |
-| **F** | **The Forum** — XenForo-style boards, magic-link accounts, BBCode, reactions, moderation | ✅ done |
+| **F** | **The Forum** — XenForo-style boards, magic-link accounts, BBCode, reactions, moderation | done |
 | 4 | Fan tracking — shows I've seen, personal stats, song life-list | planned |
 
 Design specs per phase: [`docs/superpowers/specs/`](docs/superpowers/specs/).
