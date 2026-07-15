@@ -16,10 +16,12 @@ const str = (fd: FormData, k: string): string => {
 };
 const int = (fd: FormData, k: string): number => parseInt(str(fd, k), 10) || 0;
 
-/** Only same-origin forum paths are valid redirect targets — never an absolute URL. */
-function safeBack(fd: FormData, fallback = "/forum"): string {
+/** Only same-origin forum paths are valid redirect targets: a leading "/" not
+ *  followed by "/" or "\" (which browsers can normalize into a protocol-relative
+ *  off-site URL). Everything else falls back to /forum. Exported for testing. */
+export function safeBack(fd: FormData, fallback = "/forum"): string {
   const back = str(fd, "back");
-  return back.startsWith("/") && !back.startsWith("//") ? back : fallback;
+  return /^\/(?![/\\])/.test(back) ? back : fallback;
 }
 
 export async function newThreadAction(_prev: ForumFormState, fd: FormData): Promise<ForumFormState> {
