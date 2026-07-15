@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { after } from "next/server";
 import { requestSignup, requestLogin, verifyToken, deleteSession } from "@/lib/auth/service";
 import { sendMagicLink, authOrigin } from "@/lib/auth/email";
 import { setSessionCookie, clearSessionCookie, clientIp, SESSION_COOKIE } from "@/lib/auth/session.server";
@@ -18,14 +19,18 @@ const verifyUrl = (token: string) => `${authOrigin()}/forum/verify?token=${token
 export async function joinAction(_prev: AuthFormState, fd: FormData): Promise<AuthFormState> {
   const r = await requestSignup(str(fd, "username"), str(fd, "email"), await clientIp());
   if (r.status === "error") return { error: r.error };
-  await sendMagicLink({ to: r.emailLower, url: verifyUrl(r.token), kind: r.kind });
+  // after(): the send happens post-response — no latency difference between account/no-account paths
+  after(() => sendMagicLink({ to: r.emailLower, url: verifyUrl(r.token), kind: r.kind }));
   return { sent: true };
 }
 
 export async function loginAction(_prev: AuthFormState, fd: FormData): Promise<AuthFormState> {
   const r = await requestLogin(str(fd, "email"), await clientIp());
   if (r.status === "error") return { error: r.error };
-  if (r.status === "sent") await sendMagicLink({ to: r.emailLower, url: verifyUrl(r.token), kind: "login" });
+  if (r.status === "sent") {
+    const { token, emailLower } = r;
+    after(() => sendMagicLink({ to: emailLower, url: verifyUrl(token), kind: "login" }));
+  }
   return { sent: true }; // "silent" renders identically — no account enumeration
 }
 
