@@ -119,4 +119,43 @@ export const liveSyncState = pgTable("live_sync_state", {
   lastSummary: text("last_summary"),
 });
 
+// ---- Identity (site-level: the forum uses it now; Phase 4 fan-tracking will too) ----
+
+export const users = pgTable("users", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  username: text("username").notNull(),               // display case
+  usernameLower: text("username_lower").notNull().unique(),
+  emailLower: text("email_lower").notNull().unique(), // the only PII we hold
+  role: text("role").notNull().default("member"),     // member | admin
+  signature: text("signature"),
+  postCount: integer("post_count").notNull().default(0), // denormalized; verified by lib/verify
+  joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+  markAllReadAt: timestamp("mark_all_read_at", { withTimezone: true }),
+  bannedAt: timestamp("banned_at", { withTimezone: true }),
+  bannedReason: text("banned_reason"),
+});
+
+// Stored hashed (sha256 of the cookie token) — a DB leak exposes no usable session.
+export const sessions = pgTable("sessions", {
+  tokenHash: text("token_hash").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+}, (t) => ({ userIdx: index("sessions_user_idx").on(t.userId) }));
+
+// Magic-link tokens, also stored hashed; single-use, 15-minute expiry.
+export const loginTokens = pgTable("login_tokens", {
+  tokenHash: text("token_hash").primaryKey(),
+  purpose: text("purpose").notNull(),      // signup | login | email-change
+  emailLower: text("email_lower").notNull(),
+  username: text("username"),              // signup: the requested display username
+  userId: integer("user_id").references(() => users.id), // login / email-change
+  ip: text("ip"),                          // for issuance rate limits (enforced in Phase D)
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+}, (t) => ({ emailIdx: index("login_tokens_email_idx").on(t.emailLower) }));
+
 export type AppDb = PgDatabase<any, Record<string, never>, any>;
