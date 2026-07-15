@@ -167,3 +167,16 @@ describe("unread", () => {
     expect(await firstUnread(threadId, reader.id)).toBeNull();
   });
 });
+
+describe("getOnlineMembers", () => {
+  it("lists members seen in the last 15 minutes", async () => {
+    const { getOnlineMembers } = await import("./forum");
+    await ctx.db.insert(users).values([
+      { username: "Here", usernameLower: "here", emailLower: "here@x.co", lastSeenAt: new Date() },
+      { username: "Gone", usernameLower: "gone", emailLower: "gone@x.co", lastSeenAt: new Date(Date.now() - 16 * 60_000) },
+    ]);
+    const online = await getOnlineMembers();
+    expect(online).toContain("Here");
+    expect(online).not.toContain("Gone");
+  });
+});

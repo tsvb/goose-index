@@ -207,3 +207,12 @@ export async function getPostForEdit(postId: number): Promise<{
     authorId: num(r.author_id), author: str(r.author), body: str(r.body), deleted: r.deleted_at != null,
   };
 }
+
+export async function getOnlineMembers(): Promise<string[]> {
+  const rows = allRows(await db.execute(sql`
+    select username from users
+    where last_seen_at > now() - interval '15 minutes'
+    order by username asc
+  `));
+  return rows.map((r) => str(r.username));
+}

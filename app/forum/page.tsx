@@ -3,7 +3,7 @@ import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb } from "@/app/_components/doc";
 import { getExperience } from "@/lib/experience.server";
 import { currentUser } from "@/lib/auth/session.server";
-import { getBoardIndex } from "@/lib/queries/forum";
+import { getBoardIndex, getOnlineMembers } from "@/lib/queries/forum";
 import { BoardIndex } from "./_components/board-index";
 import { UserStrip } from "./_components/user-strip";
 import { markAllReadAction } from "./actions";
@@ -11,7 +11,7 @@ import { markAllReadAction } from "./actions";
 export const metadata: Metadata = { title: "Forum" };
 
 export default async function ForumPage() {
-  const [categories, experience, viewer] = await Promise.all([getBoardIndex(), getExperience(), currentUser()]);
+  const [categories, experience, viewer, online] = await Promise.all([getBoardIndex(), getExperience(), currentUser(), getOnlineMembers()]);
   const markAllRead = viewer && (
     <form action={markAllReadAction}>
       <button type="submit" className="text-xs text-muted underline">Mark forums read</button>
@@ -26,6 +26,10 @@ export default async function ForumPage() {
           <UserStrip />
           {markAllRead}
           <BoardIndex categories={categories} experience={experience} />
+          <p className="mt-8 border-t border-line pt-3 text-xs text-muted">
+            Members online in the last 15 minutes:{" "}
+            {online.length > 0 ? online.join(", ") : "none — quiet out there"} ({online.length})
+          </p>
         </Doc>
       </Container>
     );
@@ -40,6 +44,10 @@ export default async function ForumPage() {
         </div>
       </div>
       <div className="mt-8"><BoardIndex categories={categories} experience={experience} /></div>
+      <p className="mt-8 border-t border-line pt-3 text-xs text-muted">
+        Members online in the last 15 minutes:{" "}
+        {online.length > 0 ? online.join(", ") : "none — quiet out there"} ({online.length})
+      </p>
     </Container>
   );
 }
