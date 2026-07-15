@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { showJsonLd, siteJsonLd } from "./jsonld";
+import { showJsonLd, siteJsonLd, forumThreadJsonLd } from "./jsonld";
 import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
 
 const show: ShowDetail = {
@@ -29,4 +29,14 @@ describe("siteJsonLd", () => {
     expect(ld["@type"]).toBe("WebSite");
     expect((ld.about as Record<string, unknown>).name).toBe("Goose");
   });
+});
+
+it("forumThreadJsonLd emits a DiscussionForumPosting with comments", () => {
+  const ld = forumThreadJsonLd({ title: "MSG N2" }, [
+    { author: "Tim", at: "2026-07-15 01:00", body: "op" },
+    { author: "Ana", at: "2026-07-15 02:00", body: "reply" },
+  ]) as Record<string, unknown>;
+  expect(ld["@type"]).toBe("DiscussionForumPosting");
+  expect(ld.headline).toBe("MSG N2");
+  expect((ld.comment as unknown[]).length).toBe(1);
 });

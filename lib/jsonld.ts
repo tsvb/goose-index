@@ -33,3 +33,24 @@ export function siteJsonLd(): object {
     about: { "@type": "MusicGroup", name: "Goose" },
   };
 }
+
+export function forumThreadJsonLd(
+  thread: { title: string },
+  posts: { author: string; at: string; body: string | null }[],
+): object {
+  const [op, ...replies] = posts;
+  return {
+    "@context": "https://schema.org",
+    "@type": "DiscussionForumPosting",
+    headline: thread.title,
+    ...(op
+      ? { author: { "@type": "Person", name: op.author }, datePublished: op.at, ...(op.body ? { articleBody: op.body } : {}) }
+      : {}),
+    comment: replies.map((p) => ({
+      "@type": "Comment",
+      author: { "@type": "Person", name: p.author },
+      dateCreated: p.at,
+      text: p.body ?? "",
+    })),
+  };
+}
