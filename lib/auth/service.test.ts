@@ -1,7 +1,8 @@
 import { describe, it, expect, afterAll, vi } from "vitest";
 import { makeTestDb } from "@/db/testing";
-import { loginTokens, users } from "@/db/schema";
+import { loginTokens, users, sessions } from "@/db/schema";
 import { hashToken } from "./crypto";
+import { eq } from "drizzle-orm";
 
 let _testDb: Awaited<ReturnType<typeof makeTestDb>>["db"] | null = null;
 vi.mock("@/db/client", () => ({
@@ -18,7 +19,7 @@ const ctx = await makeTestDb();
 _testDb = ctx.db;
 afterAll(() => ctx.close());
 
-const { requestSignup, requestLogin, requestEmailChange } = await import("./service");
+const { requestSignup, requestLogin, requestEmailChange, verifyToken, getSessionUser, deleteSession } = await import("./service");
 
 describe("requestSignup", () => {
   it("issues a hashed single-purpose signup token", async () => {
@@ -72,5 +73,75 @@ describe("requestEmailChange", () => {
     const [u] = await ctx.db.select({ id: users.id }).from(users);
     const r = await requestEmailChange(u.id, "fresh@x.co");
     expect(r.status).toBe("sent");
+  });
+});
+
+describe("verifyToken — signup", () => {
+  it("creates user + session; token is single-use", async () => {
+    const r = await requestSignup("Verifyme", "verify@x.co", null);
+    if (r.status !== "sent") throw new Error("setup");
+    const v = await verifyToken(r.token);
+    expect(v.status).toBe("ok");
+    if (v.status !== "ok") return;
+    expect(v.username).toBe("Verifyme");
+    const me = await getSessionUser(v.sessionToken);
+    expect(me?.username).toBe("Verifyme");
+    expect(me?.role).toBe("member");
+    // second use fails
+    expect((await verifyToken(r.token)).status).toBe("used");
+  });
+
+  it("username race → username-taken, token survives, override works", async () => {
+    const r = await requestSignup("Racer", "racer@x.co", null);
+    if (r.status !== "sent") throw new Error("setup");
+    await ctx.db.insert(users).values({ username: "Racer2", usernameLower: "racer", emailLower: "sniped@x.co" });
+    expect((await verifyToken(r.token)).status).toBe("username-taken");
+    const v = await verifyToken(r.token, "Racer_alt");
+    expect(v.status).toBe("ok");
+    if (v.status === "ok") expect(v.username).toBe("Racer_alt");
+  });
+
+  it("expired and garbage tokens are rejected", async () => {
+    const r = await requestSignup("Expiry", "expiry@x.co", null);
+    if (r.status !== "sent") throw new Error("setup");
+    await ctx.db.update(loginTokens).set({ expiresAt: new Date(Date.now() - 1000) })
+      .where(eq(loginTokens.tokenHash, hashToken(r.token)));
+    expect((await verifyToken(r.token)).status).toBe("expired");
+    expect((await verifyToken("garbage")).status).toBe("invalid");
+  });
+});
+
+describe("sessions", () => {
+  it("expired sessions are deleted and return null", async () => {
+    const r = await requestLogin("verify@x.co", null);
+    if (r.status !== "sent") throw new Error("setup");
+    const v = await verifyToken(r.token);
+    if (v.status !== "ok") throw new Error("setup");
+    await ctx.db.update(sessions).set({ expiresAt: new Date(Date.now() - 1000) })
+      .where(eq(sessions.tokenHash, hashToken(v.sessionToken)));
+    expect(await getSessionUser(v.sessionToken)).toBeNull();
+    expect(await ctx.db.select().from(sessions).then(rows =>
+      rows.filter(s => s.tokenHash === hashToken(v.sessionToken)))).toHaveLength(0);
+  });
+
+  it("old sessions slide forward on use", async () => {
+    const r = await requestLogin("verify@x.co", null);
+    if (r.status !== "sent") throw new Error("setup");
+    const v = await verifyToken(r.token);
+    if (v.status !== "ok") throw new Error("setup");
+    const soon = new Date(Date.now() + 1 * 24 * 3_600_000); // 1 day left
+    await ctx.db.update(sessions).set({ expiresAt: soon }).where(eq(sessions.tokenHash, hashToken(v.sessionToken)));
+    await getSessionUser(v.sessionToken);
+    const [row] = (await ctx.db.select().from(sessions)).filter(s => s.tokenHash === hashToken(v.sessionToken));
+    expect(row.expiresAt.getTime()).toBeGreaterThan(soon.getTime());
+  });
+
+  it("deleteSession logs out", async () => {
+    const r = await requestLogin("verify@x.co", null);
+    if (r.status !== "sent") throw new Error("setup");
+    const v = await verifyToken(r.token);
+    if (v.status !== "ok") throw new Error("setup");
+    await deleteSession(v.sessionToken);
+    expect(await getSessionUser(v.sessionToken)).toBeNull();
   });
 });

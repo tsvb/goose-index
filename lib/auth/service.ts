@@ -71,3 +71,79 @@ export async function requestEmailChange(userId: number, emailRaw: string):
   const token = await issueToken({ purpose: "email-change", emailLower: ve.emailLower, userId });
   return { status: "sent", token, emailLower: ve.emailLower };
 }
+
+async function createSession(userId: number): Promise<string> {
+  const token = newToken();
+  await db.insert(sessions).values({
+    tokenHash: hashToken(token), userId, expiresAt: new Date(Date.now() + SESSION_TTL_MS),
+  });
+  return token;
+}
+
+export async function verifyToken(rawToken: string, usernameOverride?: string): Promise<
+  | { status: "ok"; sessionToken: string; username: string }
+  | { status: "invalid" | "expired" | "used" }
+  | { status: "username-taken" }
+> {
+  const [t] = await db.select().from(loginTokens).where(eq(loginTokens.tokenHash, hashToken(rawToken)));
+  if (!t) return { status: "invalid" };
+  if (t.usedAt) return { status: "used" };
+  if (t.expiresAt.getTime() < Date.now()) return { status: "expired" };
+
+  let userId: number, username: string;
+  if (t.purpose === "signup") {
+    const wanted = usernameOverride ?? t.username ?? "";
+    const vu = validateUsername(wanted);
+    if (!vu.ok) return { status: "username-taken" }; // bad override → re-pick again
+    const clash = await db.select({ id: users.id }).from(users)
+      .where(eq(users.usernameLower, vu.username.toLowerCase()));
+    if (clash.length > 0) return { status: "username-taken" }; // token NOT consumed
+    const [u] = await db.insert(users).values({
+      username: vu.username, usernameLower: vu.username.toLowerCase(), emailLower: t.emailLower,
+    }).returning({ id: users.id, username: users.username });
+    userId = u.id; username = u.username;
+  } else {
+    if (!t.userId) return { status: "invalid" };
+    if (t.purpose === "email-change") {
+      await db.update(users).set({ emailLower: t.emailLower }).where(eq(users.id, t.userId));
+    }
+    const [u] = await db.select({ id: users.id, username: users.username }).from(users).where(eq(users.id, t.userId));
+    if (!u) return { status: "invalid" };
+    userId = u.id; username = u.username;
+  }
+  await db.update(loginTokens).set({ usedAt: new Date() }).where(eq(loginTokens.tokenHash, t.tokenHash));
+  return { status: "ok", sessionToken: await createSession(userId), username };
+}
+
+export async function getSessionUser(rawToken: string): Promise<SessionUser | null> {
+  const tokenHash = hashToken(rawToken);
+  const [row] = await db.select({
+    tokenHash: sessions.tokenHash, expiresAt: sessions.expiresAt,
+    id: users.id, username: users.username, role: users.role, signature: users.signature,
+    postCount: users.postCount, joinedAt: users.joinedAt, markAllReadAt: users.markAllReadAt,
+    bannedAt: users.bannedAt, bannedReason: users.bannedReason, lastSeenAt: users.lastSeenAt,
+  }).from(sessions).innerJoin(users, eq(users.id, sessions.userId))
+    .where(eq(sessions.tokenHash, tokenHash));
+  if (!row) return null;
+  const now = Date.now();
+  if (row.expiresAt.getTime() < now) {
+    await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash));
+    return null;
+  }
+  if (row.expiresAt.getTime() - now < SESSION_TTL_MS - SLIDE_AFTER_MS) {
+    await db.update(sessions).set({ expiresAt: new Date(now + SESSION_TTL_MS), lastUsedAt: new Date() })
+      .where(eq(sessions.tokenHash, tokenHash));
+  }
+  if (!row.lastSeenAt || now - row.lastSeenAt.getTime() > 5 * 60_000) {
+    await db.update(users).set({ lastSeenAt: new Date() }).where(eq(users.id, row.id));
+  }
+  return {
+    id: row.id, username: row.username, role: row.role as "member" | "admin",
+    signature: row.signature, postCount: row.postCount, joinedAt: row.joinedAt,
+    markAllReadAt: row.markAllReadAt, bannedAt: row.bannedAt, bannedReason: row.bannedReason,
+  };
+}
+
+export async function deleteSession(rawToken: string): Promise<void> {
+  await db.delete(sessions).where(eq(sessions.tokenHash, hashToken(rawToken)));
+}
