@@ -191,6 +191,31 @@ export async function getSetlist(showId: number): Promise<SetlistEntry[]> {
   });
 }
 
+/**
+ * 1-based position of a show in the chronological ledger of played shows —
+ * the almanac's "Entry No. N". Walks the same sequence SHOW_SEQ numbers
+ * (`(show_date, coalesce(show_order, 1))`, played shows with performances
+ * only), so the stamp always agrees with the gap math.
+ *
+ * One COUNT over `shows` (small, shows_date_idx) with an EXISTS probe of
+ * perf_show_idx per row — no scan of `performances`. `counted` says whether
+ * the requested show itself made the cut; if it didn't (upcoming, or played
+ * but nothing logged yet), the count is meaningless for it and the answer is
+ * null — the page drops the stamp/folio rather than print a wrong number.
+ */
+export async function getShowEntryNumber(date: string, order: number | null): Promise<number | null> {
+  const ord = order ?? 1;
+  const [row] = allRows(await db.execute(sql`
+    select count(*)::int as n,
+           bool_or(s.show_date = ${date}::date and coalesce(s.show_order, 1) = ${ord}) as counted
+    from shows s
+    where (s.show_date, coalesce(s.show_order, 1)) <= (${date}::date, ${ord})
+      and s.show_date <= current_date
+      and exists (select 1 from performances p where p.show_id = s.show_id)
+  `));
+  return row?.counted ? Number(row.n) : null;
+}
+
 export type ShowNeighbor = { date: string; order: number | null; venue: string | null; city: string | null; state: string | null } | null;
 
 export async function getShowNeighbors(

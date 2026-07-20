@@ -68,8 +68,17 @@ function computeStats(date: string, setlist: SetlistEntry[]) {
 }
 
 export function ShowHeader({
-  show, date, setlist, experience,
-}: { show: ShowDetail; date: string; setlist: SetlistEntry[]; experience: Experience }) {
+  show, date, setlist, experience, entryNumber = null,
+}: {
+  show: ShowDetail;
+  date: string;
+  setlist: SetlistEntry[];
+  experience: Experience;
+  /** 1-based position in the played-show ledger (getShowEntryNumber). Null —
+   * an upcoming night, or nothing logged yet — means no stamp: the number is
+   * computed or absent, never guessed. */
+  entryNumber?: number | null;
+}) {
   const { dp, encores, setCount, totalSecs, known } = computeStats(date, setlist);
   const loc = locationLine(show.city, show.state, show.country);
   const durationLogged = known >= setlist.length / 2 && totalSecs > 0 ? formatDuration(totalSecs) : null;
@@ -134,7 +143,18 @@ export function ShowHeader({
   return (
     <header className="relative overflow-hidden border-b border-line">
       <div className="stage-glow inset-x-0 top-0 h-72" />
-      <Container className="relative py-12 sm:py-16">
+      {/* almanac-masthead: the letterpress themes hang their double rule off
+          this wrapper via CSS; the class carries no styles elsewhere. */}
+      <Container className="almanac-masthead relative py-12 sm:py-16">
+        {/* Rubber-stamp entry number — display:none outside the two almanac
+            themes (globals.css). Rendered only when the ledger position is
+            actually computed. */}
+        {entryNumber != null && (
+          <div className="entry-stamp">
+            <span>SHOW</span>
+            <span>No. {entryNumber}</span>
+          </div>
+        )}
         <span className="eyebrow">
           {show.tourId && show.tour ? (
             <Link href={`/tours/${show.tourId}`} className="transition hover:text-gold">{show.tour}</Link>

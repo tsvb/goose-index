@@ -67,6 +67,34 @@ describe("SetlistFancy", () => {
     const empty = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
     expect(empty).not.toContain("Reading the ledger");
   });
+  it("spends ember on heat only — flames and the Dusted Off pill, never the segue caret", () => {
+    const html = renderToStaticMarkup(
+      <SetlistFancy entries={[
+        entry({ uniqueId: "a", song: "Hot Tea", transition: ">", isJamchart: true, jamchartNotes: "huge" }),
+        entry({ uniqueId: "b", song: "Arcadia", position: 2, gap: 52, isDustedOff: true }),
+      ]} showDate="2024-04-20" venue={null} />,
+    );
+    // Inline flame + endnote flame + legend flame all wear ember, none gold.
+    expect(html.match(/<svg[^>]*class="[^"]*text-ember/g)).toHaveLength(3);
+    expect(html).not.toMatch(/<svg[^>]*class="[^"]*text-gold/);
+    // The Dusted Off pill: ember border + ember text.
+    expect(html).toMatch(/border-ember\/45[^"]*text-ember/);
+    expect(html).not.toContain("border-gold/40");
+    // Segue carets (row + legend) stay gold — structure, not heat.
+    expect(html).toContain('<span class="mr-1 select-none text-gold">›</span>');
+    expect(html).toContain('<span class="text-gold">›</span>');
+    // Legend swatch for the Dusted Off mark is ember too.
+    expect(html).toContain('<span class="text-ember">Dusted Off · n</span>');
+  });
+  it("tags every row with the setlist-row hook the almanac themes rule", () => {
+    const entries = [
+      entry({ uniqueId: "a", song: "Hot Tea" }),
+      entry({ uniqueId: "b", song: "Arcadia", position: 2 }),
+      entry({ uniqueId: "c", song: "Arrow", setNumber: "2", position: 1 }),
+    ];
+    const html = renderToStaticMarkup(<SetlistFancy entries={entries} showDate="2024-04-20" venue={null} />);
+    expect(html.match(/<li class="setlist-row /g)).toHaveLength(entries.length);
+  });
   it("labels the per-track listen link for assistive tech", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[entry({ song: "Hot Tea" })]} showDate="2024-04-20" venue={null} />);
     expect(html).toContain('aria-label="Listen to Hot Tea on nugs"');

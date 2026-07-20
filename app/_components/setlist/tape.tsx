@@ -39,8 +39,10 @@ export function SetTape({ entries }: { entries: SetlistEntry[] }) {
   const ticks = Math.floor(total / TICK_SECONDS);
 
   return (
-    <figure className="mb-4 mt-1">
-      <div className="flex h-9 w-full overflow-hidden rounded-[2px] border border-line bg-bg-deep" aria-hidden="true">
+    <figure className="set-tape mb-4 mt-1">
+      {/* .set-tape-strip is a stable styling hook — the almanac themes reskin
+          this strip in globals.css; don't rename without updating those rules. */}
+      <div className="set-tape-strip flex h-9 w-full overflow-hidden rounded-[2px] border border-line bg-bg-deep" aria-hidden="true">
         {entries.map((e, i) => {
           const secs = timed[i];
           const prev = entries[i - 1];

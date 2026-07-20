@@ -89,6 +89,39 @@ describe("Home hero + browse funnels", () => {
   });
 });
 
+describe("Home almanac nameplate", () => {
+  it("computes every nameplate figure from the stats — volume, number, est, span", async () => {
+    // Pin the clock so the volume (years since first show) and the year span
+    // are deterministic; the component derives both at render time.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-20T12:00:00Z"));
+    try {
+      const html = await render();
+      expect(html).toContain('class="almanac-nameplate"');
+      expect(html).toContain("GOOSE INDEX");
+      // firstDate 2016 → VOL. X in 2026, EST. 2016; showsPlayed 392 → No. 392.
+      expect(html).toContain("VOL. X · No. 392 · EST. 2016");
+      expect(html).toContain("AN ALMANAC OF EVERY SHOW · 2016–2026");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("adds no heading — the hero h1 stays the page's only h1", async () => {
+    const html = await render();
+    expect(html).toContain("almanac-nameplate");
+    expect(html.match(/<h1/g)).toHaveLength(1);
+  });
+
+  it("keeps the nameplate out of minimal and functional", async () => {
+    for (const exp of ["minimal", "functional"] as const) {
+      h.experience = exp;
+      const html = await render();
+      expect(html).not.toContain("almanac-nameplate");
+    }
+  });
+});
+
 describe("Home Tonight banner", () => {
   it("renders no banner when nothing is dated today", async () => {
     const html = await render();

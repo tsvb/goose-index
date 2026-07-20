@@ -27,26 +27,70 @@
   color-scheme: dark;
 }
 
+/* Almanac — Cream: ink on printed almanac stock. Anchor object: a printed
+   almanac + library card catalog. Three roles, same in Kraft below: --gold is
+   the structural accent (eyebrows, rules, segue carets, stamps, hover), --sage
+   carries links & references, --ember is heat and heat only. */
 :root[data-theme="light"] {
-  --bg: #f3ead7;
-  --bg-deep: #ece0c8;
-  --surface: #fbf6ea;
-  --surface-2: #f1e7d2;
-  --ink: #241b10;
+  --bg: #f0e7d2;
+  --bg-deep: #e7dcc2;
+  --surface: #f7f0df;
+  --surface-2: #efe6cf;
+  --ink: #221c14;
   --muted: #6c5c44;
-  /* Accent/faint text tokens re-derived for cream paper at ≥4.5:1 (WCAG AA)
-     on --bg and --surface — same warm hues, pulled darker. */
+  /* ≥4.5:1 (WCAG AA) on --bg (4.56) and --surface (4.94) — text-faint styles
+     0.55–0.85rem text. */
   --faint: #77654a;
-  --line: #e0d3ba;
-  --line-soft: #ebdfc8;
-  --gold: #8f5c14;
-  --gold-soft: #8a5913;
-  --gold-deep: #8a5712;
-  --sage: #2b7263;
-  --sage-deep: #266456;
-  --ember: #a5511c;
-  --shadow: rgba(80, 56, 20, 0.14);
+  --line: #cbbf9f;
+  --line-soft: #ddd2b6;
+  /* Structural accent = oxblood, the date-stamp red. */
+  --gold: #8a2b22;
+  --gold-soft: #7d2620;
+  --gold-deep: #6f221c;
+  /* Links & references = ledger green. */
+  --sage: #2f6a4a;
+  --sage-deep: #265a3e;
+  /* Heat only (jams, bust-outs, live, overdue) — 4.74:1 on --bg, 5.13:1 on
+     --surface (AA at the sizes it styles). Keep this exact hex. Its
+     predecessor #a5511c measured 4.4986:1 on --bg — that rounds to 4.50 but
+     axe (correctly) fails it, since AA needs the unrounded ratio ≥ 4.5. */
+  --ember: #a04e1b;
+  --shadow: rgba(80, 56, 20, 0.12);
+  --type-display: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
+  --type-body: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
+  --type-mono: var(--font-courier-prime), ui-monospace, SFMono-Regular, monospace;
   color-scheme: light;
+}
+
+/* Almanac — Kraft: cream ink on brown paper, the material of tape-trading
+   (J-cards, B&P mailers). Same roles as Cream; only the stock changes. */
+:root[data-theme="dark"] {
+  --bg: #2a2014;
+  --bg-deep: #201811;
+  --surface: #342719;
+  --surface-2: #3d2f1e;
+  --ink: #ede0c4;
+  --muted: #bcaa86;
+  /* ≥4.5:1 (WCAG AA) on --bg (5.39) and --surface (4.88) — text-faint styles
+     0.55–0.85rem text. Same hue/sat as the handoff's #a08d69, which measured
+     4.49 on --surface and failed AA; lightness nudged up until both pass. */
+  --faint: #a59473;
+  --line: #4c3a24;
+  --line-soft: #3d2e1c;
+  /* Structural accent = warm cream-gold. */
+  --gold: #d8b98a;
+  --gold-soft: #c7a877;
+  --gold-deep: #b39463;
+  /* Links & references = sage. */
+  --sage: #9fb389;
+  --sage-deep: #b3c49f;
+  /* Heat only = ember. */
+  --ember: #ecab52;
+  --shadow: rgba(0, 0, 0, 0.55);
+  --type-display: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
+  --type-body: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
+  --type-mono: var(--font-courier-prime), ui-monospace, SFMono-Regular, monospace;
+  color-scheme: dark;
 }
 
 /* Pod — matte-black player hardware: graphite neutrals (the warm ledger
@@ -195,6 +239,258 @@
 }
 :root[data-theme="xl2"] ::-webkit-scrollbar-thumb {
   border-radius: 0;
+}
+
+/* ============================================================
+   Almanac letterpress — shared by light (Cream) + dark (Kraft).
+   Everything here is scoped to the two almanac themes; pod and
+   xl2 must render pixel-identically with or without this block.
+   ============================================================ */
+
+/* Caslon wants its own weight/tracking (base sets 460 / -0.01em for grotesques). */
+:root[data-theme="light"] :is(h1, h2, h3, h4),
+:root[data-theme="dark"] :is(h1, h2, h3, h4) {
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* Letterpress has no stage light. */
+:root[data-theme="light"] .stage-glow,
+:root[data-theme="dark"] .stage-glow {
+  display: none;
+}
+
+/* Cards: squared ledger stock, hairline, no lift shadow. */
+:root[data-theme="light"] .surface-card,
+:root[data-theme="dark"] .surface-card {
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+/* Square the bespoke utility cards (ShowCard, BrowseLink, prev/next) for these
+   themes without touching pod/xl2. */
+:root[data-theme="light"] .rounded-lg,
+:root[data-theme="dark"] .rounded-lg {
+  border-radius: 3px;
+}
+
+/* Printed cards don't float: neutralize the Tailwind hover lift + shadow on
+   card links (the utilities stay in the markup so pod/xl2 keep their lift).
+   Tailwind v4 compiles -translate-y-* to the `translate` property; `transform`
+   is included in case a future utility goes through it instead. */
+:root[data-theme="light"] .hover\:-translate-y-0\.5:hover,
+:root[data-theme="dark"] .hover\:-translate-y-0\.5:hover {
+  translate: none;
+  transform: none;
+}
+:root[data-theme="light"] [class*="hover:shadow"]:hover,
+:root[data-theme="dark"] [class*="hover:shadow"]:hover {
+  box-shadow: none;
+}
+
+/* Kraft fibre — tune the shared grain overlay. (Cream reuses the existing
+   light multiply rule beside .grain-overlay's base declaration below.) */
+:root[data-theme="dark"] .grain-overlay {
+  opacity: 0.06;
+}
+
+/* Eyebrow: catalog label, a touch calmer. */
+:root[data-theme="light"] .eyebrow,
+:root[data-theme="dark"] .eyebrow {
+  letter-spacing: 0.2em;
+}
+
+/* Selection reads as an inked stamp. Base rule hardcodes #15110c text on
+   var(--gold): on Cream's oxblood gold that is 2.19:1 — swap to cream stock
+   on oxblood, 7.55:1 (AA). On Kraft the base rule already lands #15110c on
+   cream-gold #d8b98a = 10.05:1, and reads as highlighter on kraft — kept. */
+:root[data-theme="light"] ::selection {
+  background: var(--gold);
+  color: #f7f0df;
+}
+
+/* --- Almanac-only flourishes (hook classes; markup is server-rendered in all
+   themes and revealed only here) --- */
+.entry-stamp,
+.entry-folio,
+.almanac-nameplate {
+  display: none;
+}
+
+/* Rubber-stamp show number ("SHOW / No. N") in the fancy show header. Pinned
+   top-right of the .almanac-masthead (which is position: relative in the show
+   header). Desktop-and-up only: on phones it would sit on the eyebrow/date. */
+@media (min-width: 640px) {
+  :root[data-theme="light"] .entry-stamp,
+  :root[data-theme="dark"] .entry-stamp {
+    display: inline-block;
+    position: absolute;
+    top: 3.6rem;
+    right: 2rem;
+    transform: rotate(-6deg);
+    border: 2px solid var(--gold);
+    border-radius: 2px;
+    color: var(--gold);
+    padding: 6px 11px 5px;
+    text-align: center;
+    opacity: 0.9;
+    font-family: var(--type-mono);
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+  :root[data-theme="dark"] .entry-stamp {
+    opacity: 0.85;
+  }
+}
+/* Two lines: the small "SHOW" word, then the larger number that must not wrap. */
+:root[data-theme="light"] .entry-stamp > :first-child,
+:root[data-theme="dark"] .entry-stamp > :first-child {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+}
+:root[data-theme="light"] .entry-stamp > :last-child,
+:root[data-theme="dark"] .entry-stamp > :last-child {
+  display: block;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+/* Folio footer line per show ("The Goose Almanac · … · Entry No. N · …"). */
+:root[data-theme="light"] .entry-folio,
+:root[data-theme="dark"] .entry-folio {
+  display: block;
+  margin-top: 22px;
+  border-top: 1px solid var(--ink);
+  padding-top: 12px;
+  text-align: center;
+  font-family: var(--type-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+:root[data-theme="dark"] .entry-folio {
+  border-top-color: var(--gold);
+}
+
+/* Home nameplate / running head (mock 1b/1c): the internals are almanac-only
+   markup laid out with utilities (they resolve to Caslon/Courier through the
+   --type-* tokens here); this reveals the block and closes its container with
+   the same double rule as the masthead. */
+:root[data-theme="light"] .almanac-nameplate,
+:root[data-theme="dark"] .almanac-nameplate {
+  display: block;
+}
+/* The nameplate's closing double rule (2px over 1px), full width. */
+:root[data-theme="light"] .almanac-nameplate > div,
+:root[data-theme="dark"] .almanac-nameplate > div {
+  position: relative;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 10px;
+}
+:root[data-theme="light"] .almanac-nameplate > div::after,
+:root[data-theme="dark"] .almanac-nameplate > div::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  border-top: 1px solid var(--ink);
+}
+:root[data-theme="dark"] .almanac-nameplate > div,
+:root[data-theme="dark"] .almanac-nameplate > div::after {
+  border-color: var(--gold);
+}
+
+/* Masthead: the almanac's double rule (2px over 1px) under a title block.
+   Drawn with a border + absolute ::after so it works on flex wrappers too.
+   Heavy printed rules are ink on cream, cream-gold on kraft. */
+:root[data-theme="light"] .almanac-masthead,
+:root[data-theme="dark"] .almanac-masthead {
+  position: relative;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 10px;
+}
+:root[data-theme="light"] .almanac-masthead::after,
+:root[data-theme="dark"] .almanac-masthead::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  border-top: 1px solid var(--ink);
+}
+:root[data-theme="dark"] .almanac-masthead,
+:root[data-theme="dark"] .almanac-masthead::after {
+  border-color: var(--gold);
+}
+
+/* Ruled setlist rows: the account-book line under every entry, so text always
+   sits on a line. */
+:root[data-theme="light"] .setlist-row,
+:root[data-theme="dark"] .setlist-row {
+  border-bottom: 1px solid var(--line-soft);
+}
+:root[data-theme="light"] .setlist-row:last-child,
+:root[data-theme="dark"] .setlist-row:last-child {
+  border-bottom: 0;
+}
+
+/* "From the notes": hairline rules and an italic body — not a left-accent card. */
+:root[data-theme="light"] .show-notes-aside,
+:root[data-theme="dark"] .show-notes-aside {
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+  border-radius: 0;
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+:root[data-theme="light"] .show-notes-aside p,
+:root[data-theme="dark"] .show-notes-aside p {
+  font-style: italic;
+}
+
+/* SetTape (setlist/tape.tsx) becomes the ruled measure strip: 8px tall, flat
+   paper-tone segments on a hairline field, jams in ember. Hooks on the stable
+   .set-tape-strip class the component exposes for exactly this purpose. */
+:root[data-theme="light"] .set-tape-strip,
+:root[data-theme="dark"] .set-tape-strip {
+  height: 8px;
+  background: var(--line);
+  border-color: var(--line);
+  border-radius: 1px;
+}
+:root[data-theme="light"] .set-tape-strip > span,
+:root[data-theme="dark"] .set-tape-strip > span {
+  opacity: 1;
+}
+/* Timed, no jam: paper tone, printed flat. */
+:root[data-theme="light"] .set-tape-strip > .bg-gold,
+:root[data-theme="dark"] .set-tape-strip > .bg-gold {
+  background-color: var(--line-soft);
+}
+/* Jam: the one warm thing on the strip. */
+:root[data-theme="light"] .set-tape-strip > .bg-ember,
+:root[data-theme="dark"] .set-tape-strip > .bg-ember {
+  background-color: var(--ember);
+}
+/* Untimed hatched slivers: give the hatch a deep-paper ground so its --line
+   stripes stay visible now that the strip's own field is --line. */
+:root[data-theme="light"] .set-tape-strip > [class*="repeating-linear-gradient"],
+:root[data-theme="dark"] .set-tape-strip > [class*="repeating-linear-gradient"] {
+  background-color: var(--bg-deep);
+}
+/* Song boundaries tighten from 3px gaps to 1px rules (segue splices keep
+   their inline 1px --bg-deep seam; first segment stays flush). */
+:root[data-theme="light"] .set-tape-strip > .ml-\[3px\]:not(:first-child),
+:root[data-theme="dark"] .set-tape-strip > .ml-\[3px\]:not(:first-child) {
+  margin-left: 1px;
 }
 
 /* ---- Type tokens — overridable per experience. The `@theme inline` map below

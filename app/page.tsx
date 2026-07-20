@@ -86,8 +86,40 @@ export default async function Home() {
   const sinceYear = stats.firstDate ? yearOf(stats.firstDate) : 2014;
   const todayLabel = onThisDay.length ? formatMonthDay(onThisDay[0].date) : "";
 
+  // Nameplate figures — all computed from data already on this page, per the
+  // copy rules: EST. and the volume come from the first logged show, No. from
+  // the played count. No firstDate (empty ledger) → no nameplate, rather than
+  // a faked one.
+  const currentYear = new Date().getFullYear();
+  const estYear = stats.firstDate ? yearOf(stats.firstDate) : null;
+  const volume = estYear != null ? currentYear - estYear : null;
+
   return (
     <>
+      {/* ---- Almanac nameplate ---- */}
+      {/* Running head for the two letterpress themes; globals.css keeps it
+          display:none under every other theme, so pod/xl2 render unchanged. */}
+      {experience === "fancy" && estYear != null && (
+        <div className="almanac-nameplate">
+          {/* Internals are utility-styled: safe, since the whole block is
+              display:none outside the almanac themes. Heavy printed rules are
+              --ink per the handoff; the almanac line wears the structural
+              accent. */}
+          <Container className="pt-6">
+            <p className="flex flex-wrap items-baseline justify-between gap-x-4 border-t border-ink py-2 font-mono text-[0.66rem] tracking-[0.22em] text-muted">
+              <span>GOOSE INDEX</span>
+              <span>
+                {volume != null && volume >= 1 ? `VOL. ${romanNumeral(volume)} · ` : ""}
+                No. {stats.showsPlayed} · EST. {estYear}
+              </span>
+            </p>
+            <p className="pb-1 text-center font-mono text-[0.64rem] tracking-[0.32em] text-gold">
+              AN ALMANAC OF EVERY SHOW · {estYear}&ndash;{currentYear}
+            </p>
+          </Container>
+        </div>
+      )}
+
       {/* ---- Hero ---- */}
       <section className="relative overflow-hidden border-b border-line">
         <div className="stage-glow inset-x-0 top-0 h-[420px]" />
@@ -251,6 +283,24 @@ export default async function Home() {
       </section>
     </>
   );
+}
+
+/** 1..3999 → Roman numeral, for the nameplate's volume line ("VOL. XII").
+ * Module-private (page files can't export helpers); covered via the rendered
+ * nameplate in page.test.tsx. */
+function romanNumeral(n: number): string {
+  const table: [number, string][] = [
+    [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"],
+    [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
+  ];
+  let out = "";
+  for (const [value, glyph] of table) {
+    while (n >= value) {
+      out += glyph;
+      n -= value;
+    }
+  }
+  return out;
 }
 
 function BrowseLink({ href, icon, title, sub }: { href: string; icon: React.ReactNode; title: string; sub: string }) {

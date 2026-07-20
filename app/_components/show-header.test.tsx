@@ -41,6 +41,35 @@ describe("ShowHeader", () => {
   });
 });
 
+describe("ShowHeader almanac entry stamp + masthead hook", () => {
+  it("fancy stamps the computed entry number and tags the masthead", () => {
+    const html = renderToStaticMarkup(
+      <ShowHeader show={show} date="2026-06-26" setlist={setlist} experience="fancy" entryNumber={812} />,
+    );
+    expect(html).toContain('class="entry-stamp"');
+    expect(html).toContain("<span>SHOW</span>");
+    expect(html).toContain("<span>No. 812</span>");
+    expect(html).toContain("almanac-masthead");
+  });
+  it("renders no stamp when the entry number is unknown — upcoming or unlogged shows", () => {
+    for (const entryNumber of [null, undefined]) {
+      const html = renderToStaticMarkup(
+        <ShowHeader show={show} date="2026-06-26" setlist={setlist} experience="fancy" entryNumber={entryNumber} />,
+      );
+      expect(html).not.toContain("entry-stamp");
+    }
+  });
+  it("minimal and functional never render the stamp", () => {
+    for (const exp of ["minimal", "functional"] as const) {
+      const html = renderToStaticMarkup(
+        <ShowHeader show={show} date="2026-06-26" setlist={setlist} experience={exp} entryNumber={812} />,
+      );
+      expect(html).not.toContain("entry-stamp");
+      expect(html).not.toContain("No. 812");
+    }
+  });
+});
+
 describe("ShowHeader nugs affordance", () => {
   const nugsSetlist = [
     { setType: "Set", setNumber: "1", trackTime: "9:00" },

@@ -9,7 +9,7 @@ import { ShowHeader } from "@/app/_components/show-header";
 import { LiveRefresh } from "@/app/_components/live-refresh";
 import { liveCandidateDate } from "@/lib/live";
 import { maybeLiveSync } from "@/lib/sync/maybe-live";
-import { getShowDetails, getSetlist, getShowNeighbors, type ShowNeighbor } from "@/lib/queries/shows";
+import { getShowDetails, getSetlist, getShowNeighbors, getShowEntryNumber, type ShowNeighbor } from "@/lib/queries/shows";
 import { getExperience } from "@/lib/experience.server";
 import type { Experience } from "@/lib/experience";
 import { JsonLd } from "@/app/_components/json-ld";
@@ -81,9 +81,13 @@ export default async function ShowPage({ params, searchParams }: Params) {
   const order = n ? parseInt(n, 10) : null;
   const show = (order && details.find((d) => d.order === order)) || details[0];
 
-  const [setlist, neighbors] = await Promise.all([
+  // entryNumber rides the same round trip — a single indexed COUNT, cheap
+  // enough to fetch unconditionally rather than serialize behind the
+  // experience cookie. Null (upcoming / nothing logged) drops the stamp+folio.
+  const [setlist, neighbors, entryNumber] = await Promise.all([
     getSetlist(show.showId),
     getShowNeighbors(date, show.order),
+    getShowEntryNumber(date, show.order),
   ]);
 
   const experience = await getExperience();
@@ -142,7 +146,7 @@ export default async function ShowPage({ params, searchParams }: Params) {
         </div>
       )}
 
-      <ShowHeader show={show} date={date} setlist={setlist} experience={experience} />
+      <ShowHeader show={show} date={date} setlist={setlist} experience={experience} entryNumber={entryNumber} />
 
       {/* Also this day */}
       {siblings.length > 0 && (
@@ -171,7 +175,9 @@ export default async function ShowPage({ params, searchParams }: Params) {
         {show.notes && (experience === "minimal" ? (
           <p className="mb-6 text-muted"><span className="text-ink">Notes:</span> {show.notes}</p>
         ) : (
-          <aside className="mb-10 rounded-lg border-l-2 border-gold bg-surface/60 px-5 py-4">
+          // show-notes-aside: the almanac themes restyle this card into
+          // hairline rules + italic body via CSS; class-only elsewhere.
+          <aside className="show-notes-aside mb-10 rounded-lg border-l-2 border-gold bg-surface/60 px-5 py-4">
             <span className="eyebrow">From the notes</span>
             <p className="mt-2 leading-relaxed text-ink">{show.notes}</p>
           </aside>
@@ -225,6 +231,19 @@ export default async function ShowPage({ params, searchParams }: Params) {
             )}
           </Container>
         </nav>
+      )}
+
+      {/* Folio line — the almanac themes print it under the entry; CSS keeps
+          it display:none everywhere else. Segments with no data are dropped,
+          and no entry number means no folio at all (never a faked one). */}
+      {experience === "fancy" && entryNumber != null && (
+        <Container>
+          <p className="entry-folio">
+            {["The Goose Almanac", [show.city, show.state].filter(Boolean).join(", "), `Entry No. ${entryNumber}`, "Set from data at elgoose.net"]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        </Container>
       )}
     </article>
   );
