@@ -1079,3 +1079,122 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
   .show-anchor:target,
   .show-anchor.show-anchor-flash { animation: none; }
 }
+
+/* ── Venue atlas (fancy-edition interactive map) ─────────────────────────────
+   Colour on the map means exactly one thing: number of shows (fill hue + log
+   opacity, set inline by the component). Focus is a DIFFERENT channel — the
+   others dim and the focused state gains a stroke ring — never a new fill hue. */
+.atlas { position: relative; }
+.atlas-svg {
+  width: 100%;
+  aspect-ratio: 959 / 593; /* === viewBox aspect → xMidYMid meet never letterboxes,
+                              and reframing to a differently shaped state never reflows. */
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
+.atlas-svg:active { cursor: grabbing; }
+[data-experience="fancy"] .atlas-state { transition: opacity 0.25s ease; }
+/* focus channel #1 — dim the others (element opacity, composes with fillOpacity). */
+.atlas.has-focus .atlas-state:not(.is-focused) { opacity: 0.32; }
+/* focus channel #2 — ring via stroke, kept hairline by vector-effect. NOT a fill hue. */
+.atlas-state.is-focused { stroke: var(--ink); stroke-width: 1.6; }
+[data-experience="fancy"] .atlas-state[role="button"] { cursor: pointer; }
+
+.atlas-controls {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.atlas-btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 0.4rem;
+  padding: 0.25rem 0.55rem;
+  font: inherit;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.atlas-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+.atlas-roster { margin-top: 1rem; animation: atlas-unfold 0.3s ease both; }
+@media (min-width: 640px) {
+  .atlas.has-focus .atlas-roster {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 0.75rem 1.5rem;
+    align-items: start;
+  }
+  .atlas.has-focus .atlas-roster-title,
+  .atlas.has-focus .atlas-roster-caption,
+  .atlas.has-focus .atlas-roster-actions,
+  .atlas.has-focus .atlas-roster-cities { grid-column: 1 / -1; }
+}
+.atlas-roster-title {
+  font-family: var(--font-display, inherit);
+  font-size: 1rem;
+  color: var(--ink);
+  margin: 0;
+  outline: none;
+}
+.atlas-roster-caption { color: var(--faint); font-size: 0.75rem; margin: 0.15rem 0 0.5rem; }
+.atlas-roster-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.atlas-roster-jump { font-family: var(--font-mono, monospace); font-size: 0.72rem; color: var(--gold); }
+.atlas-roster-cities {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 0.75rem 1.5rem;
+}
+.atlas-roster-city h4 {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--gold-soft, var(--gold));
+  margin: 0 0 0.25rem;
+}
+.atlas-roster-city ul { list-style: none; margin: 0; padding: 0; }
+.atlas-roster-city li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--line-soft, var(--line));
+  padding: 0.2rem 0;
+  font-size: 0.85rem;
+}
+.atlas-roster-city li a { color: var(--ink); }
+.atlas-roster-city li a:hover { color: var(--gold); }
+.atlas-roster-count { font-family: var(--font-mono, monospace); font-size: 0.72rem; color: var(--faint); }
+
+.atlas-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@keyframes atlas-unfold {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atlas-state { transition: none; }
+  .atlas-roster { animation: none; }
+}
+
+/* Letterpress editions: the ink ring reads against the cream/kraft grounds too. */
+:root[data-theme="light"][data-experience="fancy"] .atlas-state.is-focused,
+:root[data-theme="dark"][data-experience="fancy"] .atlas-state.is-focused { stroke: var(--ink); }
