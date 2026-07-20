@@ -14,7 +14,9 @@ export function SectionHeader({
 }) {
   return (
     <div className="mb-6 flex items-end justify-between gap-4">
-      <div>
+      {/* almanac-masthead: the two letterpress themes draw their double rule
+          off this wrapper (globals.css); it carries no styles elsewhere. */}
+      <div className="almanac-masthead">
         {eyebrow && <span className="eyebrow">{eyebrow}</span>}
         <h2 className="mt-1.5 font-display text-2xl text-ink sm:text-[1.7rem]">{title}</h2>
       </div>

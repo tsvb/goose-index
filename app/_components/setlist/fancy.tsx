@@ -59,7 +59,9 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                   <li
                     key={e.uniqueId}
                     className={clsx(
-                      "group relative flex items-baseline gap-3 py-[7px] pl-4 nugs-row",
+                      // setlist-row: almanac themes rule each row like ledger
+                      // paper (globals.css); carries no styles elsewhere.
+                      "setlist-row group relative flex items-baseline gap-3 py-[7px] pl-4 nugs-row",
                       inRun &&
                         "before:absolute before:left-[1px] before:w-[2px] before:rounded-full before:bg-gold/45",
                       inRun && thread,
@@ -73,12 +75,16 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                       {e.slug
                         ? <Link href={`/songs/${e.slug}`} className="text-[1.02rem] text-ink hover:underline">{e.song}</Link>
                         : <span className="text-[1.02rem] text-ink">{e.song}</span>}
+                      {/* Heat wears ember, everywhere heat appears (flames,
+                          Dusted Off); gold stays structural — segue carets,
+                          rules. The XL II discipline, applied to all fancy
+                          themes. */}
                       {e.isJamchart && (
                         <span title={e.jamchartNotes ?? "Jam chart"}>
-                          <Flame className="ml-1.5 inline h-[15px] w-[15px] -translate-y-px text-gold" strokeWidth={1.7} />
+                          <Flame className="ml-1.5 inline h-[15px] w-[15px] -translate-y-px text-ember" strokeWidth={1.7} />
                         </span>
                       )}
-                      {e.isDustedOff && <span title={`First play in ${e.gap} shows`} className="ml-2 inline-block whitespace-nowrap rounded-full border border-gold/40 px-2 py-0.5 align-middle font-mono text-[0.6rem] text-gold">{RETURN_LABEL} · {e.gap}</span>}
+                      {e.isDustedOff && <span title={`First play in ${e.gap} shows`} className="ml-2 inline-block whitespace-nowrap rounded-full border border-ember/45 px-2 py-0.5 align-middle font-mono text-[0.6rem] text-ember">{RETURN_LABEL} · {e.gap}</span>}
                       {!e.isOriginal && e.originalArtist && (
                         <span className="ml-2 align-baseline text-xs italic text-faint">{e.originalArtist}</span>
                       )}
@@ -126,7 +132,7 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                   if (e.isJamchart && e.jamchartNotes) {
                     items.push(
                       <li key={`jam-${e.uniqueId}`} className="flex gap-2.5 text-[0.82rem] leading-relaxed text-muted">
-                        <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.7} />
+                        <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ember" strokeWidth={1.7} />
                         <span>
                           <span className="text-ink">{e.song}</span> — {e.jamchartNotes}
                         </span>
@@ -147,9 +153,9 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
       <p className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line-soft pt-3 font-mono text-[0.65rem] leading-relaxed text-faint">
         <span className="uppercase tracking-[0.18em]">Reading the ledger</span>
         <span><span className="text-gold">›</span> = segue</span>
-        <span><Flame className="inline h-3 w-3 -translate-y-px text-gold" strokeWidth={1.7} /> = jam chart pick</span>
+        <span><Flame className="inline h-3 w-3 -translate-y-px text-ember" strokeWidth={1.7} /> = jam chart pick</span>
         <span><span className="text-sage">¹</span> = see the notes under each set</span>
-        <span><span className="text-gold">{RETURN_LABEL} · n</span> = first play in n shows</span>
+        <span><span className="text-ember">{RETURN_LABEL} · n</span> = first play in n shows</span>
       </p>
     </div>
   );

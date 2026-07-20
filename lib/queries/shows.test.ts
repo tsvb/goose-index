@@ -255,3 +255,74 @@ describe("getTonightShows", () => {
     expect(recent.map((s) => s.showId)).not.toContain(62); // tomorrow stays upcoming
   });
 });
+
+describe("getShowEntryNumber", () => {
+  beforeAll(async () => {
+    await seed(); // shows 1..20 (2020-01-01..20), each with performances
+    // A played multi-show date after the seeded run (orders 1+2), a next-day
+    // show with a NULL order, a played show with no performances, and an
+    // upcoming show that (perversely) already has a performance row — to prove
+    // the date guard holds independently of the performances guard.
+    const res = await (ctx.db as unknown as { execute: (q: unknown) => Promise<unknown> })
+      .execute(sql`select (current_date + 1)::text as tomorrow`);
+    const rows = (Array.isArray(res) ? res : (res as { rows: unknown[] }).rows) as { tomorrow: string }[];
+    const { tomorrow } = rows[0];
+    await upsertShows(ctx.db, [
+      { showId: 80, showDate: "2023-05-01", showOrder: 1 },
+      { showId: 81, showDate: "2023-05-01", showOrder: 2 },
+      { showId: 82, showDate: "2023-05-02", showOrder: null },
+      { showId: 83, showDate: "2023-05-03", showOrder: 1 }, // no performances
+      { showId: 84, showDate: tomorrow, showOrder: 1 },
+    ].map((s) => ({
+      ...s, artistId: 1, venueId: 1, tourId: null,
+      title: null, permalink: `p${s.showId}`, notes: null, createdAt: null, updatedAt: null,
+    })));
+    await upsertPerformances(ctx.db, [80, 81, 82, 84].map((id) => ({
+      uniqueId: `en${id}`, showId: id, songId: FILLER_SONG_ID,
+      setType: "Set", setNumber: "1", position: 1, trackTime: "5:00",
+      transition: null, transitionId: null, isJamchart: false, jamchartNotes: null,
+      isReprise: false, isJam: false, isVerified: true, footnote: null,
+    })));
+  });
+
+  it("numbers the played ledger 1-based, matching SHOW_SEQ's (date, order) walk", async () => {
+    const { getShowEntryNumber } = await import("./shows");
+    expect(await getShowEntryNumber("2020-01-01", 1)).toBe(1);
+    expect(await getShowEntryNumber("2020-01-20", 1)).toBe(20);
+  });
+
+  it("steps through a multi-show date by show order, and treats null order as 1", async () => {
+    const { getShowEntryNumber } = await import("./shows");
+    // Shows 30/31, 40-44, 60/61 (earlier suites) have no performances, so the
+    // ledger continues straight from the 20 seeded shows.
+    expect(await getShowEntryNumber("2023-05-01", 1)).toBe(21);
+    expect(await getShowEntryNumber("2023-05-01", 2)).toBe(22);
+    expect(await getShowEntryNumber("2023-05-02", null)).toBe(23);
+  });
+
+  it("returns null for a played show with no performances logged", async () => {
+    const { getShowEntryNumber } = await import("./shows");
+    expect(await getShowEntryNumber("2023-05-03", 1)).toBeNull();
+  });
+
+  it("returns null for an upcoming show even if a performance row sneaks in", async () => {
+    const { getShowEntryNumber } = await import("./shows");
+    const res = await (ctx.db as unknown as { execute: (q: unknown) => Promise<unknown> })
+      .execute(sql`select (current_date + 1)::text as tomorrow`);
+    const rows = (Array.isArray(res) ? res : (res as { rows: unknown[] }).rows) as { tomorrow: string }[];
+    expect(await getShowEntryNumber(rows[0].tomorrow, 1)).toBeNull();
+  });
+
+  it("returns null for a date with no show at all", async () => {
+    const { getShowEntryNumber } = await import("./shows");
+    expect(await getShowEntryNumber("1999-01-01", 1)).toBeNull();
+  });
+
+  it("getLedgerEntryCount equals the newest entry's number — the two ledgers can't disagree", async () => {
+    const { getLedgerEntryCount, getShowEntryNumber } = await import("./shows");
+    // Same fixture: 20 seeded + 2023-05-01 (orders 1+2) + 2023-05-02 = 23
+    // entries; the no-performances show and tomorrow's show don't count.
+    expect(await getLedgerEntryCount()).toBe(23);
+    expect(await getLedgerEntryCount()).toBe(await getShowEntryNumber("2023-05-02", null));
+  });
+});

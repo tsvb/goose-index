@@ -25,6 +25,9 @@ vi.mock("@/lib/queries/shows", () => ({
   getUpcomingShows: async () => [],
   getOnThisDay: async () => h.onThisDay,
   getTonightShows: async () => h.tonight,
+  // Ledger entries (played shows WITH logged setlists) — deliberately fewer
+  // than showsPlayed (392) to pin that the nameplate cites THIS number.
+  getLedgerEntryCount: async () => 389,
 }));
 
 import Home from "./page";
@@ -86,6 +89,42 @@ describe("Home hero + browse funnels", () => {
     expect(html).toContain('href="/songs"');
     expect(html).toContain('href="/stats"');
     expect(html).toContain("Shows played");
+  });
+});
+
+describe("Home almanac nameplate", () => {
+  it("computes every nameplate figure from the stats — volume, number, est, span", async () => {
+    // Pin the clock so the volume (years since first show) and the year span
+    // are deterministic; the component derives both at render time.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-20T12:00:00Z"));
+    try {
+      const html = await render();
+      expect(html).toContain('class="almanac-nameplate"');
+      expect(html).toContain("GOOSE INDEX");
+      // firstDate 2016 → VOL. X in 2026, EST. 2016. "No." cites the LEDGER
+      // entry count (389), NOT showsPlayed (392) — the masthead must agree
+      // with the newest show page's Entry No. stamp, not the hero stat.
+      expect(html).toContain("VOL. X · No. 389 · EST. 2016");
+      expect(html).not.toContain("No. 392");
+      expect(html).toContain("AN ALMANAC OF EVERY SHOW · 2016–2026");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("adds no heading — the hero h1 stays the page's only h1", async () => {
+    const html = await render();
+    expect(html).toContain("almanac-nameplate");
+    expect(html.match(/<h1/g)).toHaveLength(1);
+  });
+
+  it("keeps the nameplate out of minimal and functional", async () => {
+    for (const exp of ["minimal", "functional"] as const) {
+      h.experience = exp;
+      const html = await render();
+      expect(html).not.toContain("almanac-nameplate");
+    }
   });
 });
 

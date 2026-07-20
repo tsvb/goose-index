@@ -9,6 +9,7 @@ const h = vi.hoisted(() => ({
     prev: Record<string, unknown> | null;
     next: Record<string, unknown> | null;
   },
+  entryNumber: null as number | null,
 }));
 
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("notFound"); } }));
@@ -19,6 +20,7 @@ vi.mock("@/lib/queries/shows", () => ({
   getShowDetails: async () => h.details as unknown as ShowDetail[],
   getSetlist: async () => [],
   getShowNeighbors: async () => h.neighbors as unknown as { prev: ShowNeighbor; next: ShowNeighbor },
+  getShowEntryNumber: async () => h.entryNumber,
 }));
 // Heavy children exercised by their own colocated tests; stubbed to keep this on the nav blocks.
 vi.mock("@/app/_components/setlist", () => ({ Setlist: () => null }));
@@ -49,6 +51,7 @@ beforeEach(() => {
   h.experience = "fancy";
   h.details = [show(1, 1), show(2, 2), show(3, 3)];
   h.neighbors = { prev: null, next: null };
+  h.entryNumber = null;
 });
 
 describe("ShowPage prev/next navigation", () => {
@@ -176,6 +179,45 @@ describe("ShowPage canonical URL (multi-show dates)", () => {
       parent,
     );
     expect(m.openGraph?.url).toBe(m.alternates?.canonical);
+  });
+});
+
+describe("ShowPage almanac folio + notes aside", () => {
+  it("prints the folio with the computed entry number and location in fancy", async () => {
+    h.entryNumber = 812;
+    const html = await render("2025-06-25");
+    expect(html).toContain('class="entry-folio"');
+    expect(html).toContain("The Goose Almanac · Port Chester, NY · Entry No. 812 · Set from data at elgoose.net");
+  });
+
+  it("omits null location segments rather than printing blanks", async () => {
+    h.entryNumber = 812;
+    h.details = [{ ...show(1, 1), city: null, state: null }];
+    const html = await render("2025-06-25");
+    expect(html).toContain("The Goose Almanac · Entry No. 812 · Set from data at elgoose.net");
+  });
+
+  it("omits the whole folio when the show has no entry number yet", async () => {
+    h.entryNumber = null; // upcoming, or nothing logged
+    const html = await render("2025-06-25");
+    expect(html).not.toContain("entry-folio");
+    expect(html).not.toContain("The Goose Almanac");
+  });
+
+  it("keeps the folio out of minimal and functional", async () => {
+    h.entryNumber = 812;
+    for (const exp of ["minimal", "functional"] as const) {
+      h.experience = exp;
+      const html = await render("2025-06-25");
+      expect(html).not.toContain("entry-folio");
+    }
+  });
+
+  it("tags the notes aside with the show-notes-aside hook", async () => {
+    h.details = [{ ...show(1, 1), notes: "Second Boston night." }];
+    const html = await render("2025-06-25");
+    expect(html).toMatch(/<aside class="show-notes-aside /);
+    expect(html).toContain("Second Boston night.");
   });
 });
 

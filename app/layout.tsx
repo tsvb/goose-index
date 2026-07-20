@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Hanken_Grotesk, JetBrains_Mono, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import {
+  Bricolage_Grotesque,
+  Hanken_Grotesk,
+  JetBrains_Mono,
+  IBM_Plex_Sans,
+  IBM_Plex_Mono,
+  Libre_Caslon_Text,
+  Courier_Prime,
+} from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { SiteHeader } from "./_components/site-header";
@@ -41,6 +49,28 @@ const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   display: "swap",
 });
+// Almanac editions: fancy `light` (Cream) + `dark` (Kraft) — letterpress serif
+// plus typewriter mono. `preload: false` on both, deliberately: these families
+// are referenced only by the `--type-*` tokens under [data-theme="light"] and
+// [data-theme="dark"] in globals.css, so on any other theme (xl2 is the
+// default) no element ever matches an @font-face and the browser never fetches
+// the woff2 files. A preload link would force that download on every visitor.
+const libreCaslon = Libre_Caslon_Text({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-libre-caslon",
+  display: "swap",
+  preload: false,
+});
+const courierPrime = Courier_Prime({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-courier-prime",
+  display: "swap",
+  preload: false,
+});
 // Minimal uses the system font stack (no webfont) — see globals.css.
 
 export const metadata: Metadata = {
@@ -73,7 +103,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang="en"
       data-theme={DEFAULT_THEME}
       data-experience={experience}
-      className={`${bricolage.variable} ${hanken.variable} ${jetbrains.variable} ${plexSans.variable} ${plexMono.variable}`}
+      className={`${bricolage.variable} ${hanken.variable} ${jetbrains.variable} ${plexSans.variable} ${plexMono.variable} ${libreCaslon.variable} ${courierPrime.variable}`}
       suppressHydrationWarning
     >
       <head>
