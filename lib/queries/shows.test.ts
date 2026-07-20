@@ -317,4 +317,12 @@ describe("getShowEntryNumber", () => {
     const { getShowEntryNumber } = await import("./shows");
     expect(await getShowEntryNumber("1999-01-01", 1)).toBeNull();
   });
+
+  it("getLedgerEntryCount equals the newest entry's number — the two ledgers can't disagree", async () => {
+    const { getLedgerEntryCount, getShowEntryNumber } = await import("./shows");
+    // Same fixture: 20 seeded + 2023-05-01 (orders 1+2) + 2023-05-02 = 23
+    // entries; the no-performances show and tomorrow's show don't count.
+    expect(await getLedgerEntryCount()).toBe(23);
+    expect(await getLedgerEntryCount()).toBe(await getShowEntryNumber("2023-05-02", null));
+  });
 });

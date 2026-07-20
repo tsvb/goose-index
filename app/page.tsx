@@ -6,7 +6,7 @@ import { SearchBox } from "./_components/search-box";
 import { SectionHeader } from "./_components/section-header";
 import { ArrowRight, Calendar, MapPin, Disc, Feather, Flame } from "./_components/marks";
 import { getOverviewStats } from "@/lib/queries/stats";
-import { getRecentShows, getUpcomingShows, getOnThisDay, getTonightShows } from "@/lib/queries/shows";
+import { getRecentShows, getUpcomingShows, getOnThisDay, getTonightShows, getLedgerEntryCount } from "@/lib/queries/shows";
 import { compact, yearOf, formatMonthDay, formatLongDate, dateParts, locationLine, showHref } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
@@ -26,13 +26,14 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 export default async function Home() {
-  const [stats, recentRaw, upcoming, onThisDay, tonight] = await Promise.all([
+  const [stats, recentRaw, upcoming, onThisDay, tonight, ledgerEntries] = await Promise.all([
     getOverviewStats(),
     // Over-fetch so filtering tonight's show(s) out still leaves six cards.
     getRecentShows(9),
     getUpcomingShows(4),
     getOnThisDay(),
     getTonightShows(),
+    getLedgerEntryCount(),
   ]);
   const experience = await getExperience();
 
@@ -86,10 +87,11 @@ export default async function Home() {
   const sinceYear = stats.firstDate ? yearOf(stats.firstDate) : 2014;
   const todayLabel = onThisDay.length ? formatMonthDay(onThisDay[0].date) : "";
 
-  // Nameplate figures — all computed from data already on this page, per the
-  // copy rules: EST. and the volume come from the first logged show, No. from
-  // the played count. No firstDate (empty ledger) → no nameplate, rather than
-  // a faked one.
+  // Nameplate figures — all computed, per the copy rules: EST. and the volume
+  // come from the first logged show; "No." cites the LEDGER entry count (the
+  // same sequence the show pages' Entry No. stamps count), so the masthead and
+  // the newest entry's stamp can never disagree. No firstDate (empty ledger)
+  // → no nameplate, rather than a faked one.
   const currentYear = new Date().getFullYear();
   const estYear = stats.firstDate ? yearOf(stats.firstDate) : null;
   const volume = estYear != null ? currentYear - estYear : null;
@@ -110,7 +112,7 @@ export default async function Home() {
               <span>GOOSE INDEX</span>
               <span>
                 {volume != null && volume >= 1 ? `VOL. ${romanNumeral(volume)} · ` : ""}
-                No. {stats.showsPlayed} · EST. {estYear}
+                {ledgerEntries > 0 ? `No. ${ledgerEntries} · ` : ""}EST. {estYear}
               </span>
             </p>
             <p className="pb-1 text-center font-mono text-[0.64rem] tracking-[0.32em] text-gold">

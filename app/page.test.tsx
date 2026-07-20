@@ -25,6 +25,9 @@ vi.mock("@/lib/queries/shows", () => ({
   getUpcomingShows: async () => [],
   getOnThisDay: async () => h.onThisDay,
   getTonightShows: async () => h.tonight,
+  // Ledger entries (played shows WITH logged setlists) — deliberately fewer
+  // than showsPlayed (392) to pin that the nameplate cites THIS number.
+  getLedgerEntryCount: async () => 389,
 }));
 
 import Home from "./page";
@@ -99,8 +102,11 @@ describe("Home almanac nameplate", () => {
       const html = await render();
       expect(html).toContain('class="almanac-nameplate"');
       expect(html).toContain("GOOSE INDEX");
-      // firstDate 2016 → VOL. X in 2026, EST. 2016; showsPlayed 392 → No. 392.
-      expect(html).toContain("VOL. X · No. 392 · EST. 2016");
+      // firstDate 2016 → VOL. X in 2026, EST. 2016. "No." cites the LEDGER
+      // entry count (389), NOT showsPlayed (392) — the masthead must agree
+      // with the newest show page's Entry No. stamp, not the hero stat.
+      expect(html).toContain("VOL. X · No. 389 · EST. 2016");
+      expect(html).not.toContain("No. 392");
       expect(html).toContain("AN ALMANAC OF EVERY SHOW · 2016–2026");
     } finally {
       vi.useRealTimers();

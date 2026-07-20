@@ -245,32 +245,36 @@
    Almanac letterpress — shared by light (Cream) + dark (Kraft).
    Everything here is scoped to the two almanac themes; pod and
    xl2 must render pixel-identically with or without this block.
+   Every element rule also carries [data-experience="fancy"]: the
+   saved theme persists across experiences, and without the guard
+   these rules would restyle the 2.0/1.0 editions (e.g. Caslon's
+   weight-400 headings beating functional's weight-800).
    ============================================================ */
 
 /* Caslon wants its own weight/tracking (base sets 460 / -0.01em for grotesques). */
-:root[data-theme="light"] :is(h1, h2, h3, h4),
-:root[data-theme="dark"] :is(h1, h2, h3, h4) {
+:root[data-theme="light"][data-experience="fancy"] :is(h1, h2, h3, h4),
+:root[data-theme="dark"][data-experience="fancy"] :is(h1, h2, h3, h4) {
   font-weight: 400;
   letter-spacing: 0;
 }
 
 /* Letterpress has no stage light. */
-:root[data-theme="light"] .stage-glow,
-:root[data-theme="dark"] .stage-glow {
+:root[data-theme="light"][data-experience="fancy"] .stage-glow,
+:root[data-theme="dark"][data-experience="fancy"] .stage-glow {
   display: none;
 }
 
 /* Cards: squared ledger stock, hairline, no lift shadow. */
-:root[data-theme="light"] .surface-card,
-:root[data-theme="dark"] .surface-card {
+:root[data-theme="light"][data-experience="fancy"] .surface-card,
+:root[data-theme="dark"][data-experience="fancy"] .surface-card {
   border-radius: 2px;
   box-shadow: none;
 }
 
 /* Square the bespoke utility cards (ShowCard, BrowseLink, prev/next) for these
    themes without touching pod/xl2. */
-:root[data-theme="light"] .rounded-lg,
-:root[data-theme="dark"] .rounded-lg {
+:root[data-theme="light"][data-experience="fancy"] .rounded-lg,
+:root[data-theme="dark"][data-experience="fancy"] .rounded-lg {
   border-radius: 3px;
 }
 
@@ -278,25 +282,25 @@
    card links (the utilities stay in the markup so pod/xl2 keep their lift).
    Tailwind v4 compiles -translate-y-* to the `translate` property; `transform`
    is included in case a future utility goes through it instead. */
-:root[data-theme="light"] .hover\:-translate-y-0\.5:hover,
-:root[data-theme="dark"] .hover\:-translate-y-0\.5:hover {
+:root[data-theme="light"][data-experience="fancy"] .hover\:-translate-y-0\.5:hover,
+:root[data-theme="dark"][data-experience="fancy"] .hover\:-translate-y-0\.5:hover {
   translate: none;
   transform: none;
 }
-:root[data-theme="light"] [class*="hover:shadow"]:hover,
-:root[data-theme="dark"] [class*="hover:shadow"]:hover {
+:root[data-theme="light"][data-experience="fancy"] [class*="hover:shadow"]:hover,
+:root[data-theme="dark"][data-experience="fancy"] [class*="hover:shadow"]:hover {
   box-shadow: none;
 }
 
 /* Kraft fibre — tune the shared grain overlay. (Cream reuses the existing
    light multiply rule beside .grain-overlay's base declaration below.) */
-:root[data-theme="dark"] .grain-overlay {
+:root[data-theme="dark"][data-experience="fancy"] .grain-overlay {
   opacity: 0.06;
 }
 
 /* Eyebrow: catalog label, a touch calmer. */
-:root[data-theme="light"] .eyebrow,
-:root[data-theme="dark"] .eyebrow {
+:root[data-theme="light"][data-experience="fancy"] .eyebrow,
+:root[data-theme="dark"][data-experience="fancy"] .eyebrow {
   letter-spacing: 0.2em;
 }
 
@@ -304,7 +308,7 @@
    var(--gold): on Cream's oxblood gold that is 2.19:1 — swap to cream stock
    on oxblood, 7.55:1 (AA). On Kraft the base rule already lands #15110c on
    cream-gold #d8b98a = 10.05:1, and reads as highlighter on kraft — kept. */
-:root[data-theme="light"] ::selection {
+:root[data-theme="light"][data-experience="fancy"] ::selection {
   background: var(--gold);
   color: #f7f0df;
 }
@@ -321,8 +325,8 @@
    top-right of the .almanac-masthead (which is position: relative in the show
    header). Desktop-and-up only: on phones it would sit on the eyebrow/date. */
 @media (min-width: 640px) {
-  :root[data-theme="light"] .entry-stamp,
-  :root[data-theme="dark"] .entry-stamp {
+  :root[data-theme="light"][data-experience="fancy"] .entry-stamp,
+  :root[data-theme="dark"][data-experience="fancy"] .entry-stamp {
     display: inline-block;
     position: absolute;
     top: 3.6rem;
@@ -339,19 +343,19 @@
     text-transform: uppercase;
     line-height: 1.2;
   }
-  :root[data-theme="dark"] .entry-stamp {
+  :root[data-theme="dark"][data-experience="fancy"] .entry-stamp {
     opacity: 0.85;
   }
 }
 /* Two lines: the small "SHOW" word, then the larger number that must not wrap. */
-:root[data-theme="light"] .entry-stamp > :first-child,
-:root[data-theme="dark"] .entry-stamp > :first-child {
+:root[data-theme="light"][data-experience="fancy"] .entry-stamp > :first-child,
+:root[data-theme="dark"][data-experience="fancy"] .entry-stamp > :first-child {
   display: block;
   font-size: 0.72rem;
   letter-spacing: 0.2em;
 }
-:root[data-theme="light"] .entry-stamp > :last-child,
-:root[data-theme="dark"] .entry-stamp > :last-child {
+:root[data-theme="light"][data-experience="fancy"] .entry-stamp > :last-child,
+:root[data-theme="dark"][data-experience="fancy"] .entry-stamp > :last-child {
   display: block;
   font-size: 1.15rem;
   letter-spacing: 0.06em;
@@ -360,8 +364,8 @@
 }
 
 /* Folio footer line per show ("The Goose Almanac · … · Entry No. N · …"). */
-:root[data-theme="light"] .entry-folio,
-:root[data-theme="dark"] .entry-folio {
+:root[data-theme="light"][data-experience="fancy"] .entry-folio,
+:root[data-theme="dark"][data-experience="fancy"] .entry-folio {
   display: block;
   margin-top: 22px;
   border-top: 1px solid var(--ink);
@@ -373,7 +377,7 @@
   text-transform: uppercase;
   color: var(--muted);
 }
-:root[data-theme="dark"] .entry-folio {
+:root[data-theme="dark"][data-experience="fancy"] .entry-folio {
   border-top-color: var(--gold);
 }
 
@@ -381,19 +385,19 @@
    markup laid out with utilities (they resolve to Caslon/Courier through the
    --type-* tokens here); this reveals the block and closes its container with
    the same double rule as the masthead. */
-:root[data-theme="light"] .almanac-nameplate,
-:root[data-theme="dark"] .almanac-nameplate {
+:root[data-theme="light"][data-experience="fancy"] .almanac-nameplate,
+:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate {
   display: block;
 }
 /* The nameplate's closing double rule (2px over 1px), full width. */
-:root[data-theme="light"] .almanac-nameplate > div,
-:root[data-theme="dark"] .almanac-nameplate > div {
+:root[data-theme="light"][data-experience="fancy"] .almanac-nameplate > div,
+:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div {
   position: relative;
   border-bottom: 2px solid var(--ink);
   padding-bottom: 10px;
 }
-:root[data-theme="light"] .almanac-nameplate > div::after,
-:root[data-theme="dark"] .almanac-nameplate > div::after {
+:root[data-theme="light"][data-experience="fancy"] .almanac-nameplate > div::after,
+:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div::after {
   content: "";
   position: absolute;
   left: 0;
@@ -401,22 +405,22 @@
   bottom: -3px;
   border-top: 1px solid var(--ink);
 }
-:root[data-theme="dark"] .almanac-nameplate > div,
-:root[data-theme="dark"] .almanac-nameplate > div::after {
+:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div,
+:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div::after {
   border-color: var(--gold);
 }
 
 /* Masthead: the almanac's double rule (2px over 1px) under a title block.
    Drawn with a border + absolute ::after so it works on flex wrappers too.
    Heavy printed rules are ink on cream, cream-gold on kraft. */
-:root[data-theme="light"] .almanac-masthead,
-:root[data-theme="dark"] .almanac-masthead {
+:root[data-theme="light"][data-experience="fancy"] .almanac-masthead,
+:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead {
   position: relative;
   border-bottom: 2px solid var(--ink);
   padding-bottom: 10px;
 }
-:root[data-theme="light"] .almanac-masthead::after,
-:root[data-theme="dark"] .almanac-masthead::after {
+:root[data-theme="light"][data-experience="fancy"] .almanac-masthead::after,
+:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead::after {
   content: "";
   position: absolute;
   left: 0;
@@ -424,25 +428,25 @@
   bottom: -3px;
   border-top: 1px solid var(--ink);
 }
-:root[data-theme="dark"] .almanac-masthead,
-:root[data-theme="dark"] .almanac-masthead::after {
+:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead,
+:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead::after {
   border-color: var(--gold);
 }
 
 /* Ruled setlist rows: the account-book line under every entry, so text always
    sits on a line. */
-:root[data-theme="light"] .setlist-row,
-:root[data-theme="dark"] .setlist-row {
+:root[data-theme="light"][data-experience="fancy"] .setlist-row,
+:root[data-theme="dark"][data-experience="fancy"] .setlist-row {
   border-bottom: 1px solid var(--line-soft);
 }
-:root[data-theme="light"] .setlist-row:last-child,
-:root[data-theme="dark"] .setlist-row:last-child {
+:root[data-theme="light"][data-experience="fancy"] .setlist-row:last-child,
+:root[data-theme="dark"][data-experience="fancy"] .setlist-row:last-child {
   border-bottom: 0;
 }
 
 /* "From the notes": hairline rules and an italic body — not a left-accent card. */
-:root[data-theme="light"] .show-notes-aside,
-:root[data-theme="dark"] .show-notes-aside {
+:root[data-theme="light"][data-experience="fancy"] .show-notes-aside,
+:root[data-theme="dark"][data-experience="fancy"] .show-notes-aside {
   border: 0;
   border-top: 1px solid var(--line-soft);
   border-bottom: 1px solid var(--line-soft);
@@ -451,45 +455,45 @@
   padding-left: 0;
   padding-right: 0;
 }
-:root[data-theme="light"] .show-notes-aside p,
-:root[data-theme="dark"] .show-notes-aside p {
+:root[data-theme="light"][data-experience="fancy"] .show-notes-aside p,
+:root[data-theme="dark"][data-experience="fancy"] .show-notes-aside p {
   font-style: italic;
 }
 
 /* SetTape (setlist/tape.tsx) becomes the ruled measure strip: 8px tall, flat
    paper-tone segments on a hairline field, jams in ember. Hooks on the stable
    .set-tape-strip class the component exposes for exactly this purpose. */
-:root[data-theme="light"] .set-tape-strip,
-:root[data-theme="dark"] .set-tape-strip {
+:root[data-theme="light"][data-experience="fancy"] .set-tape-strip,
+:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip {
   height: 8px;
   background: var(--line);
   border-color: var(--line);
   border-radius: 1px;
 }
-:root[data-theme="light"] .set-tape-strip > span,
-:root[data-theme="dark"] .set-tape-strip > span {
+:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > span,
+:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > span {
   opacity: 1;
 }
 /* Timed, no jam: paper tone, printed flat. */
-:root[data-theme="light"] .set-tape-strip > .bg-gold,
-:root[data-theme="dark"] .set-tape-strip > .bg-gold {
+:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > .bg-gold,
+:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > .bg-gold {
   background-color: var(--line-soft);
 }
 /* Jam: the one warm thing on the strip. */
-:root[data-theme="light"] .set-tape-strip > .bg-ember,
-:root[data-theme="dark"] .set-tape-strip > .bg-ember {
+:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > .bg-ember,
+:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > .bg-ember {
   background-color: var(--ember);
 }
 /* Untimed hatched slivers: give the hatch a deep-paper ground so its --line
    stripes stay visible now that the strip's own field is --line. */
-:root[data-theme="light"] .set-tape-strip > [class*="repeating-linear-gradient"],
-:root[data-theme="dark"] .set-tape-strip > [class*="repeating-linear-gradient"] {
+:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > [class*="repeating-linear-gradient"],
+:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > [class*="repeating-linear-gradient"] {
   background-color: var(--bg-deep);
 }
 /* Song boundaries tighten from 3px gaps to 1px rules (segue splices keep
    their inline 1px --bg-deep seam; first segment stays flush). */
-:root[data-theme="light"] .set-tape-strip > .ml-\[3px\]:not(:first-child),
-:root[data-theme="dark"] .set-tape-strip > .ml-\[3px\]:not(:first-child) {
+:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > .ml-\[3px\]:not(:first-child),
+:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > .ml-\[3px\]:not(:first-child) {
   margin-left: 1px;
 }
 
@@ -575,7 +579,7 @@
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-:root[data-theme="light"] .grain-overlay {
+:root[data-theme="light"][data-experience="fancy"] .grain-overlay {
   mix-blend-mode: multiply;
   opacity: 0.05;
 }
