@@ -89,6 +89,7 @@ Three rules hold across all of them. **A change that breaks one is a bug, even i
 | **Stats** | Six cuts — Most Played, Rarities, Most Overdue, Debuts, Set Stats, and [Oracle](https://www.gooseindex.com/stats/oracle). |
 | **Browse** | By venue, tour, year, and On This Day. Full-text search. |
 | **Live** | While a show is on stage, the setlist re-pulls from elgoose and the page refreshes itself. |
+| **Blog** | Notes from the desk. Markdown files in the repo, a bespoke engine ([`lib/blog/`](lib/blog)), full-post [RSS](https://www.gooseindex.com/blog/feed.xml). Authoring guide: [`docs/BLOG.md`](docs/BLOG.md). |
 
 Scale, as of 2026-07-13: **823 shows** played (from 2014-09-27), **615 songs**, **592 venues**,
 **7,504 performances**. These grow nightly — live counts are on [/stats](https://www.gooseindex.com/stats).

@@ -7,14 +7,17 @@ vi.mock("@/lib/queries/sitemap", () => ({
   allTourIds: async () => [5],
   allVenueIds: async () => [9],
 }));
+vi.mock("@/lib/blog/posts", () => ({
+  allPostSlugs: () => ["a-post"],
+}));
 
 import sitemap from "./sitemap";
 import { SITE_URL } from "@/lib/site";
 
 describe("sitemap", () => {
-  it("lists the section indexes, including /years", async () => {
+  it("lists the section indexes, including /years and /blog", async () => {
     const urls = (await sitemap()).map((e) => e.url);
-    for (const path of ["/shows", "/songs", "/stats", "/tours", "/venues", "/years", "/on-this-day"]) {
+    for (const path of ["/shows", "/songs", "/stats", "/tours", "/venues", "/years", "/on-this-day", "/blog"]) {
       expect(urls).toContain(`${SITE_URL}${path}`);
     }
   });
@@ -27,5 +30,6 @@ describe("sitemap", () => {
     expect(urls).toContain(`${SITE_URL}/venues/9`);
     expect(urls).toContain(`${SITE_URL}/shows/2021-07-03`);
     expect(urls).toContain(`${SITE_URL}/songs/hot-tea`);
+    expect(urls).toContain(`${SITE_URL}/blog/a-post`);
   });
 });

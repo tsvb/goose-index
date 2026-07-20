@@ -639,6 +639,100 @@
   text-decoration-color: var(--sage);
 }
 
+/* ---- Blog post body (lib/blog + post-body.tsx) ---- */
+/* Everything is drawn from theme tokens, so a post reskins with the edition
+   and theme like the rest of the site: Caslon letterpress on the almanac
+   themes, Plex on XL II, Georgia in the 1.0 document. Colour keeps its one
+   meaning — gold marks structure (markers, the quote rule), sage stays on
+   links via .link, ember appears nowhere because prose has no heat. */
+.post-prose {
+  max-width: 68ch;
+  font-size: 1.02rem;
+  line-height: 1.72;
+  color: var(--ink);
+}
+.post-prose p {
+  margin: 0 0 1.1em;
+}
+.post-prose h2 {
+  font-size: 1.35rem;
+  margin: 1.9em 0 0.6em;
+  scroll-margin-top: 6rem; /* clear the sticky fancy header on #anchor jumps */
+}
+.post-prose h3 {
+  font-size: 1.1rem;
+  margin: 1.5em 0 0.4em;
+  scroll-margin-top: 6rem;
+}
+.post-prose ul,
+.post-prose ol {
+  margin: 0 0 1.1em;
+  padding-left: 1.5em;
+}
+.post-prose li {
+  margin: 0.35em 0;
+}
+.post-prose li::marker {
+  color: var(--gold);
+}
+.post-prose blockquote {
+  border-left: 2px solid var(--gold);
+  margin: 1.4em 0;
+  padding-left: 1.1em;
+  color: var(--muted);
+}
+.post-prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+.post-prose code {
+  font-family: var(--type-mono);
+  font-size: 0.86em;
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  padding: 0.08em 0.35em;
+}
+.post-prose pre {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.9em 1.1em;
+  margin: 0 0 1.2em;
+  overflow-x: auto;
+}
+.post-prose pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+.post-prose hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 2em 0;
+}
+.post-prose img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin: 0 0 1.2em;
+}
+/* The 1.0 document: same markup, quieter dress — and no sticky header to clear. */
+[data-experience="minimal"] .post-prose {
+  max-width: 640px;
+  font-size: 1rem;
+}
+[data-experience="minimal"] .post-prose h2,
+[data-experience="minimal"] .post-prose h3 {
+  scroll-margin-top: 1.5rem;
+}
+[data-experience="minimal"] .post-prose pre,
+[data-experience="minimal"] .post-prose img {
+  border-radius: 0;
+}
+
 /* ---- Motion ---- */
 @keyframes rise {
   from {

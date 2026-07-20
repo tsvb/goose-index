@@ -12,6 +12,7 @@ const NAV = [
   { href: "/on-this-day", label: "On This Day" },
   { href: "/venues", label: "Venues" },
   { href: "/tours", label: "Tours" },
+  { href: "/blog", label: "Blog" },
 ];
 
 // Document-level behavior while the sheet is open: Escape dismisses it (the

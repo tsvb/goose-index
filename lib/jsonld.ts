@@ -1,5 +1,7 @@
 import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
+import type { PostMeta } from "@/lib/blog/posts";
 import { locationLine } from "@/lib/queries/format";
+import { canonicalUrl } from "@/lib/site";
 
 export function showJsonLd(show: ShowDetail, setlist: SetlistEntry[]): object {
   const address = locationLine(show.city, show.state, show.country);
@@ -21,6 +23,19 @@ export function showJsonLd(show: ShowDetail, setlist: SetlistEntry[]): object {
       : {}),
     performer: { "@type": "MusicGroup", name: "Goose" },
     workPerformed: setlist.map((e) => ({ "@type": "MusicComposition", name: e.song })),
+  };
+}
+
+export function blogPostingJsonLd(post: PostMeta): object {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.summary,
+    datePublished: post.date,
+    url: canonicalUrl(`/blog/${post.slug}`),
+    author: { "@type": "Organization", name: "Goose Index" },
+    ...(post.tags.length ? { keywords: post.tags.join(", ") } : {}),
   };
 }
 

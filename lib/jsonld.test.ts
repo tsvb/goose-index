@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { showJsonLd, siteJsonLd } from "./jsonld";
+import { showJsonLd, siteJsonLd, blogPostingJsonLd } from "./jsonld";
 import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
 
 const show: ShowDetail = {
@@ -20,6 +20,20 @@ describe("showJsonLd", () => {
     expect((ld.performer as Record<string, unknown>).name).toBe("Goose");
     const works = ld.workPerformed as { name: string }[];
     expect(works.map((w) => w.name)).toEqual(["Madhuvan", "Hot Tea"]);
+  });
+});
+
+describe("blogPostingJsonLd", () => {
+  it("builds a BlogPosting with the canonical URL; keywords only when tagged", () => {
+    const meta = { slug: "a-post", title: "A post", date: "2026-07-01", summary: "S.", tags: ["site"] };
+    const ld = blogPostingJsonLd(meta) as Record<string, unknown>;
+    expect(ld["@type"]).toBe("BlogPosting");
+    expect(ld.headline).toBe("A post");
+    expect(ld.datePublished).toBe("2026-07-01");
+    expect(ld.url).toBe("https://www.gooseindex.com/blog/a-post");
+    expect(ld.keywords).toBe("site");
+    const bare = blogPostingJsonLd({ ...meta, tags: [] }) as Record<string, unknown>;
+    expect("keywords" in bare).toBe(false);
   });
 });
 
