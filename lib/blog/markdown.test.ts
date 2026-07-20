@@ -136,6 +136,13 @@ describe("parseMarkdown", () => {
     expect(blocks[2]).toEqual({ kind: "image", src: "/docs/shelf.png", alt: "the shelf" });
   });
 
+  it("image src is narrower than link href — no fragments or mailto:", () => {
+    expect(() => parseMarkdown("![a](#frag)")).toThrow(/image src/);
+    expect(() => parseMarkdown("![a](mailto:x@y.z)")).toThrow(/image src/);
+    expect(() => parseMarkdown("![a](//evil.example/x.png)")).toThrow(/image src/);
+    expect(parseMarkdown("![ok](https://example.com/x.png)")[0]).toMatchObject({ kind: "image" });
+  });
+
   it("a paragraph ends where the next block begins, blank line or not", () => {
     const blocks = parseMarkdown("intro line\n## heading");
     expect(blocks.map((b) => b.kind)).toEqual(["paragraph", "heading"]);

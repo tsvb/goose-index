@@ -43,6 +43,10 @@ const ESCAPABLE = new Set(["\\", "`", "*", "_", "[", "]", "(", ")", "#", ">", "-
 // as internal links but leave the site.
 const SAFE_HREF = /^(https?:\/\/|\/(?!\/)|#|mailto:)/;
 
+// Images are narrower than links: a fragment or mailto: can be linked to,
+// but can't be an <img> source.
+const SAFE_IMG_SRC = /^(https?:\/\/|\/(?!\/))/;
+
 const REF = /^\[\[(show|song):([^\]|]+)(?:\|([^\]]+))?\]\]/;
 const LINK = /^\[([^\]]*)\]\(([^()\s]+)\)/;
 
@@ -284,7 +288,7 @@ export function parseMarkdown(src: string): Block[] {
     const image = IMAGE.exec(line);
     if (image) {
       const [, alt, srcUrl] = image;
-      if (!SAFE_HREF.test(srcUrl)) {
+      if (!SAFE_IMG_SRC.test(srcUrl)) {
         throw new Error(`image src must be https?:// or /path — got "${srcUrl}"`);
       }
       blocks.push({ kind: "image", src: srcUrl, alt });
