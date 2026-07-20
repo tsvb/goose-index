@@ -143,6 +143,41 @@ describe("parseMarkdown", () => {
     expect(parseMarkdown("![ok](https://example.com/x.png)")[0]).toMatchObject({ kind: "image" });
   });
 
+  it("tables parse with per-column alignment and inline cells", () => {
+    const [t] = parseMarkdown("| L | C | R |\n|---|:---:|---:|\n| **a** | b | $1,668.14 |");
+    const table = as(t, "table");
+    expect(table.align).toEqual(["left", "center", "right"]);
+    expect(plainText(table.header[2])).toBe("R");
+    expect(table.rows).toHaveLength(1);
+    expect(table.rows[0][0][0]).toMatchObject({ kind: "strong" });
+    expect(plainText(table.rows[0][2])).toBe("$1,668.14");
+  });
+
+  it("tables refuse ragged rows, missing separators, second separators, and empty bodies", () => {
+    expect(() => parseMarkdown("| a | b |\n|---|---|\n| just one |")).toThrow(/table row has 1 cells, header has 2/);
+    expect(() => parseMarkdown("| a | b |\n| c | d |")).toThrow(/separator line under its header/);
+    expect(() => parseMarkdown("| a |\n|---|\n|---|")).toThrow(/exactly one/);
+    expect(() => parseMarkdown("| a |\n|---|")).toThrow(/at least one row/);
+    expect(() => parseMarkdown("| a | b |\n|---|---:|---|\n| c | d |")).toThrow(/separator has 3 columns, header has 2/);
+  });
+
+  it("escaped pipes stay literal inside cells", () => {
+    const [t] = parseMarkdown("| a \\| b | c |\n|---|---|\n| d | e |");
+    expect(plainText(as(t, "table").header[0])).toBe("a | b");
+  });
+
+  it("a row whose closing pipe is escaped or missing is an error, not a guess", () => {
+    expect(() => parseMarkdown("| a | b |\n|---|---|\n| c | d \\|")).toThrow(/closing/);
+    expect(() => parseMarkdown("| a | b |\n|---|---|\n| a | b |\n| c | d")).toThrow(/closing/);
+  });
+
+  it("a pipe inside a code span belongs to its cell, as it would in prose", () => {
+    const [t] = parseMarkdown("| `a|b` | c |\n|---|---|\n| `x|y` | z |");
+    const table = as(t, "table");
+    expect(table.header[0]).toEqual([{ kind: "code", text: "a|b" }]);
+    expect(table.rows[0][0]).toEqual([{ kind: "code", text: "x|y" }]);
+  });
+
   it("a paragraph ends where the next block begins, blank line or not", () => {
     const blocks = parseMarkdown("intro line\n## heading");
     expect(blocks.map((b) => b.kind)).toEqual(["paragraph", "heading"]);

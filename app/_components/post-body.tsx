@@ -1,6 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { showRefLabel, songRefLabel, type Block, type Inline } from "@/lib/blog/markdown";
+import { showRefLabel, songRefLabel, type Block, type CellAlign, type Inline } from "@/lib/blog/markdown";
+
+function alignClass(align: CellAlign): string | undefined {
+  return align === "right" ? "num" : align === "center" ? "ctr" : undefined;
+}
 
 // AST → React for blog posts. Semantic HTML only — .post-prose in globals.css
 // does the typography from theme tokens, so posts reskin with the edition and
@@ -98,6 +102,33 @@ export function PostBody({ blocks }: { blocks: Block[] }) {
               <pre key={i} data-lang={b.lang ?? undefined}>
                 <code>{b.text}</code>
               </pre>
+            );
+          case "table":
+            // Alignment classes: "num" right-aligns (and sets mono — a right
+            // column is a number column), "ctr" centers. Left is the default.
+            return (
+              <table key={i}>
+                <thead>
+                  <tr>
+                    {b.header.map((cell, j) => (
+                      <th key={j} className={alignClass(b.align[j])}>
+                        <Inlines nodes={cell} />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {b.rows.map((row, j) => (
+                    <tr key={j}>
+                      {row.map((cell, k) => (
+                        <td key={k} className={alignClass(b.align[k])}>
+                          <Inlines nodes={cell} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             );
           case "image":
             // Plain <img>: post images are static repo assets with no known

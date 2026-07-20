@@ -4,7 +4,12 @@
 // links come out absolute — a feed item has no base URL to resolve "/" against.
 
 import { canonicalUrl } from "@/lib/site";
-import { showRefLabel, songRefLabel, type Block, type Inline } from "./markdown";
+import { showRefLabel, songRefLabel, type Block, type CellAlign, type Inline } from "./markdown";
+
+/** Feed readers don't load our CSS, so alignment rides inline on the cell. */
+function cellStyle(align: CellAlign): string {
+  return align === "left" ? "" : ` style="text-align:${align}"`;
+}
 
 export function escapeHtml(s: string): string {
   return s
@@ -58,6 +63,18 @@ export function blocksToHtml(blocks: Block[]): string {
           return `<blockquote>${b.paragraphs.map((p) => `<p>${inlineHtml(p)}</p>`).join("")}</blockquote>`;
         case "code":
           return `<pre><code>${escapeHtml(b.text)}</code></pre>`;
+        case "table": {
+          const th = b.header
+            .map((cell, j) => `<th${cellStyle(b.align[j])}>${inlineHtml(cell)}</th>`)
+            .join("");
+          const trs = b.rows
+            .map(
+              (row) =>
+                `<tr>${row.map((cell, j) => `<td${cellStyle(b.align[j])}>${inlineHtml(cell)}</td>`).join("")}</tr>`,
+            )
+            .join("");
+          return `<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
+        }
         case "image":
           return `<p><img src="${escapeHtml(absolute(b.src))}" alt="${escapeHtml(b.alt)}"></p>`;
         case "rule":

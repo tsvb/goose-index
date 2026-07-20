@@ -58,6 +58,7 @@ the build instead of a page.
 | ```` ```lang ```` … ```` ``` ```` | code block, verbatim, no highlighting |
 | `---` on its own line | rule |
 | `![alt](/path.png)` on its own line | image |
+| `\| Hotel \| GA \|` / `\|---\|---:\|` / `\| Ocean \| $1 \|` | table — pipe-fenced rows, same column count throughout, or it's an error; `---:` right-aligns a column (numbers go mono), `:---:` centers; `\\\|` is a literal pipe |
 | `**bold**`, `*em*`, `_em_`, `` `code` `` | the usual inlines (`_` needs a word edge, so `snake_case` survives; a spaced `*` is literal) |
 | `[text](https://… or /path or #anchor or mailto:…)` | link — other schemes (including protocol-relative `//`) are errors, and so is link-shaped text that doesn't parse |
 | `\*`, `\[`, … | literal syntax characters |

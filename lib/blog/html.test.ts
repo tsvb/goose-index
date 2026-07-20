@@ -34,6 +34,14 @@ describe("blocksToHtml (feed renderer)", () => {
     expect(blocksToHtml(parseMarkdown("[el](https://elgoose.net)"))).toContain('href="https://elgoose.net"');
   });
 
+  it("tables render for the feed with alignment inline — feed readers have no CSS", () => {
+    const html = blocksToHtml(parseMarkdown("| Hotel | GA |\n|---|---:|\n| Ocean | $1,668.14 |"));
+    expect(html).toBe(
+      '<table><thead><tr><th>Hotel</th><th style="text-align:right">GA</th></tr></thead>' +
+        '<tbody><tr><td>Ocean</td><td style="text-align:right">$1,668.14</td></tr></tbody></table>',
+    );
+  });
+
   it("escapeHtml covers the four characters XML/HTML care about", () => {
     expect(escapeHtml(`<a href="x">&</a>`)).toBe("&lt;a href=&quot;x&quot;&gt;&amp;&lt;/a&gt;");
   });

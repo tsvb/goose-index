@@ -25,6 +25,8 @@ export type Inline =
   | { kind: "show-ref"; date: string; label: string | null }
   | { kind: "song-ref"; slug: string; label: string | null };
 
+export type CellAlign = "left" | "right" | "center";
+
 export type Block =
   | { kind: "heading"; level: 2 | 3; id: string; children: Inline[] }
   | { kind: "paragraph"; children: Inline[] }
@@ -32,6 +34,7 @@ export type Block =
   | { kind: "quote"; paragraphs: Inline[][] }
   | { kind: "code"; lang: string | null; text: string }
   | { kind: "image"; src: string; alt: string }
+  | { kind: "table"; align: CellAlign[]; header: Inline[][]; rows: Inline[][][] }
   | { kind: "rule" };
 
 /* ---------------- inline grammar ---------------- */
@@ -228,6 +231,11 @@ const UL_ITEM = /^[-*]\s+(.*)$/;
 const OL_ITEM = /^\d+\.\s+(.*)$/;
 const IMAGE = /^!\[([^\]]*)\]\(([^()\s]+)\)\s*$/;
 const QUOTE = /^>\s?(.*)$/;
+// A table row is pipe-fenced on both sides; the separator row under the
+// header sets each column's alignment (`---` left, `---:` right, `:---:`
+// center).
+const TABLE_ROW = /^\|.*\|\s*$/;
+const TABLE_SEP = /^\|(?:\s*:?-{3,}:?\s*\|)+\s*$/;
 
 function startsBlock(line: string): boolean {
   return (
@@ -237,8 +245,52 @@ function startsBlock(line: string): boolean {
     UL_ITEM.test(line) ||
     OL_ITEM.test(line) ||
     QUOTE.test(line) ||
-    IMAGE.test(line)
+    IMAGE.test(line) ||
+    TABLE_ROW.test(line)
   );
+}
+
+/** Split a pipe-fenced row into trimmed cell sources. Escape-aware (`\|`
+ *  stays literal) and code-span-aware (a pipe inside `` `...` `` belongs to
+ *  its cell, exactly as it would in prose). Throws when the closing fence is
+ *  missing or escaped — a half-fenced row is outside the grammar. */
+function splitRow(line: string): string[] {
+  const s = line.trim();
+  const cells: string[] = [];
+  let cell = "";
+  let closed = false;
+  let i = 1; // past the opening `|`
+  while (i < s.length) {
+    const ch = s[i];
+    if (ch === "\\" && s[i + 1]) {
+      cell += ch + s[i + 1];
+      i += 2;
+      continue;
+    }
+    if (ch === "`") {
+      const close = s.indexOf("`", i + 1);
+      if (close !== -1) {
+        cell += s.slice(i, close + 1);
+        i = close + 1;
+        continue;
+      }
+    }
+    if (ch === "|") {
+      cells.push(cell.trim());
+      cell = "";
+      closed = i === s.length - 1;
+      i += 1;
+      continue;
+    }
+    cell += ch;
+    i += 1;
+  }
+  if (!closed) {
+    throw new Error(
+      `table row is missing its closing \`|\` (an escaped \\| doesn't close a row): "${s}"`,
+    );
+  }
+  return cells;
 }
 
 export function parseMarkdown(src: string): Block[] {
@@ -293,6 +345,54 @@ export function parseMarkdown(src: string): Block[] {
       }
       blocks.push({ kind: "image", src: srcUrl, alt });
       i += 1;
+      continue;
+    }
+
+    if (TABLE_ROW.test(line)) {
+      const header = splitRow(line);
+      if (i + 1 >= lines.length || !TABLE_SEP.test(lines[i + 1])) {
+        throw new Error("a table needs a `|---|` separator line under its header row");
+      }
+      const align: CellAlign[] = splitRow(lines[i + 1]).map((c) =>
+        c.startsWith(":") && c.endsWith(":") ? "center" : c.endsWith(":") ? "right" : "left",
+      );
+      if (align.length !== header.length) {
+        throw new Error(
+          `table separator has ${align.length} columns, header has ${header.length}`,
+        );
+      }
+      i += 2;
+      const rows: string[][] = [];
+      while (i < lines.length && TABLE_ROW.test(lines[i])) {
+        if (TABLE_SEP.test(lines[i])) {
+          throw new Error("a table has exactly one `|---|` separator line, under the header");
+        }
+        const cells = splitRow(lines[i]);
+        if (cells.length !== header.length) {
+          throw new Error(
+            `table row has ${cells.length} cells, header has ${header.length}: "${lines[i].trim()}"`,
+          );
+        }
+        rows.push(cells);
+        i += 1;
+      }
+      if (rows.length === 0) {
+        throw new Error("a table needs at least one row under the separator");
+      }
+      // A `|`-opened line that fell out of the row loop is a row that lost
+      // its closing fence — the most common table typo. Refuse it rather
+      // than silently demoting it to a paragraph of pipes.
+      if (i < lines.length && lines[i].trim().startsWith("|")) {
+        throw new Error(
+          `table row is missing its closing \`|\`: "${lines[i].trim()}"`,
+        );
+      }
+      blocks.push({
+        kind: "table",
+        align,
+        header: header.map(parseInlines),
+        rows: rows.map((r) => r.map(parseInlines)),
+      });
       continue;
     }
 
