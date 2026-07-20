@@ -38,8 +38,10 @@ export type Block =
 
 const ESCAPABLE = new Set(["\\", "`", "*", "_", "[", "]", "(", ")", "#", ">", "-", "|", "!"]);
 
-// Only link targets we can vouch for: same-site paths, fragments, and the web.
-const SAFE_HREF = /^(https?:\/\/|\/|#|mailto:)/;
+// Only link targets we can vouch for: same-site paths, fragments, and the
+// web. `/(?!\/)` keeps out protocol-relative `//host` URLs, which would read
+// as internal links but leave the site.
+const SAFE_HREF = /^(https?:\/\/|\/(?!\/)|#|mailto:)/;
 
 const REF = /^\[\[(show|song):([^\]|]+)(?:\|([^\]]+))?\]\]/;
 const LINK = /^\[([^\]]*)\]\(([^()\s]+)\)/;
@@ -119,9 +121,16 @@ export function parseInlines(src: string): Inline[] {
         i += whole.length;
         continue;
       }
+      // `[text](` that failed to parse is a broken link, not prose — same
+      // strictness as a malformed [[ref]]. A stray bracket ("[sic]") is prose.
+      if (/^\[[^\]]*\]\(/.test(src.slice(i))) {
+        throw new Error(`malformed link at: "${src.slice(i, i + 40)}"`);
+      }
     }
 
-    if (ch === "*" && src[i + 1] === "*") {
+    // Emphasis openers must hug their text (CommonMark's rule): a spaced
+    // `*` is arithmetic or a footnote, not markup.
+    if (ch === "*" && src[i + 1] === "*" && /\S/.test(src[i + 2] ?? "")) {
       let close = findToken(src, "**", i + 2);
       // `***` at the close belongs to the inner emphasis: `**bold *em***`
       // closes strong on the LAST star pair, leaving one star inside.
@@ -134,7 +143,7 @@ export function parseInlines(src: string): Inline[] {
       }
     }
 
-    if (ch === "*") {
+    if (ch === "*" && /\S/.test(src[i + 1] ?? "")) {
       const close = findToken(src, "*", i + 1);
       if (close !== -1 && close > i + 1) {
         flush();
@@ -314,7 +323,11 @@ export function parseMarkdown(src: string): Block[] {
           i += 1;
           // Hanging continuation: indented follow-on lines belong to the item.
           while (i < lines.length && /^\s{2,}\S/.test(lines[i])) {
-            const cont = parseInlines(lines[i].trim());
+            const t = lines[i].trim();
+            if (UL_ITEM.test(t) || OL_ITEM.test(t)) {
+              throw new Error("nested lists aren't supported — keep lists one level deep");
+            }
+            const cont = parseInlines(t);
             items[items.length - 1] = [...items[items.length - 1], { kind: "text", text: " " }, ...cont];
             i += 1;
           }

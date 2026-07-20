@@ -11,7 +11,7 @@ tags: site, engine
 Body starts here.`;
 
 describe("parseFrontMatter", () => {
-  it("parses the five-key grammar and hands back the body untouched", () => {
+  it("parses the four-key grammar and hands back the body untouched", () => {
     const { meta, body } = parseFrontMatter(good);
     expect(meta).toEqual({
       title: "The index gets a blog",
@@ -40,6 +40,12 @@ describe("parseFrontMatter", () => {
     expect(() => parseFrontMatter("---\ntitle: T\n")).toThrow(/never closed/);
   });
 
+  it("a closing fence with trailing whitespace still closes", () => {
+    const { meta, body } = parseFrontMatter("---\ntitle: T\ndate: 2026-01-02\nsummary: S\n---  \nBody");
+    expect(meta.title).toBe("T");
+    expect(body.trim()).toBe("Body");
+  });
+
   it("refuses unknown and duplicate keys instead of guessing", () => {
     expect(() => parseFrontMatter("---\ntitle: T\ndate: 2026-01-02\nsummary: S\nauthor: X\n---\n")).toThrow(
       /unknown front matter key "author"/,
@@ -54,5 +60,6 @@ describe("parseFrontMatter", () => {
     expect(() => parseFrontMatter("---\ntitle: T\ndate: 2026-01-02\n---\n")).toThrow(/missing `summary`/);
     expect(() => parseFrontMatter("---\ntitle: T\ndate: Jan 2\nsummary: S\n---\n")).toThrow(/YYYY-MM-DD/);
     expect(() => parseFrontMatter("---\ntitle: T\ndate: 2026-13-02\nsummary: S\n---\n")).toThrow(/not a real calendar date/);
+    expect(() => parseFrontMatter("---\ntitle: T\ndate: 2026-02-31\nsummary: S\n---\n")).toThrow(/not a real calendar date/);
   });
 });

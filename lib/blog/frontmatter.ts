@@ -1,5 +1,5 @@
 // Front matter for blog posts: a `---`-fenced block of `key: value` lines at
-// the top of the file. Hand-rolled on purpose — the whole grammar is five keys
+// the top of the file. Hand-rolled on purpose — the whole grammar is four keys
 // of plain strings, and a YAML dependency would accept far more than we want
 // to promise authors (nesting, anchors, type coercion) and then have to
 // support it forever.
@@ -23,7 +23,7 @@ export function parseFrontMatter(source: string): ParsedFile {
   if (lines[0]?.trim() !== "---") {
     throw new Error("post must start with a `---` front matter fence");
   }
-  const close = lines.indexOf("---", 1);
+  const close = lines.findIndex((l, idx) => idx > 0 && l.trim() === "---");
   if (close === -1) {
     throw new Error("front matter fence `---` is never closed");
   }
@@ -47,8 +47,10 @@ export function parseFrontMatter(source: string): ParsedFile {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new Error(`\`date\` must be YYYY-MM-DD, got "${date || "(missing)"}"`);
   }
-  const { m: mm, d: dd } = { m: Number(date.slice(5, 7)), d: Number(date.slice(8, 10)) };
-  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) {
+  // Round-trip through Date so 2026-02-31 fails, not just 2026-13-xx.
+  const [yy, mm, dd] = date.split("-").map(Number);
+  const dt = new Date(Date.UTC(yy, mm - 1, dd));
+  if (dt.getUTCFullYear() !== yy || dt.getUTCMonth() !== mm - 1 || dt.getUTCDate() !== dd) {
     throw new Error(`\`date\` is not a real calendar date: "${date}"`);
   }
 

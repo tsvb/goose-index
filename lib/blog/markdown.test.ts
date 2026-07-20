@@ -56,6 +56,19 @@ describe("parseInlines", () => {
       { kind: "link", href: "/stats", children: [{ kind: "text", text: "stats" }] },
     ]);
     expect(() => parseInlines("[x](javascript:boom)")).toThrow(/link target/);
+    // Protocol-relative reads internal but leaves the site.
+    expect(() => parseInlines("[x](//evil.example)")).toThrow(/link target/);
+  });
+
+  it("a link-shaped thing that doesn't parse is an error; a stray bracket is prose", () => {
+    expect(() => parseInlines("[text](https://a b)")).toThrow(/malformed link/);
+    expect(parseInlines("as noted [sic] elsewhere")).toEqual([{ kind: "text", text: "as noted [sic] elsewhere" }]);
+  });
+
+  it("emphasis openers must hug their text — spaced asterisks stay literal", () => {
+    expect(parseInlines("2 a.m. * nightly * roughly")).toEqual([
+      { kind: "text", text: "2 a.m. * nightly * roughly" },
+    ]);
   });
 
   it("show and song refs parse, with optional |label", () => {
@@ -103,6 +116,11 @@ describe("parseMarkdown", () => {
     expect(plainText(items[1])).toBe("second wraps on");
     const [ol] = parseMarkdown("1. a\n2. b");
     expect(ol).toMatchObject({ kind: "list", ordered: true });
+  });
+
+  it("nested lists are refused rather than silently folded into the parent item", () => {
+    expect(() => parseMarkdown("- parent\n  - child")).toThrow(/nested lists/);
+    expect(() => parseMarkdown("1. parent\n   2. child")).toThrow(/nested lists/);
   });
 
   it("quotes group into paragraphs split by bare > lines", () => {

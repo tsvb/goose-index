@@ -52,14 +52,14 @@ the build instead of a page.
 |---|---|
 | `## Heading` / `### Heading` | h2 / h3 with a stable `#anchor-id` (`#` is the title's; `####` is an error) |
 | blank-line-separated text | paragraphs (soft-wrapped lines fold together) |
-| `- item` / `* item` | unordered list (indent 2+ spaces to continue an item) |
+| `- item` / `* item` | unordered list (indent 2+ spaces to continue an item; a nested list is an error) |
 | `1. item` | ordered list |
 | `> line` | blockquote (a bare `>` splits paragraphs) |
 | ```` ```lang ```` … ```` ``` ```` | code block, verbatim, no highlighting |
 | `---` on its own line | rule |
 | `![alt](/path.png)` on its own line | image |
-| `**bold**`, `*em*`, `_em_`, `` `code` `` | the usual inlines (`_` needs a word edge, so `snake_case` survives) |
-| `[text](https://… or /path or #anchor or mailto:…)` | link — other schemes are errors |
+| `**bold**`, `*em*`, `_em_`, `` `code` `` | the usual inlines (`_` needs a word edge, so `snake_case` survives; a spaced `*` is literal) |
+| `[text](https://… or /path or #anchor or mailto:…)` | link — other schemes (including protocol-relative `//`) are errors, and so is link-shaped text that doesn't parse |
 | `\*`, `\[`, … | literal syntax characters |
 
 No raw HTML, by design — that is what makes the renderer safe without a
