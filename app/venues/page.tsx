@@ -5,7 +5,6 @@ import { Search } from "@/app/_components/marks";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { listVenues, showsByState, showsByCountry, normalizeCountry, type VenueRow } from "@/lib/queries/dimensions";
 import { VenueMap, VenueMapTable } from "@/app/_components/venue-map";
-import { VenueAtlas } from "@/app/_components/venue-atlas";
 import { locationLine, compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
@@ -144,14 +143,8 @@ export default async function VenuesPage({
               Every show, by state. The map is the answer to &ldquo;where&rdquo;; the ledger below is the answer to
               &ldquo;which room&rdquo;.
             </p>
-            {experience === "fancy" ? (
-              <VenueAtlas states={states} countries={countries} venues={venues} />
-            ) : (
-              <>
-                <VenueMap states={states} countries={countries} />
-                <VenueMapTable states={states} />
-              </>
-            )}
+            <VenueMap states={states} countries={countries} />
+            <VenueMapTable states={states} />
           </section>
         </Container>
       )}
