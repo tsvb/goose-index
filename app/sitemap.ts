@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { allShowDates, allSongSlugs, allYears, allTourIds, allVenueIds } from "@/lib/queries/sitemap";
+import { allPostSlugs } from "@/lib/blog/posts";
 import { CUTS } from "./stats/cuts";
 import { SITE_URL } from "@/lib/site";
 
@@ -17,8 +18,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const page = (path: string) => ({ url: `${SITE_URL}${path}` });
   return [
     page(""),
-    ...["/shows", "/songs", "/stats", "/tours", "/venues", "/years", "/on-this-day"].map(page),
+    ...["/shows", "/songs", "/stats", "/tours", "/venues", "/years", "/on-this-day", "/blog"].map(page),
     ...CUTS.map((c) => page(`/stats/${c.slug}`)),
+    ...allPostSlugs().map((s) => page(`/blog/${s}`)),
     ...years.map((y) => page(`/years/${y}`)),
     ...tourIds.map((id) => page(`/tours/${id}`)),
     ...venueIds.map((id) => page(`/venues/${id}`)),

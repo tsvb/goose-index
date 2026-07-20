@@ -15,6 +15,7 @@ const NAV = [
   { href: "/on-this-day", label: "On This Day" },
   { href: "/venues", label: "Venues" },
   { href: "/tours", label: "Tours" },
+  { href: "/blog", label: "Blog" },
 ];
 
 export function HeaderFancy({ experience }: { experience: Experience }) {
@@ -30,8 +31,8 @@ export function HeaderFancy({ experience }: { experience: Experience }) {
             Goose <span className="italic text-gold">Index</span>
           </span>
         </Link>
-        {/* Tighter tracking in the 768–1024 band so six links + search fit one row. */}
-        <nav aria-label="Primary" className="hidden items-center gap-2.5 text-[0.82rem] text-muted md:flex lg:gap-4 lg:text-[0.9rem]">
+        {/* Tighter gaps in the 768–1024 band so seven links + search fit one row. */}
+        <nav aria-label="Primary" className="hidden items-center gap-2 text-[0.82rem] text-muted md:flex lg:gap-4 lg:text-[0.9rem]">
           {NAV.map((n) => (
             <NavLink
               key={n.href}

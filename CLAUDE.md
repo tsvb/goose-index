@@ -52,6 +52,11 @@ The same applies to docs: a number in the README goes stale every night the sync
 give it the date it was taken or point at the live page. A finished to-do list left looking
 unfinished is the same lie in a different file.
 
+And to blog posts: everything in `content/blog/` is site copy and follows these rules.
+Posts are parsed by the bespoke engine in `lib/blog/` (grammar + workflow documented in
+[`docs/BLOG.md`](docs/BLOG.md)); CI parses every post, so a malformed one fails the build,
+not a page.
+
 ## Charts
 
 The statistics pages deliberately avoid a generic chart component. The rules — each question
