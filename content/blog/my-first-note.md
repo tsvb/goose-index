@@ -36,11 +36,13 @@ posted July 20; that page is the box office.
 A two-night hotel stay plus two 2-night tickets; GA and Premium Reserved cost
 the same, TED and Super TED shown at the floor price:
 
-- **Ocean** — GA $1,668.14 · TED $2,352.94 · Super TED $2,877.24
-- **Tropicana** — GA $1,496.94 · TED $2,181.74 · Super TED $2,706.04
-- **Borgata** — GA $1,389.94 · TED $2,074.74 · Super TED $2,599.04
-- **MGM Tower** — GA $1,475.54 · TED $2,160.34 · Super TED $2,684.64
-- **Courtyard** — GA $1,122.44, no VIP tiers
+| Hotel | GA / Prem | TED VIP | Super TED |
+|---|---:|---:|---:|
+| Ocean Casino Resort | $1,668.14 | $2,352.94 | $2,877.24 |
+| Tropicana Atlantic City | $1,496.94 | $2,181.74 | $2,706.04 |
+| Borgata Hotel Casino & Spa | $1,389.94 | $2,074.74 | $2,599.04 |
+| MGM Tower at Borgata | $1,475.54 | $2,160.34 | $2,684.64 |
+| Courtyard by Marriott | $1,122.44 | — | — |
 
 Per-person is exactly half the package; Premium Reserved adds exactly $128.40
 to any TED or Super TED package; Thursday-night add-ons run $133.75–$187.25

@@ -34,6 +34,15 @@ describe("PostBody", () => {
     expect(html).toContain("&lt;script&gt;");
   });
 
+  it("tables render as thead/tbody; right-aligned columns wear the num class", () => {
+    const html = render("| Hotel | GA |\n|---|---:|\n| Ocean | $1,668.14 |");
+    expect(html).toContain("<thead>");
+    expect(html).toContain("<th>Hotel</th>");
+    expect(html).toContain('<th class="num">GA</th>');
+    expect(html).toContain("<td>Ocean</td>");
+    expect(html).toContain('<td class="num">$1,668.14</td>');
+  });
+
   it("external links carry rel=noopener, internal ones are Next links", () => {
     const html = render("[el](https://elgoose.net) and [stats](/stats)");
     expect(html).toContain('rel="noopener"');
