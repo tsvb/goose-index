@@ -7,6 +7,8 @@ import {
   IBM_Plex_Mono,
   Libre_Caslon_Text,
   Courier_Prime,
+  Archivo,
+  Fraunces,
 } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -71,6 +73,23 @@ const courierPrime = Courier_Prime({
   display: "swap",
   preload: false,
 });
+// Registrar: a museum accession card. Both are variable fonts loaded at their
+// full axis range (no `weight`) so globals.css can dial opsz/wght/wdth/SOFT/
+// WONK per element — same `preload: false` reasoning as the Almanac pair
+// above: only [data-theme="registrar"] references these families, so a
+// visitor on any other theme never fetches them.
+const archivo = Archivo({
+  subsets: ["latin"],
+  variable: "--font-archivo",
+  display: "swap",
+  preload: false,
+});
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  display: "swap",
+  preload: false,
+});
 // Minimal uses the system font stack (no webfont) — see globals.css.
 
 export const metadata: Metadata = {
@@ -103,7 +122,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang="en"
       data-theme={DEFAULT_THEME}
       data-experience={experience}
-      className={`${bricolage.variable} ${hanken.variable} ${jetbrains.variable} ${plexSans.variable} ${plexMono.variable} ${libreCaslon.variable} ${courierPrime.variable}`}
+      className={`${bricolage.variable} ${hanken.variable} ${jetbrains.variable} ${plexSans.variable} ${plexMono.variable} ${libreCaslon.variable} ${courierPrime.variable} ${archivo.variable} ${fraunces.variable}`}
       suppressHydrationWarning
     >
       <head>

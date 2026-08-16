@@ -1,7 +1,7 @@
-export type Theme = "dark" | "light" | "pod" | "xl2";
+export type Theme = "dark" | "light" | "pod" | "xl2" | "registrar";
 
 /** Every theme the site ships. Order is the order the menu shows them in. */
-export const THEME_VALUES: Theme[] = ["dark", "light", "pod", "xl2"];
+export const THEME_VALUES: Theme[] = ["dark", "light", "pod", "xl2", "registrar"];
 
 /** What a visitor sees before they've ever chosen one. The SSR `data-theme`
  * attribute and the menu's initial state both read this, so they can't drift

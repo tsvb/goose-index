@@ -1,6 +1,6 @@
 import { EXPERIENCES, type Experience } from "@/lib/experience";
 import { THEME_VALUES, type Theme } from "@/lib/theme";
-import { Cassette, Disc, Moon, Sun } from "./marks";
+import { Cassette, Disc, Moon, Sun, Tag } from "./marks";
 import { clsx } from "./clsx";
 
 // The theme list, the default and the pre-paint script all live in lib/theme.ts
@@ -14,12 +14,14 @@ const ICONS: Record<Theme, typeof Moon> = {
   light: Sun,
   pod: Disc,
   xl2: Cassette,
+  registrar: Tag,
 };
 const LABELS: Record<Theme, string> = {
   dark: "Dark",
   light: "Light",
   pod: "Pod",
   xl2: "XL II",
+  registrar: "Registrar",
 };
 
 export const THEMES = THEME_VALUES.map((value) => ({
@@ -84,10 +86,11 @@ export function SettingsPanel({
         <>
           <div className="my-3 h-px bg-line" />
           <p className="mb-2 font-mono text-[0.62rem] uppercase tracking-wider text-faint">Appearance</p>
-          {/* A grid, not a segmented row: four themes in one row leaves ~60px a
-              button, which "XL II" cannot share with an icon — it wrapped and
-              burst the pill. Two columns hold any even number of themes without
-              the labels having to get shorter. */}
+          {/* A grid, not a segmented row: four themes in one row left ~60px a
+              button, which "XL II" could not share with an icon — it wrapped
+              and burst the pill. Two columns give each button room regardless
+              of theme count, without the labels having to get shorter; an odd
+              count (five, currently) just leaves the last cell empty. */}
           <div role="group" aria-label="Appearance" className="grid grid-cols-2 gap-1">
             {THEMES.map((t) => {
               const pressed = theme === t.value;
