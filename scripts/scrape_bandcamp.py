@@ -30,6 +30,13 @@ How it behaves
   kill it and restart any time. Use --refresh to force re-fetch.
 * Only touches /music and /album/* — both allowed by Bandcamp's robots.txt.
   (It deliberately does NOT use bandcamp.com/api/*, which robots.txt disallows.)
+* --skip-ids-file lets a caller (the CI workflow) hand it the album_ids that
+  are already imported, so a monthly run only fetches and parses whatever's
+  new since last time instead of the full catalog. The discovery request
+  (one page, lists every release) still always runs — only the per-album
+  fetch+parse is skipped. Trade-off: an edit to an already-imported release's
+  notes won't be picked up. Omit the flag (or pass one that doesn't exist
+  yet) for a full rescan.
 
 Usage
 -----
@@ -38,6 +45,7 @@ Usage
     python3 goose_bandcamp_scrape.py --live-only        # skip studio LPs/EPs
     python3 goose_bandcamp_scrape.py --refresh          # ignore cache
     python3 goose_bandcamp_scrape.py --delay 3.0        # be extra gentle
+    python3 goose_bandcamp_scrape.py --skip-ids-file known.txt  # only new releases
 """
 
 from __future__ import annotations
@@ -789,6 +797,8 @@ def main():
     ap.add_argument("--limit", type=int, help="only scrape the first N albums (smoke test)")
     ap.add_argument("--refresh", action="store_true", help="ignore the HTML cache")
     ap.add_argument("--live-only", action="store_true", help="skip studio releases")
+    ap.add_argument("--skip-ids-file", type=Path,
+                    help="file of already-imported album ids (one per line) to skip")
     ap.add_argument("--include-audio-urls", action="store_true",
                     help="capture mp3-128 stream URLs (they are session-scoped and expire — "
                          "do not persist or hotlink them)")
@@ -799,6 +809,14 @@ def main():
     print("discovering releases…")
     items = discover(fetcher)
     print(f"  found {len(items)} albums")
+
+    if args.skip_ids_file and args.skip_ids_file.exists():
+        skip_ids = {
+            int(line) for line in args.skip_ids_file.read_text().splitlines() if line.strip()
+        }
+        new_items = [it for it in items if it["id"] not in skip_ids]
+        print(f"  {len(skip_ids)} already imported, {len(new_items)} new")
+        items = new_items
 
     if args.limit:
         items = items[: args.limit]

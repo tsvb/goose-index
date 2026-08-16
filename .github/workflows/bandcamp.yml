@@ -6,14 +6,25 @@ name: Bandcamp discography
 #
 # elgoose knows nothing about releases, so this is the only source for either.
 #
-# Runs monthly (releases are rare, and the scrape is ~10 minutes of polite
-# requests) and on demand from the Actions tab whenever something new drops.
+# Runs monthly (releases are rare) and on demand from the Actions tab whenever
+# something new drops.
+#
+# Incremental: before scraping, it asks the database which album_ids it
+# already has and only fetches/imports what's new — a normal month is a
+# handful of releases, not the full ~500-release catalog. Trade-off: an edit
+# to an already-imported release's notes won't be picked up. Trigger manually
+# with "full" checked to force a complete rescan.
 
 on:
   schedule:
     # 05:17 UTC on the 3rd of each month. Off the hour, per GitHub's advice.
     - cron: "17 5 3 * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Full rescan (ignore already-imported albums)"
+        type: boolean
+        default: false
 
 concurrency:
   group: bandcamp
@@ -41,8 +52,16 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run db:migrate
 
+      # Compares against the database, not a CI-side cache, so it stays correct
+      # even though runners are ephemeral. Skipped for a manual "full" run.
+      - name: Fetch already-imported album ids
+        if: ${{ github.event.inputs.full != 'true' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run bandcamp-known-ids -- data/known-album-ids.txt
+
       - name: Scrape Bandcamp
-        run: npm run scrape-bandcamp
+        run: npm run scrape-bandcamp -- --skip-ids-file data/known-album-ids.txt
 
       - name: Load the discography
         env:
