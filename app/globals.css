@@ -242,6 +242,75 @@
 }
 
 /* ============================================================
+   Registrar — a museum wall placard beside a framed print: gallery-dark
+   walls, brass rail lighting, a typed catalog card under the exhibit.
+   Fraunces carries anything that reads as *content* (headings); Archivo
+   carries anything that reads as *record* (labels, figures) — no separate
+   mono face, Archivo's tabular figures and wdth axis do that job instead.
+   ============================================================ */
+:root[data-theme="registrar"] {
+  --bg: #0b0b0c;
+  --bg-deep: #060607;
+  --surface: #141415;
+  --surface-2: #1c1c1d;
+  --ink: #efeae4;
+  --muted: #9a9893;
+  /* ≥4.5:1 (WCAG AA) on --bg (5.80) and --surface (5.43) — text-faint styles
+     0.55–0.85rem text. */
+  --faint: #8f8b84;
+  --line: #2a2927;
+  --line-soft: #201f1e;
+  /* Structural accent = the brass rail light. */
+  --gold: #c9a15b;
+  --gold-soft: #b48f4f;
+  --gold-deep: #93762f;
+  /* Links & references = verdigris, the patina on the case hardware. */
+  --sage: #7fa39a;
+  --sage-deep: #5f8880;
+  /* Heat only = the red string on an accession tag. */
+  --ember: #d1673a;
+  --shadow: rgba(0, 0, 0, 0.6);
+  --type-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --type-body: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --type-mono: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+/* Catalog card: tabular figures wherever a reading appears — a record's
+   numbers should line up as a column, the same thesis as XL II's Braun rule. */
+:root[data-theme="registrar"] body {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fraunces at heading size: soft and a little irregular, like hand-set
+   display type on a placard. Weight stays light — wall text, not a shout. */
+:root[data-theme="registrar"] h1,
+:root[data-theme="registrar"] h2 {
+  letter-spacing: -0.006em;
+  font-variation-settings: "opsz" 40, "wght" 440, "SOFT" 35, "WONK" 1;
+}
+/* Smaller headings calm down — less optical size, no wonk — the way the
+   source mockup's big masthead differs from its small, upright subhead. */
+:root[data-theme="registrar"] h3,
+:root[data-theme="registrar"] h4 {
+  letter-spacing: -0.004em;
+  font-variation-settings: "opsz" 18, "wght" 380, "SOFT" 25, "WONK" 0;
+}
+
+/* Eyebrow: the typed catalog label, Archivo pulled to its narrowest width —
+   the same trick the source mockup uses for CAMERA / LENS / EXPOSURE. */
+:root[data-theme="registrar"] .eyebrow {
+  font-family: var(--font-archivo);
+  font-variation-settings: "wdth" 68, "wght" 600;
+  color: var(--gold-soft);
+}
+
+/* Vitrine glass, not paper — the grain is barely there. */
+:root[data-theme="registrar"] .grain-overlay {
+  opacity: 0.02;
+}
+
+/* ============================================================
    Almanac letterpress — shared by light (Cream) + dark (Kraft).
    Everything here is scoped to the two almanac themes; pod and
    xl2 must render pixel-identically with or without this block.

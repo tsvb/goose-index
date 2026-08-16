@@ -137,6 +137,16 @@ export function Cassette({ className, strokeWidth }: IconProps) {
   );
 }
 
+/** Accession tag — the string hole where a hand-written label would hang. */
+export function Tag({ className, strokeWidth }: IconProps) {
+  return (
+    <Svg className={className} strokeWidth={strokeWidth}>
+      <path d="M11 3H5a2 2 0 0 0-2 2v6l9.5 9.5a2 2 0 0 0 2.83 0l5.67-5.67a2 2 0 0 0 0-2.83L11.83 3.34A2 2 0 0 0 11 3Z" />
+      <circle cx="7.5" cy="7.5" r="1.25" />
+    </Svg>
+  );
+}
+
 export function Settings({ className, strokeWidth }: IconProps) {
   return (
     <Svg className={className} strokeWidth={strokeWidth}>
