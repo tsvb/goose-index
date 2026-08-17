@@ -88,7 +88,7 @@ Five roles carry that colour, and each keeps to one job everywhere on the site:
 |---|---|
 | `--steel` | Field and structure. |
 | `--hand` | The reading, now — marks only (a dot, a stroke), never running text. |
-| `--ember` | Heat and overdue — the one role of the five allowed as text colour. |
+| `--ember` | Heat and overdue — the one amber allowed as text (`--hand` never is). |
 | `--spruce` | Links, and the footnote marks that pair with them. |
 | `--pencil` | The human margin — captions, footnotes, the caveat channel. |
 
