@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, MetaTable, DocSection, ShowTable } from "@/app/_components/doc";
-import { NilState, chromeLink } from "@/app/_components/page-chrome";
+import { NilState, chromeLink, chromeDate } from "@/app/_components/page-chrome";
 import { Ledger, LedgerEntry } from "@/app/_components/forms";
 import { getTourMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
@@ -56,9 +56,9 @@ export default async function TourPage({ params }: Params) {
 
   const dateRange =
     tour.start && tour.end
-      ? `${formatShortDate(tour.start)} – ${formatShortDate(tour.end)}`
+      ? `${chromeDate(tour.start)} – ${chromeDate(tour.end)}`
       : tour.start
-      ? `From ${formatShortDate(tour.start)}`
+      ? `from ${chromeDate(tour.start)}`
       : null;
 
   return (

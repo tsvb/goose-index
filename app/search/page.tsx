@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { SearchBox } from "@/app/_components/search-box";
-import { PageHead, NilState, chromeLink } from "@/app/_components/page-chrome";
+import { PageHead, NilState, chromeLink, chromeDate } from "@/app/_components/page-chrome";
 import { SectionRule, Ledger, LedgerEntry } from "@/app/_components/forms";
 import { searchShows, type ShowSummary } from "@/lib/queries/shows";
 import { searchSongs, type SongSearchRow } from "@/lib/queries/songs";
@@ -286,9 +286,9 @@ export default async function SearchPage({ searchParams }: Props) {
             {r.tours.map((t) => {
               const dateRange =
                 t.start && t.end
-                  ? `${formatShortDate(t.start)} – ${formatShortDate(t.end)}`
+                  ? `${chromeDate(t.start)} – ${chromeDate(t.end)}`
                   : t.start
-                  ? `from ${formatShortDate(t.start)}`
+                  ? `from ${chromeDate(t.start)}`
                   : null;
               return (
                 <Link

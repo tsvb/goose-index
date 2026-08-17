@@ -4,7 +4,7 @@ import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { listTours, tourTimeline } from "@/lib/queries/dimensions";
 import { TourTimeline } from "@/app/_components/tour-timeline";
-import { PageHead } from "@/app/_components/page-chrome";
+import { PageHead, chromeDate } from "@/app/_components/page-chrome";
 import { SectionRule, Ledger } from "@/app/_components/forms";
 import { formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
@@ -87,9 +87,9 @@ export default async function ToursPage() {
                   </span>
                   <span className="shrink-0 text-right font-mono text-[0.7rem] text-faint">
                     {tour.start && tour.end
-                      ? `${formatShortDate(tour.start)} – ${formatShortDate(tour.end)} · ${tour.shows} ${tour.shows === 1 ? "show" : "shows"}`
+                      ? `${chromeDate(tour.start)} – ${chromeDate(tour.end)} · ${tour.shows} ${tour.shows === 1 ? "show" : "shows"}`
                       : tour.start
-                      ? `from ${formatShortDate(tour.start)} · ${tour.shows} ${tour.shows === 1 ? "show" : "shows"}`
+                      ? `from ${chromeDate(tour.start)} · ${tour.shows} ${tour.shows === 1 ? "show" : "shows"}`
                       : `${tour.shows} ${tour.shows === 1 ? "show" : "shows"}`}
                   </span>
                 </Link>
