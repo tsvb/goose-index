@@ -234,11 +234,12 @@ export function TourTimeline({
                                 borderStyle: future ? "dashed" : "solid",
                               }}
                             >
-                              {leg.dates.map((d) => {
+                              {leg.dates.map((d, di) => {
                                 const at = ((dayOfYear(d) - from) / Math.max(to - from + 1, 1)) * 100;
                                 return (
                                   <span
-                                    key={d}
+                                    // doubleheaders repeat a date (2022-07-22, 2020-02-29) — the date alone is not unique
+                                    key={`${d}·${di}`}
                                     aria-hidden
                                     className="absolute bottom-[2px] h-[5px] w-px"
                                     style={{

@@ -81,6 +81,49 @@ describe("TourTimeline", () => {
     expect(html).toContain("245 shows belong to no tour");
   });
 
+  it("keeps every tick of a doubleheader — a repeated date must not collide as a key", () => {
+    // 2022-07-22 (Newport) and 2020-02-29 are real doubleheaders: leg.dates
+    // repeats the date, so a tick keyed by the date alone violates React's
+    // sibling-key rule and can drop or duplicate a tick on update. SSR never
+    // surfaces the collision (see instrument.test.tsx's degenerate-scale
+    // note), so walk the element tree and assert sibling keys are unique.
+    const doubleheader = tour({
+      tourId: 9,
+      name: "Dripfield Summer Tour 2022",
+      start: "2022-07-20",
+      end: "2022-07-24",
+      shows: 3,
+      dates: ["2022-07-20", "2022-07-22", "2022-07-22"],
+    });
+    const dups: string[] = [];
+    const walk = (node: unknown): void => {
+      if (!node || typeof node !== "object") return;
+      if (Array.isArray(node)) {
+        const keys = node
+          .filter((c): c is { key: unknown } => !!c && typeof c === "object" && "key" in c)
+          .map((c) => c.key)
+          .filter((k): k is string => k != null)
+          .map(String);
+        const seen = new Set<string>();
+        for (const k of keys) {
+          if (seen.has(k)) dups.push(k);
+          seen.add(k);
+        }
+        node.forEach(walk);
+        return;
+      }
+      walk((node as { props?: { children?: unknown } }).props?.children);
+    };
+    walk(TourTimeline({ today: TODAY, untouredShows: 0, tours: [doubleheader] }));
+    expect(dups).toEqual([]);
+
+    // and the fixture really renders all three ticks
+    const html = renderToStaticMarkup(
+      <TourTimeline today={TODAY} untouredShows={0} tours={[doubleheader]} />,
+    );
+    expect(html.match(/bottom-\[2px\]/g)).toHaveLength(3);
+  });
+
   it("marks the busiest run", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
