@@ -82,13 +82,14 @@ describe("ShowPage prev/next navigation", () => {
     expect(html).toContain('href="/shows/2025-06-25?n=2"');
   });
 
-  it("minimal has no top bar but still gets the folio footer's prev/next links", async () => {
+  it("minimal keeps its own inline nav with the same-day words and venue", async () => {
     h.experience = "minimal";
     h.neighbors = { prev: neighbor("2025-06-25", 1), next: neighbor("2025-06-25", 3) };
     const html = await render("2025-06-25", "2");
-    expect(html).toContain('href="/shows/2025-06-25"');
+    expect(html).toContain("Earlier show this day · Venue A");
+    expect(html).toContain("Later show this day · Venue A");
     expect(html).toContain('href="/shows/2025-06-25?n=3"');
-    expect(html).not.toContain("Earlier show this day");
+    expect(html.match(/<footer/g)).toBeNull(); // minimal never gets the folio footer
   });
 
   it("top bar neighbor links hover to ink, never a color accent", async () => {
@@ -107,6 +108,13 @@ describe("ShowPage prev/next folio footer", () => {
     expect(html).not.toMatch(/rounded-lg border border-line bg-surface p-5/);
     expect(html).not.toContain("group-hover:text-gold");
     expect(html.match(/<footer/g)?.length).toBe(1);
+  });
+
+  it("folio labels carry the neighbor's venue, matching the approved mockup", async () => {
+    h.neighbors = { prev: neighbor("2025-06-24", 1), next: neighbor("2025-06-26", 2) };
+    const html = await render("2025-06-25");
+    expect(html).toContain("Jun 24, 2025 · Venue A");
+    expect(html).toContain("Jun 26, 2025 · Venue A");
   });
 });
 
@@ -218,13 +226,20 @@ describe("ShowPage folio footer entry number", () => {
     expect(html).not.toContain("The Goose Almanac");
   });
 
-  it("carries the entry number in every experience once it's computed — the folio footer is no longer fancy-only", async () => {
+  it("carries the entry number in functional and fancy — the folio footer isn't fancy-only anymore", async () => {
     h.entryNumber = 812;
-    for (const exp of ["minimal", "functional", "fancy"] as const) {
+    for (const exp of ["functional", "fancy"] as const) {
       h.experience = exp;
       const html = await render("2025-06-25");
       expect(html).toContain("entry no. 812");
     }
+  });
+
+  it("never shows the entry number in minimal — it has no folio footer to carry it", async () => {
+    h.entryNumber = 812;
+    h.experience = "minimal";
+    const html = await render("2025-06-25");
+    expect(html).not.toContain("entry no.");
   });
 });
 

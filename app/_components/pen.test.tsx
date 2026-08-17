@@ -48,6 +48,14 @@ describe("PenNote", () => {
     expect(html).toContain("italic");
     expect(html).toContain("only 25 mondays");
   });
+  it("inline renders a span instead of a p, so it can sit inside other inline content", () => {
+    const html = renderToStaticMarkup(<PenNote inline>first in 52 shows</PenNote>);
+    expect(html).not.toContain("<p");
+    expect(html).toContain("<span");
+    expect(html).toContain("text-pencil");
+    expect(html).toContain("italic");
+    expect(html).toContain("first in 52 shows");
+  });
 });
 
 describe("PenArrow / PenCircle", () => {

@@ -190,20 +190,34 @@ export default async function ShowPage({ params, searchParams }: Params) {
         )}
       </Container>
 
-      {/* Prev / next — one folio footer for every experience. The same-day
-          "earlier/later" wording lives on the top bar's title tooltip above;
-          this line just gets people to the next page. */}
-      <footer className="border-t border-line-soft">
-        <Container className="py-6">
-          <FolioNav
-            prevHref={neighbors.prev ? showHref(neighbors.prev.date, neighbors.prev.order) : null}
-            nextHref={neighbors.next ? showHref(neighbors.next.date, neighbors.next.order) : null}
-            prevLabel={neighbors.prev ? `${formatShortDate(neighbors.prev.date)}` : "previous"}
-            nextLabel={neighbors.next ? `${formatShortDate(neighbors.next.date)}` : "next"}
-            center={entryNumber != null ? `entry no. ${entryNumber}` : undefined}
-          />
-        </Container>
-      </footer>
+      {/* Prev / next. Minimal keeps its own plain inline nav (same-day words +
+          venue right in the link text — no top bar there to carry them);
+          functional/fancy share the folio footer, its labels carrying the
+          neighbor's venue same as the approved mockup. */}
+      {experience === "minimal" ? (
+        <nav className="border-t border-line">
+          <Container className="flex flex-wrap justify-between gap-4 py-6 text-sm">
+            {neighbors.prev ? (
+              <Link href={showHref(neighbors.prev.date, neighbors.prev.order)}>← {prevSameDay ? prevLabel : formatShortDate(neighbors.prev.date)}{neighbors.prev.venue ? ` · ${neighbors.prev.venue}` : ""}</Link>
+            ) : <span />}
+            {neighbors.next ? (
+              <Link href={showHref(neighbors.next.date, neighbors.next.order)}>{nextSameDay ? nextLabel : formatShortDate(neighbors.next.date)}{neighbors.next.venue ? ` · ${neighbors.next.venue}` : ""} →</Link>
+            ) : <span />}
+          </Container>
+        </nav>
+      ) : (
+        <footer className="border-t border-line-soft">
+          <Container className="py-6">
+            <FolioNav
+              prevHref={neighbors.prev ? showHref(neighbors.prev.date, neighbors.prev.order) : null}
+              nextHref={neighbors.next ? showHref(neighbors.next.date, neighbors.next.order) : null}
+              prevLabel={neighbors.prev ? `${formatShortDate(neighbors.prev.date)}${neighbors.prev.venue ? ` · ${neighbors.prev.venue}` : ""}` : "previous"}
+              nextLabel={neighbors.next ? `${formatShortDate(neighbors.next.date)}${neighbors.next.venue ? ` · ${neighbors.next.venue}` : ""}` : "next"}
+              center={entryNumber != null ? `entry no. ${entryNumber}` : undefined}
+            />
+          </Container>
+        </footer>
+      )}
     </article>
   );
 }

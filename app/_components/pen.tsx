@@ -47,9 +47,13 @@ export function PenRule({
 }
 
 /** Pencil italic margin note — the human caveat channel. Copy must be
- * computed at render time (CLAUDE.md rule 5); this component only dresses it. */
-export function PenNote({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <p className={clsx("text-[0.78rem] italic text-pencil", className)}>{children}</p>;
+ * computed at render time (CLAUDE.md rule 5); this component only dresses it.
+ * `inline` swaps the `<p>` for a `<span>` (same classes) for callers that sit
+ * a note inside a run of inline content, where a block element would nest
+ * invalidly. */
+export function PenNote({ children, className, inline = false }: { children: React.ReactNode; className?: string; inline?: boolean }) {
+  const Tag = inline ? "span" : "p";
+  return <Tag className={clsx("text-[0.78rem] italic text-pencil", className)}>{children}</Tag>;
 }
 
 /** Small hand-drawn arrow. Default points left (margin note → subject). */

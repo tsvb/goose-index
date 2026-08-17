@@ -148,7 +148,7 @@ export function ShowHeader({
             <Link href={`/tours/${show.tourId}`} className="text-spruce underline underline-offset-4 transition hover:text-ink">{show.tour}</Link>
           ) : ("Goose")}
           {"  ·  "}
-          {dp.weekday.toLowerCase()}
+          {dp.weekday}
         </p>
         <h1 className="mt-1 font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-5xl">
           {dp.month} {dp.day}, {dp.year}

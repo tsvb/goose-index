@@ -87,7 +87,7 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                       )}
                       {e.isDustedOff && (
                         <span title={`First play in ${e.gap} shows`}>
-                          <PenNote className="ml-2 inline">first in {e.gap} shows</PenNote>
+                          <PenNote inline className="ml-2">first in {e.gap} shows</PenNote>
                         </span>
                       )}
                       {!e.isOriginal && e.originalArtist && (
