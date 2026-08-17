@@ -163,3 +163,36 @@ describe("the two slate blocks stay in sync", () => {
     expect(mediaEntries).toEqual(slateEntries);
   });
 });
+
+describe("source order: the dark-OS media block precedes the experience blocks", () => {
+  // `@media (prefers-color-scheme: dark) :root:not([data-theme="fog"])` and
+  // `:root[data-experience="functional"|"minimal"]` all select the bare
+  // `:root` element with exactly one attribute-ish condition, so they tie on
+  // CSS specificity (0,1,0 each) — the one that appears LATER in source order
+  // wins the cascade. Today the media block comes first, so a dark-OS visitor
+  // on 2.0/1.0 still gets that experience's own period-literal --steel/
+  // --paper/etc. (declared in the [data-experience] block) rather than the
+  // fog/slate values. If the media block ever moved below the experience
+  // blocks, a dark-OS visitor on 2.0/1.0 would silently start seeing the
+  // fog/slate steel/paper instead of the experience's own tokens — invisible
+  // in a fog-only or light-mode check, and easy to introduce by just adding
+  // a new section between them. This test pins the order, not the values
+  // (those are covered by the contrast tests above and the sync check).
+  it("the media block's source index precedes both [data-experience] blocks'", () => {
+    const mediaIdx = css.indexOf('@media (prefers-color-scheme: dark)');
+    const functionalIdx = css.indexOf(':root[data-experience="functional"]');
+    const minimalIdx = css.indexOf(':root[data-experience="minimal"]');
+    expect(mediaIdx, "could not find the `@media (prefers-color-scheme: dark)` block in globals.css").toBeGreaterThanOrEqual(0);
+    expect(functionalIdx, 'could not find `:root[data-experience="functional"]` in globals.css').toBeGreaterThanOrEqual(0);
+    expect(minimalIdx, 'could not find `:root[data-experience="minimal"]` in globals.css').toBeGreaterThanOrEqual(0);
+
+    expect(
+      mediaIdx,
+      'the `@media (prefers-color-scheme: dark)` block must appear before `:root[data-experience="functional"]` in globals.css — they tie on CSS specificity, so source order decides the winner, and a dark-OS visitor on the functional (2.0) edition would silently get the fog/slate --steel/--paper instead of its own period-literal tokens if this ever reordered',
+    ).toBeLessThan(functionalIdx);
+    expect(
+      mediaIdx,
+      'the `@media (prefers-color-scheme: dark)` block must appear before `:root[data-experience="minimal"]` in globals.css — same specificity tie as above, for the minimal (1.0) edition\'s flat black-on-white tokens',
+    ).toBeLessThan(minimalIdx);
+  });
+});
