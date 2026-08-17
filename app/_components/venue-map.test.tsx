@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { VenueMap } from "./venue-map";
-import type { StateShows } from "@/lib/queries/dimensions";
+import type { StateShows, CountryShows } from "@/lib/queries/dimensions";
 
 // Locates the rendered <path ...> opening tag for a state by its <title>
 // text (unique per state), so assertions can inspect that path's own fill
@@ -42,5 +42,14 @@ describe("VenueMap", () => {
     expect(html).toContain("var(--steel)"); // ramp swatches
     expect(html).toContain("var(--hand)"); // top-of-ramp swatch
     expect(html).toContain("Shaded on a log scale");
+  });
+
+  it("gives the 'beyond the us' country show-count the content color, not the retired gold utility", () => {
+    const countries: CountryShows[] = [{ country: "Canada", shows: 6, venues: 4 }];
+    const html = renderToStaticMarkup(<VenueMap states={states} countries={countries} />);
+    const idx = html.indexOf(">6<");
+    const spanTag = html.slice(html.lastIndexOf("<span", idx), idx);
+    expect(spanTag).toContain("text-ink");
+    expect(spanTag).not.toContain("text-gold");
   });
 });

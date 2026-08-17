@@ -660,7 +660,7 @@
 .song-barrow { display: grid; grid-template-columns: 84px 1fr 40px; align-items: center; gap: 10px; font-size: 0.82rem; }
 .song-bar { height: 9px; border-radius: 5px; background: var(--surface-2, #2a2016); overflow: hidden; }
 .song-bar > span { display: block; height: 100%; background: linear-gradient(90deg, color-mix(in oklab, var(--steel) 70%, black), var(--steel)); }
-.song-bar-pct { color: var(--gold); font-variant-numeric: tabular-nums; text-align: right; }
+.song-bar-pct { color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
 
 .song-spark { display: flex; align-items: flex-end; gap: 2px; height: 52px; }
 .song-spark i { flex: 1; background: var(--gold-deep, #c8902f); border-radius: 1px; opacity: 0.8; min-height: 1px; }

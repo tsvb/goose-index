@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { US_STATE_PATHS, US_VIEWBOX } from "@/lib/us-states";
 import type { StateShows, CountryShows } from "@/lib/queries/dimensions";
+import { chromeLink } from "./page-chrome";
+import { clsx } from "./clsx";
 
 /**
  * Where Goose plays, drawn as the thing it is.
@@ -82,7 +84,7 @@ export function VenueMap({ states, countries }: { states: StateShows[]; countrie
                 className="flex items-baseline gap-2 rounded border border-line bg-surface/60 px-3 py-1.5"
               >
                 <span className="font-display text-[0.9rem] text-ink">{c.country}</span>
-                <span className="font-mono text-[0.65rem] tabular-nums text-gold">{c.shows}</span>
+                <span className="font-mono text-[0.65rem] tabular-nums text-ink">{c.shows}</span>
                 <span className="font-mono text-[0.6rem] text-faint">
                   {c.shows === 1 ? "show" : "shows"} · {c.venues} {c.venues === 1 ? "venue" : "venues"}
                 </span>
@@ -102,11 +104,11 @@ export function VenueMapTable({ states }: { states: StateShows[] }) {
     <ol className="mt-6 grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3 lg:grid-cols-4">
       {ranked.map((s) => (
         <li key={s.state} className="flex items-baseline justify-between gap-2 border-b border-line-soft py-1">
-          <Link href={`/venues?q=${s.state}`} className="font-mono text-xs text-muted hover:text-gold">
+          <Link href={`/venues?q=${s.state}`} className={clsx("font-mono text-xs", chromeLink)}>
             {s.state}
           </Link>
           <span className="font-mono text-[0.68rem] tabular-nums text-faint">
-            <span className="text-gold">{s.shows}</span> · {s.venues}v
+            <span className="text-ink">{s.shows}</span> · {s.venues}v
           </span>
         </li>
       ))}
