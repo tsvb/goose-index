@@ -9,14 +9,13 @@ import { SetTape } from "./tape";
 import { NugsLink } from "../nugs-link";
 import { nugsTrackHref, nugsWebFallback } from "@/lib/nugs";
 import { PenNote } from "../pen";
+import { NilState } from "../page-chrome";
 
 export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEntry[]; showDate: string; venue: string | null }) {
+  // A nil sentence, not a dashed box — no link out; there's nothing else on
+  // this page to browse instead while a setlist is still pending.
   if (entries.length === 0) {
-    return (
-      <p className="rounded-lg border border-dashed border-line bg-surface/50 px-5 py-8 text-center text-muted">
-        No setlist has been recorded for this show yet.
-      </p>
-    );
+    return <NilState>No setlist has been recorded for this show yet.</NilState>;
   }
   const groups = groupSets(entries);
 

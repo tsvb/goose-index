@@ -52,6 +52,14 @@ describe("SetlistFancy", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
     expect(html).toContain("No setlist");
   });
+  it("renders the empty state as a nil sentence, not a dashed box", () => {
+    // The spec's empty-state rule: a nil sentence ending in an em dash, no
+    // dashed boxes — this used to be a rounded-lg dashed-border card.
+    const html = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
+    expect(html).not.toContain("border-dashed");
+    expect(html).not.toContain("rounded-lg");
+    expect(html).toContain("—"); // NilState's em-dash convention
+  });
   it("links the song and marks a Dusted Off return with a pen note and its title", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[entry({ song: "Hot Tea", slug: "hot-tea", gap: 52, isDustedOff: true })]} showDate="2024-04-20" venue={null} />);
     expect(html).toContain('href="/songs/hot-tea"');

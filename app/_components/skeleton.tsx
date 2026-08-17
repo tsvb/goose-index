@@ -8,9 +8,11 @@ import { clsx } from "./clsx";
  * editions. The shimmer is Tailwind's pulse, stilled under
  * prefers-reduced-motion. */
 
-/** A shimmering faint bar — the skeleton's only mark. */
+/** A shimmering faint bar — the skeleton's only mark. Flat, not rounded: the
+ * component is deliberately experience-neutral (see the file header), and a
+ * bare `rounded` corner was the last thing here that wasn't. */
 export function SkeletonBar({ className }: { className?: string }) {
-  return <span aria-hidden className={clsx("block animate-pulse rounded bg-line-soft motion-reduce:animate-none", className)} />;
+  return <span aria-hidden className={clsx("block animate-pulse bg-line-soft motion-reduce:animate-none", className)} />;
 }
 
 /** Announces the pending page to assistive tech while the bars shimmer. */
