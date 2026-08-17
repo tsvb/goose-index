@@ -1,21 +1,27 @@
 # Project notes for Claude
 
-## The database in .env is PRODUCTION
+## Check which database `.env` points at — before every write
 
-`DATABASE_URL` in `.env` points at **Neon — the live database**. `npm run db:migrate`,
-`npm run sync` and every `import-*` script write **straight to production** from a laptop.
-There is no local database in the loop unless you deliberately put one there.
+`DATABASE_URL` in `.env` moves. It has pointed at **Neon — the production database** —
+and, as of 2026-08-17, at **localhost** (a Homebrew `postgresql@16`; this machine has no
+docker, so `npm run db:up`'s compose file does not run here). Do not assume either
+direction. Assuming "it's local" when it is Neon is the belief that loses a database;
+assuming "it's production" when it is local merely wastes caution — so when in doubt,
+assume production.
 
-A handoff doc used to claim the opposite ("local is a different database; local runs do not
-touch prod"). It was wrong, and that is the belief that loses a database. The write scripts
-now print their target host before they touch anything — trust that line, not a doc.
+`npm run db:migrate`, `npm run sync` and every `import-*` script print their target host
+before they touch anything. **Trust that printed line, not this doc.** Two earlier versions
+of this section each asserted a permanent truth about `.env` ("local is separate", then
+"it is always production") and both went stale the moment `.env` changed — a doc about
+`.env` cannot outrun an edit to `.env`.
 
-To work against a local database instead:
+To start the local database on this machine:
 
 ```bash
-npm run db:up                                   # starts Postgres in docker
-DATABASE_URL='postgres://postgres:postgres@localhost:5432/goose' npm run sync
+brew services run postgresql@16
 ```
+
+(`npm run db:up` starts a docker Postgres instead, on machines that have docker.)
 
 ## Copy and voice
 
