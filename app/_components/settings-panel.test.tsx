@@ -31,6 +31,9 @@ describe("SettingsPanel", () => {
   it("marks exactly the current experience as selected", () => {
     const html = render({ current: "functional" });
     expect(html.match(/aria-current="true"/g)).toHaveLength(1);
+    // Selection means steel everywhere in the panel — never gold.
+    expect(html).toContain("text-steel");
+    expect(html).not.toMatch(/bg-gold|text-gold/);
   });
 
   it("shows the appearance section with every theme when theme is allowed", () => {

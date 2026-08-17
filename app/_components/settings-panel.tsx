@@ -51,11 +51,11 @@ export function SettingsPanel({
                 aria-hidden
                 className={clsx(
                   "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-                  selected ? "bg-gold" : "bg-faint/50",
+                  selected ? "bg-steel" : "bg-faint/50",
                 )}
               />
               <span>
-                <span className={clsx("block text-[0.85rem]", selected ? "text-gold" : "text-ink")}>
+                <span className={clsx("block text-[0.85rem]", selected ? "text-steel" : "text-ink")}>
                   {e.label}
                 </span>
                 <span className="block text-[0.7rem] text-faint">{e.blurb}</span>
