@@ -4,7 +4,7 @@ import { NavLink } from "./nav-links";
 import { SearchBox } from "./search-box";
 import { MobileNav } from "./mobile-nav";
 import { SettingsMenu } from "./settings-menu";
-import { Feather } from "./marks";
+import { PenRule } from "./pen";
 import { getExperience } from "@/lib/experience.server";
 import { type Experience } from "@/lib/experience";
 
@@ -20,36 +20,33 @@ const NAV = [
 
 export function HeaderFancy({ experience }: { experience: Experience }) {
   return (
-    // --header-h mirrors the Container's h-16 — MobileNav offsets its sheet from it.
-    <header className="sticky top-0 z-40 border-b border-line/80 bg-bg/85 backdrop-blur-md [--header-h:4rem]">
-      <Container className="flex h-16 items-center justify-between gap-4">
-        <Link href="/" className="group flex items-center gap-2.5 shrink-0">
-          <span className="grid h-9 w-9 place-items-center rounded-full border border-line text-gold transition group-hover:border-gold group-hover:rotate-[8deg]">
-            <Feather className="h-[18px] w-[18px]" />
-          </span>
-          <span className="font-display text-[1.15rem] leading-none tracking-tight">
-            Goose <span className="italic text-gold">Index</span>
-          </span>
+    // --header-h mirrors the Container's h-14 — MobileNav offsets its sheet from it.
+    <header className="sticky top-0 z-40 bg-paper [--header-h:3.5rem]">
+      <Container className="flex h-14 items-center justify-between gap-4">
+        <Link href="/" className="shrink-0 text-[0.95rem] font-semibold lowercase tracking-tight text-ink hover:text-steel">
+          goose index
         </Link>
-        {/* Tighter gaps in the 768–1024 band so seven links + search fit one row. */}
-        <nav aria-label="Primary" className="hidden items-center gap-2 text-[0.82rem] text-muted md:flex lg:gap-4 lg:text-[0.9rem]">
+        <nav aria-label="Primary" className="hidden items-center gap-3 text-[0.85rem] lowercase text-muted md:flex lg:gap-5">
           {NAV.map((n) => (
             <NavLink
               key={n.href}
               href={n.href}
-              className="relative whitespace-nowrap py-1 transition"
-              activeClassName="text-gold"
-              inactiveClassName="hover:text-ink"
+              className="whitespace-nowrap py-1 underline-offset-4 transition"
+              activeClassName="text-steel underline"
+              inactiveClassName="hover:text-ink hover:underline"
             >
-              {n.label}
+              {n.label.toLowerCase()}
             </NavLink>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <SearchBox />
           <SettingsMenu current={experience} />
           <MobileNav />
         </div>
+      </Container>
+      <Container>
+        <PenRule seed="masthead" />
       </Container>
     </header>
   );

@@ -18,10 +18,19 @@ beforeEach(() => {
 });
 
 describe("SiteHeader variants", () => {
-  it("fancy has the feather logo mark and is sticky", () => {
+  it("fancy masthead: lowercase wordmark, text nav, pen rule, no cards", () => {
     const html = renderToStaticMarkup(<HeaderFancy experience="fancy" />);
-    expect(html).toContain("<svg");
-    expect(html).toContain("sticky");
+    expect(html).toContain("goose index");
+    for (const label of ["shows", "songs", "stats", "on this day", "venues", "tours", "blog"]) {
+      expect(html.toLowerCase()).toContain(label);
+    }
+    expect(html).toContain("text-pencil"); // the pen rule under the masthead
+    // The wordmark link itself carries no badge — icon-circle buttons from
+    // SearchBox/SettingsMenu/MobileNav legitimately keep rounded-full (the
+    // de-carding bridge in globals.css exempts them until they retire).
+    const wordmark = html.match(/<a[^>]*href="\/"[^>]*>[^<]*<\/a>/)?.[0];
+    expect(wordmark).not.toContain("rounded-full"); // the feather badge is gone
+    expect(html).not.toContain("backdrop-blur");
   });
   it("functional is slim and mono, no rounded logo mark", () => {
     const html = renderToStaticMarkup(<HeaderFunctional experience="functional" />);
@@ -38,11 +47,11 @@ describe("SiteHeader variants", () => {
 });
 
 describe("SiteHeader current-section state", () => {
-  it("fancy marks the current section gold with aria-current, on detail pages too", () => {
+  it("fancy marks the current section with aria-current, on detail pages too", () => {
     nav.pathname = "/shows/2025-06-25";
     const html = renderToStaticMarkup(<HeaderFancy experience="fancy" />);
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
-    expect(html).toMatch(/aria-current="page" class="[^"]*text-gold[^"]*" href="\/shows"/);
+    expect(html).toMatch(/aria-current="page" class="[^"]*text-steel[^"]*" href="\/shows"/);
   });
 
   it("functional marks the current section with aria-current (styling via w2 CSS)", () => {
