@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { US_STATE_PATHS, US_VIEWBOX } from "@/lib/us-states";
 import type { StateShows, CountryShows } from "@/lib/queries/dimensions";
+import { chromeLink } from "./page-chrome";
+import { clsx } from "./clsx";
 
 /**
  * Where Goose plays, drawn as the thing it is.
@@ -39,7 +41,7 @@ export function VenueMap({ states, countries }: { states: StateShows[]; countrie
             <path
               key={code}
               d={d}
-              fill={hit ? (top ? "var(--ember)" : "var(--gold)") : "var(--surface-2)"}
+              fill={hit ? (top ? "var(--hand)" : "var(--steel)") : "var(--surface-2)"}
               fillOpacity={hit ? shade(hit.shows) : 1}
               stroke="var(--bg)"
               strokeWidth={0.9}
@@ -59,11 +61,11 @@ export function VenueMap({ states, countries }: { states: StateShows[]; countrie
           Fewer shows
           <span aria-hidden className="flex h-2.5">
             {[0.14, 0.3, 0.5, 0.72, 1].map((o) => (
-              <span key={o} className="h-2.5 w-6" style={{ background: "var(--gold)", opacity: o }} />
+              <span key={o} className="h-2.5 w-6" style={{ background: "var(--steel)", opacity: o }} />
             ))}
           </span>
           More
-          <span aria-hidden className="ml-2 h-2.5 w-6" style={{ background: "var(--ember)" }} />
+          <span aria-hidden className="ml-2 h-2.5 w-6" style={{ background: "var(--hand)" }} />
           <span className="text-muted">{hottest?.state}</span>
         </span>
         <span>
@@ -74,15 +76,12 @@ export function VenueMap({ states, countries }: { states: StateShows[]; countrie
 
       {countries.length > 0 && (
         <div className="mt-8">
-          <span className="eyebrow">Beyond the US</span>
+          <span className="text-[0.7rem] lowercase text-faint">beyond the us</span>
           <ul className="mt-3 flex flex-wrap gap-2">
             {countries.map((c) => (
-              <li
-                key={c.country}
-                className="flex items-baseline gap-2 rounded border border-line bg-surface/60 px-3 py-1.5"
-              >
+              <li key={c.country} className="flex items-baseline gap-2 py-1">
                 <span className="font-display text-[0.9rem] text-ink">{c.country}</span>
-                <span className="font-mono text-[0.65rem] tabular-nums text-gold">{c.shows}</span>
+                <span className="font-mono text-[0.65rem] tabular-nums text-ink">{c.shows}</span>
                 <span className="font-mono text-[0.6rem] text-faint">
                   {c.shows === 1 ? "show" : "shows"} · {c.venues} {c.venues === 1 ? "venue" : "venues"}
                 </span>
@@ -102,11 +101,11 @@ export function VenueMapTable({ states }: { states: StateShows[] }) {
     <ol className="mt-6 grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3 lg:grid-cols-4">
       {ranked.map((s) => (
         <li key={s.state} className="flex items-baseline justify-between gap-2 border-b border-line-soft py-1">
-          <Link href={`/venues?q=${s.state}`} className="font-mono text-xs text-muted hover:text-gold">
+          <Link href={`/venues?q=${s.state}`} className={clsx("font-mono text-xs", chromeLink)}>
             {s.state}
           </Link>
           <span className="font-mono text-[0.68rem] tabular-nums text-faint">
-            <span className="text-gold">{s.shows}</span> · {s.venues}v
+            <span className="text-ink">{s.shows}</span> · {s.venues}v
           </span>
         </li>
       ))}

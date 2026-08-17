@@ -1,7 +1,7 @@
 /** Keyboard escape hatch past the sticky header — rendered as the first child
  *  of <body> so it's the very first tab stop on every page, in every
  *  experience. Visually hidden (sr-only) until keyboard focus reveals it
- *  pinned over the header; the global gold :focus-visible ring applies. */
+ *  pinned over the header; the global steel :focus-visible ring applies. */
 export function SkipLink() {
   return (
     <a

@@ -81,6 +81,49 @@ describe("TourTimeline", () => {
     expect(html).toContain("245 shows belong to no tour");
   });
 
+  it("keeps every tick of a doubleheader — a repeated date must not collide as a key", () => {
+    // 2022-07-22 (Newport) and 2020-02-29 are real doubleheaders: leg.dates
+    // repeats the date, so a tick keyed by the date alone violates React's
+    // sibling-key rule and can drop or duplicate a tick on update. SSR never
+    // surfaces the collision (see instrument.test.tsx's degenerate-scale
+    // note), so walk the element tree and assert sibling keys are unique.
+    const doubleheader = tour({
+      tourId: 9,
+      name: "Dripfield Summer Tour 2022",
+      start: "2022-07-20",
+      end: "2022-07-24",
+      shows: 3,
+      dates: ["2022-07-20", "2022-07-22", "2022-07-22"],
+    });
+    const dups: string[] = [];
+    const walk = (node: unknown): void => {
+      if (!node || typeof node !== "object") return;
+      if (Array.isArray(node)) {
+        const keys = node
+          .filter((c): c is { key: unknown } => !!c && typeof c === "object" && "key" in c)
+          .map((c) => c.key)
+          .filter((k): k is string => k != null)
+          .map(String);
+        const seen = new Set<string>();
+        for (const k of keys) {
+          if (seen.has(k)) dups.push(k);
+          seen.add(k);
+        }
+        node.forEach(walk);
+        return;
+      }
+      walk((node as { props?: { children?: unknown } }).props?.children);
+    };
+    walk(TourTimeline({ today: TODAY, untouredShows: 0, tours: [doubleheader] }));
+    expect(dups).toEqual([]);
+
+    // and the fixture really renders all three ticks
+    const html = renderToStaticMarkup(
+      <TourTimeline today={TODAY} untouredShows={0} tours={[doubleheader]} />,
+    );
+    expect(html.match(/bottom-\[2px\]/g)).toHaveLength(3);
+  });
+
   it("marks the busiest run", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
@@ -92,8 +135,28 @@ describe("TourTimeline", () => {
         ]}
       />,
     );
-    expect(html).toContain("var(--ember)");
+    expect(html).toContain("var(--hand)");
     expect(html).toContain("Summer Tour 2018");
+  });
+
+  it("draws the non-busiest run's bar and ticks in steel, not the retired gold alias", () => {
+    const html = renderToStaticMarkup(
+      <TourTimeline
+        today={TODAY}
+        untouredShows={0}
+        tours={[
+          tour({ tourId: 1, name: "Small Tour 2019", start: "2019-01-01", end: "2019-01-10", shows: 3 }),
+          tour({ tourId: 2, name: "Summer Tour 2018", start: "2018-06-01", end: "2018-09-01", shows: 32 }),
+        ]}
+      />,
+    );
+    // toContain("var(--steel)") alone now also passes on the label's own
+    // color-mix(in srgb, var(--steel) N%, var(--ink) N%) — tighten to the
+    // two specific emissions this test actually means: the leg wash and
+    // the per-show ticks.
+    expect(html).toMatch(/background:color-mix\(in srgb, ?var\(--steel\) 22%/); // leg wash
+    expect(html).toContain("background:var(--steel)"); // ticks
+    expect(html).not.toMatch(/var\(--gold/);
   });
 
   it("renders nothing rather than an empty frame", () => {
@@ -180,5 +243,31 @@ describe("TourTimeline legs", () => {
     );
     // Repeating it on every leg would read as two separate tours.
     expect([...html.matchAll(/>Summer</g)]).toHaveLength(1);
+  });
+
+  it("delivers the label color via --tour-label-color, not a bare inline color: — a revert to style={{ color: nameColour }} would beat the CSS rules in globals.css (base + functional override) and silently reintroduce the 2.0 AA failure while every other test here stays green", () => {
+    const html = renderToStaticMarkup(
+      <TourTimeline
+        today="2026-07-13"
+        untouredShows={0}
+        tours={[
+          tour({
+            tourId: 44, name: "Summer Tour 2026", start: "2026-06-13", end: "2026-09-02", shows: 8,
+            dates: ["2026-06-13", "2026-06-19", "2026-06-26", "2026-07-04", "2026-08-13", "2026-08-19", "2026-08-27", "2026-09-02"],
+          }),
+        ]}
+      />,
+    );
+    const label = html.match(/<span class="tour-timeline-label[^>]*>Summer[^<]*<\/span>/)?.[0];
+    expect(label, "label span not found").toBeTruthy();
+    expect(label).toContain("tour-timeline-label");
+    // The CSS custom property is set inline...
+    expect(label).toMatch(/style="[^"]*--tour-label-color:[^;"]+/);
+    // ...but a bare `color:` is not — that would out-specificity/out-order
+    // both the base `.tour-timeline-label { color: var(--tour-label-color) }`
+    // rule and functional's `[data-experience="functional"] .tour-timeline-label
+    // { color: var(--ink) }` override.
+    const style = label!.match(/style="([^"]*)"/)?.[1] ?? "";
+    expect(style).not.toMatch(/(^|;)\s*color:/);
   });
 });

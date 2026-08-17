@@ -1,9 +1,10 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { listYears, careerYears } from "@/lib/queries/dimensions";
 import { CareerChart } from "@/app/_components/career-chart";
+import { PageHead } from "@/app/_components/page-chrome";
+import { SectionRule, Ledger, ContentsRow } from "@/app/_components/forms";
 import { compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
@@ -33,55 +34,31 @@ export default async function YearsPage() {
   }
 
   return (
-    <>
-      {/* Header */}
-      <header className="border-b border-line">
-        <Container className="py-12 sm:py-16">
-          <span className="eyebrow">Year by year</span>
-          <h1 className="mt-3 font-display text-[2.4rem] leading-none tracking-tight text-ink sm:text-5xl">
-            Years
-          </h1>
-          <p className="mt-3 font-mono text-xs text-faint">
-            {years.length} {years.length === 1 ? "year" : "years"} on the record
-          </p>
-        </Container>
-      </header>
+    <Container>
+      <PageHead
+        kicker="year by year"
+        title="years"
+        meta={`${years.length} ${years.length === 1 ? "year" : "years"} on the record`}
+      />
 
-      <Container className="pt-10">
-        <section>
-          <h2 className="mb-1 font-display text-base text-ink">The shape of it</h2>
-          <p className="mb-5 font-mono text-xs text-faint">
-            Thirteen years of shows. A list makes you plot this in your head.
-          </p>
-          <CareerChart years={career} />
-        </section>
-      </Container>
+      <section className="mb-10">
+        <SectionRule title="the shape of it" seed="years-shape" />
+        <p className="mb-5 mt-1 font-mono text-xs text-faint">
+          Thirteen years of shows. A list makes you plot this in your head.
+        </p>
+        <CareerChart years={career} />
+      </section>
 
       {/* List */}
-      <Container className="py-10 sm:py-14">
-        <div className="surface-card overflow-hidden">
-          {years.map((y) => (
-            <Link
-              key={y.year}
-              href={`/years/${y.year}`}
-              className="group flex flex-col gap-1 border-b border-line-soft px-4 py-4 transition last:border-0 hover:bg-surface-2 sm:flex-row sm:items-baseline sm:gap-6"
-            >
-              <span className="flex-1 font-display text-lg text-ink transition group-hover:text-gold">
-                {y.year}
-              </span>
-              <span className="font-mono text-xs text-faint">
-                {compact(y.shows)} {y.shows === 1 ? "show" : "shows"} · {compact(y.songs)} songs played
-                {(() => {
-                  const c = coverage.get(y.year);
-                  return c && c.documented < c.shows ? (
-                    <span className="ml-2 text-faint">(setlists for {c.documented})</span>
-                  ) : null;
-                })()}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </Container>
-    </>
+      <Ledger seed="years">
+        {years.map((y) => {
+          const c = coverage.get(y.year);
+          const sub = `${compact(y.shows)} ${y.shows === 1 ? "show" : "shows"} · ${compact(y.songs)} songs played${
+            c && c.documented < c.shows ? ` (setlists for ${c.documented})` : ""
+          }`;
+          return <ContentsRow key={y.year} href={`/years/${y.year}`} label={String(y.year)} sub={sub} />;
+        })}
+      </Ledger>
+    </Container>
   );
 }

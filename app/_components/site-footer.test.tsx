@@ -9,10 +9,13 @@ describe("SiteFooter variants", () => {
     expect(html).toContain("elgoose.net");
     expect(html).not.toContain("Browse");
   });
-  it("fancy keeps the multi-column footer with Browse", () => {
+  it("fancy keeps the multi-column footer with browse, ruled by the pen", () => {
     const html = renderToStaticMarkup(<FooterFancy />);
-    expect(html).toContain("Browse");
+    expect(html).toContain("goose index");
+    expect(html).toContain("browse");
     expect(html).toContain("<svg");
+    expect(html).toContain("text-pencil");
+    expect(html).not.toContain("text-gold");
   });
   it("functional is a single slim mono row", () => {
     const html = renderToStaticMarkup(<FooterFunctional />);

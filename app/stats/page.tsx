@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, MetaTable } from "@/app/_components/doc";
+import { PageHead } from "@/app/_components/page-chrome";
+import { Ledger, ContentsRow } from "@/app/_components/forms";
 import { getExperience } from "@/lib/experience.server";
 import { statsHubHighlights, type StatsHubHighlights } from "@/lib/queries/songs";
 import { compact, formatShortDate } from "@/lib/queries/format";
@@ -24,7 +26,7 @@ function hubLines(hl: StatsHubHighlights): Record<string, { big: string; small: 
     "debuts": hl.latestDebut && { big: hl.latestDebut.name, small: `debuted ${formatShortDate(hl.latestDebut.date)}` },
     "set-stats": hl.topOpener && { big: hl.topOpener.name, small: `opened ${compact(hl.topOpener.count)} shows` },
     // Oracle is a curated set of five discoveries, not a live-updated leaderboard;
-    // the static line keeps the card the same height as its siblings.
+    // the static line keeps its row consistent with its siblings.
     "oracle": { big: "5", small: "discoveries" },
   };
 }
@@ -60,46 +62,22 @@ export default async function StatsHub() {
     );
   }
   return (
-    <>
-      <header className="relative overflow-hidden border-b border-line">
-        <div className="stage-glow inset-x-0 top-0 h-72" />
-        <Container className="relative py-10 sm:py-12">
-          <span className="eyebrow">By the numbers</span>
-          <h1 className="mt-3 font-display text-[2.4rem] leading-none tracking-tight text-ink sm:text-5xl">
-            Stats
-          </h1>
-        </Container>
-      </header>
-      <Container className="py-8">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {CUTS.map((c) => {
-            const line = lines[c.slug];
-            return (
-              <Link
-                key={c.slug}
-                href={`/stats/${c.slug}`}
-                className="surface-card group flex flex-col p-5 transition hover:border-gold/55"
-              >
-                <div className="font-display text-lg text-ink group-hover:text-gold">{c.title}</div>
-                <p className="mt-1 text-sm text-muted">{c.blurb}</p>
-                {line && (
-                  <div className="mt-auto pt-4">
-                    <div className="flex items-baseline gap-2 border-t border-line-soft pt-3">
-                      <span
-                        title={line.big}
-                        className="min-w-0 truncate font-display text-xl text-ink"
-                      >
-                        {line.big}
-                      </span>
-                      <span className="shrink-0 font-mono text-[0.7rem] text-faint">{line.small}</span>
-                    </div>
-                  </div>
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </Container>
-    </>
+    <Container>
+      <PageHead kicker="by the numbers" title="stats" meta={`${CUTS.length} cuts of the catalog`} />
+
+      <Ledger seed="stats-hub">
+        {CUTS.map((c) => {
+          const line = lines[c.slug];
+          return (
+            <ContentsRow
+              key={c.slug}
+              href={`/stats/${c.slug}`}
+              label={c.title.toLowerCase()}
+              sub={line ? `${line.big} · ${line.small}` : "—"}
+            />
+          );
+        })}
+      </Ledger>
+    </Container>
   );
 }

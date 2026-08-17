@@ -9,7 +9,7 @@ function day(dow: number, dayName: string, avgJams: number, totalShows: number):
 
 /** Spoke stroke widths, in render order (Mon → Sun). */
 function spokeWidths(html: string) {
-  return [...html.matchAll(/<line [^>]*stroke="var\(--(?:ember|gold|faint)\)" stroke-width="([\d.]+)"/g)].map((m) =>
+  return [...html.matchAll(/<line [^>]*stroke="var\(--(?:hand|steel|faint)\)" stroke-width="([\d.]+)"/g)].map((m) =>
     Number(m[1]),
   );
 }
@@ -31,6 +31,27 @@ describe("DayOfWeekDial", () => {
     const [monday, friday, saturday] = widths;
     expect(monday).toBeLessThan(friday);
     expect(friday).toBeLessThan(saturday);
+  });
+
+  it("marks the hottest night's spoke and dot in hand, not steel", () => {
+    const html = renderToStaticMarkup(<DayOfWeekDial data={data} />);
+    // Monday is hottest: its <line>/<circle> pair carries the hand mark.
+    expect(html).toMatch(/<line[^>]*stroke="var\(--hand\)"/);
+    expect(html).toMatch(/<circle[^>]*fill="var\(--hand\)"/);
+  });
+
+  it("marks a below-mean, non-hottest night's spoke in faint, and an above-mean one in steel", () => {
+    // Tuesday sits above the mean but isn't hottest — steel. Wednesday sits
+    // below the mean — faint. Neither is the retired gold alias.
+    const withAboveMean = [
+      day(1, "Monday", 1.64, 25), // hottest
+      day(2, "Tuesday", 1.5, 40), // above mean, not hottest -> steel
+      day(3, "Wednesday", 0.5, 40), // below mean -> faint
+    ];
+    const html = renderToStaticMarkup(<DayOfWeekDial data={withAboveMean} />);
+    expect(html).toMatch(/<line[^>]*stroke="var\(--steel\)"/);
+    expect(html).toMatch(/<line[^>]*stroke="var\(--faint\)"/);
+    expect(html).not.toMatch(/var\(--gold/);
   });
 
   it("names the hottest night but qualifies it with the sample", () => {

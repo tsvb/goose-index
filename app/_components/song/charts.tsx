@@ -83,11 +83,11 @@ export function GapSparkline({ perfs }: { perfs: SongPerf[] }) {
   const barW = Math.min(slot - (slot >= SPARK.minSlotForGap ? SPARK.gapUnits : 0), SPARK.barCap);
   const label = `Gap between plays across ${series.length} performance${series.length === 1 ? "" : "s"}; longest gap ${longest} show${longest === 1 ? "" : "s"}; ${busts} dusted-off return${busts === 1 ? "" : "s"}`;
   return (
-    <svg role="img" aria-label={label} width="100%" height={SPARK.height} viewBox={`0 0 ${SPARK.viewW} ${SPARK.viewH}`} preserveAspectRatio="none" fill="var(--gold-deep, #c8902f)" fillOpacity={0.8} style={{ display: "block" }}>
+    <svg role="img" aria-label={label} width="100%" height={SPARK.height} viewBox={`0 0 ${SPARK.viewW} ${SPARK.viewH}`} preserveAspectRatio="none" fill="var(--steel)" fillOpacity={0.8} style={{ display: "block" }}>
       {bars.map((b, i) => {
         const h = Math.max(SPARK.minBarH, round2((b.gap / max) * SPARK.viewH));
         return (
-          <rect key={i} x={round2(i * slot + (slot - barW) / 2)} y={round2(SPARK.viewH - h)} width={round2(barW)} height={h} {...(b.ember ? { fill: "var(--ember, #ff8a3d)", fillOpacity: 1 } : {})}>
+          <rect key={i} x={round2(i * slot + (slot - barW) / 2)} y={round2(SPARK.viewH - h)} width={round2(barW)} height={h} {...(b.ember ? { fill: "var(--ember)", fillOpacity: 1 } : {})}>
             <title>{b.label}</title>
           </rect>
         );
@@ -114,7 +114,7 @@ export function MiniSparkline({ values }: { values: number[] }) {
     .join("");
   return (
     <svg aria-hidden width={MSPARK.w} height={MSPARK.h} viewBox={`0 0 ${MSPARK.w} ${MSPARK.h}`} style={{ verticalAlign: "middle" }}>
-      <path d={d} fill="var(--gold-deep, #c8902f)" fillOpacity={0.85} />
+      <path d={d} fill="var(--steel)" fillOpacity={0.85} />
     </svg>
   );
 }

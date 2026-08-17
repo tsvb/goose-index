@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { TransitionRow } from "@/lib/queries/discoveries";
+import { chromeLink } from "@/app/_components/page-chrome";
 
 /** Segues, set in the notation the scene already reads.
  *
@@ -27,14 +28,14 @@ function Splice({ weight }: { weight: number }) {
         y1={mid}
         x2={SPLICE.w - 10}
         y2={mid}
-        stroke="var(--gold)"
+        stroke="var(--steel)"
         strokeWidth={stroke}
         strokeLinecap="butt"
         opacity={0.45 + weight * 0.55}
       />
       <path
         d={`M${SPLICE.w - 11} ${mid - 4.5} L${SPLICE.w - 2} ${mid} L${SPLICE.w - 11} ${mid + 4.5} Z`}
-        fill="var(--gold)"
+        fill="var(--steel)"
         opacity={0.45 + weight * 0.55}
       />
     </svg>
@@ -82,12 +83,14 @@ export function TransitionsList({ data }: { data: TransitionRow[] }) {
 }
 
 function SongTag({ name, slug }: { name: string; slug: string | null }) {
-  const cls = "text-ink hover:text-gold";
+  // A song mentioned inline in a segue row — a content link, not an entry's
+  // own title, so it wears the chrome link treatment rather than a whole-row
+  // underline. The non-slug case isn't a link at all, so it gets no hover.
   return slug ? (
-    <Link href={`/songs/${slug}`} className={cls}>
+    <Link href={`/songs/${slug}`} className={chromeLink}>
       {name}
     </Link>
   ) : (
-    <span className={cls}>{name}</span>
+    <span className="text-ink">{name}</span>
   );
 }

@@ -44,17 +44,17 @@ export function AppearsOn({ albums, minimal = false }: { albums: SongAlbum[]; mi
 
   return (
     <section className="mt-8">
-      <span className="eyebrow">Appears on</span>
-      <ul className="mt-3 flex flex-col gap-2">
+      <span className="text-[0.7rem] lowercase text-faint">appears on</span>
+      <ul className="mt-3 flex flex-col divide-y divide-line-soft">
         {albums.map((a) => {
           const href = bandcampHref(a.url);
           const meta = `${a.releaseDate ? a.releaseDate.slice(0, 4) + " · " : ""}${releaseKind(a)} · track ${a.trackNum}`;
           const body = (
             <>
-              <span className="min-w-0 flex-1 truncate font-display text-ink group-hover:text-gold">{a.title}</span>
+              <span className="min-w-0 flex-1 truncate text-ink underline-offset-4 transition group-hover:underline">{a.title}</span>
               <span className="shrink-0 font-mono text-[0.65rem] text-faint">{meta}</span>
               {href && (
-                <span className="shrink-0 font-mono text-[0.62rem] text-sage group-hover:text-sage-deep">
+                <span className="shrink-0 font-mono text-[0.62rem] text-spruce">
                   Bandcamp&nbsp;↗
                 </span>
               )}
@@ -68,12 +68,12 @@ export function AppearsOn({ albums, minimal = false }: { albums: SongAlbum[]; mi
                   target="_blank"
                   rel="noopener noreferrer"
                   title={`Buy ${a.title} from the band on Bandcamp`}
-                  className="group flex items-center gap-3 rounded border border-line bg-surface/60 px-3.5 py-2.5 transition hover:border-sage/50 hover:bg-surface-2"
+                  className="group flex items-center gap-3 py-2.5"
                 >
                   {body}
                 </a>
               ) : (
-                <span className="flex items-center gap-3 rounded border border-line bg-surface/60 px-3.5 py-2.5">
+                <span className="flex items-center gap-3 py-2.5">
                   {body}
                 </span>
               )}

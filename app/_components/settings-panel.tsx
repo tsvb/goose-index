@@ -1,34 +1,17 @@
 import { EXPERIENCES, type Experience } from "@/lib/experience";
 import { THEME_VALUES, type Theme } from "@/lib/theme";
-import { Cassette, Disc, Moon, Sun, Tag } from "./marks";
 import { clsx } from "./clsx";
 
 // The theme list, the default and the pre-paint script all live in lib/theme.ts
 // — layout.tsx needs them too, and an App Router route file can't export them.
 export { DEFAULT_THEME, resolveTheme, type Theme } from "@/lib/theme";
 
-/** The icon each theme wears in the menu. Keyed off THEME_VALUES so a new theme
- * can't be added without giving it one. */
-const ICONS: Record<Theme, typeof Moon> = {
-  dark: Moon,
-  light: Sun,
-  pod: Disc,
-  xl2: Cassette,
-  registrar: Tag,
+const THEME_LABELS: Record<Theme, string> = {
+  auto: "auto",
+  fog: "fog",
+  slate: "slate",
 };
-const LABELS: Record<Theme, string> = {
-  dark: "Dark",
-  light: "Light",
-  pod: "Pod",
-  xl2: "XL II",
-  registrar: "Registrar",
-};
-
-export const THEMES = THEME_VALUES.map((value) => ({
-  value,
-  label: LABELS[value],
-  icon: ICONS[value],
-}));
+export const THEMES = THEME_VALUES.map((value) => ({ value, label: THEME_LABELS[value] }));
 
 export function SettingsPanel({
   current,
@@ -47,8 +30,8 @@ export function SettingsPanel({
   onSelectTheme: (next: Theme) => void;
 }) {
   return (
-    <div className="w-64 rounded-xl border border-line bg-surface p-3.5 text-ink shadow-[0_24px_48px_-20px_var(--shadow)]">
-      <p className="mb-2 font-mono text-[0.62rem] uppercase tracking-wider text-faint">Experience</p>
+    <div className="w-64 border-y border-line bg-paper p-3.5 text-ink">
+      <p className="mb-2 font-mono text-[0.62rem] uppercase tracking-wider text-faint">experience</p>
       <div className="flex flex-col gap-1">
         {EXPERIENCES.map((e) => {
           const selected = e.key === current;
@@ -60,19 +43,19 @@ export function SettingsPanel({
               disabled={pending}
               aria-current={selected ? "true" : undefined}
               className={clsx(
-                "flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition disabled:opacity-60",
-                selected ? "bg-gold/15 ring-1 ring-gold/40" : "hover:bg-line/40",
+                "flex items-start gap-2.5 px-2.5 py-2 text-left transition disabled:opacity-60",
+                selected ? "text-steel underline underline-offset-4" : "hover:text-ink",
               )}
             >
               <span
                 aria-hidden
                 className={clsx(
                   "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-                  selected ? "bg-gold" : "bg-faint/50",
+                  selected ? "bg-steel" : "bg-faint/50",
                 )}
               />
               <span>
-                <span className={clsx("block text-[0.85rem]", selected ? "text-gold" : "text-ink")}>
+                <span className={clsx("block text-[0.85rem]", selected ? "text-steel" : "text-ink")}>
                   {e.label}
                 </span>
                 <span className="block text-[0.7rem] text-faint">{e.blurb}</span>
@@ -85,16 +68,10 @@ export function SettingsPanel({
       {themeAllowed ? (
         <>
           <div className="my-3 h-px bg-line" />
-          <p className="mb-2 font-mono text-[0.62rem] uppercase tracking-wider text-faint">Appearance</p>
-          {/* A grid, not a segmented row: four themes in one row left ~60px a
-              button, which "XL II" could not share with an icon — it wrapped
-              and burst the pill. Two columns give each button room regardless
-              of theme count, without the labels having to get shorter; an odd
-              count (five, currently) just leaves the last cell empty. */}
-          <div role="group" aria-label="Appearance" className="grid grid-cols-2 gap-1">
+          <p className="mb-2 font-mono text-[0.62rem] uppercase tracking-wider text-faint">appearance</p>
+          <div role="group" aria-label="appearance" className="flex gap-4">
             {THEMES.map((t) => {
               const pressed = theme === t.value;
-              const Icon = t.icon;
               return (
                 <button
                   key={t.value}
@@ -102,13 +79,10 @@ export function SettingsPanel({
                   onClick={() => onSelectTheme(t.value)}
                   aria-pressed={pressed}
                   className={clsx(
-                    "flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[0.75rem] transition",
-                    pressed
-                      ? "border-gold/40 bg-gold/15 text-gold"
-                      : "border-line text-faint hover:border-line hover:bg-line/40 hover:text-ink",
+                    "text-[0.8rem] lowercase underline-offset-4 transition",
+                    pressed ? "text-steel underline font-semibold" : "text-muted underline hover:text-ink",
                   )}
                 >
-                  <Icon className="h-3.5 w-3.5 shrink-0" />
                   {t.label}
                 </button>
               );
@@ -117,7 +91,7 @@ export function SettingsPanel({
         </>
       ) : (
         <p className="mt-2.5 text-[0.7rem] leading-snug text-faint">
-          Themes apply in the 3.0 experience.
+          appearance applies in the 3.0 experience.
         </p>
       )}
     </div>

@@ -18,7 +18,7 @@ function row(name: string, daysSincePlayed: number, totalPlays = 9, songId = day
  * reading comes off the ring, which is the only thing carrying accent. */
 function marks(html: string) {
   const packs = [...html.matchAll(/data-role="pack"[^>]*stroke="var\(--line\)" stroke-width="([\d.]+)"/g)];
-  const rings = [...html.matchAll(/data-role="gap"[^>]*stroke="var\(--(ember|gold)\)"/g)];
+  const rings = [...html.matchAll(/data-role="gap"[^>]*stroke="var\(--(ember|steel)\)"/g)];
   return packs.map((m, i) => ({
     thickness: Number(m[1]),
     red: rings[i]?.[1] === "ember",
@@ -38,7 +38,7 @@ describe("TheShelf spools", () => {
     const html = renderToStaticMarkup(<TheShelf data={data} />);
     // Colour means exactly one thing here: how long it has been. If the pack
     // ever takes accent again, a fat spool starts out-shouting an urgent one.
-    const packsWithAccent = html.match(/data-role="pack"[^>]*var\(--(gold|ember)\)/g);
+    const packsWithAccent = html.match(/data-role="pack"[^>]*var\(--(gold|steel|ember|hand)\)/g);
     expect(packsWithAccent).toBeNull();
   });
 

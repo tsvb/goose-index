@@ -9,7 +9,7 @@ function render(props: Partial<React.ComponentProps<typeof SettingsPanel>> = {})
     <SettingsPanel
       current="fancy"
       themeAllowed
-      theme="dark"
+      theme="auto"
       onSelectExperience={noop}
       onSelectTheme={noop}
       {...props}
@@ -23,7 +23,7 @@ describe("SettingsPanel", () => {
     expect(html).toContain("3.0");
     expect(html).toContain("2.0");
     expect(html).toContain("1.0");
-    expect(html).toContain("Charts, themes, motion");
+    expect(html).toContain("Charts, pen &amp; instrument"); // React escapes & in rendered markup
     expect(html).toContain("Same charts, glossy skin");
     expect(html).toContain("Plain document, no charts");
   });
@@ -31,47 +31,49 @@ describe("SettingsPanel", () => {
   it("marks exactly the current experience as selected", () => {
     const html = render({ current: "functional" });
     expect(html.match(/aria-current="true"/g)).toHaveLength(1);
+    // Selection means steel everywhere in the panel — never gold.
+    expect(html).toContain("text-steel");
+    expect(html).not.toMatch(/bg-gold|text-gold/);
   });
 
-  it("shows the Appearance section with every theme when theme is allowed", () => {
+  it("shows the appearance section with every theme when theme is allowed", () => {
     const html = render({ current: "fancy", themeAllowed: true });
-    expect(html).toContain("Appearance");
-    expect(html).toContain("Dark");
-    expect(html).toContain("Light");
-    expect(html).toContain("Pod");
-    expect(html).toContain("XL II");
+    expect(html).toContain("appearance");
+    expect(html).toContain("auto");
+    expect(html).toContain("fog");
+    expect(html).toContain("slate");
   });
 
   it("marks exactly one appearance option as pressed", () => {
-    const html = render({ themeAllowed: true, theme: "light" });
+    const html = render({ themeAllowed: true, theme: "fog" });
     expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
+    expect(html).toContain("text-steel");
   });
 
-  // Four themes in a single segmented row left ~60px a button, which "XL II"
-  // could not share with its icon: the label wrapped and burst the pill. The
-  // grid is what keeps a long theme name from having to be shortened.
-  it("lays the themes out in a grid, with labels that cannot wrap", () => {
+  // No pills, no icons, no grid: appearance is a plain row of underlined
+  // lowercase text options — one per theme, three of them.
+  it("lays the themes out as a plain text row, one option per theme", () => {
     const html = render({ themeAllowed: true });
-    expect(html).toContain("grid grid-cols-2");
+    expect(html).toContain("flex gap-4");
     const buttons = html.match(/aria-pressed="(true|false)"/g) ?? [];
-    expect(buttons.length).toBeGreaterThanOrEqual(4); // one per theme
-    expect(html).toContain("whitespace-nowrap");
+    expect(buttons.length).toBe(3); // auto, fog, slate
+    expect(html).toContain("lowercase");
   });
 
-  it("marks pod as pressed when it is the active theme", () => {
-    const html = render({ themeAllowed: true, theme: "pod" });
+  it("marks fog as pressed when it is the active theme", () => {
+    const html = render({ themeAllowed: true, theme: "fog" });
     expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
   });
 
-  it("marks xl2 as pressed when it is the active theme", () => {
-    const html = render({ themeAllowed: true, theme: "xl2" });
+  it("marks slate as pressed when it is the active theme", () => {
+    const html = render({ themeAllowed: true, theme: "slate" });
     expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
   });
 
-  it("hides Appearance and shows a hint when theme is not allowed", () => {
+  it("hides appearance and shows a hint when theme is not allowed", () => {
     const html = render({ current: "functional", themeAllowed: false });
-    expect(html).not.toContain("Appearance");
-    expect(html).toContain("3.0 experience");
+    expect(html).not.toContain('aria-label="appearance"');
+    expect(html).toContain("appearance applies in the 3.0 experience.");
   });
 
   it("leaves the experience options enabled when not pending", () => {
@@ -86,14 +88,22 @@ describe("SettingsPanel", () => {
     expect(html.match(/disabled=""/g)).toHaveLength(3); // the three experiences
     expect(html).toContain("disabled:opacity-60");
   });
+
+  // A ruled sheet, not a floating card: no rounded corners, no drop shadow.
+  it("renders the panel as a ruled sheet, not a floating card", () => {
+    const html = render();
+    expect(html).toContain("border-y");
+    expect(html).not.toContain("rounded-xl");
+    expect(html).not.toContain("shadow");
+  });
 });
 
 describe("resolveTheme", () => {
   it("accepts each valid theme and rejects everything else", () => {
-    expect(resolveTheme("dark")).toBe("dark");
-    expect(resolveTheme("light")).toBe("light");
-    expect(resolveTheme("pod")).toBe("pod");
-    expect(resolveTheme("xl2")).toBe("xl2");
+    expect(resolveTheme("auto")).toBe("auto");
+    expect(resolveTheme("fog")).toBe("fog");
+    expect(resolveTheme("slate")).toBe("slate");
+    expect(resolveTheme("xl2")).toBeNull();
     expect(resolveTheme("sepia")).toBeNull();
     expect(resolveTheme("")).toBeNull();
     expect(resolveTheme(null)).toBeNull();

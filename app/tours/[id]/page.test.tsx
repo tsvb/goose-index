@@ -41,3 +41,15 @@ describe("TourPage show rows are tour-aware", () => {
     expect(html).toContain("Morrison, CO");
   });
 });
+
+describe("TourPage smoke test", () => {
+  it("renders one h1, showHref ledger rows, and no card chrome", async () => {
+    const html = await render();
+    expect((html.match(/<h1/g) ?? []).length).toBe(1);
+    expect(html).toContain(">Summer Tour 2024<");
+    expect(html).toContain('href="/shows/2024-06-01"');
+    expect(html).toContain('href="/shows/2024-08-30"');
+    expect(html).not.toContain("surface-card");
+    expect(html).not.toContain("rounded-lg");
+  });
+});

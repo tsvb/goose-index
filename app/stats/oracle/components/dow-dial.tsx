@@ -101,7 +101,7 @@ export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
         <circle cx={FACE.c} cy={FACE.c} r={FACE.baseline} fill="none" stroke="var(--line)" strokeWidth={1} strokeDasharray="2 3" />
 
         {/* The week as a shape. */}
-        <path d={rose} fill="var(--gold)" fillOpacity={0.1} stroke="var(--gold)" strokeWidth={1} strokeOpacity={0.5} strokeLinejoin="round" />
+        <path d={rose} fill="var(--steel)" fillOpacity={0.1} stroke="var(--steel)" strokeWidth={1} strokeOpacity={0.5} strokeLinejoin="round" />
 
         {days.map((d, i) => {
           if (d.totalShows === 0) return null;
@@ -109,7 +109,7 @@ export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
           const to = point(i, radiusFor(d));
           const hot = d.dow === hottest.dow;
           const above = d.avgJams >= mean;
-          const colour = hot ? "var(--ember)" : above ? "var(--gold)" : "var(--faint)";
+          const colour = hot ? "var(--hand)" : above ? "var(--steel)" : "var(--faint)";
           const width = widthFor(d);
           return (
             <g key={d.dow}>
@@ -136,7 +136,7 @@ export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
               <text
                 x={p.x} y={p.y + 10} textAnchor="middle" dominantBaseline="central"
                 className="font-mono" fontSize={8}
-                fill={d.totalShows === 0 ? "var(--faint)" : hot ? "var(--ember)" : delta >= 0 ? "var(--gold)" : "var(--faint)"}
+                fill={d.totalShows === 0 ? "var(--faint)" : hot ? "var(--ember)" : delta >= 0 ? "var(--steel)" : "var(--faint)"}
                 style={{ fontVariantNumeric: "tabular-nums" }}
               >
                 {d.totalShows === 0 ? "—" : `${delta >= 0 ? "+" : "−"}${Math.abs(delta).toFixed(2)}`}

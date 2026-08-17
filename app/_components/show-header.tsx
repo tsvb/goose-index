@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Container } from "./container";
 import { MapPin } from "./marks";
 import { Doc, Breadcrumb, MetaTable } from "./doc";
+import { chromeLink } from "./page-chrome";
 import { dateParts, locationLine, formatDuration, trackSeconds } from "@/lib/queries/format";
 import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
 import type { Experience } from "@/lib/experience";
@@ -68,16 +69,12 @@ function computeStats(date: string, setlist: SetlistEntry[]) {
 }
 
 export function ShowHeader({
-  show, date, setlist, experience, entryNumber = null,
+  show, date, setlist, experience,
 }: {
   show: ShowDetail;
   date: string;
   setlist: SetlistEntry[];
   experience: Experience;
-  /** 1-based position in the played-show ledger (getShowEntryNumber). Null —
-   * an upcoming night, or nothing logged yet — means no stamp: the number is
-   * computed or absent, never guessed. */
-  entryNumber?: number | null;
 }) {
   const { dp, encores, setCount, totalSecs, known } = computeStats(date, setlist);
   const loc = locationLine(show.city, show.state, show.country);
@@ -118,7 +115,7 @@ export function ShowHeader({
               {dp.month} {dp.day}, {dp.year}
             </h1>
             <div className="mt-1 text-sm font-semibold text-muted">
-              {show.venueId ? <Link href={`/venues/${show.venueId}`} className="text-gold hover:underline">{show.venue}</Link> : (show.venue ?? "Unknown venue")}
+              {show.venueId ? <Link href={`/venues/${show.venueId}`} className="text-[#1f6cb0] hover:underline">{show.venue}</Link> : (show.venue ?? "Unknown venue")}
               {loc ? ` · ${loc}` : ""}{show.tour ? ` · ${show.tour}` : ""}
             </div>
             {setlist.length === 0 ? (
@@ -129,7 +126,7 @@ export function ShowHeader({
                   <span className="w2-badge">{setlist.length} songs</span>
                   <span className="w2-badge">{setCount} {setCount === 1 ? "set" : "sets"}</span>
                   {encores > 0 && <span className="w2-badge">{encores} enc</span>}
-                  {durationLogged && <span className="w2-badge gold">{durationLogged}</span>}
+                  {durationLogged && <span className="w2-badge amber">{durationLogged}</span>}
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-1.5"><ShowBandcamp url={show.bandcampUrl} /><ShowNugs date={date} venue={show.venue} /></div>
               </>
@@ -141,34 +138,31 @@ export function ShowHeader({
   }
 
   return (
-    <header className="relative overflow-hidden border-b border-line">
-      <div className="stage-glow inset-x-0 top-0 h-72" />
-      {/* almanac-masthead: the letterpress themes hang their double rule off
-          this wrapper via CSS; the class carries no styles elsewhere. */}
-      <Container className="almanac-masthead relative py-12 sm:py-16">
-        {/* Rubber-stamp entry number — display:none outside the two almanac
-            themes (globals.css). Rendered only when the ledger position is
-            actually computed. */}
-        {entryNumber != null && (
-          <div className="entry-stamp">
-            <span>SHOW</span>
-            <span>No. {entryNumber}</span>
-          </div>
-        )}
-        <span className="eyebrow">
+    <header className="border-b border-line">
+      {/* PageHead-style markup, written inline: the kicker carries a real
+          tour link (PageHead's own kicker is plain text only) and the venue
+          line + stat/listen row are bespoke, so they sit alongside it rather
+          than inside PageHead's meta slot. */}
+      <Container className="py-10 sm:py-14">
+        {/* Casing boundary: the tour link is authored data (a tour name like
+            "Summer Tour 2026") and keeps its case; only the chrome words
+            around it — the "goose" fallback and the weekday — fold, and they
+            fold explicitly rather than via a blanket `lowercase` class, which
+            used to case-fold the tour name too. */}
+        <p className="text-[0.7rem] text-faint">
           {show.tourId && show.tour ? (
-            <Link href={`/tours/${show.tourId}`} className="transition hover:text-gold">{show.tour}</Link>
-          ) : ("Goose")}
+            <Link href={`/tours/${show.tourId}`} className={chromeLink}>{show.tour}</Link>
+          ) : ("goose")}
           {"  ·  "}
-          {dp.weekday}
-        </span>
-        <h1 className="rise mt-3 font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-5xl">
+          {dp.weekday.toLowerCase()}
+        </p>
+        <h1 className="mt-1 font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-5xl">
           {dp.month} {dp.day}, {dp.year}
         </h1>
         <p className="mt-4 flex flex-wrap items-baseline gap-x-2 text-xl">
           <span className="text-muted">at</span>
           {show.venueId ? (
-            <Link href={`/venues/${show.venueId}`} className="font-display text-2xl text-gold underline decoration-gold/30 underline-offset-4 transition hover:decoration-gold">{show.venue}</Link>
+            <Link href={`/venues/${show.venueId}`} className={`font-display text-2xl decoration-spruce/30 ${chromeLink}`}>{show.venue}</Link>
           ) : (
             <span className="font-display text-2xl text-ink">{show.venue ?? "Unknown venue"}</span>
           )}
@@ -184,7 +178,7 @@ export function ShowHeader({
             // would read like a broken page, not a pending one.
             <>
               <span>Setlist not yet in the ledger — check back soon</span>
-              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className="text-sage transition hover:text-ink">View on elgoose ↗</a></>)}
+              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className={chromeLink}>View on elgoose ↗</a></>)}
             </>
           ) : (
             <>
@@ -193,7 +187,7 @@ export function ShowHeader({
               <span><span className="text-ink">{setCount}</span> {setCount === 1 ? "set" : "sets"}</span>
               {encores > 0 && (<><span className="text-line">·</span><span><span className="text-ink">{encores}</span> {encores === 1 ? "encore" : "encores"}</span></>)}
               {durationLogged && (<><span className="text-line">·</span><span><span className="text-ink">{durationLogged}</span> logged</span></>)}
-              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className="text-sage transition hover:text-ink">View on elgoose ↗</a></>)}
+              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className={chromeLink}>View on elgoose ↗</a></>)}
               <span className="text-line">·</span>
               <ShowBandcamp url={show.bandcampUrl} />
               <ShowNugs date={date} venue={show.venue} />

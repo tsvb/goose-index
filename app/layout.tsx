@@ -1,96 +1,14 @@
 import type { Metadata } from "next";
-import {
-  Bricolage_Grotesque,
-  Hanken_Grotesk,
-  JetBrains_Mono,
-  IBM_Plex_Sans,
-  IBM_Plex_Mono,
-  Libre_Caslon_Text,
-  Courier_Prime,
-  Archivo,
-  Fraunces,
-} from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { SiteHeader } from "./_components/site-header";
 import { SiteFooter } from "./_components/site-footer";
 import { SkipLink } from "./_components/skip-link";
-import { DEFAULT_THEME, themeScript } from "@/lib/theme";
+import { themeScript } from "@/lib/theme";
 import { getExperience } from "@/lib/experience.server";
 import { JsonLd } from "./_components/json-ld";
 import { siteJsonLd } from "@/lib/jsonld";
 import { SITE_URL } from "@/lib/site";
-
-// Fancy display face.
-const bricolage = Bricolage_Grotesque({
-  subsets: ["latin"],
-  variable: "--font-bricolage",
-  display: "swap",
-});
-// Fancy body + mono.
-const hanken = Hanken_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-hanken",
-  display: "swap",
-});
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
-  display: "swap",
-});
-// Functional: one grotesque for everything + a mono for figures.
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-plex-sans",
-  display: "swap",
-});
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-plex-mono",
-  display: "swap",
-});
-// Almanac editions: fancy `light` (Cream) + `dark` (Kraft) — letterpress serif
-// plus typewriter mono. `preload: false` on both, deliberately: these families
-// are referenced only by the `--type-*` tokens under [data-theme="light"] and
-// [data-theme="dark"] in globals.css, so on any other theme (xl2 is the
-// default) no element ever matches an @font-face and the browser never fetches
-// the woff2 files. A preload link would force that download on every visitor.
-const libreCaslon = Libre_Caslon_Text({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-libre-caslon",
-  display: "swap",
-  preload: false,
-});
-const courierPrime = Courier_Prime({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-courier-prime",
-  display: "swap",
-  preload: false,
-});
-// Registrar: a museum accession card. Both are variable fonts loaded at their
-// full axis range (no `weight`) so globals.css can dial opsz/wght/wdth/SOFT/
-// WONK per element — same `preload: false` reasoning as the Almanac pair
-// above: only [data-theme="registrar"] references these families, so a
-// visitor on any other theme never fetches them.
-const archivo = Archivo({
-  subsets: ["latin"],
-  variable: "--font-archivo",
-  display: "swap",
-  preload: false,
-});
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  display: "swap",
-  preload: false,
-});
-// Minimal uses the system font stack (no webfont) — see globals.css.
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -120,9 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="en"
-      data-theme={DEFAULT_THEME}
       data-experience={experience}
-      className={`${bricolage.variable} ${hanken.variable} ${jetbrains.variable} ${plexSans.variable} ${plexMono.variable} ${libreCaslon.variable} ${courierPrime.variable} ${archivo.variable} ${fraunces.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -131,7 +47,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="flex min-h-screen flex-col">
         <SkipLink />
-        {experience === "fancy" && <div className="grain-overlay" aria-hidden />}
         <SiteHeader />
         <main id="main" className="flex-1">{children}</main>
         <SiteFooter />

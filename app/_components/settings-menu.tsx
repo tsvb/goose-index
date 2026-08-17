@@ -66,9 +66,14 @@ export function SettingsMenu({ current }: { current: Experience }) {
 
   function chooseTheme(next: Theme) {
     setTheme(next);
-    document.documentElement.setAttribute("data-theme", next);
+    if (next === "auto") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", next);
+    }
     try {
-      localStorage.setItem("ga-theme", next);
+      if (next === "auto") localStorage.removeItem("ga-theme");
+      else localStorage.setItem("ga-theme", next);
     } catch {
       /* ignore */
     }
@@ -86,7 +91,7 @@ export function SettingsMenu({ current }: { current: Experience }) {
         className={
           isText
             ? "underline"
-            : "grid h-9 w-9 place-items-center rounded-full border border-line text-muted transition hover:border-gold hover:text-gold"
+            : "grid h-9 w-9 place-items-center rounded-full border border-line text-muted transition hover:border-steel hover:text-steel"
         }
       >
         {isText ? "Settings" : <Settings className="h-[18px] w-[18px]" />}

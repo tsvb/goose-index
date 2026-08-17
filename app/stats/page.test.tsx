@@ -62,11 +62,14 @@ describe("StatsHub headline stats (fancy/functional)", () => {
     expect(html).toContain("0"); // rarities count still renders as a number
   });
 
-  it("functional shares the card body", async () => {
+  it("functional shares the fancy hub markup — the ledger, no cards", async () => {
     h.experience = "functional";
-    const html = await render();
-    expect(html).toContain("surface-card");
-    expect(html).toContain("284 plays");
+    const functionalHtml = await render();
+    h.experience = "fancy";
+    const fancyHtml = await render();
+    expect(functionalHtml).toBe(fancyHtml);
+    expect(functionalHtml).not.toContain("surface-card");
+    expect(functionalHtml).toContain("284 plays");
   });
 });
 

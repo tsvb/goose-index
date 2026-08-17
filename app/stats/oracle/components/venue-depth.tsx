@@ -71,10 +71,10 @@ function Meter({ fraction, fullScale }: { fraction: number; fullScale: number })
       {/* The needle, with its counterweight past the pivot. */}
       <line
         x1={tail.x} y1={tail.y} x2={tip.x} y2={tip.y}
-        stroke={inRed ? "var(--ember)" : "var(--gold)"} strokeWidth={1.8} strokeLinecap="round"
+        stroke={inRed ? "var(--ember)" : "var(--steel)"} strokeWidth={1.8} strokeLinecap="round"
       />
       <circle cx={VU.cx} cy={VU.pivot} r={4.5} fill="var(--surface)" stroke="var(--line)" strokeWidth={1} />
-      <circle cx={VU.cx} cy={VU.pivot} r={1.4} fill={inRed ? "var(--ember)" : "var(--gold)"} />
+      <circle cx={VU.cx} cy={VU.pivot} r={1.4} fill={inRed ? "var(--ember)" : "var(--steel)"} />
     </svg>
   );
 }
@@ -99,12 +99,12 @@ export function VenueDepth({ data }: { data: DeepestVenueRow[] }) {
             <li key={v.venueId} className="min-w-0">
               <Meter fraction={fraction} fullScale={fullScale} />
               <p className="mt-1.5 text-center font-mono text-sm tabular-nums">
-                <span className={inRed ? "text-ember" : "text-gold"}>{v.jamPercentage.toFixed(1)}</span>
+                <span className={inRed ? "text-ember" : "text-steel"}>{v.jamPercentage.toFixed(1)}</span>
                 <span className="ml-0.5 text-xs text-faint">%</span>
               </p>
               <p className="mt-0.5 truncate text-center font-display text-[0.82rem] text-ink">
                 {v.slug ? (
-                  <Link href={`/venues/${v.slug}`} className="hover:text-gold">
+                  <Link href={`/venues/${v.slug}`} className="underline-offset-4 hover:underline">
                     {v.name}
                   </Link>
                 ) : (

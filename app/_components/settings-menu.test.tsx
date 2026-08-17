@@ -20,6 +20,12 @@ describe("SettingsMenu trigger", () => {
     expect(html).toContain("<svg");
   });
 
+  it("wears steel on hover, not the retired gold alias — a control affordance, not a card", () => {
+    const html = renderToStaticMarkup(<SettingsMenu current="fancy" />);
+    expect(html).toContain("hover:border-steel hover:text-steel");
+    expect(html).not.toMatch(/hover:border-gold|hover:text-gold/);
+  });
+
   it("renders a plain text trigger with no svg in minimal", () => {
     const html = renderToStaticMarkup(<SettingsMenu current="minimal" />);
     expect(html).toContain("Settings");

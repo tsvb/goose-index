@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
-import { SectionHeader } from "@/app/_components/section-header";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { listTours, tourTimeline } from "@/lib/queries/dimensions";
 import { TourTimeline } from "@/app/_components/tour-timeline";
+import { PageHead, chromeDate } from "@/app/_components/page-chrome";
+import { SectionRule, Ledger } from "@/app/_components/forms";
 import { formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
@@ -48,70 +49,55 @@ export default async function ToursPage() {
   }
 
   return (
-    <>
-      {/* Header */}
-      <header className="border-b border-line">
-        <Container className="py-12 sm:py-16">
-          <span className="eyebrow">Runs &amp; eras</span>
-          <h1 className="mt-3 font-display text-[2.4rem] leading-none tracking-tight text-ink sm:text-5xl">
-            Tours
-          </h1>
-          <p className="mt-3 font-mono text-xs text-faint">
-            {tours.length} tours
-          </p>
-        </Container>
-      </header>
+    <Container>
+      <PageHead kicker="runs & eras" title="tours" meta={`${tours.length} tours`} />
 
-      {/* The minimal experience returns above; this is fancy + functional. */}
-      <Container className="pt-10">
-        <section>
-          <h2 className="mb-1 font-display text-base text-ink">The touring year</h2>
-          <p className="mb-4 font-mono text-xs text-faint">
-            Every tour across the calendar it ran on. A list makes an eleven-week summer and a two-week Europe leg look
-            the same; this doesn&apos;t.
-          </p>
-          <TourTimeline tours={timeline.tours} untouredShows={timeline.untouredShows} today={today} />
-        </section>
-      </Container>
+      <section className="mb-10">
+        <SectionRule title="the touring year" seed="tours-timeline" />
+        <p className="mb-4 mt-1 font-mono text-xs text-faint">
+          Every tour across the calendar it ran on. A list makes an eleven-week summer and a two-week Europe leg look
+          the same; this doesn&apos;t.
+        </p>
+        <TourTimeline tours={timeline.tours} untouredShows={timeline.untouredShows} today={today} />
+      </section>
 
-      {/* List */}
-      <Container className="py-10 sm:py-14">
-        <div className="surface-card overflow-hidden">
-          {groups.map((group) => (
-            <div key={group.year ?? "unknown"}>
-              {/* Year divider — links through to the year's own page */}
-              <div className="border-b border-line bg-surface-2 px-4 py-2">
-                {group.year != null ? (
-                  <Link href={`/years/${group.year}`} className="eyebrow transition hover:text-gold" title={`Every show from ${group.year}`}>
-                    {group.year} →
-                  </Link>
-                ) : (
-                  <span className="eyebrow">—</span>
-                )}
-              </div>
-
+      {/* List, grouped by year */}
+      <div>
+        {groups.map((group) => (
+          <div key={group.year ?? "unknown"} className="mb-8">
+            {group.year != null ? (
+              <SectionRule
+                title={group.year}
+                href={`/years/${group.year}`}
+                linkLabel={`year ${group.year} page`}
+                seed={`tours-year-${group.year}`}
+              />
+            ) : (
+              <SectionRule title="—" seed="tours-year-unknown" />
+            )}
+            <Ledger seed={`tours-group-${group.year ?? "unknown"}`}>
               {group.tours.map((tour) => (
                 <Link
                   key={tour.tourId}
                   href={`/tours/${tour.tourId}`}
-                  className="group flex flex-col gap-1 border-b border-line-soft px-4 py-4 transition last:border-0 hover:bg-surface-2 sm:flex-row sm:items-baseline sm:gap-6"
+                  className="group flex items-baseline justify-between gap-4 py-2.5"
                 >
-                  <span className="flex-1 font-display text-lg text-ink transition group-hover:text-gold">
+                  <span className="min-w-0 truncate text-ink underline-offset-4 group-hover:underline">
                     {tour.name}
                   </span>
-                  <span className="font-mono text-xs text-faint">
+                  <span className="shrink-0 text-right font-mono text-[0.7rem] text-faint">
                     {tour.start && tour.end
-                      ? `${formatShortDate(tour.start)} – ${formatShortDate(tour.end)} · ${tour.shows} ${tour.shows === 1 ? "show" : "shows"}`
+                      ? `${chromeDate(tour.start)} – ${chromeDate(tour.end)} · ${tour.shows} ${tour.shows === 1 ? "show" : "shows"}`
                       : tour.start
-                      ? `From ${formatShortDate(tour.start)} · ${tour.shows} ${tour.shows === 1 ? "show" : "shows"}`
+                      ? `from ${chromeDate(tour.start)} · ${tour.shows} ${tour.shows === 1 ? "show" : "shows"}`
                       : `${tour.shows} ${tour.shows === 1 ? "show" : "shows"}`}
                   </span>
                 </Link>
               ))}
-            </div>
-          ))}
-        </div>
-      </Container>
-    </>
+            </Ledger>
+          </div>
+        ))}
+      </div>
+    </Container>
   );
 }

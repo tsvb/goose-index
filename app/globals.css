@@ -1,578 +1,115 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Goose Almanac — "The Almanac" design system
-   Warm archival ledger × golden live-show night.
+   Goose Index — "Pen & instrument" design system
+   Fog (light) and slate (dark), drawn once and reused: ink=content,
+   steel=the record's structure, hand=now and the reading, spruce=links,
+   pencil=the human margin. Three experiences (3.0/2.0/1.0) pivot the
+   same tokens into three distinct system types below.
    ============================================================ */
 
-/* ---- Runtime theme tokens (switchable via [data-theme]) ---- */
+/* ---- Pen & instrument tokens ----
+   One meaning per color (spec 2026-08-16): ink=content · steel=the record's
+   structure · hand=now and the reading · spruce=links only · pencil=the human
+   margin. Fog is the light page; slate (below) the dark. Legacy names alias
+   the new roles so un-migrated utilities re-temper instead of breaking; the
+   aliases die with Plan 5. */
 :root {
-  --bg: #15110c;
-  --bg-deep: #100c08;
-  --surface: #1d1710;
-  --surface-2: #261d14;
-  --ink: #f3ead9;
-  --muted: #b6a585;
-  /* ≥4.5:1 (WCAG AA) on --bg and --surface — text-faint styles 0.55–0.85rem text. */
-  --faint: #94856b;
-  --line: #362b1e;
-  --line-soft: #2a2117;
-  --gold: #edab44;
-  --gold-soft: #c9892f;
-  --gold-deep: #a06d22;
-  --sage: #8cbda9;
-  --sage-deep: #5f9d86;
-  --ember: #e08a4a;
-  --shadow: rgba(0, 0, 0, 0.55);
-  color-scheme: dark;
-}
-
-/* Almanac — Cream: ink on printed almanac stock. Anchor object: a printed
-   almanac + library card catalog. Three roles, same in Kraft below: --gold is
-   the structural accent (eyebrows, rules, segue carets, stamps, hover), --sage
-   carries links & references, --ember is heat and heat only. */
-:root[data-theme="light"] {
-  --bg: #f0e7d2;
-  --bg-deep: #e7dcc2;
-  --surface: #f7f0df;
-  --surface-2: #efe6cf;
-  --ink: #221c14;
-  --muted: #6c5c44;
-  /* ≥4.5:1 (WCAG AA) on --bg (4.56) and --surface (4.94) — text-faint styles
-     0.55–0.85rem text. */
-  --faint: #77654a;
-  --line: #cbbf9f;
-  --line-soft: #ddd2b6;
-  /* Structural accent = oxblood, the date-stamp red. */
-  --gold: #8a2b22;
-  --gold-soft: #7d2620;
-  --gold-deep: #6f221c;
-  /* Links & references = ledger green. */
-  --sage: #2f6a4a;
-  --sage-deep: #265a3e;
-  /* Heat only (jams, bust-outs, live, overdue) — 4.74:1 on --bg, 5.13:1 on
-     --surface (AA at the sizes it styles). Keep this exact hex. Its
-     predecessor #a5511c measured 4.4986:1 on --bg — that rounds to 4.50 but
-     axe (correctly) fails it, since AA needs the unrounded ratio ≥ 4.5. */
-  --ember: #a04e1b;
-  --shadow: rgba(80, 56, 20, 0.12);
-  --type-display: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
-  --type-body: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
-  --type-mono: var(--font-courier-prime), ui-monospace, SFMono-Regular, monospace;
+  --paper: #f3f5f7;
+  --ink: #1f242b;
+  --muted: #5d6672;
+  --faint: #657080;
+  --steel: #46708f;
+  --hand: #a67f05;
+  --spruce: #47776b;
+  --pencil: #5f6873;
+  --line: rgba(31, 36, 43, 0.28);
+  --line-soft: rgba(31, 36, 43, 0.13);
   color-scheme: light;
+
+  /* Legacy aliases still standing after Plan 5 Task 2 — --bg/--bg-deep/
+     --surface/--surface-2 have no role-token equivalent (surface-2 is a
+     tinted elevation, not a plain paper alias) and still have real
+     consumers across the site (venue-map.tsx, the-shelf.tsx, venue-depth.tsx,
+     tape.tsx, and several rules below); their deletion stays gated on a
+     zero-consumer grep for a later task. The --gold and --sage token
+     families, plus --shadow, reached zero consumers this task and are
+     gone. */
+  --bg: var(--paper);
+  --bg-deep: var(--paper);
+  --surface: var(--paper);
+  --surface-2: color-mix(in oklab, var(--ink) 5%, var(--paper));
+  /* --ember is its own AA-safe literal, not a --hand alias: --hand only
+     needs to clear 3:1 (it's a mark, always paired with written values),
+     but --ember is consumed as TEXT (.live-flag, .overdue, .song-bust) and
+     has to clear 4.5:1 on its own. Same amber family as --hand, darkened
+     for the text role. Ember is a permanent role — heat, overdue, and the
+     text-safe amber — not a legacy alias; it survives the Plan 5 alias
+     purge, tuned to 4.5:1 text contrast per theme. */
+  --ember: #8a6504;
 }
 
-/* Almanac — Kraft: cream ink on brown paper, the material of tape-trading
-   (J-cards, B&P mailers). Same roles as Cream; only the stock changes. */
-:root[data-theme="dark"] {
-  --bg: #2a2014;
-  --bg-deep: #201811;
-  --surface: #342719;
-  --surface-2: #3d2f1e;
-  --ink: #ede0c4;
-  --muted: #bcaa86;
-  /* ≥4.5:1 (WCAG AA) on --bg (5.39) and --surface (4.88) — text-faint styles
-     0.55–0.85rem text. Same hue/sat as the handoff's #a08d69, which measured
-     4.49 on --surface and failed AA; lightness nudged up until both pass. */
-  --faint: #a59473;
-  --line: #4c3a24;
-  --line-soft: #3d2e1c;
-  /* Structural accent = warm cream-gold. */
-  --gold: #d8b98a;
-  --gold-soft: #c7a877;
-  --gold-deep: #b39463;
-  /* Links & references = sage. */
-  --sage: #9fb389;
-  --sage-deep: #b3c49f;
-  /* Heat only = ember. */
-  --ember: #ecab52;
-  --shadow: rgba(0, 0, 0, 0.55);
-  --type-display: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
-  --type-body: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
-  --type-mono: var(--font-courier-prime), ui-monospace, SFMono-Regular, monospace;
-  color-scheme: dark;
-}
+/* Slate — the dark cave. Follows the system unless the visitor pins fog;
+   an explicit slate pin wins in both directions. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="fog"]) {
+    --paper: #22262d;
+    --ink: #e8ecf1;
+    --muted: #aab3bd;
+    --faint: #848e9b;
+    --steel: #7ba3c4;
+    --hand: #f2b705;
+    --spruce: #7fae9f;
+    --pencil: #98a1ab;
+    --line: rgba(232, 236, 241, 0.3);
+    --line-soft: rgba(232, 236, 241, 0.14);
+    color-scheme: dark;
+    /* --ember: the hand's amber already clears 4.5:1 as text on slate
+       paper, so unlike fog it doesn't need its own darker literal — same
+       value as --hand, named for the text role. A permanent role (see the
+       :root block above), not a legacy alias. */
+    --ember: #f2b705;
 
-/* Pod — matte-black player hardware: graphite neutrals (the warm ledger
-   browns go cold), hairline strokes, and one loud accent — Warhol-banana
-   yellow. Inspired by the click-wheel era of dark handheld players. */
-:root[data-theme="pod"] {
-  --bg: #161618;
-  --bg-deep: #101012;
-  --surface: #1f1f22;
-  --surface-2: #29292d;
-  --ink: #f4f4f6;
-  --muted: #9d9da4;
-  /* ≥4.5:1 (WCAG AA) on --surface and --bg — text-faint styles 0.55–0.85rem text. */
-  --faint: #8a8a92;
-  --line: #333338;
-  --line-soft: #28282c;
-  --gold: #f2cf3e;
-  --gold-soft: #d8b52f;
-  --gold-deep: #a98f24;
-  --sage: #8fb2c9;
-  --sage-deep: #6e93ab;
-  --ember: #ef9646;
-  --shadow: rgba(0, 0, 0, 0.65);
-  color-scheme: dark;
-}
-
-/* XL II — high-bias chrome cassette × Braun wall clock × tube amp.
-   Thesis: a cold instrument with one hot filament.
-
-   The chassis is deliberately COLD graphite — the tape-nostalgia cliché is
-   sepia, and this theme refuses it: no browns, beiges or tans anywhere. The
-   working accent is chrome cyan, because XL II is a *chrome* tape and should
-   feel like cold metal. Warmth is rationed to a single colour, --ember, which
-   the design system already reserves for heat (live shows, overdue songs,
-   bust-outs) — so the one warm thing on screen is always the one hot thing in
-   the data. That is the whole idea; keep it. */
-:root[data-theme="xl2"] {
-  --bg: #0e1114;
-  --bg-deep: #08090b;
-  --surface: #161a1f;
-  --surface-2: #1f242b;
-  --ink: #eef2f5;
-  --muted: #99a4ae;
-  /* ≥4.5:1 (WCAG AA) on --bg and --surface — text-faint styles 0.55–0.85rem text. */
-  --faint: #8b959e;
-  --line: #2b323a;
-  --line-soft: #21262c;
-  /* Chrome — the instrument. Bars, rules, ticks, focus. `--gold-deep` only ever
-     fills graphics (bars, sparks), some at 80% opacity: held at ≥3:1 (WCAG
-     1.4.11) against every surface once composited. */
-  --gold: #5ccfe6;
-  --gold-soft: #3fb2cb;
-  --gold-deep: #3496b0;
-  /* Below 0 dB — the nominal end of a VU scale. */
-  --sage: #6fd3a0;
-  --sage-deep: #4fb27f;
-  /* The filament. The only warm colour in the theme — spend it on heat only. */
-  --ember: #ff9d3c;
-  --shadow: rgba(0, 0, 0, 0.7);
-  /* Plex is the engineered, rational face here — Rams by way of IBM — and Plex
-     Mono is the silkscreened legend on the shell. */
-  --type-display: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --type-body: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --type-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
-  color-scheme: dark;
-}
-
-/* Braun legibility: one width per digit, so columns of numbers line up as a
-   scale rather than as text. */
-:root[data-theme="xl2"] body {
-  font-variant-numeric: tabular-nums;
-}
-:root[data-theme="xl2"] h1,
-:root[data-theme="xl2"] h2,
-:root[data-theme="xl2"] h3,
-:root[data-theme="xl2"] h4 {
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-/* The signature motif: a clock-face minute scale in place of a plain rule.
-   Ticks hang off a hairline, exactly like the bezel of a Braun BN wall clock. */
-:root[data-theme="xl2"] .hairline {
-  height: 5px;
-  background:
-    repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px 9px) top / 100% 4px no-repeat,
-    linear-gradient(var(--line-soft), var(--line-soft)) bottom / 100% 1px no-repeat;
-}
-
-/* Chassis: squared off, with a chrome bezel highlight along the top edge. */
-:root[data-theme="xl2"] .surface-card {
-  background: linear-gradient(180deg, var(--surface), var(--bg-deep));
-  border-radius: 2px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
-}
-
-/* The tube. Not decorative atmosphere — a filament behind the chassis. */
-:root[data-theme="xl2"] .stage-glow {
-  background: radial-gradient(
-    58% 78% at 50% -12%,
-    color-mix(in oklab, var(--ember) 34%, transparent),
-    transparent 72%
-  );
-}
-:root[data-theme="xl2"] .live-dot {
-  box-shadow: 0 0 9px 1px var(--ember);
-}
-
-/* Silkscreened legend. */
-:root[data-theme="xl2"] .eyebrow {
-  color: var(--gold);
-  font-size: 0.64rem;
-  letter-spacing: 0.28em;
-}
-
-/* Meters, not candy: flat fills, square ends. A bar is a reading. */
-:root[data-theme="xl2"] .song-ppy-bar,
-:root[data-theme="xl2"] .song-bar,
-:root[data-theme="xl2"] .song-bar > span,
-:root[data-theme="xl2"] .song-spark i,
-:root[data-theme="xl2"] .song-mspark i,
-:root[data-theme="xl2"] .song-ribbon {
-  border-radius: 0;
-}
-:root[data-theme="xl2"] .song-ppy-bar,
-:root[data-theme="xl2"] .song-bar > span {
-  background: var(--gold);
-}
-:root[data-theme="xl2"] .song-spark i,
-:root[data-theme="xl2"] .song-mspark i {
-  background: var(--gold-deep);
-}
-/* Past 0 dB. */
-:root[data-theme="xl2"] .song-spark i.bust {
-  background: var(--ember);
-}
-
-/* Moulded ABS, not paper — the grain nearly vanishes. */
-:root[data-theme="xl2"] .grain-overlay {
-  opacity: 0.02;
-}
-
-:root[data-theme="xl2"] ::selection {
-  background: var(--gold);
-  color: #0e1114;
-}
-:root[data-theme="xl2"] ::-webkit-scrollbar-thumb {
-  border-radius: 0;
-}
-
-/* ============================================================
-   Registrar — a museum wall placard beside a framed print: gallery-dark
-   walls, brass rail lighting, a typed catalog card under the exhibit.
-   Fraunces carries anything that reads as *content* (headings); Archivo
-   carries anything that reads as *record* (labels, figures) — no separate
-   mono face, Archivo's tabular figures and wdth axis do that job instead.
-   ============================================================ */
-:root[data-theme="registrar"] {
-  --bg: #0b0b0c;
-  --bg-deep: #060607;
-  --surface: #141415;
-  --surface-2: #1c1c1d;
-  --ink: #efeae4;
-  --muted: #9a9893;
-  /* ≥4.5:1 (WCAG AA) on --bg (5.80) and --surface (5.43) — text-faint styles
-     0.55–0.85rem text. */
-  --faint: #8f8b84;
-  --line: #2a2927;
-  --line-soft: #201f1e;
-  /* Structural accent = the brass rail light. */
-  --gold: #c9a15b;
-  --gold-soft: #b48f4f;
-  --gold-deep: #93762f;
-  /* Links & references = verdigris, the patina on the case hardware. */
-  --sage: #7fa39a;
-  --sage-deep: #5f8880;
-  /* Heat only = the red string on an accession tag. */
-  --ember: #d1673a;
-  --shadow: rgba(0, 0, 0, 0.6);
-  --type-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  --type-body: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --type-mono: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  color-scheme: dark;
-}
-
-/* Catalog card: tabular figures wherever a reading appears — a record's
-   numbers should line up as a column, the same thesis as XL II's Braun rule. */
-:root[data-theme="registrar"] body {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Fraunces at heading size: soft and a little irregular, like hand-set
-   display type on a placard. Weight stays light — wall text, not a shout. */
-:root[data-theme="registrar"] h1,
-:root[data-theme="registrar"] h2 {
-  letter-spacing: -0.006em;
-  font-variation-settings: "opsz" 40, "wght" 440, "SOFT" 35, "WONK" 1;
-}
-/* Smaller headings calm down — less optical size, no wonk — the way the
-   source mockup's big masthead differs from its small, upright subhead. */
-:root[data-theme="registrar"] h3,
-:root[data-theme="registrar"] h4 {
-  letter-spacing: -0.004em;
-  font-variation-settings: "opsz" 18, "wght" 380, "SOFT" 25, "WONK" 0;
-}
-
-/* Eyebrow: the typed catalog label, Archivo pulled to its narrowest width —
-   the same trick the source mockup uses for CAMERA / LENS / EXPOSURE. */
-:root[data-theme="registrar"] .eyebrow {
-  font-family: var(--font-archivo);
-  font-variation-settings: "wdth" 68, "wght" 600;
-  color: var(--gold-soft);
-}
-
-/* Vitrine glass, not paper — the grain is barely there. */
-:root[data-theme="registrar"] .grain-overlay {
-  opacity: 0.02;
-}
-
-/* ============================================================
-   Almanac letterpress — shared by light (Cream) + dark (Kraft).
-   Everything here is scoped to the two almanac themes; pod and
-   xl2 must render pixel-identically with or without this block.
-   Every element rule also carries [data-experience="fancy"]: the
-   saved theme persists across experiences, and without the guard
-   these rules would restyle the 2.0/1.0 editions (e.g. Caslon's
-   weight-400 headings beating functional's weight-800).
-   ============================================================ */
-
-/* Caslon wants its own weight/tracking (base sets 460 / -0.01em for grotesques). */
-:root[data-theme="light"][data-experience="fancy"] :is(h1, h2, h3, h4),
-:root[data-theme="dark"][data-experience="fancy"] :is(h1, h2, h3, h4) {
-  font-weight: 400;
-  letter-spacing: 0;
-}
-
-/* Letterpress has no stage light. */
-:root[data-theme="light"][data-experience="fancy"] .stage-glow,
-:root[data-theme="dark"][data-experience="fancy"] .stage-glow {
-  display: none;
-}
-
-/* Cards: squared ledger stock, hairline, no lift shadow. */
-:root[data-theme="light"][data-experience="fancy"] .surface-card,
-:root[data-theme="dark"][data-experience="fancy"] .surface-card {
-  border-radius: 2px;
-  box-shadow: none;
-}
-
-/* Square the bespoke utility cards (ShowCard, BrowseLink, prev/next) for these
-   themes without touching pod/xl2. */
-:root[data-theme="light"][data-experience="fancy"] .rounded-lg,
-:root[data-theme="dark"][data-experience="fancy"] .rounded-lg {
-  border-radius: 3px;
-}
-
-/* Printed cards don't float: neutralize the Tailwind hover lift + shadow on
-   card links (the utilities stay in the markup so pod/xl2 keep their lift).
-   Tailwind v4 compiles -translate-y-* to the `translate` property; `transform`
-   is included in case a future utility goes through it instead. */
-:root[data-theme="light"][data-experience="fancy"] .hover\:-translate-y-0\.5:hover,
-:root[data-theme="dark"][data-experience="fancy"] .hover\:-translate-y-0\.5:hover {
-  translate: none;
-  transform: none;
-}
-:root[data-theme="light"][data-experience="fancy"] [class*="hover:shadow"]:hover,
-:root[data-theme="dark"][data-experience="fancy"] [class*="hover:shadow"]:hover {
-  box-shadow: none;
-}
-
-/* Kraft fibre — tune the shared grain overlay. (Cream reuses the existing
-   light multiply rule beside .grain-overlay's base declaration below.) */
-:root[data-theme="dark"][data-experience="fancy"] .grain-overlay {
-  opacity: 0.06;
-}
-
-/* Eyebrow: catalog label, a touch calmer. */
-:root[data-theme="light"][data-experience="fancy"] .eyebrow,
-:root[data-theme="dark"][data-experience="fancy"] .eyebrow {
-  letter-spacing: 0.2em;
-}
-
-/* Selection reads as an inked stamp. Base rule hardcodes #15110c text on
-   var(--gold): on Cream's oxblood gold that is 2.19:1 — swap to cream stock
-   on oxblood, 7.55:1 (AA). On Kraft the base rule already lands #15110c on
-   cream-gold #d8b98a = 10.05:1, and reads as highlighter on kraft — kept. */
-:root[data-theme="light"][data-experience="fancy"] ::selection {
-  background: var(--gold);
-  color: #f7f0df;
-}
-
-/* --- Almanac-only flourishes (hook classes; markup is server-rendered in all
-   themes and revealed only here) --- */
-.entry-stamp,
-.entry-folio,
-.almanac-nameplate {
-  display: none;
-}
-
-/* Rubber-stamp show number ("SHOW / No. N") in the fancy show header. Pinned
-   top-right of the .almanac-masthead (which is position: relative in the show
-   header). Desktop-and-up only: on phones it would sit on the eyebrow/date. */
-@media (min-width: 640px) {
-  :root[data-theme="light"][data-experience="fancy"] .entry-stamp,
-  :root[data-theme="dark"][data-experience="fancy"] .entry-stamp {
-    display: inline-block;
-    position: absolute;
-    top: 3.6rem;
-    right: 2rem;
-    transform: rotate(-6deg);
-    border: 2px solid var(--gold);
-    border-radius: 2px;
-    color: var(--gold);
-    padding: 6px 11px 5px;
-    text-align: center;
-    opacity: 0.9;
-    font-family: var(--type-mono);
-    font-weight: 700;
-    text-transform: uppercase;
-    line-height: 1.2;
-  }
-  :root[data-theme="dark"][data-experience="fancy"] .entry-stamp {
-    opacity: 0.85;
+    /* Dark-safe nugs text colors — WCAG contrast machinery ported from the
+       old per-theme split, not a theme identity. Fog's defaults (below,
+       on :root) carry the light-safe values instead. */
+    --nugs-link: #8fc6ee;
+    --nugs-link-strong: #bfe0fb;
+    --nugs-watch: #c6b8ee;
+    --nugs-watch-strong: #ddd0fb;
+    --nugs-track: #7fbfe8;
   }
 }
-/* Two lines: the small "SHOW" word, then the larger number that must not wrap. */
-:root[data-theme="light"][data-experience="fancy"] .entry-stamp > :first-child,
-:root[data-theme="dark"][data-experience="fancy"] .entry-stamp > :first-child {
-  display: block;
-  font-size: 0.72rem;
-  letter-spacing: 0.2em;
-}
-:root[data-theme="light"][data-experience="fancy"] .entry-stamp > :last-child,
-:root[data-theme="dark"][data-experience="fancy"] .entry-stamp > :last-child {
-  display: block;
-  font-size: 1.15rem;
-  letter-spacing: 0.06em;
-  margin-top: 1px;
-  white-space: nowrap;
-}
+:root[data-theme="slate"] {
+  --paper: #22262d;
+  --ink: #e8ecf1;
+  --muted: #aab3bd;
+  --faint: #848e9b;
+  --steel: #7ba3c4;
+  --hand: #f2b705;
+  --spruce: #7fae9f;
+  --pencil: #98a1ab;
+  --line: rgba(232, 236, 241, 0.3);
+  --line-soft: rgba(232, 236, 241, 0.14);
+  color-scheme: dark;
+  /* --ember: see the media-query block above. */
+  --ember: #f2b705;
 
-/* Folio footer line per show ("The Goose Almanac · … · Entry No. N · …"). */
-:root[data-theme="light"][data-experience="fancy"] .entry-folio,
-:root[data-theme="dark"][data-experience="fancy"] .entry-folio {
-  display: block;
-  margin-top: 22px;
-  border-top: 1px solid var(--ink);
-  padding-top: 12px;
-  text-align: center;
-  font-family: var(--type-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-:root[data-theme="dark"][data-experience="fancy"] .entry-folio {
-  border-top-color: var(--gold);
-}
-
-/* Home nameplate / running head (mock 1b/1c): the internals are almanac-only
-   markup laid out with utilities (they resolve to Caslon/Courier through the
-   --type-* tokens here); this reveals the block and closes its container with
-   the same double rule as the masthead. */
-:root[data-theme="light"][data-experience="fancy"] .almanac-nameplate,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate {
-  display: block;
-}
-/* The nameplate's closing double rule (2px over 1px), full width. */
-:root[data-theme="light"][data-experience="fancy"] .almanac-nameplate > div,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div {
-  position: relative;
-  border-bottom: 2px solid var(--ink);
-  padding-bottom: 10px;
-}
-:root[data-theme="light"][data-experience="fancy"] .almanac-nameplate > div::after,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3px;
-  border-top: 1px solid var(--ink);
-}
-:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div::after {
-  border-color: var(--gold);
-}
-
-/* Masthead: the almanac's double rule (2px over 1px) under a title block.
-   Drawn with a border + absolute ::after so it works on flex wrappers too.
-   Heavy printed rules are ink on cream, cream-gold on kraft. */
-:root[data-theme="light"][data-experience="fancy"] .almanac-masthead,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead {
-  position: relative;
-  border-bottom: 2px solid var(--ink);
-  padding-bottom: 10px;
-}
-:root[data-theme="light"][data-experience="fancy"] .almanac-masthead::after,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3px;
-  border-top: 1px solid var(--ink);
-}
-:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead::after {
-  border-color: var(--gold);
-}
-
-/* Ruled setlist rows: the account-book line under every entry, so text always
-   sits on a line. */
-:root[data-theme="light"][data-experience="fancy"] .setlist-row,
-:root[data-theme="dark"][data-experience="fancy"] .setlist-row {
-  border-bottom: 1px solid var(--line-soft);
-}
-:root[data-theme="light"][data-experience="fancy"] .setlist-row:last-child,
-:root[data-theme="dark"][data-experience="fancy"] .setlist-row:last-child {
-  border-bottom: 0;
-}
-
-/* "From the notes": hairline rules and an italic body — not a left-accent card. */
-:root[data-theme="light"][data-experience="fancy"] .show-notes-aside,
-:root[data-theme="dark"][data-experience="fancy"] .show-notes-aside {
-  border: 0;
-  border-top: 1px solid var(--line-soft);
-  border-bottom: 1px solid var(--line-soft);
-  border-radius: 0;
-  background: transparent;
-  padding-left: 0;
-  padding-right: 0;
-}
-:root[data-theme="light"][data-experience="fancy"] .show-notes-aside p,
-:root[data-theme="dark"][data-experience="fancy"] .show-notes-aside p {
-  font-style: italic;
-}
-
-/* SetTape (setlist/tape.tsx) becomes the ruled measure strip: 8px tall, flat
-   paper-tone segments on a hairline field, jams in ember. Hooks on the stable
-   .set-tape-strip class the component exposes for exactly this purpose. */
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip,
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip {
-  height: 8px;
-  background: var(--line);
-  border-color: var(--line);
-  border-radius: 1px;
-}
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > span,
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > span {
-  opacity: 1;
-}
-/* Timed, no jam: paper tone, printed flat. */
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > .bg-gold,
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > .bg-gold {
-  background-color: var(--line-soft);
-}
-/* Jam: the one warm thing on the strip. */
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > .bg-ember,
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > .bg-ember {
-  background-color: var(--ember);
-}
-/* Untimed hatched slivers: give the hatch a deep-paper ground so its --line
-   stripes stay visible now that the strip's own field is --line. */
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > [class*="repeating-linear-gradient"],
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > [class*="repeating-linear-gradient"] {
-  background-color: var(--bg-deep);
-}
-/* Song boundaries tighten from 3px gaps to 1px rules (segue splices keep
-   their inline 1px --bg-deep seam; first segment stays flush). */
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > .ml-\[3px\]:not(:first-child),
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > .ml-\[3px\]:not(:first-child) {
-  margin-left: 1px;
+  /* Dark-safe nugs text colors — see the media-query block above. */
+  --nugs-link: #8fc6ee;
+  --nugs-link-strong: #bfe0fb;
+  --nugs-watch: #c6b8ee;
+  --nugs-watch-strong: #ddd0fb;
+  --nugs-track: #7fbfe8;
 }
 
 /* ---- Type tokens — overridable per experience. The `@theme inline` map below
    inlines `var(--type-*)` into the font utilities, so redefining these on a
    `[data-experience]` selector actually re-fonts the page (like the colors). ---- */
 :root {
-  --type-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
-  --type-body: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-  --type-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
+  --type-display: -apple-system, system-ui, sans-serif;
+  --type-body: -apple-system, system-ui, sans-serif;
+  --type-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 /* ---- Map tokens into Tailwind's theme (inline = resolves at runtime) ---- */
@@ -590,12 +127,12 @@
   --color-faint: var(--faint);
   --color-line: var(--line);
   --color-line-soft: var(--line-soft);
-  --color-gold: var(--gold);
-  --color-gold-soft: var(--gold-soft);
-  --color-gold-deep: var(--gold-deep);
-  --color-sage: var(--sage);
-  --color-sage-deep: var(--sage-deep);
   --color-ember: var(--ember);
+  --color-paper: var(--paper);
+  --color-steel: var(--steel);
+  --color-hand: var(--hand);
+  --color-spruce: var(--spruce);
+  --color-pencil: var(--pencil);
 }
 
 /* ---- Base ---- */
@@ -615,12 +152,12 @@
     overflow-x: hidden;
   }
   ::selection {
-    background: var(--gold);
-    color: #15110c;
+    background: var(--steel);
+    color: var(--paper);
   }
-  /* Keyboard focus — visible gold ring, never on mouse click */
+  /* Keyboard focus — visible steel ring, never on mouse click */
   :where(a, button, input, [tabindex]):focus-visible {
-    outline: 2px solid var(--gold);
+    outline: 2px solid var(--steel);
     outline-offset: 2px;
     border-radius: 3px;
   }
@@ -629,91 +166,52 @@
   }
   h1, h2, h3, h4 {
     font-family: var(--type-display);
-    font-weight: 460;
+    font-weight: 600;
     letter-spacing: -0.01em;
   }
-  /* Optical sizing for variable display faces (Bricolage). */
+  /* Optical sizing for variable-weight display faces — a no-op wherever
+     the active experience's --type-display isn't one. */
   .font-display {
     font-optical-sizing: auto;
   }
 }
 
-/* ---- Texture & atmosphere ---- */
-.grain-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.04;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-:root[data-theme="light"][data-experience="fancy"] .grain-overlay {
-  mix-blend-mode: multiply;
-  opacity: 0.05;
-}
-/* Pod is molded plastic, not paper — barely-there grain. */
-:root[data-theme="pod"] .grain-overlay {
-  opacity: 0.025;
-}
+/* Tabular figures wherever data is set in mono. */
+.font-mono { font-variant-numeric: tabular-nums; }
 
-/* Stage-light glow — place inside a relatively-positioned hero */
-.stage-glow {
-  position: absolute;
-  pointer-events: none;
-  background: radial-gradient(
-    60% 80% at 50% -10%,
-    color-mix(in oklab, var(--gold) 38%, transparent),
-    transparent 70%
-  );
-}
-
-/* Hairline rule with a faint gold tick, ledger style */
-.hairline {
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    var(--line) 8%,
-    var(--line) 92%,
-    transparent
-  );
-}
-
-/* Eyebrow / overline — mono, tracked-out, the "catalog label" voice */
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--gold-soft);
-}
-
-/* Subtle ledger paper on surfaces */
-.surface-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 0.5rem;
-}
+/* ---- De-lifting bridge ----
+   Fancy still shouldn't float on hover, even now that nothing renders a
+   rounded box under it: the corner-radius half of this bridge (which zeroed
+   bare .rounded/.rounded-md/.rounded-lg/.rounded-xl class tokens under
+   data-experience="fancy") is gone as of the final-review fix wave — its
+   last two consumers, setlist/fancy.tsx's empty-state card and
+   skeleton.tsx's SkeletonBar, were rebuilt onto NilState and a flat bar
+   respectively, and the zero-consumer grep this section always cited
+   (bare .rounded* class tokens inside markup that actually renders under
+   data-experience="fancy") came back empty. Tailwind v4 compiles
+   -translate-y-* to the `translate` property; keep `transform: none` too in
+   case a future utility routes through it. */
+[data-experience="fancy"] .hover\:-translate-y-0\.5:hover { translate: none; transform: none; }
+[data-experience="fancy"] [class*="hover:shadow"]:hover { box-shadow: none; }
 
 /* Link affordance for inline text links */
 .link {
-  color: var(--sage);
+  color: var(--spruce);
   text-decoration-line: underline;
-  text-decoration-color: color-mix(in oklab, var(--sage) 40%, transparent);
+  text-decoration-color: color-mix(in oklab, var(--spruce) 40%, transparent);
   text-underline-offset: 3px;
   transition: text-decoration-color 0.2s, color 0.2s;
 }
 .link:hover {
-  text-decoration-color: var(--sage);
+  text-decoration-color: var(--spruce);
 }
 
 /* ---- Blog post body (lib/blog + post-body.tsx) ---- */
 /* Everything is drawn from theme tokens, so a post reskins with the edition
    and theme like the rest of the site: Caslon letterpress on the almanac
    themes, Plex on XL II, Georgia in the 1.0 document. Colour keeps its one
-   meaning — gold marks structure (markers, the quote rule), sage stays on
-   links via .link, ember appears nowhere because prose has no heat. */
+   meaning — steel marks structure, spruce stays on links via .link, ember
+   appears nowhere because prose has no heat. */
 .post-prose {
   max-width: 68ch;
   font-size: 1.02rem;
@@ -742,10 +240,10 @@
   margin: 0.35em 0;
 }
 .post-prose li::marker {
-  color: var(--gold);
+  color: var(--steel);
 }
 .post-prose blockquote {
-  border-left: 2px solid var(--gold);
+  border-left: 2px solid var(--steel);
   margin: 1.4em 0;
   padding-left: 1.1em;
   color: var(--muted);
@@ -845,33 +343,6 @@
   border-radius: 0;
 }
 
-/* ---- Motion ---- */
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.rise {
-  animation: rise 0.72s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-.fade-in {
-  animation: fade 0.9s ease both;
-}
-@media (prefers-reduced-motion: reduce) {
-  .rise, .fade-in {
-    animation: none;
-  }
-}
-
 /* Custom scrollbar — warm, unobtrusive */
 * {
   scrollbar-color: var(--line) transparent;
@@ -886,7 +357,7 @@
   border: 3px solid var(--bg);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gold-deep);
+  background: color-mix(in oklab, var(--steel) 70%, var(--ink));
 }
 
 /* ============================================================
@@ -902,22 +373,31 @@
   --ink: #2a3a47;
   /* Text tokens hold ≥4.5:1 (WCAG AA) on --bg and --surface — blue-slate
      grays, gel blues, and the link green pulled darker; ember darkened for
-     its text roles (.overdue, .live-pill). */
+     its text roles (.overdue, .live-flag). */
   --muted: #526577;
   --faint: #5a6c7c;
   --line: #c4d4e2;
   --line-soft: #e7eef5;
-  --gold: #1f6cb0;
-  --gold-soft: #1e639f;
-  --gold-deep: #1f5e93;
-  --sage: #3b7411;
-  --sage-deep: #305e0e;
   --ember: #a85413;
-  --shadow: rgba(40, 70, 110, 0.18);
   --type-display: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   --type-body: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   --type-mono: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color-scheme: light;
+
+  /* Period-literal role tokens (Plan 5 Task 2) — the values the old
+     --steel: var(--gold) / --spruce: var(--sage) / --pencil: var(--muted)
+     inverse aliases resolved to, now the roles' own definitions here, so
+     the swap is a visual no-op. The base layer (@layer base above) consumes
+     --steel/--paper globally (::selection, :focus-visible), and FilterLink,
+     FolioNav, PageHead, and chromeLink resolve their colors through
+     --steel/--spruce — without a literal here, a dark-OS visitor would
+     silently inherit the fog/slate values instead of this experience's own
+     blue/green. */
+  --paper: #e7f0f9;
+  --steel: #1f6cb0;
+  --hand: #a85413;
+  --spruce: #3b7411;
+  --pencil: #526577;
 }
 [data-experience="functional"] body {
   background: linear-gradient(#eef5fb, #d6e6f4) fixed;
@@ -926,16 +406,6 @@
   font-weight: 800;
   letter-spacing: -0.015em;
 }
-[data-experience="functional"] .eyebrow { color: var(--gold-soft); }
-/* Glossy panels — reskins the shared .surface-card used across listing/home bodies. */
-[data-experience="functional"] .surface-card {
-  background: linear-gradient(#ffffff, #f1f7fc);
-  border: 1px solid #c4d4e2;
-  border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(40, 70, 110, 0.18);
-}
-[data-experience="functional"] .surface-card > li:nth-child(even) { background: #eef5fb; }
-[data-experience="functional"] .surface-card > li:hover { background: #fff7e0; }
 /* Gel button (used by functional components). */
 [data-experience="functional"] .gel {
   display: inline-flex;
@@ -978,9 +448,38 @@
   text-shadow: none;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
 }
-/* The global gold focus ring is blue-on-blue on the appbar (1.1–1.3:1) —
-   keep the ring, swap it to white there. */
-[data-experience="functional"] .w2-appbar :focus-visible { outline-color: #fff; }
+/* The global steel focus ring is blue-on-blue on the appbar (1.1–1.3:1) —
+   keep the ring, swap it to white there. Scoped to the appbar's own
+   on-gradient controls (brand link, primary nav, the .appbar-search
+   subtree, the Settings toggle, and the mobile-nav trigger) rather than a
+   bare `.w2-appbar :focus-visible`: MobileNav's sheet renders inside this
+   same header as a DOM descendant of .w2-appbar, so the bare selector used
+   to also catch the sheet's own search input and nav links — a white ring
+   on the sheet's bg-paper (#e7f0f9) is ~1.15:1, invisible for keyboard
+   users (WCAG 1.4.11 wants 3:1). The sheet's own controls fall back to the
+   global steel ring instead — functional --steel (#1f6cb0) on --paper
+   (#e7f0f9) is ~4.7:1, comfortably clear of 3:1. */
+[data-experience="functional"] .w2-appbar .w2-brand:focus-visible,
+[data-experience="functional"] .w2-appbar .w2-navlink:focus-visible,
+[data-experience="functional"] .w2-appbar .appbar-search :focus-visible,
+[data-experience="functional"] .w2-appbar [aria-label="Settings"]:focus-visible,
+[data-experience="functional"] .w2-appbar [aria-label="Open menu"]:focus-visible,
+[data-experience="functional"] .w2-appbar [aria-label="Close menu"]:focus-visible {
+  outline-color: #fff;
+}
+/* The 3.0 underline search sits on the appbar gradient here — give it appbar
+   ink. Scoped to .appbar-search (the hook the header puts on that one
+   SearchBox instance, in site-header.tsx) rather than a bare
+   `.w2-appbar input`: MobileNav renders inside this same header as a DOM
+   descendant of .w2-appbar, so the bare selector used to also catch its
+   sheet's input — white text on the sheet's own bg-paper is invisible. */
+[data-experience="functional"] .w2-appbar .appbar-search input {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+[data-experience="functional"] .w2-appbar .appbar-search input::placeholder {
+  color: rgba(255, 255, 255, 0.75);
+}
 /* Glossy panel + badges (show header). */
 [data-experience="functional"] .w2-panel {
   background: linear-gradient(#ffffff, #f1f7fc); border: 1px solid #c4d4e2; border-radius: 12px;
@@ -991,7 +490,7 @@
   background: linear-gradient(#eaf4fd, #cfe6f8); color: #1f5e93; font-weight: 700; font-size: 11px;
   padding: 3px 11px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7); white-space: nowrap;
 }
-[data-experience="functional"] .w2-badge.gold { border-color: #d9b24e; background: linear-gradient(#fff0c4, #f7d271); color: #7a560a; }
+[data-experience="functional"] .w2-badge.amber { border-color: #d9b24e; background: linear-gradient(#fff0c4, #f7d271); color: #7a560a; }
 /* Zebra data table (setlist). */
 [data-experience="functional"] table.w2-table { border-collapse: collapse; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #c4d4e2; box-shadow: 0 1px 4px rgba(40, 70, 110, 0.18); }
 /* Horizontal scroll wrapper for w2 tables — phones can reach the trailing
@@ -1006,16 +505,25 @@
   display: inline-block; background: linear-gradient(#ffd86b, #f4a72b); border: 1px solid #d9952a; border-radius: 5px;
   color: #7a4e06; font-size: 10px; font-weight: 800; padding: 1px 5px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
-/* Icon toggles (settings gear, mobile menu) sit on the blue functional
-   appbar — make them read white. */
-[data-experience="functional"] [aria-label="Settings"],
+/* Icon toggle (settings gear) sits on the blue functional appbar — make it
+   read white. */
+[data-experience="functional"] [aria-label="Settings"] { color: #fff; background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.4); }
+[data-experience="functional"] [aria-label="Settings"]:hover { background: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.6); color: #fff; }
+/* The mobile-nav trigger is now bare text, not a boxed icon — just make the
+   text read white on the appbar. */
 [data-experience="functional"] [aria-label="Open menu"],
-[data-experience="functional"] [aria-label="Close menu"] { color: #fff; background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.4); }
-[data-experience="functional"] [aria-label="Settings"]:hover,
-[data-experience="functional"] [aria-label="Open menu"]:hover,
-[data-experience="functional"] [aria-label="Close menu"]:hover { background: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.6); color: #fff; }
+[data-experience="functional"] [aria-label="Close menu"] { color: #fff; background: none; border: 0; }
+/* Zebra rows over the shared Ledger (forms.tsx) — the new list primitive
+   behind the stats hub, venues, songs, blog, and every other browse page.
+   The row itself carries the `ledger-row` hook unconditionally in fancy and
+   minimal too, so this reskins shared markup via the CSS scope rather than
+   forking it; nth-child counts cleanly since a ledger's only children are
+   its row wrappers. Palette matches table.w2-table's zebra above. */
+[data-experience="functional"] .ledger-row { margin: 0 -10px; padding: 0 10px; border-radius: 4px; }
+[data-experience="functional"] .ledger-row:nth-child(even) { background: #eef5fb; }
+[data-experience="functional"] .ledger-row:hover { background: #fff7e0; }
 
-/* Minimal — flat, high-contrast, single look (ignores data-theme). */
+/* Minimal — flat, high-contrast, single look. */
 :root[data-experience="minimal"] {
   --bg: #ffffff;
   --bg-deep: #ffffff;
@@ -1026,17 +534,25 @@
   --faint: #6a6a6a;
   --line: #e3e3e0;
   --line-soft: #ededea;
-  --gold: #141414;
-  --gold-soft: #141414;
-  --gold-deep: #141414;
-  --sage: #1c5f4a;
-  --sage-deep: #164d3c;
   --ember: #141414;
-  --shadow: rgba(0, 0, 0, 0.12);
   --type-display: Georgia, "Times New Roman", serif;
   --type-body: Georgia, "Times New Roman", serif;
   --type-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   color-scheme: light;
+
+  /* Period-literal role tokens (Plan 5 Task 2) — the values the old
+     --steel: var(--gold) / --spruce: var(--sage) / --pencil: var(--muted)
+     inverse aliases resolved to, now the roles' own definitions here, so
+     the swap is a visual no-op. Without a literal here, a dark-OS visitor
+     would silently inherit the fog/slate --steel/--paper the base layer's
+     ::selection and :focus-visible consume globally, instead of this
+     experience's own flat black (e.g. the #7ba3c4 slate focus ring at
+     ~2.67:1 on this block's white --paper). */
+  --paper: #ffffff;
+  --steel: #141414;
+  --hand: #141414;
+  --spruce: #1c5f4a;
+  --pencil: #4a4a4a;
 }
 
 [data-experience="minimal"] a {
@@ -1067,26 +583,10 @@
 [data-experience="minimal"] ol.doc-notes { font-size: 0.9rem; color: var(--muted); padding-left: 1.4rem; line-height: 1.55; }
 [data-experience="minimal"] .doc-foot { margin-top: 1.8rem; padding-top: 0.6rem; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--muted); }
 
-/* Drop atmosphere + entrance motion outside Fancy. */
-[data-experience="functional"] .stage-glow,
-[data-experience="minimal"] .stage-glow {
-  display: none;
-}
-[data-experience="functional"] .rise,
-[data-experience="minimal"] .rise,
-[data-experience="functional"] .fade-in,
-[data-experience="minimal"] .fade-in {
-  animation: none;
-}
-[data-experience="minimal"] .eyebrow {
-  letter-spacing: 0.12em;
-  color: var(--faint);
-}
-
 /* ---- Phase 2: song stats (Fancy base; Functional reskin below) ---- */
-.song-ribbon { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 1rem 0; }
+.song-ribbon { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); overflow: hidden; margin: 1rem 0; }
 .song-fact { background: var(--surface); padding: 0.6rem 0.85rem; }
-.song-fact-v { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; color: var(--gold); font-variant-numeric: tabular-nums; }
+.song-fact-v { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; color: var(--ink); font-variant-numeric: tabular-nums; }
 .song-fact-k { font-size: 0.65rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
 @media (max-width: 640px) { .song-ribbon { grid-template-columns: 1fr 1fr; } }
 
@@ -1101,25 +601,19 @@
 
 .song-ppy { display: flex; align-items: flex-end; gap: 4px; height: 96px; border-bottom: 1px solid var(--line); }
 .song-ppy-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
-.song-ppy-bar { width: 100%; background: linear-gradient(180deg, var(--gold), var(--gold-deep, #c8902f)); border-radius: 3px 3px 0 0; min-height: 3px; }
+.song-ppy-bar { width: 100%; background: var(--steel); min-height: 3px; }
 .song-ppy-ct { font-size: 0.65rem; color: var(--muted); }
 .song-ppy-yr { font-size: 0.65rem; color: var(--faint); }
 
 .song-bars { display: grid; gap: 6px; }
 .song-barrow { display: grid; grid-template-columns: 84px 1fr 40px; align-items: center; gap: 10px; font-size: 0.82rem; }
-.song-bar { height: 9px; border-radius: 5px; background: var(--surface-2, #2a2016); overflow: hidden; }
-.song-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-deep, #c8902f), var(--gold)); }
-.song-bar-pct { color: var(--gold); font-variant-numeric: tabular-nums; text-align: right; }
-
-.song-spark { display: flex; align-items: flex-end; gap: 2px; height: 52px; }
-.song-spark i { flex: 1; background: var(--gold-deep, #c8902f); border-radius: 1px; opacity: 0.8; min-height: 1px; }
-.song-spark i.bust { background: var(--ember, #ff8a3d); opacity: 1; }
-.song-mspark { display: inline-flex; align-items: flex-end; gap: 1px; height: 18px; width: 64px; vertical-align: middle; }
-.song-mspark i { flex: 1; background: var(--gold-deep, #c8902f); border-radius: 1px; opacity: 0.85; min-height: 1px; }
+.song-bar { height: 9px; background: var(--surface-2, #2a2016); overflow: hidden; }
+.song-bar > span { display: block; height: 100%; background: var(--steel); }
+.song-bar-pct { color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
 
 /* dense table — pin identity column, scroll the rest */
-.song-scroll { position: relative; border: 1px solid var(--line); border-radius: 10px; }
-.song-scroll-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
+.song-scroll { position: relative; border: 1px solid var(--line); }
+.song-scroll-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .song-scroll-fade { position: absolute; top: 0; right: 0; width: 24px; height: 100%; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg) 80%, transparent)); }
 .song-scroll-hint { font-size: 0.65rem; color: var(--faint); text-align: right; margin: 0 8px 5px; }
 table.song-table { border-collapse: collapse; width: 100%; font-size: 0.85rem; white-space: nowrap; }
@@ -1127,8 +621,8 @@ table.song-table th { text-align: left; font-size: 0.58rem; letter-spacing: 0.09
 table.song-table td { padding: 5px 9px; border-bottom: 1px solid var(--line-soft, var(--line)); }
 table.song-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 table.song-table .dim { color: var(--faint); }
-table.song-table .gold { color: var(--gold); }
-table.song-table .gapcell { color: var(--gold); }
+table.song-table .rotation { color: var(--steel); }
+table.song-table .gapcell { color: var(--steel); }
 table.song-table .overdue { color: var(--ember, #ff8a3d); font-weight: 700; }
 table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; left: 0; z-index: 2; background: var(--bg); border-right: 1px solid var(--line); min-width: 120px; }
 .song-pin-name { display: block; overflow: hidden; text-overflow: ellipsis; }
@@ -1144,27 +638,33 @@ table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; l
    is incomplete by design (only songs the band has played live appear), so a
    column of track numbers would show gaps and read as broken. */
 tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 7px 9px; position: sticky; left: 0; }
-.song-group-title { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--gold); }
+.song-group-title { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--steel); }
 .song-group-note { font-family: var(--font-mono); font-size: 0.62rem; color: var(--faint); margin-left: 8px; text-transform: none; letter-spacing: 0; }
-.song-group-link:hover .song-group-buy { color: var(--gold); border-color: var(--gold); }
+.song-group-link:hover .song-group-buy { color: var(--steel); border-color: var(--steel); }
 .song-group-buy { font-family: var(--font-mono); font-size: 0.58rem; color: var(--faint); border: 1px solid var(--line); border-radius: 2px; padding: 1px 5px; margin-left: 8px; text-transform: none; letter-spacing: 0.04em; transition: color .15s, border-color .15s; }
 
 /* Bandcamp — the band's own store. Reuses the nugs affordance's shape but gets
    its own colour so it doesn't read as a nugs link. */
-.nugs-show.bandcamp { color: var(--sage); border-color: color-mix(in srgb, var(--sage) 45%, transparent); background: color-mix(in srgb, var(--sage) 10%, transparent); }
-.nugs-show.bandcamp:hover { color: var(--sage-deep); border-color: var(--sage); }
+.nugs-show.bandcamp { color: var(--spruce); border-color: color-mix(in srgb, var(--spruce) 45%, transparent); background: color-mix(in srgb, var(--spruce) 10%, transparent); }
+.nugs-show.bandcamp:hover { color: color-mix(in oklab, var(--spruce) 70%, var(--ink)); border-color: var(--spruce); }
 [data-experience="functional"] .nugs-show.bandcamp { color: #3b7411; border-color: #a9cf8a; background: linear-gradient(#ffffff, #eef7e8); }
 [data-experience="functional"] tr.song-group td { background: #dbe8f4; }
 [data-experience="functional"] .song-group-title { color: #1f5e93; }
 
 .song-cover { font-size: 0.65rem; color: var(--faint); margin-left: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
 .song-bust { font-size: 0.62rem; color: var(--ember, #ff8a3d); border: 1px solid color-mix(in srgb, var(--ember, #ff8a3d) 45%, transparent); border-radius: 999px; padding: 1px 7px; margin-right: 6px; }
-.song-jam { font-size: 0.62rem; color: var(--gold); }
+.song-jam { font-size: 0.62rem; color: var(--ember); }
 
 /* Functional (Web 2.0) reskin */
 [data-experience="functional"] .song-fact-v { color: #2c7cc4; }
-[data-experience="functional"] .song-ppy-bar, [data-experience="functional"] .song-bar > span, [data-experience="functional"] .song-spark i, [data-experience="functional"] .song-mspark i { background: linear-gradient(180deg, #5aa9e6, #2c7cc4); }
-[data-experience="functional"] .song-spark i.bust { background: linear-gradient(180deg, #f4a72b, #d98a10); }
+[data-experience="functional"] .song-ppy-bar, [data-experience="functional"] .song-bar > span { background: linear-gradient(180deg, #5aa9e6, #2c7cc4); }
+/* Radii are period identity here, not carding: base/3.0 stays square (de-carding),
+   but 2.0 keeps the rounded geometry it always had. */
+[data-experience="functional"] .song-ribbon { border-radius: 12px; }
+[data-experience="functional"] .song-ppy-bar { border-radius: 3px 3px 0 0; }
+[data-experience="functional"] .song-bar { border-radius: 5px; }
+[data-experience="functional"] .song-scroll { border-radius: 10px; }
+[data-experience="functional"] .song-scroll-inner { border-radius: 10px; }
 [data-experience="functional"] table.song-table th { background: linear-gradient(#4a9be0, #2c7cc4); color: #fff; text-shadow: 0 -1px 0 rgba(0,0,0,0.22); }
 [data-experience="functional"] table.song-table td { background: #fff; }
 [data-experience="functional"] table.song-table tbody tr:nth-child(even) td { background: #eef5fb; }
@@ -1175,36 +675,21 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 
 /* ---- nugs "Listen / Watch" affordance ---- */
 /* Cool "player" blues/violets, deliberately apart from the ledger palette.
-   Tokenized per [data-theme]: defaults are the dark-theme values (pod inherits
-   them — they read fine on graphite); light re-derives every text color for
-   cream at ≥4.5:1 (WCAG AA) incl. the translucent wash, borders at parity. */
+   Fog-safe text colors below (link/link-strong/watch/watch-strong/track) —
+   dark-safe values for slate live on the two slate blocks up top. */
 :root {
-  --nugs-link: #8fc6ee;
-  --nugs-link-strong: #bfe0fb;
+  --nugs-link: #1d5c86;
+  --nugs-link-strong: #144a6d;
   --nugs-line: #34506a;
   --nugs-line-strong: #4a78a6;
   --nugs-wash: linear-gradient(180deg, rgba(60,110,160,0.16), rgba(40,70,110,0.10));
-  --nugs-watch: #c6b8ee;
-  --nugs-watch-strong: #ddd0fb;
+  --nugs-watch: #5f4399;
+  --nugs-watch-strong: #443070;
   --nugs-watch-line: #4a3f6a;
   --nugs-watch-line-strong: #6a5aa0;
   --nugs-watch-wash: linear-gradient(180deg, rgba(110,80,170,0.16), rgba(70,55,120,0.10));
-  --nugs-track: #7fbfe8;
-  --nugs-track-line: #2f4860;
-}
-:root[data-theme="light"] {
-  --nugs-link: #1d5c86;
-  --nugs-link-strong: #144a6d;
-  --nugs-line: #8ba6bb;
-  --nugs-line-strong: #4f7899;
-  --nugs-wash: linear-gradient(180deg, rgba(60,110,160,0.10), rgba(40,70,110,0.05));
-  --nugs-watch: #5f4399;
-  --nugs-watch-strong: #443070;
-  --nugs-watch-line: #a89bce;
-  --nugs-watch-line-strong: #7a68ac;
-  --nugs-watch-wash: linear-gradient(180deg, rgba(110,80,170,0.10), rgba(70,55,120,0.05));
   --nugs-track: #1a567e;
-  --nugs-track-line: #93acc0;
+  --nugs-track-line: #2f4860;
 }
 
 /* show-header link (Listen / Watch) — tasteful secondary */
@@ -1247,16 +732,16 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
   color: #1a4fa0; text-decoration: underline; font-size: inherit; border-radius: 0;
 }
 
-/* ---- Live show ---- */
-.live-pill {
-  display: inline-flex; align-items: center; gap: 7px;
-  font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.18em;
-  color: var(--ember); border: 1px solid color-mix(in srgb, var(--ember) 55%, transparent);
-  border-radius: 999px; padding: 3px 11px;
-  background: color-mix(in srgb, var(--ember) 10%, transparent);
+/* ---- Live show ----
+   Not a pill — a flag: the dot is the mark (--hand, 3:1 is enough for a mark),
+   the word is the text and has to clear 4.5:1 on its own, so it wears --ember. */
+.live-flag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 0.7rem;
+  color: var(--ember);
 }
 .live-dot {
-  width: 7px; height: 7px; border-radius: 999px; background: var(--ember);
+  width: 7px; height: 7px; border-radius: 999px; background: var(--hand);
   animation: live-pulse 1.6s ease-in-out infinite;
 }
 @keyframes live-pulse {
@@ -1274,7 +759,7 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 .show-anchor { scroll-margin-top: 6rem; }
 [data-experience="minimal"] .show-anchor { scroll-margin-top: 1.5rem; }
 @keyframes show-anchor-flash {
-  0%, 35% { background-color: color-mix(in srgb, var(--gold) 22%, transparent); }
+  0%, 35% { background-color: color-mix(in srgb, var(--steel) 22%, transparent); }
   100% { background-color: transparent; }
 }
 .show-anchor:target { animation: show-anchor-flash 2.6s ease-out forwards; }
@@ -1285,3 +770,16 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
   .show-anchor:target,
   .show-anchor.show-anchor-flash { animation: none; }
 }
+
+/* ---- Tour timeline label (tour-timeline.tsx) ----
+   The tour-name label's color is computed per-tour (future/hot/default) and
+   passed down as the --tour-label-color custom property, so the base rule
+   here just reads it back. Fog/slate clear 4.5:1 with that mix recipe (see
+   the nameColour comment in tour-timeline.tsx); functional's gel-blue --steel
+   and darkened --ember don't (steel label 4.10:1, hot ember 3.69:1), so
+   functional overrides to plain --ink, which clears both washes (6.95:1 /
+   6.19:1). The functional rule out-specifies the base one via the extra
+   attribute selector — no !important needed even though the color also has
+   to beat a component-level fallback. See tour-timeline-label-contrast.test.ts. */
+.tour-timeline-label { color: var(--tour-label-color); }
+[data-experience="functional"] .tour-timeline-label { color: var(--ink); }

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { SongIndexTable, PlaysPerYearChart } from "@/app/_components/song";
+import { chromeLink } from "@/app/_components/page-chrome";
 import { CUTS } from "../cuts";
 import { StatsShell, MinimalCutRow, MinimalNoteRow, songsSortHref } from "../_shell";
 import {
@@ -148,7 +149,7 @@ export default async function StatsCut({ params }: Params) {
           <ul className="mt-3 space-y-1 text-sm">
             {recent.map((d) => (
               <li key={d.slug} className="flex justify-between gap-3">
-                <Link href={`/songs/${d.slug}`} className="text-ink hover:text-gold">
+                <Link href={`/songs/${d.slug}`} className={chromeLink}>
                   {d.name}
                 </Link>
                 <span className="text-faint">

@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb } from "@/app/_components/doc";
 import { SongIndexTable } from "@/app/_components/song";
-import { ArrowLeft, ArrowRight, Search } from "@/app/_components/marks";
+import { Search } from "@/app/_components/marks";
+import { PageHead, FilterLink, FilterRow, FolioNav, chromeLink } from "@/app/_components/page-chrome";
+import { PenRule, PenNote } from "@/app/_components/pen";
 import { listSongs, OVERDUE_MIN_PLAYS, type SongSort, type SongFacet } from "@/lib/queries/songs";
 import { compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
@@ -85,109 +87,76 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
   // Fancy + Functional share this dense body.
   const yearsForTable = rows[0] ? deriveYears(rows) : [];
   return (
-    <>
-      <header className="relative overflow-hidden border-b border-line">
-        <div className="stage-glow inset-x-0 top-0 h-72" />
-        <Container className="relative py-10 sm:py-12">
-          <span className="eyebrow">The catalog</span>
-          <h1 className="mt-3 font-display text-[2.4rem] leading-none tracking-tight text-ink sm:text-5xl">Songs</h1>
-          <p className="mt-2 font-mono text-xs text-faint">{compact(total)} songs · sort the whole catalog any way you like</p>
-        </Container>
-      </header>
-      <Container className="py-8">
-        <div className="mb-3 flex flex-wrap items-center gap-1.5 font-mono text-xs">
+    <Container>
+      <PageHead
+        kicker="the catalog"
+        title="songs"
+        meta={`${compact(total)} ${total === 1 ? "song" : "songs"} · sort the whole catalog any way you like`}
+      />
+
+      <div className="mb-4 flex flex-col gap-3">
+        <FilterRow>
           {SORTS.map((s) => (
-            <Link key={s.key} href={buildHref({ sort: s.key, facet, q })}
-              className={s.key === sort ? "rounded-full bg-gold/15 px-3 py-1 text-gold ring-1 ring-gold/40" : "rounded-full px-3 py-1 text-muted transition hover:text-ink"}>
+            <FilterLink key={s.key} href={buildHref({ sort: s.key, facet, q })} active={s.key === sort}>
               {s.label}
-            </Link>
+            </FilterLink>
           ))}
-        </div>
-        <div className="mb-4 flex flex-wrap items-center gap-1.5 font-mono text-[0.7rem] text-faint">
-          Filter:
+        </FilterRow>
+        <FilterRow label="filter">
           {FACETS.map((f) => (
-            <Link key={f.key} href={buildHref({ sort, facet: f.key, q })}
-              className={f.key === facet ? "rounded-full px-2.5 py-0.5 text-gold ring-1 ring-gold/40" : "rounded-full px-2.5 py-0.5 text-muted transition hover:text-ink"}>
+            <FilterLink key={f.key} href={buildHref({ sort, facet: f.key, q })} active={f.key === facet}>
               {f.label}
-            </Link>
+            </FilterLink>
           ))}
+        </FilterRow>
+      </div>
+
+      {experience === "functional" ? (
+        <form action="/songs" method="get" className="mb-4 flex items-center gap-2">
+          <FilterParams sort={sort} facet={facet} />
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder="Filter by song name…"
+            aria-label="Filter songs by name"
+            className="w-56 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink placeholder:text-faint outline-none focus:border-[#1f6cb0]"
+          />
+          <button type="submit" className="gel text-xs">Filter</button>
+        </form>
+      ) : (
+        <form action="/songs" method="get" className="group relative mb-4 max-w-xs">
+          <FilterParams sort={sort} facet={facet} />
+          <Search className="pointer-events-none absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-faint transition group-focus-within:text-steel" />
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder="Filter by song name…"
+            aria-label="Filter songs by name"
+            className="w-full rounded-none border-0 border-b border-line bg-transparent py-1.5 pl-6 pr-2 text-sm text-ink placeholder:text-faint outline-none transition focus:border-steel"
+          />
+        </form>
+      )}
+      {sort === "overdue" && (
+        <PenNote className="mb-4">
+          {OVERDUE_NOTE}<Link href="/stats/current-gaps" className={`not-italic ${chromeLink}`}>Most Overdue</Link> in Stats.
+        </PenNote>
+      )}
+
+      <PenRule seed="songs-filters" className="mb-6" />
+
+      <SongIndexTable rows={rows} years={yearsForTable} rankOffset={(page - 1) * PER_PAGE} groupByAlbum={sort === "album"} sort={{ active: sort, hrefFor: (key) => buildHref({ sort: key, facet, q }) }} />
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-8 pb-4">
+          <FolioNav
+            prevHref={page > 1 ? buildHref({ sort, facet, q, page: page - 1 }) : undefined}
+            nextHref={page < totalPages ? buildHref({ sort, facet, q, page: page + 1 }) : undefined}
+            center={`page ${compact(page)} of ${compact(totalPages)}`}
+          />
         </div>
-        {experience === "functional" ? (
-          <form action="/songs" method="get" className="mb-4 flex items-center gap-2">
-            <FilterParams sort={sort} facet={facet} />
-            <input
-              name="q"
-              defaultValue={q}
-              placeholder="Filter by song name…"
-              aria-label="Filter songs by name"
-              className="w-56 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink placeholder:text-faint outline-none focus:border-gold"
-            />
-            <button type="submit" className="gel text-xs">Filter</button>
-          </form>
-        ) : (
-          <form action="/songs" method="get" className="group relative mb-4 max-w-xs">
-            <FilterParams sort={sort} facet={facet} />
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint transition group-focus-within:text-gold" />
-            <input
-              name="q"
-              defaultValue={q}
-              placeholder="Filter by song name…"
-              aria-label="Filter songs by name"
-              className="w-full rounded-full border border-line bg-surface/60 py-2 pl-8 pr-3 text-sm text-ink placeholder:text-faint outline-none transition focus:border-gold"
-            />
-          </form>
-        )}
-        {sort === "overdue" && (
-          <p className="mb-3 font-mono text-[0.7rem] text-faint">
-            {OVERDUE_NOTE}<Link href="/stats/current-gaps" className="underline hover:text-gold">Most Overdue</Link> in Stats.
-          </p>
-        )}
-        <SongIndexTable rows={rows} years={yearsForTable} rankOffset={(page - 1) * PER_PAGE} groupByAlbum={sort === "album"} sort={{ active: sort, hrefFor: (key) => buildHref({ sort: key, facet, q }) }} />
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="mt-8 flex items-center justify-between gap-4">
-            <div>
-              {page > 1 ? (
-                <Link
-                  href={buildHref({ sort, facet, q, page: page - 1 })}
-                  className="group flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-muted transition hover:border-gold hover:text-gold"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" />
-                  Previous
-                </Link>
-              ) : (
-                <span aria-disabled="true" className="flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-faint opacity-40 select-none">
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Previous
-                </span>
-              )}
-            </div>
-
-            <span className="font-mono text-xs text-faint">
-              Page {compact(page)} of {compact(totalPages)}
-            </span>
-
-            <div>
-              {page < totalPages ? (
-                <Link
-                  href={buildHref({ sort, facet, q, page: page + 1 })}
-                  className="group flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-muted transition hover:border-gold hover:text-gold"
-                >
-                  Next
-                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-                </Link>
-              ) : (
-                <span aria-disabled="true" className="flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-faint opacity-40 select-none">
-                  Next
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-      </Container>
-    </>
+      )}
+    </Container>
   );
 }
 

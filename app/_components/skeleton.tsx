@@ -8,9 +8,11 @@ import { clsx } from "./clsx";
  * editions. The shimmer is Tailwind's pulse, stilled under
  * prefers-reduced-motion. */
 
-/** A shimmering faint bar — the skeleton's only mark. */
+/** A shimmering faint bar — the skeleton's only mark. Flat, not rounded: the
+ * component is deliberately experience-neutral (see the file header), and a
+ * bare `rounded` corner was the last thing here that wasn't. */
 export function SkeletonBar({ className }: { className?: string }) {
-  return <span aria-hidden className={clsx("block animate-pulse rounded bg-line-soft motion-reduce:animate-none", className)} />;
+  return <span aria-hidden className={clsx("block animate-pulse bg-line-soft motion-reduce:animate-none", className)} />;
 }
 
 /** Announces the pending page to assistive tech while the bars shimmer. */
@@ -36,10 +38,10 @@ export function SkeletonHeader() {
   );
 }
 
-/** Hairline-separated ledger rows inside a surface card. */
+/** Hairline-separated ledger rows. */
 export function SkeletonRows({ rows = 8 }: { rows?: number }) {
   return (
-    <div className="surface-card overflow-hidden">
+    <div className="overflow-hidden">
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className={clsx("flex items-center gap-4 px-5 py-4", i > 0 && "border-t border-line-soft")}>
           <SkeletonBar className="h-3 w-16 shrink-0" />
@@ -51,12 +53,12 @@ export function SkeletonRows({ rows = 8 }: { rows?: number }) {
   );
 }
 
-/** A row of filter-pill ghosts. */
+/** A row of filter-text ghosts. */
 export function SkeletonPills({ count = 8 }: { count?: number }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {Array.from({ length: count }, (_, i) => (
-        <SkeletonBar key={i} className="h-7 w-16 rounded-full" />
+        <SkeletonBar key={i} className="h-5 w-16" />
       ))}
     </div>
   );

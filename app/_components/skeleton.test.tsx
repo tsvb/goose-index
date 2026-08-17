@@ -27,14 +27,15 @@ describe("skeleton primitives", () => {
     const html = renderToStaticMarkup(<SkeletonHeader />);
     expect(html).toContain("border-b");
   });
-  it("rows are hairline-separated inside a surface card", () => {
+  it("rows are hairline-separated bars, no card wrapper", () => {
     const html = renderToStaticMarkup(<SkeletonRows rows={3} />);
-    expect(html).toContain("surface-card");
+    expect(html).not.toContain("surface-card");
     expect(html.match(/border-t border-line-soft/g)).toHaveLength(2); // n-1 hairlines
   });
-  it("pills render the requested count of rounded ghosts", () => {
+  it("pills render the requested count of text ghosts, not rounded pills", () => {
     const html = renderToStaticMarkup(<SkeletonPills count={4} />);
-    expect(html.match(/rounded-full/g)).toHaveLength(4);
+    expect(html.match(/h-5 w-16/g)).toHaveLength(4);
+    expect(html).not.toContain("rounded-full");
   });
 });
 
@@ -58,4 +59,10 @@ describe("route loading skeletons", () => {
       expect(html).not.toContain("stage-glow");
     });
   }
+
+  it("songs/[slug] ghosts the 8 facts as plain bars, not surface cards", () => {
+    const html = renderToStaticMarkup(<SongLoading />);
+    expect(html).not.toContain("surface-card");
+    expect(html.match(/animate-pulse/g)?.length).toBeGreaterThanOrEqual(8 * 2); // value + label bar per fact, at least
+  });
 });

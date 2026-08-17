@@ -34,39 +34,30 @@ describe("ShowHeader", () => {
     expect(html.match(/<h1/g)).toHaveLength(1);
     expect(html).toMatch(/<h1[^>]*>June 26, 2026<\/h1>/);
   });
-  it("fancy renders the hero with the stage glow and eyebrow", () => {
+  it("fancy renders a kicker (weekday folded, tour name kept authored-case) and one h1 with the long date — no stage glow, no almanac hook, no entry stamp", () => {
     const html = renderToStaticMarkup(<ShowHeader show={show} date="2026-06-26" setlist={setlist} experience="fancy" />);
-    expect(html).toContain("stage-glow");
-    expect(html).toContain("eyebrow");
+    expect(html).not.toContain("stage-glow");
+    expect(html).not.toContain("almanac-masthead");
+    expect(html).not.toContain("entry-stamp");
+    expect(html).toContain("friday"); // the weekday chrome token folds
+    expect(html.match(/<h1[^>]*>/g)?.length).toBe(1);
+    expect(html).toMatch(/<h1[^>]*>June 26, 2026<\/h1>/);
   });
-});
-
-describe("ShowHeader almanac entry stamp + masthead hook", () => {
-  it("fancy stamps the computed entry number and tags the masthead", () => {
-    const html = renderToStaticMarkup(
-      <ShowHeader show={show} date="2026-06-26" setlist={setlist} experience="fancy" entryNumber={812} />,
-    );
-    expect(html).toContain('class="entry-stamp"');
-    expect(html).toContain("<span>SHOW</span>");
-    expect(html).toContain("<span>No. 812</span>");
-    expect(html).toContain("almanac-masthead");
+  it("fancy keeps the authored tour name's case in the kicker — casing is a fact about the data, not chrome", () => {
+    const html = renderToStaticMarkup(<ShowHeader show={show} date="2026-06-26" setlist={setlist} experience="fancy" />);
+    expect(html).toContain(">Summer Tour 2026<"); // not "summer tour 2026"
+    // The kicker <p> itself carries no blanket lowercase class anymore — only
+    // the weekday token folds, done explicitly in JS (see above).
+    expect(html).toContain('<p class="text-[0.7rem] text-faint">');
   });
-  it("renders no stamp when the entry number is unknown — upcoming or unlogged shows", () => {
-    for (const entryNumber of [null, undefined]) {
-      const html = renderToStaticMarkup(
-        <ShowHeader show={show} date="2026-06-26" setlist={setlist} experience="fancy" entryNumber={entryNumber} />,
-      );
-      expect(html).not.toContain("entry-stamp");
-    }
-  });
-  it("minimal and functional never render the stamp", () => {
-    for (const exp of ["minimal", "functional"] as const) {
-      const html = renderToStaticMarkup(
-        <ShowHeader show={show} date="2026-06-26" setlist={setlist} experience={exp} entryNumber={812} />,
-      );
-      expect(html).not.toContain("entry-stamp");
-      expect(html).not.toContain("No. 812");
-    }
+  it("ignores a stray entryNumber — the prop moved to the page's folio", () => {
+    // ShowHeader's type no longer declares entryNumber; cast past it to prove
+    // the component itself carries no stamp-rendering path for it anymore.
+    const props = { show, date: "2026-06-26", setlist, experience: "fancy" as const, entryNumber: 812 };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const html = renderToStaticMarkup(<ShowHeader {...(props as any)} />);
+    expect(html).not.toContain("entry-stamp");
+    expect(html).not.toContain("No. 812");
   });
 });
 

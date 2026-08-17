@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type CSSProperties } from "react";
 import Link from "next/link";
 import type { TourSpan } from "@/lib/queries/dimensions";
 
@@ -158,7 +158,35 @@ export function TourTimeline({
                     const legs = splitLegs(t.dates);
                     const future = t.start > today;
                     const hot = t.tourId === busiest.tourId;
-                    const colour = future ? "var(--faint)" : hot ? "var(--ember)" : "var(--gold)";
+                    // Marks (the connector, the bar, its ticks) read the busiest run in
+                    // hand; the tour-name label is text, so it stays in ember — hand is
+                    // a mark-only color, never text (see the pen & instrument roles).
+                    const markColour = future ? "var(--faint)" : hot ? "var(--hand)" : "var(--steel)";
+                    // The label sits on its own bar's tinted wash (22%/30% color-mix over
+                    // --bg-deep), not on plain paper — a computed background the standing
+                    // contrast gate (app/globals-contrast.test.ts) can't see, since it only
+                    // reads :root hex literals. Measured (scratchpad script, CSS Color 4
+                    // srgb math + WCAG luminance): plain --steel/--ember on that wash is
+                    // 3.65:1 fog / 3.85:1 slate (steel) and 3.52:1 fog / 4.24:1 slate
+                    // (ember) — below the site's 4.5:1 text floor. Mixing 30% toward --ink
+                    // (same idiom as the steel-mix hover recipes elsewhere) clears it in
+                    // both themes: steel 5.09:1 fog / 5.03:1 slate, ember 4.96:1 fog /
+                    // 4.75:1 slate. See tour-timeline-label-contrast.test.ts.
+                    //
+                    // Functional doesn't clear with that same recipe: its gel-blue --steel
+                    // and its darkened --ember pull further from --ink, so the identical
+                    // 70/30 mix lands at 4.10:1 (steel wash) / 3.69:1 (hand wash) — both
+                    // fail AA. Plain --ink on those washes clears at 6.95:1 / 6.19:1, so
+                    // functional gets its own literal via the CSS override below
+                    // ([data-experience="functional"] .tour-timeline-label) rather than
+                    // the fog/slate mix recipe. The --tour-label-color custom property
+                    // carries this value as the default (fog/slate); the class lets the
+                    // functional rule out-specificity it without an inline !important.
+                    const nameColour = future
+                      ? "var(--faint)"
+                      : hot
+                        ? "color-mix(in srgb, var(--ember) 70%, var(--ink) 30%)"
+                        : "color-mix(in srgb, var(--steel) 70%, var(--ink) 30%)";
                     const top = 2 + li * (LANE.h + LANE.gap);
                     const pct = (iso: string) => (dayOfYear(iso) / days) * 100;
 
@@ -176,7 +204,7 @@ export function TourTimeline({
                               width: `${pct(legs[legs.length - 1].start) - pct(legs[0].end)}%`,
                               top: top + LANE.h / 2,
                               height: 1,
-                              borderTop: `1px dotted ${colour}`,
+                              borderTop: `1px dotted ${markColour}`,
                               opacity: 0.45,
                             }}
                           />
@@ -200,22 +228,23 @@ export function TourTimeline({
                                 background: future
                                   ? "transparent"
                                   : hot
-                                    ? "color-mix(in srgb, var(--ember) 30%, transparent)"
-                                    : "color-mix(in srgb, var(--gold) 22%, transparent)",
-                                border: `1px solid ${future ? "var(--line)" : hot ? "var(--ember)" : "color-mix(in srgb, var(--gold) 55%, transparent)"}`,
+                                    ? "color-mix(in srgb, var(--hand) 30%, transparent)"
+                                    : "color-mix(in srgb, var(--steel) 22%, transparent)",
+                                border: `1px solid ${future ? "var(--line)" : hot ? "var(--hand)" : "color-mix(in srgb, var(--steel) 55%, transparent)"}`,
                                 borderStyle: future ? "dashed" : "solid",
                               }}
                             >
-                              {leg.dates.map((d) => {
+                              {leg.dates.map((d, di) => {
                                 const at = ((dayOfYear(d) - from) / Math.max(to - from + 1, 1)) * 100;
                                 return (
                                   <span
-                                    key={d}
+                                    // doubleheaders repeat a date (2022-07-22, 2020-02-29) — the date alone is not unique
+                                    key={`${d}·${di}`}
                                     aria-hidden
                                     className="absolute bottom-[2px] h-[5px] w-px"
                                     style={{
                                       left: `${Math.min(at, 99)}%`,
-                                      background: d > today ? "var(--faint)" : hot ? "var(--ember)" : "var(--gold)",
+                                      background: d > today ? "var(--faint)" : hot ? "var(--hand)" : "var(--steel)",
                                     }}
                                   />
                                 );
@@ -224,8 +253,8 @@ export function TourTimeline({
                                   on every leg would read as separate tours. */}
                               {i === 0 && (
                                 <span
-                                  className="pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
-                                  style={{ color: colour }}
+                                  className="tour-timeline-label pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
+                                  style={{ "--tour-label-color": nameColour } as CSSProperties}
                                 >
                                   {shortName(t.name)}
                                 </span>

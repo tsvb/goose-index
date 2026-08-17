@@ -89,6 +89,18 @@ describe("SongPage for a never-played song", () => {
     const html = await render();
     expect(html).toContain("In the songbook, but never yet played live.");
   });
+  it("drops the dashed empty-state box for a nil entry", async () => {
+    const html = await render();
+    expect(html).not.toContain("border-dashed");
+    expect(html).not.toContain("rounded-lg border border-dashed");
+  });
+  it("keeps both never-played links, lowercase", async () => {
+    const html = await render();
+    expect(html).toContain('href="/songs"');
+    expect(html).toContain("browse the catalog");
+    expect(html).toContain('href="/stats/debuts"');
+    expect(html).toContain("recent debuts");
+  });
 });
 
 describe("SongPage for a played song", () => {
@@ -107,6 +119,70 @@ describe("SongPage for a played song", () => {
     expect(html.match(/<h1/g)).toHaveLength(1);
     expect(html).toContain("<h2");
     expect(html).not.toContain("<h3");
+  });
+});
+
+describe("SongPage furniture — breadcrumb, tag, section rules", () => {
+  beforeEach(() => {
+    h.song = song({
+      timesPlayed: 2, debutDate: "2021-06-01", lastPlayedDate: "2024-04-20",
+      longestVersions: [{ date: "2024-01-01", showId: 1, order: null, venue: "The Cap", trackTime: "12:34", seconds: 754 }],
+      topVenues: [{ venueId: 9, name: "The Cap", count: 3 }],
+    });
+    h.perfs = [{
+      uniqueId: "1", date: "2024-01-01", showId: 1, order: null, venue: "The Cap", city: null, state: null,
+      setLabel: "Set 1", position: 1, trackTime: "12:34", seconds: 754, gap: 1, isJam: false, isJamchart: false, isDustedOff: false,
+    }];
+  });
+
+  it("colors the crumb links spruce, not the unstyled default", async () => {
+    const html = await render();
+    const idx = html.indexOf(">Songs<");
+    const tag = html.slice(html.lastIndexOf("<a", idx), idx);
+    expect(tag).toContain("text-spruce");
+    expect(tag).toContain('href="/songs"');
+  });
+
+  it("renders the tag as plain mono text, not a bordered pill", async () => {
+    h.song = song({ timesPlayed: 2, isOriginal: false, originalArtist: "Trad.", debutDate: "2021-06-01" });
+    const html = await render();
+    expect(html).not.toContain("rounded-full border border-line");
+    expect(html).toContain('<span class="font-mono text-[0.7rem] text-faint">cover · Trad.</span>');
+  });
+
+  it("folds only the chrome word 'cover' — the authored artist name keeps its case", async () => {
+    // A blanket `lowercase` class used to fold the whole tag, including the
+    // artist name; only the literal "cover"/"original" word should fold now.
+    h.song = song({ timesPlayed: 2, isOriginal: false, originalArtist: "The Beatles", debutDate: "2021-06-01" });
+    const html = await render();
+    expect(html).toContain("cover · The Beatles");
+    expect(html).not.toContain("cover · the beatles");
+    expect(html).not.toMatch(/class="[^"]*\blowercase\b[^"]*">cover/);
+  });
+
+  it("renders section headings through SectionRule, lowercase, ruled", async () => {
+    const html = await render();
+    expect(html).toContain(">plays per year<");
+    expect(html).toContain(">set placement<");
+    expect(html).toContain(">gaps &amp; returns<");
+    expect(html).toContain(">longest versions<");
+    expect(html).toContain(">top venues<");
+    expect(html).toMatch(/>every performance/);
+    // SectionRule draws a PenRule svg under each heading.
+    expect((html.match(/<svg aria-hidden="true" viewBox="0 0 400 6"/g) ?? []).length).toBeGreaterThanOrEqual(6);
+  });
+
+  it("drops the old plain h2 furniture classes", async () => {
+    const html = await render();
+    expect(html).not.toContain('class="mb-2 font-display text-base text-ink"');
+  });
+
+  it("longest-version durations wear ink, not the gold alias — durations are content", async () => {
+    const html = await render();
+    const idx = html.indexOf("12:34");
+    const tag = html.slice(html.lastIndexOf("<span", idx), idx);
+    expect(tag).toContain("text-ink");
+    expect(tag).not.toContain("text-gold");
   });
 });
 

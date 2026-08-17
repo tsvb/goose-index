@@ -110,7 +110,7 @@ export function SongIndexTable({ rows, years, sort, rankOffset = 0, groupByAlbum
               </td>
               <td className="num">{r.timesPlayed}</td>
               <td><MiniSparkline values={r.playsPerYear} /></td>
-              <td className="num gold">{r.rotationPct}%</td>
+              <td className="num rotation">{r.rotationPct}%</td>
               <td className={`num ${r.currentGap != null && r.currentGap >= 15 ? "overdue" : "gapcell"}`}>{r.currentGap ?? "—"}</td>
               <td className="dim">{r.lastPlayedDate ?? "—"}</td>
               <td className="dim">{r.debutYear ?? "—"}</td>

@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
-import { ShowRow } from "@/app/_components/show-card";
-import { ArrowLeft, ArrowRight } from "@/app/_components/marks";
+import { FolioNav, chromeLink } from "@/app/_components/page-chrome";
+import { clsx } from "@/app/_components/clsx";
+import { Ledger, LedgerEntry } from "@/app/_components/forms";
 import { listShows } from "@/lib/queries/shows";
 import { listYears } from "@/lib/queries/dimensions";
 import { compact } from "@/lib/queries/format";
@@ -60,74 +61,46 @@ export default async function YearPage({ params }: Params) {
   }
 
   return (
-    <>
-      {/* Hero */}
-      <header className="relative overflow-hidden border-b border-line">
-        <div className="stage-glow inset-x-0 top-0 h-72" />
-        <Container className="relative py-14 sm:py-20">
-          <span className="eyebrow rise" style={{ animationDelay: "0ms" }}>
-            <Link href="/years" className="transition hover:text-gold">Years</Link>
-          </span>
-          <h1
-            className="rise mt-4 font-display text-[5rem] leading-none tracking-tight text-ink sm:text-[7rem]"
-            style={{ animationDelay: "60ms" }}
-          >
-            {year}
-          </h1>
-          <p
-            className="rise mt-4 font-mono text-sm text-faint"
-            style={{ animationDelay: "120ms" }}
-          >
-            <span className="text-ink">{compact(showCount)}</span> shows
-            {" · "}
-            <span className="text-ink">{compact(songCount)}</span> songs played
-          </p>
+    <Container>
+      {/* PageHead-style markup, written inline: the kicker carries a real
+          years link (PageHead's own kicker is plain text only). The giant
+          text-[7rem] year shrinks to PageHead's own h1 scale. */}
+      <div className="pt-10 pb-6 sm:pt-14">
+        <p className="text-[0.7rem] lowercase text-faint">
+          <Link href="/years" className={chromeLink}>
+            years
+          </Link>
+        </p>
+        <h1 className="mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+          {year}
+        </h1>
+        <p className="mt-2 font-mono text-[0.75rem] text-faint">
+          <span className="text-ink">{compact(showCount)}</span> shows
+          {" · "}
+          <span className="text-ink">{compact(songCount)}</span> songs played
+        </p>
+      </div>
 
-          {/* Prev / Next year nav */}
-          <div
-            className="rise mt-8 flex items-center gap-3 font-mono text-xs"
-            style={{ animationDelay: "180ms" }}
-          >
-            {prevYear ? (
-              <Link
-                href={`/years/${prevYear}`}
-                className="flex items-center gap-1 rounded border border-line px-3 py-1.5 text-muted transition hover:border-gold/55 hover:text-gold"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                {prevYear}
-              </Link>
-            ) : (
-              <span className="invisible select-none px-3 py-1.5">‹ prev</span>
-            )}
-            <Link
-              href="/years"
-              className="rounded border border-line px-3 py-1.5 text-muted transition hover:border-gold/55 hover:text-gold"
-            >
-              All years
+      <div className="mb-8">
+        <FolioNav
+          prevHref={prevYear ? `/years/${prevYear}` : undefined}
+          nextHref={nextYear ? `/years/${nextYear}` : undefined}
+          prevLabel={prevYear ? String(prevYear) : "previous"}
+          nextLabel={nextYear ? String(nextYear) : "next"}
+          center={
+            <Link href="/years" className={clsx("lowercase", chromeLink)}>
+              all years
             </Link>
-            {nextYear && (
-              <Link
-                href={`/years/${nextYear}`}
-                className="flex items-center gap-1 rounded border border-line px-3 py-1.5 text-muted transition hover:border-gold/55 hover:text-gold"
-              >
-                {nextYear}
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            )}
-          </div>
-        </Container>
-      </header>
+          }
+        />
+      </div>
 
       {/* Show list */}
-      <section>
-        <Container className="py-12">
-          <div className="surface-card divide-y divide-line-soft overflow-hidden">
-            {rows.map((show) => (
-              <ShowRow key={show.showId} show={show} />
-            ))}
-          </div>
-        </Container>
-      </section>
-    </>
+      <Ledger seed={`year-${year}`}>
+        {rows.map((show) => (
+          <LedgerEntry key={show.showId} show={show} />
+        ))}
+      </Ledger>
+    </Container>
   );
 }

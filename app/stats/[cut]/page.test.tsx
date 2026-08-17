@@ -32,10 +32,18 @@ beforeEach(() => {
 });
 
 describe("StatsCut cut-switcher and methodology footnote", () => {
-  it("renders every cut as a pill with the active one marked", async () => {
+  it("renders every cut as a filter link with the active one marked steel", async () => {
     const html = await render("current-gaps");
     for (const title of ["Most Played", "Rarities", "Most Overdue", "Debuts", "Set Stats"]) expect(html).toContain(`>${title}</a>`);
-    expect(html).toContain('aria-current="page"');
+    // "Most Overdue" also appears in the page's own <h1>; the switcher's copy is the last one.
+    const idx = html.lastIndexOf(">Most Overdue<");
+    const tag = html.slice(html.lastIndexOf("<a", idx), idx);
+    expect(tag).toContain("text-steel");
+    expect(tag).toContain('aria-current="page"');
+    const otherIdx = html.indexOf(">Rarities<");
+    const otherTag = html.slice(html.lastIndexOf("<a", otherIdx), otherIdx);
+    expect(otherTag).not.toContain("text-steel");
+    expect(otherTag).not.toContain("aria-current");
     expect(html).toContain('href="/stats/set-stats"');
   });
 

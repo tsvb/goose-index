@@ -67,6 +67,10 @@ tape. The shape of a night is visible without reading twenty-four track times.
 </tr>
 </table>
 
+*Screenshots above are from 2026-07-13, before the pen & instrument redesign — the forms they
+show (rings, dials, meters, tape) are still how these charts draw; the colours and chrome
+around them are not. Current look: [gooseindex.com/stats](https://www.gooseindex.com/stats).*
+
 Three rules hold across all of them. **A change that breaks one is a bug, even if it renders.**
 
 1. **Each question gets the form its number is.** Duration → length. Cycle → dial. Sequence →
@@ -77,6 +81,18 @@ Three rules hold across all of them. **A change that breaks one is a bug, even i
 3. **A claim never travels without its evidence.** Skewed data is log-scaled (gaps span
    88–1367 days). Where the data is too thin to be honest about, the chart draws nothing
    rather than something misleading.
+
+Five roles carry that colour, and each keeps to one job everywhere on the site:
+
+| Role | Carries |
+|---|---|
+| `--steel` | Field and structure. |
+| `--hand` | The reading, now — marks only (a dot, a stroke), never running text. |
+| `--ember` | Heat and overdue — the one amber allowed as text (`--hand` never is). |
+| `--spruce` | Links, and the footnote marks that pair with them. |
+| `--pencil` | The human margin — captions, footnotes, the caveat channel. |
+
+`--hand` on running text is the bug this split exists to catch; the suite greps for it.
 
 ---
 
@@ -94,19 +110,20 @@ Three rules hold across all of them. **A change that breaks one is a bug, even i
 Scale, as of 2026-07-13: **823 shows** played (from 2014-09-27), **615 songs**, **592 venues**,
 **7,504 performances**. These grow nightly — live counts are on [/stats](https://www.gooseindex.com/stats).
 
-## Three editions, four themes
+## Three editions
 
 Every page renders in one of three editions, chosen from the gear in the header and remembered
 per visitor:
 
 | Edition | What you get |
 |---|---|
-| **3.0** | Charts, themes, motion. The default. |
-| **2.0** | The same charts, in a glossy Web 2.0 skin. No themes, no motion. |
-| **1.0** | A plain document. Tables, no charts. |
+| **3.0** | Charts, pen & instrument. The default. |
+| **2.0** | Same charts, glossy skin — striped ledger rows, classic blue links, gel buttons; its own period-literal palette, independent of the fog/slate values above. |
+| **1.0** | Plain document, no charts. |
 
-3.0 carries four themes — **XL II** (the default: graphite chassis, chrome accent, one warm
-filament), Dark, Light, and Pod.
+Appearance is a 3.0-only switch, and it's two fixed looks, not a wardrobe of named themes:
+**fog** (light), **slate** (dark), or **auto** (follows the OS — the default). 2.0 and 1.0 each
+render a single fixed look.
 
 ## Architecture
 
@@ -118,7 +135,7 @@ The web app only ever **reads** at request time. Every write happens out of band
 job, so page loads never depend on the elgoose API being up.
 
 - **Next.js (App Router) + TypeScript** — server-rendered. No client-side charting library; every
-  chart is SVG against design tokens, so it reskins with the theme.
+  chart is SVG against role tokens, so it reskins with the edition and, inside 3.0, with fog/slate.
 - **Postgres + Drizzle** — a cached copy of the live-performance record.
 - **Vitest** — the suite runs fully offline (fixtures + in-memory PGlite). No network, no database.
 - **Vercel Web Analytics** — cookieless page views, on every edition.

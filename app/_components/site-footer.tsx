@@ -1,36 +1,34 @@
 import Link from "next/link";
 import { Container } from "./container";
-import { Feather } from "./marks";
+import { PenRule } from "./pen";
 import { getExperience } from "@/lib/experience.server";
 import { BANDCAMP_HOME } from "@/lib/bandcamp";
 
 export function FooterFancy() {
   return (
-    <footer className="mt-28 border-t border-line">
-      <Container className="grid gap-10 py-12 sm:grid-cols-[1.4fr_1fr_1fr]">
+    <footer className="mt-24">
+      <Container>
+        <PenRule seed="footer" />
+      </Container>
+      <Container className="grid gap-10 py-10 sm:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <div className="flex items-center gap-2 text-gold">
-            <Feather className="h-5 w-5" />
-            <span className="font-display text-lg text-ink">
-              Goose <span className="italic text-gold">Index</span>
-            </span>
-          </div>
+          <span className="text-[0.95rem] font-semibold lowercase text-ink">goose index</span>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
             A complete index of every Goose show — setlists, segues, jams, venues, and the story of
             each night.
           </p>
         </div>
         <nav aria-label="Footer" className="flex flex-col gap-2 text-sm text-muted">
-          <span className="eyebrow mb-1">Browse</span>
-          <Link href="/shows" className="transition hover:text-ink">All shows</Link>
-          <Link href="/songs" className="transition hover:text-ink">Songs</Link>
-          <Link href="/stats" className="transition hover:text-ink">Stats</Link>
-          <Link href="/on-this-day" className="transition hover:text-ink">On This Day</Link>
-          <Link href="/venues" className="transition hover:text-ink">Venues</Link>
-          <Link href="/tours" className="transition hover:text-ink">Tours</Link>
+          <span className="text-[0.68rem] font-semibold lowercase text-faint">browse</span>
+          <Link href="/shows" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">all shows</Link>
+          <Link href="/songs" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">songs</Link>
+          <Link href="/stats" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">stats</Link>
+          <Link href="/on-this-day" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">on this day</Link>
+          <Link href="/venues" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">venues</Link>
+          <Link href="/tours" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">tours</Link>
         </nav>
         <div className="flex flex-col gap-2 text-sm text-muted">
-          <span className="eyebrow mb-1">Source</span>
+          <span className="text-[0.68rem] font-semibold lowercase text-faint">source</span>
           <p className="leading-relaxed">
             Setlist data courtesy of{" "}
             <a href="https://elgoose.net" className="link" target="_blank" rel="noreferrer">
@@ -49,10 +47,9 @@ export function FooterFancy() {
           </p>
         </div>
       </Container>
-      {/* Edition line — names the current experience and points at its switcher. */}
       <div className="border-t border-line-soft">
-        <Container className="py-4 text-center font-mono text-xs text-faint">
-          You&rsquo;re reading the <span className="text-gold">3.0</span> edition — the gear in the header
+        <Container className="py-4 text-center font-mono text-xs lowercase text-faint">
+          you&rsquo;re reading the <span className="text-steel">3.0</span> edition — the gear in the header
           switches to 2.0 (glossy) or 1.0 (plain).
         </Container>
       </div>

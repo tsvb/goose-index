@@ -67,11 +67,10 @@ describe("ShowPage prev/next navigation", () => {
     expect(html).toContain('title="Later show this day"');
   });
 
-  it("keeps night labels for cross-date neighbors and carries ?n= for order > 1", async () => {
+  it("titles cross-date top-bar neighbors with their venue, and carries ?n= for order > 1", async () => {
     h.neighbors = { prev: neighbor("2025-06-24", 1), next: neighbor("2025-06-26", 2) };
     const html = await render("2025-06-25");
-    expect(html).toContain("Previous night");
-    expect(html).toContain("Next night");
+    expect(html).toContain('title="Venue A"');
     expect(html).toContain('href="/shows/2025-06-24"'); // show 1 needs no ?n
     expect(html).toContain('href="/shows/2025-06-26?n=2"');
   });
@@ -83,13 +82,47 @@ describe("ShowPage prev/next navigation", () => {
     expect(html).toContain('href="/shows/2025-06-25?n=2"');
   });
 
-  it("minimal gets the same-day words inline", async () => {
+  it("minimal keeps its own inline nav with the same-day words and venue", async () => {
     h.experience = "minimal";
     h.neighbors = { prev: neighbor("2025-06-25", 1), next: neighbor("2025-06-25", 3) };
     const html = await render("2025-06-25", "2");
     expect(html).toContain("Earlier show this day · Venue A");
     expect(html).toContain("Later show this day · Venue A");
     expect(html).toContain('href="/shows/2025-06-25?n=3"');
+    expect(html.match(/<footer/g)).toBeNull(); // minimal never gets the folio footer
+  });
+
+  it("top bar neighbor links hover to ink, never a color accent", async () => {
+    h.neighbors = { prev: neighbor("2025-06-24", 1), next: neighbor("2025-06-26", 2) };
+    const html = await render("2025-06-25");
+    expect(html).toMatch(/hover:text-ink/);
+    expect(html).not.toContain("hover:text-gold");
+    expect(html).not.toContain("hover:text-steel");
+    // No rounded-chip hover fill on the top bar — text-only hover.
+    expect(html).not.toContain("hover:bg-surface");
+    expect(html).not.toMatch(/rounded px-2 py-1/);
+  });
+
+  it("the back arrow carries no hover motion — the live dot is the only motion", async () => {
+    const html = await render("2025-06-25");
+    expect(html).not.toContain("group-hover:-translate-x-0.5");
+  });
+});
+
+describe("ShowPage prev/next folio footer", () => {
+  it("replaces the old prev/next cards with a single folio footer", async () => {
+    h.neighbors = { prev: neighbor("2025-06-24", 1), next: neighbor("2025-06-26", 2) };
+    const html = await render("2025-06-25");
+    expect(html).not.toMatch(/rounded-lg border border-line bg-surface p-5/);
+    expect(html).not.toContain("group-hover:text-gold");
+    expect(html.match(/<footer/g)?.length).toBe(1);
+  });
+
+  it("folio labels carry the neighbor's venue, matching the approved mockup", async () => {
+    h.neighbors = { prev: neighbor("2025-06-24", 1), next: neighbor("2025-06-26", 2) };
+    const html = await render("2025-06-25");
+    expect(html).toContain("jun 24, 2025 · Venue A");
+    expect(html).toContain("jun 26, 2025 · Venue A");
   });
 });
 
@@ -98,16 +131,20 @@ describe("ShowPage no-show date recovery", () => {
     h.details = []; // valid date, nothing logged
     h.neighbors = { prev: neighbor("2019-03-16", 1), next: neighbor("2019-03-22", 1) };
     const html = await render("2019-03-19");
-    expect(html).toContain("No show logged");
+    expect(html).toContain("No show on Tuesday, March 19, 2019");
     expect(html).toContain("Goose didn’t play this night (or it isn’t logged).");
-    // recovery paths: the year, the neighbors on either side, and On This Day
+    // recovery paths: the year, the neighbors on either side, and On This Day —
+    // now a NilState (no card) plus the same folio footer used elsewhere.
     expect(html).toContain('href="/shows?year=2019"');
-    expect(html).toContain("Browse 2019 shows");
+    expect(html).toContain("browse 2019 shows");
     expect(html).toContain('href="/on-this-day"');
-    expect(html).toContain("Nearest before");
-    expect(html).toContain("Nearest after");
+    expect(html).toContain("nearest before");
+    expect(html).toContain("nearest after");
     expect(html).toContain('href="/shows/2019-03-16"');
     expect(html).toContain('href="/shows/2019-03-22"');
+    expect(html).not.toContain("stage-glow");
+    expect(html).not.toMatch(/rounded-lg border/);
+    expect(html).not.toMatch(/rounded-full border-gold/);
   });
 
   it("gives the no-show page a plain Doc in minimal mode", async () => {
@@ -182,42 +219,48 @@ describe("ShowPage canonical URL (multi-show dates)", () => {
   });
 });
 
-describe("ShowPage almanac folio + notes aside", () => {
-  it("prints the folio with the computed entry number and location in fancy", async () => {
+describe("ShowPage folio footer entry number", () => {
+  it("prints the computed entry number as lowercase chrome in the folio footer", async () => {
     h.entryNumber = 812;
     const html = await render("2025-06-25");
-    expect(html).toContain('class="entry-folio"');
-    expect(html).toContain("The Goose Almanac · Port Chester, NY · Entry No. 812 · Set from data at elgoose.net");
+    expect(html).toContain("entry no. 812");
   });
 
-  it("omits null location segments rather than printing blanks", async () => {
-    h.entryNumber = 812;
-    h.details = [{ ...show(1, 1), city: null, state: null }];
-    const html = await render("2025-06-25");
-    expect(html).toContain("The Goose Almanac · Entry No. 812 · Set from data at elgoose.net");
-  });
-
-  it("omits the whole folio when the show has no entry number yet", async () => {
+  it("omits the entry number when the show has no entry number yet", async () => {
     h.entryNumber = null; // upcoming, or nothing logged
     const html = await render("2025-06-25");
+    expect(html).not.toContain("entry no.");
     expect(html).not.toContain("entry-folio");
     expect(html).not.toContain("The Goose Almanac");
   });
 
-  it("keeps the folio out of minimal and functional", async () => {
+  it("carries the entry number in functional and fancy — the folio footer isn't fancy-only anymore", async () => {
     h.entryNumber = 812;
-    for (const exp of ["minimal", "functional"] as const) {
+    for (const exp of ["functional", "fancy"] as const) {
       h.experience = exp;
       const html = await render("2025-06-25");
-      expect(html).not.toContain("entry-folio");
+      expect(html).toContain("entry no. 812");
     }
   });
 
-  it("tags the notes aside with the show-notes-aside hook", async () => {
+  it("never shows the entry number in minimal — it has no folio footer to carry it", async () => {
+    h.entryNumber = 812;
+    h.experience = "minimal";
+    const html = await render("2025-06-25");
+    expect(html).not.toContain("entry no.");
+  });
+});
+
+describe("ShowPage notes aside", () => {
+  it("tags the fancy/functional notes aside with pen rules and an italic body — no card border", async () => {
     h.details = [{ ...show(1, 1), notes: "Second Boston night." }];
     const html = await render("2025-06-25");
     expect(html).toMatch(/<aside class="show-notes-aside /);
     expect(html).toContain("Second Boston night.");
+    expect(html).toContain("from the notes");
+    expect(html).toContain("italic");
+    expect(html).not.toContain("border-l-2 border-gold");
+    expect(html.match(/<svg/g)?.length).toBeGreaterThanOrEqual(2); // the two PenRules
   });
 });
 
@@ -233,5 +276,16 @@ describe("ShowPage 'Also this day' chips", () => {
     // The venue is named in the chip, not a bare "Show 2".
     expect(html).toContain("Brooklyn Bowl");
     expect(html).toContain('href="/shows/2025-06-25?n=2"');
+  });
+
+  it("renders siblings as plain spruce text links, not rounded-border chips", async () => {
+    h.details = [
+      { ...show(1, 1), venue: "Capitol Theatre" },
+      { ...show(2, 2), venue: "Brooklyn Bowl" },
+    ];
+    const html = await render("2025-06-25");
+    expect(html).toContain("text-spruce");
+    expect(html).not.toMatch(/rounded border border-line/);
+    expect(html).not.toContain("hover:text-gold");
   });
 });

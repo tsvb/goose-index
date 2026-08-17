@@ -5,6 +5,7 @@ import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, MetaTable } from "@/app/_components/doc";
 import { PostBody } from "@/app/_components/post-body";
 import { JsonLd } from "@/app/_components/json-ld";
+import { chromeLink } from "@/app/_components/page-chrome";
 import { blogPostingJsonLd } from "@/lib/jsonld";
 import { getPost, listPosts, type Post } from "@/lib/blog/posts";
 import { formatLongDate, formatShortDate } from "@/lib/queries/format";
@@ -89,15 +90,15 @@ export default async function BlogPostPage({ params }: Params) {
       <JsonLd data={blogPostingJsonLd(post)} />
       <header className="border-b border-line">
         <Container className="py-12 sm:py-16">
-          <div className="almanac-masthead">
-            <span className="eyebrow">
-              <Link href="/blog" className="hover:text-gold">Blog</Link> · {formatShortDate(post.date)}
-            </span>
-            <h1 className="mt-3 max-w-3xl font-display text-[2.1rem] leading-tight tracking-tight text-ink sm:text-4xl">
-              {post.title}
-            </h1>
-            <p className="mt-4 max-w-2xl text-[1.02rem] leading-relaxed text-muted">{post.summary}</p>
-          </div>
+          {/* PageHead-style markup, written inline: the kicker carries a real
+              blog link (PageHead's own kicker is plain text only). */}
+          <p className="text-[0.7rem] lowercase text-faint">
+            <Link href="/blog" className={chromeLink}>blog</Link> · {formatShortDate(post.date)}
+          </p>
+          <h1 className="mt-3 max-w-3xl font-display text-[2.1rem] leading-tight tracking-tight text-ink sm:text-4xl">
+            {post.title}
+          </h1>
+          <p className="mt-4 max-w-2xl text-[1.02rem] leading-relaxed text-muted">{post.summary}</p>
         </Container>
       </header>
 
@@ -111,7 +112,7 @@ export default async function BlogPostPage({ params }: Params) {
         <nav aria-label="Post navigation" className="mt-10 flex flex-col gap-2 border-t border-line pt-6 font-mono text-xs sm:flex-row sm:items-center sm:justify-between">
           <span>
             {older ? (
-              <Link href={`/blog/${older.slug}`} className="text-muted transition hover:text-gold">
+              <Link href={`/blog/${older.slug}`} className={chromeLink}>
                 ← {older.title}
               </Link>
             ) : (
@@ -120,7 +121,7 @@ export default async function BlogPostPage({ params }: Params) {
           </span>
           <span>
             {newer && (
-              <Link href={`/blog/${newer.slug}`} className="text-muted transition hover:text-gold">
+              <Link href={`/blog/${newer.slug}`} className={chromeLink}>
                 {newer.title} →
               </Link>
             )}

@@ -52,8 +52,15 @@ describe("CareerChart", () => {
 
   it("marks the busiest completed year", () => {
     const html = renderToStaticMarkup(<CareerChart years={YEARS} />);
-    expect(html).toContain("var(--ember)");
+    expect(html).toContain("var(--hand)");
     expect(html).toContain("107 shows");
+  });
+
+  it("draws every non-peak year's bar in steel, not the retired gold alias", () => {
+    const html = renderToStaticMarkup(<CareerChart years={YEARS} />);
+    // 2022 and 2026 aren't the peak (2017 is) — their fill must be steel.
+    expect(html).toContain("background:var(--steel)");
+    expect(html).not.toMatch(/background:var\(--gold/);
   });
 
   it("links each year to its own page", () => {

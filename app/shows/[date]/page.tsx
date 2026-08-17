@@ -4,9 +4,11 @@ import { after } from "next/server";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Setlist } from "@/app/_components/setlist";
-import { ArrowLeft, ArrowRight } from "@/app/_components/marks";
+import { ArrowLeft } from "@/app/_components/marks";
 import { ShowHeader } from "@/app/_components/show-header";
 import { LiveRefresh } from "@/app/_components/live-refresh";
+import { FolioNav, NilState, chromeLink, chromeDate } from "@/app/_components/page-chrome";
+import { PenRule } from "@/app/_components/pen";
 import { liveCandidateDate } from "@/lib/live";
 import { maybeLiveSync } from "@/lib/sync/maybe-live";
 import { getShowDetails, getSetlist, getShowNeighbors, getShowEntryNumber, type ShowNeighbor } from "@/lib/queries/shows";
@@ -83,7 +85,8 @@ export default async function ShowPage({ params, searchParams }: Params) {
 
   // entryNumber rides the same round trip — a single indexed COUNT, cheap
   // enough to fetch unconditionally rather than serialize behind the
-  // experience cookie. Null (upcoming / nothing logged) drops the stamp+folio.
+  // experience cookie. Null (upcoming / nothing logged) drops just the
+  // entry-count center of the folio footer, not the footer itself.
   const [setlist, neighbors, entryNumber] = await Promise.all([
     getSetlist(show.showId),
     getShowNeighbors(date, show.order),
@@ -97,10 +100,12 @@ export default async function ShowPage({ params, searchParams }: Params) {
 
   // On multi-show dates a neighbor can share this page's date: label it as a
   // same-day show rather than a "night" so the step through ?n= reads right.
+  // Only read when *SameDay is true, so both labels are always the same-day
+  // phrasing — there's no cross-date fallback to compute.
   const prevSameDay = neighbors.prev?.date === date;
   const nextSameDay = neighbors.next?.date === date;
-  const prevLabel = prevSameDay ? "Earlier show this day" : "Previous night";
-  const nextLabel = nextSameDay ? "Later show this day" : "Next night";
+  const prevLabel = "Earlier show this day";
+  const nextLabel = "Later show this day";
 
   // This show is (or could be) on stage right now: refresh the setlist from
   // elgoose after the response is sent (debounced server-side), and let the
@@ -116,18 +121,18 @@ export default async function ShowPage({ params, searchParams }: Params) {
         <div className="border-b border-line">
           <Container className="flex items-center justify-between gap-4 py-3.5">
             <Link href="/shows" className="group flex items-center gap-1.5 font-mono text-xs text-muted transition hover:text-ink">
-              <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" />
+              <ArrowLeft className="h-3.5 w-3.5 transition" />
               All shows
             </Link>
             <div className="flex items-center gap-1 font-mono text-xs">
               {neighbors.prev && (
-                <Link href={showHref(neighbors.prev.date, neighbors.prev.order)} className="rounded px-2 py-1 text-muted transition hover:bg-surface hover:text-ink" title={prevSameDay ? prevLabel : neighbors.prev.venue ?? ""}>
-                  ‹ {formatShortDate(neighbors.prev.date)}
+                <Link href={showHref(neighbors.prev.date, neighbors.prev.order)} className="text-muted transition hover:text-ink" title={prevSameDay ? prevLabel : neighbors.prev.venue ?? ""}>
+                  ‹ {chromeDate(neighbors.prev.date)}
                 </Link>
               )}
               {neighbors.next && (
-                <Link href={showHref(neighbors.next.date, neighbors.next.order)} className="rounded px-2 py-1 text-muted transition hover:bg-surface hover:text-ink" title={nextSameDay ? nextLabel : neighbors.next.venue ?? ""}>
-                  {formatShortDate(neighbors.next.date)} ›
+                <Link href={showHref(neighbors.next.date, neighbors.next.order)} className="text-muted transition hover:text-ink" title={nextSameDay ? nextLabel : neighbors.next.venue ?? ""}>
+                  {chromeDate(neighbors.next.date)} ›
                 </Link>
               )}
             </div>
@@ -146,7 +151,7 @@ export default async function ShowPage({ params, searchParams }: Params) {
         </div>
       )}
 
-      <ShowHeader show={show} date={date} setlist={setlist} experience={experience} entryNumber={entryNumber} />
+      <ShowHeader show={show} date={date} setlist={setlist} experience={experience} />
 
       {/* Also this day */}
       {siblings.length > 0 && (
@@ -155,14 +160,8 @@ export default async function ShowPage({ params, searchParams }: Params) {
             <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-faint">
               Also this day:
               {siblings.map((s) => (
-                <Link key={s.showId} href={showHref(s.date, s.order)} className="flex max-w-full items-center gap-1 rounded border border-line px-2 py-0.5 text-muted transition hover:border-gold hover:text-gold">
-                  <span className="shrink-0">Show {s.order}</span>
-                  {s.venue && (
-                    <>
-                      <span aria-hidden>·</span>
-                      <span className="max-w-[11rem] truncate">{s.venue}</span>
-                    </>
-                  )}
+                <Link key={s.showId} href={showHref(s.date, s.order)} className={chromeLink}>
+                  Show {s.order}{s.venue ? ` · ${s.venue}` : ""}
                 </Link>
               ))}
             </div>
@@ -175,11 +174,11 @@ export default async function ShowPage({ params, searchParams }: Params) {
         {show.notes && (experience === "minimal" ? (
           <p className="mb-6 text-muted"><span className="text-ink">Notes:</span> {show.notes}</p>
         ) : (
-          // show-notes-aside: the almanac themes restyle this card into
-          // hairline rules + italic body via CSS; class-only elsewhere.
-          <aside className="show-notes-aside mb-10 rounded-lg border-l-2 border-gold bg-surface/60 px-5 py-4">
-            <span className="eyebrow">From the notes</span>
-            <p className="mt-2 leading-relaxed text-ink">{show.notes}</p>
+          <aside className="show-notes-aside mb-10">
+            <PenRule seed={`notes-${date}`} />
+            <p className="my-3 text-[0.7rem] lowercase text-faint">from the notes</p>
+            <p className="leading-relaxed italic text-ink">{show.notes}</p>
+            <PenRule seed={`notes-b-${date}`} className="mt-3" />
           </aside>
         ))}
 
@@ -194,7 +193,10 @@ export default async function ShowPage({ params, searchParams }: Params) {
         )}
       </Container>
 
-      {/* Prev / next */}
+      {/* Prev / next. Minimal keeps its own plain inline nav (same-day words +
+          venue right in the link text — no top bar there to carry them);
+          functional/fancy share the folio footer, its labels carrying the
+          neighbor's venue same as the approved mockup. */}
       {experience === "minimal" ? (
         <nav className="border-t border-line">
           <Container className="flex flex-wrap justify-between gap-4 py-6 text-sm">
@@ -207,43 +209,17 @@ export default async function ShowPage({ params, searchParams }: Params) {
           </Container>
         </nav>
       ) : (
-        <nav className="border-t border-line">
-          <Container className="grid gap-3 py-8 sm:grid-cols-2">
-            {neighbors.prev ? (
-              <Link href={showHref(neighbors.prev.date, neighbors.prev.order)} className="group flex flex-col rounded-lg border border-line bg-surface p-5 transition hover:border-gold/55 hover:bg-surface-2">
-                <span className="flex items-center gap-1.5 font-mono text-[0.7rem] uppercase tracking-wider text-faint">
-                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" /> {prevLabel}
-                </span>
-                <span className="mt-2 font-display text-lg text-ink group-hover:text-gold">{formatShortDate(neighbors.prev.date)}</span>
-                <span className="text-sm text-muted">{neighbors.prev.venue}</span>
-              </Link>
-            ) : (
-              <div />
-            )}
-            {neighbors.next && (
-              <Link href={showHref(neighbors.next.date, neighbors.next.order)} className="group flex flex-col items-end rounded-lg border border-line bg-surface p-5 text-right transition hover:border-gold/55 hover:bg-surface-2">
-                <span className="flex items-center gap-1.5 font-mono text-[0.7rem] uppercase tracking-wider text-faint">
-                  {nextLabel} <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-                </span>
-                <span className="mt-2 font-display text-lg text-ink group-hover:text-gold">{formatShortDate(neighbors.next.date)}</span>
-                <span className="text-sm text-muted">{neighbors.next.venue}</span>
-              </Link>
-            )}
+        <footer className="border-t border-line-soft">
+          <Container className="py-6">
+            <FolioNav
+              prevHref={neighbors.prev ? showHref(neighbors.prev.date, neighbors.prev.order) : null}
+              nextHref={neighbors.next ? showHref(neighbors.next.date, neighbors.next.order) : null}
+              prevLabel={neighbors.prev ? `${chromeDate(neighbors.prev.date)}${neighbors.prev.venue ? ` · ${neighbors.prev.venue}` : ""}` : "previous"}
+              nextLabel={neighbors.next ? `${chromeDate(neighbors.next.date)}${neighbors.next.venue ? ` · ${neighbors.next.venue}` : ""}` : "next"}
+              center={entryNumber != null ? `entry no. ${entryNumber}` : undefined}
+            />
           </Container>
-        </nav>
-      )}
-
-      {/* Folio line — the almanac themes print it under the entry; CSS keeps
-          it display:none everywhere else. Segments with no data are dropped,
-          and no entry number means no folio at all (never a faked one). */}
-      {experience === "fancy" && entryNumber != null && (
-        <Container>
-          <p className="entry-folio">
-            {["The Goose Almanac", [show.city, show.state].filter(Boolean).join(", "), `Entry No. ${entryNumber}`, "Set from data at elgoose.net"]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        </Container>
+        </footer>
       )}
     </article>
   );
@@ -305,60 +281,29 @@ function NoShowPage({
 
   return (
     <article>
-      <header className="relative overflow-hidden border-b border-line">
-        <div className="stage-glow inset-x-0 top-0 h-72" />
-        <Container className="relative py-14 sm:py-20">
-          <span className="eyebrow">No show logged</span>
-          <h1 className="mt-4 font-display text-[2.6rem] leading-[1.06] tracking-tight text-ink sm:text-5xl">
-            {formatLongDate(date)}
-          </h1>
-          <p className="mt-4 max-w-md text-lg leading-relaxed text-muted">
-            Goose didn&rsquo;t play this night (or it isn&rsquo;t logged).
-          </p>
-          <div className="mt-8 flex flex-col gap-3 font-mono text-sm sm:flex-row sm:items-center">
-            <Link
-              href={`/shows?year=${year}`}
-              className="group flex items-center justify-center gap-2 rounded-full border border-gold/40 bg-surface px-5 py-2.5 text-gold transition hover:border-gold hover:bg-surface-2"
-            >
-              Browse {year} shows
-              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              href="/on-this-day"
-              className="flex items-center justify-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 text-muted transition hover:border-gold-soft hover:bg-surface-2 hover:text-ink"
-            >
-              On This Day
-            </Link>
-          </div>
-        </Container>
-      </header>
+      <Container className="py-14 sm:py-20">
+        <h1 className="font-display text-[2.6rem] leading-[1.06] tracking-tight text-ink sm:text-5xl">
+          No show on {formatLongDate(date)}
+        </h1>
+        <div className="mt-6">
+          <NilState href={`/shows?year=${year}`} linkLabel={`browse ${year} shows`}>
+            Goose didn&rsquo;t play this night (or it isn&rsquo;t logged). See{" "}
+            <Link href="/on-this-day" className={chromeLink}>on this day</Link>
+          </NilState>
+        </div>
+      </Container>
 
       {(neighbors.prev || neighbors.next) && (
-        <Container className="py-10">
-          <span className="eyebrow">Nearest shows</span>
-          <nav className="mt-4 grid gap-3 sm:grid-cols-2">
-            {neighbors.prev ? (
-              <Link href={showHref(neighbors.prev.date, neighbors.prev.order)} className="group flex flex-col rounded-lg border border-line bg-surface p-5 transition hover:border-gold/55 hover:bg-surface-2">
-                <span className="flex items-center gap-1.5 font-mono text-[0.7rem] uppercase tracking-wider text-faint">
-                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" /> Nearest before
-                </span>
-                <span className="mt-2 font-display text-lg text-ink group-hover:text-gold">{formatShortDate(neighbors.prev.date)}</span>
-                <span className="text-sm text-muted">{neighbors.prev.venue}</span>
-              </Link>
-            ) : (
-              <div />
-            )}
-            {neighbors.next && (
-              <Link href={showHref(neighbors.next.date, neighbors.next.order)} className="group flex flex-col items-end rounded-lg border border-line bg-surface p-5 text-right transition hover:border-gold/55 hover:bg-surface-2">
-                <span className="flex items-center gap-1.5 font-mono text-[0.7rem] uppercase tracking-wider text-faint">
-                  Nearest after <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-                </span>
-                <span className="mt-2 font-display text-lg text-ink group-hover:text-gold">{formatShortDate(neighbors.next.date)}</span>
-                <span className="text-sm text-muted">{neighbors.next.venue}</span>
-              </Link>
-            )}
-          </nav>
-        </Container>
+        <footer className="border-t border-line-soft">
+          <Container className="py-6">
+            <FolioNav
+              prevHref={neighbors.prev ? showHref(neighbors.prev.date, neighbors.prev.order) : null}
+              nextHref={neighbors.next ? showHref(neighbors.next.date, neighbors.next.order) : null}
+              prevLabel="nearest before"
+              nextLabel="nearest after"
+            />
+          </Container>
+        </footer>
       )}
     </article>
   );

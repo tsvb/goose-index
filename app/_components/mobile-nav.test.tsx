@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const h = vi.hoisted(() => ({ forcedOpen: false }));
+const h = vi.hoisted(() => ({ forcedOpen: false, pathname: "/" }));
 
 // The drawer only renders when `open` is true, and the node test environment
 // can't click the trigger. Flip MobileNav's first useState(false) — the open
@@ -21,25 +21,55 @@ vi.mock("react", async (importOriginal) => {
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: () => {}, push: () => {} }),
-  usePathname: () => "/",
+  usePathname: () => h.pathname,
 }));
 
 import { MobileNav, bindSheetDismissal } from "./mobile-nav";
 
 beforeEach(() => {
   h.forcedOpen = false;
+  h.pathname = "/";
 });
 
 describe("MobileNav drawer", () => {
   it("mentions songs in the search placeholder", () => {
     const html = renderToStaticMarkup(<MobileNav />);
-    expect(html).toContain('placeholder="Search songs, shows, venues…"');
+    expect(html).toContain('placeholder="search songs, shows, venues…"');
   });
 
   it("renders the section links", () => {
     const html = renderToStaticMarkup(<MobileNav />);
     expect(html).toContain('href="/songs"');
     expect(html).toContain('href="/shows"');
+  });
+
+  it("trigger is text (menu/close), not an icon-circle button", () => {
+    const html = renderToStaticMarkup(<MobileNav />);
+    const trigger = html.match(/<button[^>]*aria-expanded[^>]*>([^<]*)<\/button>/)?.[1];
+    expect(trigger).toBe("close"); // forced open by the useState mock above
+    expect(html).not.toContain("rounded-full border border-line");
+  });
+
+  it("sheet is a hairline border, no drop shadow", () => {
+    const html = renderToStaticMarkup(<MobileNav />);
+    expect(html).toContain("bg-paper");
+    expect(html).not.toContain("shadow");
+  });
+
+  it("nav links render lowercase text, no text-gold anywhere", () => {
+    const html = renderToStaticMarkup(<MobileNav />);
+    expect(html).toContain(">shows<");
+    expect(html).not.toContain("text-gold");
+  });
+
+  it("the active section link reads text-steel; the rest stay text-ink", () => {
+    h.pathname = "/shows";
+    const html = renderToStaticMarkup(<MobileNav />);
+    const showsLink = html.match(/<a[^>]*href="\/shows"[^>]*>[^<]*<\/a>/)?.[0];
+    const songsLink = html.match(/<a[^>]*href="\/songs"[^>]*>[^<]*<\/a>/)?.[0];
+    expect(showsLink).toContain("text-steel");
+    expect(songsLink).toContain("text-ink");
+    expect(songsLink).not.toContain("text-steel");
   });
 
   it("offsets the scrim and sheet by the live header height, not a hardcoded top-16", () => {
@@ -52,6 +82,45 @@ describe("MobileNav drawer", () => {
     const html = renderToStaticMarkup(<MobileNav />);
     expect(html).toContain("max-h-[calc(100dvh-var(--header-h,4rem))]");
     expect(html).toContain("overflow-y-auto");
+  });
+
+  it("its own search input never carries the appbar-search hook — the functional appbar's white-on-gel input rule (globals.css) must not reach it", () => {
+    // MobileNav renders inside the same <header> as the functional appbar's
+    // .w2-appbar class (a DOM descendant, via site-header.tsx), so a bare
+    // `.w2-appbar input` rule used to also catch this sheet's input — white
+    // text on the sheet's own bg-paper, ~1.16:1, effectively invisible. The
+    // fix scopes that rule to `.appbar-search`, a hook only the appbar's own
+    // inline SearchBox carries (see site-header.tsx's HeaderFunctional).
+    const html = renderToStaticMarkup(<MobileNav />);
+    expect(html).not.toContain("appbar-search");
+    // ...and it keeps its own layered ink/faint utilities as its only color
+    // source, not a hardcoded white.
+    expect(html).toContain("text-ink placeholder:text-faint");
+  });
+
+  it("the sheet's own controls carry none of the hooks the appbar's white focus-ring rule targets — they must fall back to the global steel ring", () => {
+    // Companion to the input-color pin above, for focus-visible instead of
+    // color. globals.css's white-ring rule for the functional appbar is
+    // scoped to `.w2-brand`, `.w2-navlink`, `.appbar-search`, and the
+    // `aria-label="Settings"`/"Open menu"/"Close menu" controls — all of
+    // which sit directly on the appbar gradient. The sheet (this component's
+    // search input and section links) is a DOM descendant of .w2-appbar too,
+    // but renders on its own bg-paper: if any of those hooks leaked onto its
+    // markup, a white ring there would be ~1.15:1, invisible for keyboard
+    // users. Its search input already carries neither "Open menu" nor
+    // "Close menu" (that's the trigger button's aria-label, asserted
+    // separately below), and its nav links use plain <a> tags, not
+    // NavLink/.w2-navlink.
+    const html = renderToStaticMarkup(<MobileNav />);
+    expect(html).not.toContain("w2-navlink");
+    expect(html).not.toContain("w2-brand");
+    expect(html).not.toContain("appbar-search");
+    // The sheet's own search input is a distinct element from the trigger
+    // button — it carries its own "Search the index" label, not the
+    // trigger's "Open menu"/"Close menu" (the only aria-labels the white-ring
+    // rule matches by attribute).
+    const sheetInput = html.match(/<input[^>]*>/)?.[0];
+    expect(sheetInput).toContain('aria-label="Search the index"');
   });
 });
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatShortDate, showHref } from "@/lib/queries/format";
 import type { CoachsNoteRow } from "@/lib/queries/discoveries";
 import { isBandcampUrl } from "@/lib/bandcamp";
+import { chromeLink } from "@/app/_components/page-chrome";
 
 /** The coach's notes, on the paper they belong on.
  *
@@ -30,7 +31,7 @@ export function CoachsNotes({ data }: { data: CoachsNoteRow[] }) {
           <div className="min-w-0 flex-1 p-4 sm:p-5">
             <header className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-line-soft pb-2">
               <h3 className="font-display text-base text-ink">
-                <Link href={showHref(note.showDate, note.showOrder)} className="hover:text-gold">
+                <Link href={showHref(note.showDate, note.showOrder)} className="underline-offset-4 hover:underline">
                   {formatShortDate(note.showDate)}
                 </Link>
               </h3>
@@ -42,7 +43,7 @@ export function CoachsNotes({ data }: { data: CoachsNoteRow[] }) {
                   href={note.bandcampUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-gold hover:text-gold-soft"
+                  className={`shrink-0 font-mono text-[0.62rem] uppercase tracking-[0.2em] ${chromeLink}`}
                 >
                   Listen ↗
                 </a>
