@@ -625,8 +625,6 @@
 [data-experience="minimal"] .stage-glow {
   display: none;
 }
-[data-experience="functional"] .rise,
-[data-experience="minimal"] .rise,
 [data-experience="functional"] .fade-in,
 [data-experience="minimal"] .fade-in {
   animation: none;
