@@ -58,6 +58,19 @@ describe("Ledger", () => {
     );
     expect(html).not.toContain("opacity");
   });
+  it("each row carries the ledger-row hook for CSS striping", () => {
+    const html = renderToStaticMarkup(
+      <Ledger seed="l">
+        <span>one</span>
+        <span>two</span>
+        <span>three</span>
+      </Ledger>,
+    );
+    // ledger-row class must be present on each row wrapper (not on separator rules)
+    const matches = html.match(/class="ledger-row"/g);
+    expect(matches).not.toBeNull();
+    expect(matches?.length).toBe(3);
+  });
 });
 
 describe("LedgerEntry", () => {

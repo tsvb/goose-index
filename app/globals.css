@@ -423,7 +423,13 @@
      globally (::selection, :focus-visible), and this block only redeclares
      the legacy names it's always used — without these, a dark-OS visitor
      here would silently inherit the fog/slate --steel/--paper instead of
-     this experience's own --gold/--bg. */
+     this experience's own --gold/--bg. FilterLink, FolioNav, PageHead, and
+     chromeLink components resolve their colors through these aliases
+     (--steel: var(--gold) for blue links, --spruce: var(--sage) for green).
+     Plan 5 Task 2 deletes these aliases: before deletion, define period-literal
+     role-token values (--steel, --spruce, --pencil) directly under
+     [data-experience="functional"] so those components' link colors don't
+     silently break to the light-theme defaults. */
   --paper: var(--bg);
   --steel: var(--gold);
   --hand: var(--ember);
@@ -483,7 +489,7 @@
    keep the ring, swap it to white there. */
 [data-experience="functional"] .w2-appbar :focus-visible { outline-color: #fff; }
 /* The 3.0 underline search sits on the appbar gradient here — give it appbar
-   ink until plan 5 re-cuts the 2.0 chrome. */
+   ink. */
 [data-experience="functional"] .w2-appbar input {
   color: #fff;
   border-color: rgba(255, 255, 255, 0.55);
