@@ -95,15 +95,15 @@ export function SetlistFunctional({ entries, showDate, venue }: { entries: Setli
                       <a
                         href={`#w2fn-${r.e.uniqueId}`}
                         aria-label={`Note ${fnIndex.get(r.e.uniqueId)} for ${r.e.song}`}
-                        className="font-bold text-gold-soft hover:underline"
+                        className="font-bold text-[#1e639f] hover:underline"
                       >
                         {fnIndex.get(r.e.uniqueId)}
                       </a>
                     </sup>
                   ) : null}
-                  {r.e.isDustedOff ? <span className="w2-badge gold ml-2" title={`First play in ${r.e.gap} shows`}>{RETURN_LABEL} · {r.e.gap}</span> : null}
+                  {r.e.isDustedOff ? <span className="w2-badge amber ml-2" title={`First play in ${r.e.gap} shows`}>{RETURN_LABEL} · {r.e.gap}</span> : null}
                 </td>
-                <td className="font-extrabold text-gold">{isSegue(r.e.transition) ? "›" : ""}</td>
+                <td className="font-extrabold text-[#1f6cb0]">{isSegue(r.e.transition) ? "›" : ""}</td>
                 <td className="text-right tabular-nums text-muted">{r.e.trackTime ?? "—"}</td>
                 <td>{r.e.isJamchart ? <span className="w2-star" title={r.e.jamchartNotes ?? undefined}>★ JAM</span> : <span className="text-faint">·</span>}</td>
                 <td>
@@ -127,7 +127,7 @@ export function SetlistFunctional({ entries, showDate, venue }: { entries: Setli
           <ul className="space-y-1 text-sm">
             {noteRows.map((n) => (
               <li key={n.key} id={n.id} className="flex gap-2">
-                <span className="w-5 shrink-0 text-right font-bold tabular-nums text-gold-soft">{n.marker}</span>
+                <span className="w-5 shrink-0 text-right font-bold tabular-nums text-[#1e639f]">{n.marker}</span>
                 <span className="text-muted">
                   <span className="font-semibold text-ink">{n.song}</span> — {n.text}
                 </span>

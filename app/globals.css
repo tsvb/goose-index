@@ -501,7 +501,7 @@
   background: linear-gradient(#eaf4fd, #cfe6f8); color: #1f5e93; font-weight: 700; font-size: 11px;
   padding: 3px 11px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7); white-space: nowrap;
 }
-[data-experience="functional"] .w2-badge.gold { border-color: #d9b24e; background: linear-gradient(#fff0c4, #f7d271); color: #7a560a; }
+[data-experience="functional"] .w2-badge.amber { border-color: #d9b24e; background: linear-gradient(#fff0c4, #f7d271); color: #7a560a; }
 /* Zebra data table (setlist). */
 [data-experience="functional"] table.w2-table { border-collapse: collapse; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #c4d4e2; box-shadow: 0 1px 4px rgba(40, 70, 110, 0.18); }
 /* Horizontal scroll wrapper for w2 tables — phones can reach the trailing
@@ -524,6 +524,15 @@
    text read white on the appbar. */
 [data-experience="functional"] [aria-label="Open menu"],
 [data-experience="functional"] [aria-label="Close menu"] { color: #fff; background: none; border: 0; }
+/* Zebra rows over the shared Ledger (forms.tsx) — the new list primitive
+   behind the stats hub, venues, songs, blog, and every other browse page.
+   The row itself carries the `ledger-row` hook unconditionally in fancy and
+   minimal too, so this reskins shared markup via the CSS scope rather than
+   forking it; nth-child counts cleanly since a ledger's only children are
+   its row wrappers. Palette matches table.w2-table's zebra above. */
+[data-experience="functional"] .ledger-row { margin: 0 -10px; padding: 0 10px; border-radius: 4px; }
+[data-experience="functional"] .ledger-row:nth-child(even) { background: #eef5fb; }
+[data-experience="functional"] .ledger-row:hover { background: #fff7e0; }
 
 /* Minimal — flat, high-contrast, single look. */
 :root[data-experience="minimal"] {

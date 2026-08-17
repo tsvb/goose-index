@@ -35,13 +35,16 @@ export function SectionRule({
 }
 
 /** The ledger: entries separated by faint pen rules. The strong head rule
- * belongs to SectionRule, so a ledger composes under any heading. */
+ * belongs to SectionRule, so a ledger composes under any heading. Each row
+ * carries the `ledger-row` hook unconditionally — a stable class the almanac
+ * themes can rule (functional zebra-stripes it in globals.css); fancy and
+ * minimal leave it bare, so no markup forks by experience. */
 export function Ledger({ children, seed }: { children: React.ReactNode; seed: string }) {
   const items = Children.toArray(children);
   return (
     <div>
       {items.map((child, i) => (
-        <div key={i}>
+        <div key={i} className="ledger-row">
           {i > 0 && <PenRule seed={`${seed}-${i}`} strength="faint" />}
           {child}
         </div>

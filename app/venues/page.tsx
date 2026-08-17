@@ -155,7 +155,7 @@ export default async function VenuesPage({
               defaultValue={q}
               placeholder="Filter by name, city, or state…"
               aria-label="Filter venues by name, city, or state"
-              className="w-64 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink placeholder:text-faint outline-none focus:border-gold"
+              className="w-64 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink placeholder:text-faint outline-none focus:border-[#1f6cb0]"
             />
             <button type="submit" className="gel text-xs">Filter</button>
           </form>

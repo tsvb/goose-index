@@ -115,7 +115,7 @@ export function ShowHeader({
               {dp.month} {dp.day}, {dp.year}
             </h1>
             <div className="mt-1 text-sm font-semibold text-muted">
-              {show.venueId ? <Link href={`/venues/${show.venueId}`} className="text-gold hover:underline">{show.venue}</Link> : (show.venue ?? "Unknown venue")}
+              {show.venueId ? <Link href={`/venues/${show.venueId}`} className="text-[#1f6cb0] hover:underline">{show.venue}</Link> : (show.venue ?? "Unknown venue")}
               {loc ? ` · ${loc}` : ""}{show.tour ? ` · ${show.tour}` : ""}
             </div>
             {setlist.length === 0 ? (
@@ -126,7 +126,7 @@ export function ShowHeader({
                   <span className="w2-badge">{setlist.length} songs</span>
                   <span className="w2-badge">{setCount} {setCount === 1 ? "set" : "sets"}</span>
                   {encores > 0 && <span className="w2-badge">{encores} enc</span>}
-                  {durationLogged && <span className="w2-badge gold">{durationLogged}</span>}
+                  {durationLogged && <span className="w2-badge amber">{durationLogged}</span>}
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-1.5"><ShowBandcamp url={show.bandcampUrl} /><ShowNugs date={date} venue={show.venue} /></div>
               </>
