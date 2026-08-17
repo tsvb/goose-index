@@ -195,3 +195,71 @@ describe("TourTimeline tour-name label — computed contrast on its own wash", (
     }
   });
 });
+
+// Functional doesn't share the fog/slate mix recipe above — its gel-blue
+// --steel and darkened --ember pull too far from --ink for the identical
+// 70/30 mix to clear 4.5:1 on its own wash, so globals.css overrides the
+// label to plain --ink for this experience instead (see the nameColour
+// comment in tour-timeline.tsx and the [data-experience="functional"]
+// .tour-timeline-label rule in globals.css). This block pins both halves of
+// that fix: the mix recipe genuinely fails here (so the override is
+// necessary, not decorative) and the override's actual color clears AA.
+describe("TourTimeline tour-name label — functional edition overrides to plain --ink", () => {
+  // Unlike fog/slate, functional's --bg-deep is its own literal
+  // (`--bg-deep: #d6e6f4;` inside :root[data-experience="functional"]), not
+  // an alias to --paper — so this reads --bg-deep directly rather than
+  // reusing themeTokens()'s --paper substitution.
+  function functionalTokens(tokens: Map<string, string>) {
+    const label = 'the :root[data-experience="functional"] block';
+    return {
+      bgDeep: requireToken(tokens, "bg-deep", label),
+      steel: requireToken(tokens, "steel", label),
+      hand: requireToken(tokens, "hand", label),
+      ink: requireToken(tokens, "ink", label),
+    };
+  }
+
+  let functional: { bgDeep: string; steel: string; hand: string; ink: string };
+
+  beforeAll(() => {
+    const functionalBlockSrc = extractBlock(
+      cssSource,
+      /:root\[data-experience=["']functional["']\]\s*\{([^}]*)\}/,
+      ':root[data-experience="functional"] block',
+    );
+    functional = functionalTokens(extractHexTokens(functionalBlockSrc));
+  });
+
+  it("the fog/slate mix recipe fails 4.5:1 with functional's own steel/ember (documents why it needs the override)", () => {
+    const steelWash = washOver(functional.steel, steelWashPct, functional.bgDeep);
+    const steelLabel = mixToward(functional.steel, steelInkPct, functional.ink);
+    expect(contrastRatio(steelLabel, steelWash), "steel-mixed label on functional's steel wash").toBeLessThan(4.5);
+
+    // functional's --ember equals its --hand (both #a85413), same as the
+    // component mirrors for fog/slate above.
+    const handWash = washOver(functional.hand, handWashPct, functional.bgDeep);
+    const emberLabel = mixToward(functional.hand, emberInkPct, functional.ink);
+    expect(contrastRatio(emberLabel, handWash), "ember-mixed label on functional's hand wash").toBeLessThan(4.5);
+  });
+
+  it("plain --ink on functional's own washes clears 4.5:1 — the color the CSS override now uses", () => {
+    const steelWash = washOver(functional.steel, steelWashPct, functional.bgDeep);
+    expect(
+      contrastRatio(hexToRgb(functional.ink), steelWash),
+      "ink on functional's steel wash",
+    ).toBeGreaterThanOrEqual(4.5);
+
+    const handWash = washOver(functional.hand, handWashPct, functional.bgDeep);
+    expect(
+      contrastRatio(hexToRgb(functional.ink), handWash),
+      "ink on functional's hand wash",
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("globals.css actually declares the functional override this test relies on", () => {
+    expect(
+      cssSource,
+      "expected a `[data-experience=\"functional\"] .tour-timeline-label { color: var(--ink); }` rule in globals.css",
+    ).toMatch(/\[data-experience=["']functional["']\]\s+\.tour-timeline-label\s*\{\s*color:\s*var\(--ink\)\s*;?\s*\}/);
+  });
+});

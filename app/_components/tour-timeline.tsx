@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type CSSProperties } from "react";
 import Link from "next/link";
 import type { TourSpan } from "@/lib/queries/dimensions";
 
@@ -172,6 +172,16 @@ export function TourTimeline({
                     // (same idiom as the steel-mix hover recipes elsewhere) clears it in
                     // both themes: steel 5.09:1 fog / 5.03:1 slate, ember 4.96:1 fog /
                     // 4.75:1 slate. See tour-timeline-label-contrast.test.ts.
+                    //
+                    // Functional doesn't clear with that same recipe: its gel-blue --steel
+                    // and its darkened --ember pull further from --ink, so the identical
+                    // 70/30 mix lands at 4.10:1 (steel wash) / 3.69:1 (hand wash) — both
+                    // fail AA. Plain --ink on those washes clears at 6.95:1 / 6.19:1, so
+                    // functional gets its own literal via the CSS override below
+                    // ([data-experience="functional"] .tour-timeline-label) rather than
+                    // the fog/slate mix recipe. The --tour-label-color custom property
+                    // carries this value as the default (fog/slate); the class lets the
+                    // functional rule out-specificity it without an inline !important.
                     const nameColour = future
                       ? "var(--faint)"
                       : hot
@@ -242,8 +252,8 @@ export function TourTimeline({
                                   on every leg would read as separate tours. */}
                               {i === 0 && (
                                 <span
-                                  className="pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
-                                  style={{ color: nameColour }}
+                                  className="tour-timeline-label pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
+                                  style={{ "--tour-label-color": nameColour } as CSSProperties}
                                 >
                                   {shortName(t.name)}
                                 </span>
