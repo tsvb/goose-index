@@ -2,8 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { AnchorFlash } from "@/app/_components/anchor-flash";
 import { Container } from "@/app/_components/container";
-import { ShowList } from "@/app/_components/show-list";
-import { ArrowLeft, ArrowRight } from "@/app/_components/marks";
+import { PageHead, FilterLink, FilterRow, FolioNav, NilState } from "@/app/_components/page-chrome";
+import { Ledger, LedgerEntry } from "@/app/_components/forms";
+import { PenRule } from "@/app/_components/pen";
 import { listShows, findLatestPastShow } from "@/lib/queries/shows";
 import { listYears, listTours } from "@/lib/queries/dimensions";
 import { compact } from "@/lib/queries/format";
@@ -33,13 +34,9 @@ export async function generateMetadata({
   };
 }
 
-const pillClass = (active: boolean) =>
-  [
-    "rounded-full border px-3 py-1 font-mono text-xs transition",
-    active
-      ? "border-gold text-gold"
-      : "border-line text-muted hover:border-gold-soft hover:text-ink",
-  ].join(" ");
+/** Chrome links (companion/jump) — spruce, not a filter state. */
+const spruceLinkClass =
+  "font-mono text-xs lowercase text-spruce underline underline-offset-4 transition hover:text-ink";
 
 export default async function ShowsBrowsePage({
   searchParams,
@@ -79,7 +76,7 @@ export default async function ShowsBrowsePage({
     ? `${compact(total)} ${total === 1 ? "show" : "shows"} · ${scope}`
     : `${compact(total)} ${total === 1 ? "show" : "shows"} logged · incl. upcoming · ${dir === "asc" ? "oldest first" : "newest first"}`;
 
-  const jumpLabel = latest?.isToday ? "Tonight’s show" : "Most recent show";
+  const jumpLabel = latest?.isToday ? "tonight’s show" : "most recent show";
   const jumpHref = latest ? `${href({ page: latest.page })}#show-${latest.showId}` : null;
 
   if (experience === "minimal") {
@@ -124,142 +121,80 @@ export default async function ShowsBrowsePage({
   return (
     <>
       <AnchorFlash />
-      {/* Header */}
-      <header className="relative overflow-hidden border-b border-line">
-        <div className="stage-glow inset-x-0 top-0 h-72" />
-        <Container className="relative py-12 sm:py-16">
-          <span className="eyebrow rise" style={{ animationDelay: "0ms" }}>
-            Goose Index · Shows
-          </span>
-          <h1
-            className="rise mt-3 font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-5xl"
-            style={{ animationDelay: "60ms" }}
-          >
-            Every show
-          </h1>
-          <p
-            className="rise mt-3 font-mono text-sm text-faint"
-            style={{ animationDelay: "120ms" }}
-          >
-            {countLine}
-          </p>
-        </Container>
-      </header>
+      <Container>
+        <PageHead kicker="goose index · shows" title="every show" meta={countLine} />
 
-      <Container className="py-10">
-        {/* Year filter + sort */}
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Link href={href({ year: null })} className={pillClass(!year)}>All</Link>
+        <div className="flex flex-col gap-3">
+          {/* Year filter */}
+          <FilterRow>
+            <FilterLink href={href({ year: null })} active={!year}>All</FilterLink>
             {years.map((y) => (
-              <Link key={y.year} href={href({ year: y.year })} className={pillClass(year === y.year)}>
+              <FilterLink key={y.year} href={href({ year: y.year })} active={year === y.year}>
                 {y.year}
-              </Link>
+              </FilterLink>
             ))}
             {year != null && (
-              <Link
-                href={`/years/${year}`}
-                className="group ml-1.5 flex shrink-0 items-center gap-1.5 font-mono text-xs text-sage transition hover:text-ink"
-              >
-                Year {year} page
-                <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+              <Link href={`/years/${year}`} className={spruceLinkClass}>
+                {`year ${year} page`}
               </Link>
             )}
-          </div>
+          </FilterRow>
 
-          <Link
-            href={href({ dir: flipDir })}
-            className="shrink-0 rounded border border-line px-3 py-1.5 font-mono text-xs text-muted transition hover:border-gold hover:text-gold"
-          >
-            {flipDirLabel}
-          </Link>
-        </div>
-
-        {/* Contextual tour filter — appears once a year is chosen */}
-        {tourOptions.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 font-mono text-[0.62rem] uppercase tracking-wider text-faint">Tours</span>
-            <Link href={href({ tourId: null })} className={pillClass(!tourId)}>All {year}</Link>
-            {tourOptions.map((t) => (
-              <Link key={t.tourId} href={href({ tourId: t.tourId })} className={pillClass(tourId === t.tourId)}>
-                {t.name}
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* Per-page + jump-to-recent toolbar */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line-soft pt-4">
-          <div className="flex items-center gap-1.5">
-            <span className="mr-1 font-mono text-[0.62rem] uppercase tracking-wider text-faint">Per page</span>
-            {SHOWS_PER_OPTIONS.map((n) => (
-              <Link key={n} href={href({ per: n })} className={pillClass(per === n)}>{n}</Link>
-            ))}
-          </div>
-          {jumpHref && (
-            <Link
-              href={jumpHref}
-              className="shrink-0 rounded border border-gold/40 px-3 py-1.5 font-mono text-xs text-gold transition hover:border-gold hover:bg-gold/10"
-            >
-              {jumpLabel} →
-            </Link>
+          {/* Contextual tour filter — appears once a year is chosen */}
+          {tourOptions.length > 0 && (
+            <FilterRow label="tours">
+              <FilterLink href={href({ tourId: null })} active={!tourId}>All {year}</FilterLink>
+              {tourOptions.map((t) => (
+                <FilterLink key={t.tourId} href={href({ tourId: t.tourId })} active={tourId === t.tourId}>
+                  {t.name}
+                </FilterLink>
+              ))}
+            </FilterRow>
           )}
+
+          {/* Per-page + sort + jump-to-recent */}
+          <FilterRow label="per page">
+            {SHOWS_PER_OPTIONS.map((n) => (
+              <FilterLink key={n} href={href({ per: n })} active={per === n}>
+                {n}
+              </FilterLink>
+            ))}
+            <FilterLink href={href({ dir: flipDir })} active={false}>
+              {flipDirLabel.toLowerCase()}
+            </FilterLink>
+            {jumpHref && (
+              <Link href={jumpHref} className={spruceLinkClass}>
+                {jumpLabel} →
+              </Link>
+            )}
+          </FilterRow>
         </div>
+
+        <PenRule seed="shows-filters" className="mt-6" />
 
         {/* Show list */}
         <div className="mt-6">
           {rows.length === 0 ? (
-            <div className="surface-card py-16 text-center">
-              <p className="font-display text-xl text-muted">No shows found.</p>
-              <Link href="/shows" className="mt-4 inline-block font-mono text-sm text-sage hover:text-ink">
-                Clear filters
-              </Link>
-            </div>
+            <NilState href="/shows" linkLabel="clear filters">No shows found.</NilState>
           ) : (
-            <ShowList rows={rows} experience={experience} />
+            <Ledger seed="shows">
+              {rows.map((s) => (
+                <div key={s.showId} id={`show-${s.showId}`} className="show-anchor">
+                  <LedgerEntry show={s} />
+                </div>
+              ))}
+            </Ledger>
           )}
         </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="mt-8 flex items-center justify-between gap-4">
-            <div>
-              {page > 1 ? (
-                <Link
-                  href={href({ page: page - 1 })}
-                  className="group flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-muted transition hover:border-gold hover:text-gold"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" />
-                  Previous
-                </Link>
-              ) : (
-                <span aria-disabled="true" className="flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-faint opacity-40 select-none">
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Previous
-                </span>
-              )}
-            </div>
-
-            <span className="font-mono text-xs text-faint">
-              Page {compact(page)} of {compact(totalPages)}
-            </span>
-
-            <div>
-              {page < totalPages ? (
-                <Link
-                  href={href({ page: page + 1 })}
-                  className="group flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-muted transition hover:border-gold hover:text-gold"
-                >
-                  Next
-                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-                </Link>
-              ) : (
-                <span aria-disabled="true" className="flex items-center gap-1.5 rounded border border-line px-4 py-2 font-mono text-sm text-faint opacity-40 select-none">
-                  Next
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </span>
-              )}
-            </div>
+          <div className="mt-8 pb-4">
+            <FolioNav
+              prevHref={page > 1 ? href({ page: page - 1 }) : undefined}
+              nextHref={page < totalPages ? href({ page: page + 1 }) : undefined}
+              center={`page ${compact(page)} of ${compact(totalPages)}`}
+            />
           </div>
         )}
       </Container>
