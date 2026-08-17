@@ -108,6 +108,15 @@ describe("ShowsBrowsePage controls", () => {
     expect(html).toContain("#show-42");
   });
 
+  it("renders the sort-direction toggle as a spruce action, not a steel filter state", async () => {
+    const html = await render();
+    const idx = html.indexOf(">show oldest first<"); // default dir is desc, so the toggle offers oldest-first
+    expect(idx).toBeGreaterThan(-1);
+    const tag = html.slice(html.lastIndexOf("<a", idx), idx);
+    expect(tag).toContain("text-spruce");
+    expect(tag).not.toContain("text-steel");
+  });
+
   it("targets the right page in the jump link", async () => {
     h.latest = { showId: 42, date: "2024-06-15", isToday: false, page: 3 };
     const html = await render();

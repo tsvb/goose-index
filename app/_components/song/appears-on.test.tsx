@@ -48,11 +48,11 @@ describe("AppearsOn fancy", () => {
     expect(html).not.toContain("hover:bg-surface-2");
   });
 
-  it("underlines and turns spruce on hover for a Bandcamp-linked row", () => {
+  it("underlines on hover for a Bandcamp-linked row — hairline underline only, no color shift", () => {
     const html = renderToStaticMarkup(<AppearsOn albums={[single]} />);
     const titleIdx = html.indexOf(">Dripfield<"); // not the "Buy Dripfield…" title attr
     const titleTag = html.slice(html.lastIndexOf("<span", titleIdx), titleIdx);
-    expect(titleTag).toContain("group-hover:text-spruce");
+    expect(titleTag).not.toContain("group-hover:text-spruce");
     expect(titleTag).toContain("group-hover:underline");
     const rowIdx = html.lastIndexOf("<a", titleIdx);
     const rowTag = html.slice(rowIdx, html.indexOf(">", rowIdx));

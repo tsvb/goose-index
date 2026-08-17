@@ -105,6 +105,19 @@ describe("SearchPage songs group", () => {
   });
 });
 
+describe("SearchPage hover convention", () => {
+  it("whole-row hover is a hairline underline only — no color shift on songs, venues, or tours", async () => {
+    h.songs = [song(1)];
+    h.venueRows = [{ venueId: 7, name: "Red Rocks", city: "Morrison", state: "CO", country: "USA", capacity: null, shows: 9, first: null, last: null }];
+    h.venueTotal = 1;
+    h.tourRows = [{ tourId: 3, name: "Summer Tour", year: 2024, shows: 5, start: "2024-06-01", end: "2024-08-01" }];
+    h.tourTotal = 1;
+    const html = await render({ q: "red rocks" });
+    expect(html).not.toContain("group-hover:text-spruce");
+    expect(html).toContain("group-hover:underline");
+  });
+});
+
 describe("SearchPage group counts", () => {
   it("puts the full match total in the shows header and flags truncation", async () => {
     h.showRows = Array.from({ length: 24 }, (_, i) => show(i + 1));

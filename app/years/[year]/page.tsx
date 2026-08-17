@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
-import { FolioNav } from "@/app/_components/page-chrome";
+import { FolioNav, chromeLink } from "@/app/_components/page-chrome";
+import { clsx } from "@/app/_components/clsx";
 import { Ledger, LedgerEntry } from "@/app/_components/forms";
 import { listShows } from "@/lib/queries/shows";
 import { listYears } from "@/lib/queries/dimensions";
@@ -66,7 +67,7 @@ export default async function YearPage({ params }: Params) {
           text-[7rem] year shrinks to PageHead's own h1 scale. */}
       <div className="pt-10 pb-6 sm:pt-14">
         <p className="text-[0.7rem] lowercase text-faint">
-          <Link href="/years" className="text-spruce underline underline-offset-4 transition hover:text-ink">
+          <Link href="/years" className={chromeLink}>
             years
           </Link>
         </p>
@@ -87,7 +88,7 @@ export default async function YearPage({ params }: Params) {
           prevLabel={prevYear ? String(prevYear) : "previous"}
           nextLabel={nextYear ? String(nextYear) : "next"}
           center={
-            <Link href="/years" className="lowercase text-spruce underline underline-offset-4 transition hover:text-ink">
+            <Link href="/years" className={clsx("lowercase", chromeLink)}>
               all years
             </Link>
           }

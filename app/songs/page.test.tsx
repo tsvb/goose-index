@@ -42,7 +42,7 @@ describe("SongsPage head", () => {
     expect(html).toContain("goose index · the catalog");
     expect(html.match(/<h1[^>]*>/g)?.length).toBe(1);
     expect(html).toMatch(/<h1[^>]*>songs<\/h1>/);
-    expect(html).toContain("1 songs · sort the whole catalog any way you like");
+    expect(html).toContain("1 song · sort the whole catalog any way you like");
   });
 });
 

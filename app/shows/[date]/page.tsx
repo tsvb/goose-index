@@ -7,7 +7,7 @@ import { Setlist } from "@/app/_components/setlist";
 import { ArrowLeft } from "@/app/_components/marks";
 import { ShowHeader } from "@/app/_components/show-header";
 import { LiveRefresh } from "@/app/_components/live-refresh";
-import { FolioNav, NilState } from "@/app/_components/page-chrome";
+import { FolioNav, NilState, chromeLink } from "@/app/_components/page-chrome";
 import { PenRule } from "@/app/_components/pen";
 import { liveCandidateDate } from "@/lib/live";
 import { maybeLiveSync } from "@/lib/sync/maybe-live";
@@ -85,7 +85,8 @@ export default async function ShowPage({ params, searchParams }: Params) {
 
   // entryNumber rides the same round trip — a single indexed COUNT, cheap
   // enough to fetch unconditionally rather than serialize behind the
-  // experience cookie. Null (upcoming / nothing logged) drops the stamp+folio.
+  // experience cookie. Null (upcoming / nothing logged) drops just the
+  // entry-count center of the folio footer, not the footer itself.
   const [setlist, neighbors, entryNumber] = await Promise.all([
     getSetlist(show.showId),
     getShowNeighbors(date, show.order),
@@ -99,10 +100,12 @@ export default async function ShowPage({ params, searchParams }: Params) {
 
   // On multi-show dates a neighbor can share this page's date: label it as a
   // same-day show rather than a "night" so the step through ?n= reads right.
+  // Only read when *SameDay is true, so both labels are always the same-day
+  // phrasing — there's no cross-date fallback to compute.
   const prevSameDay = neighbors.prev?.date === date;
   const nextSameDay = neighbors.next?.date === date;
-  const prevLabel = prevSameDay ? "Earlier show this day" : "Previous night";
-  const nextLabel = nextSameDay ? "Later show this day" : "Next night";
+  const prevLabel = "Earlier show this day";
+  const nextLabel = "Later show this day";
 
   // This show is (or could be) on stage right now: refresh the setlist from
   // elgoose after the response is sent (debounced server-side), and let the
@@ -118,17 +121,17 @@ export default async function ShowPage({ params, searchParams }: Params) {
         <div className="border-b border-line">
           <Container className="flex items-center justify-between gap-4 py-3.5">
             <Link href="/shows" className="group flex items-center gap-1.5 font-mono text-xs text-muted transition hover:text-ink">
-              <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" />
+              <ArrowLeft className="h-3.5 w-3.5 transition" />
               All shows
             </Link>
             <div className="flex items-center gap-1 font-mono text-xs">
               {neighbors.prev && (
-                <Link href={showHref(neighbors.prev.date, neighbors.prev.order)} className="rounded px-2 py-1 text-muted transition hover:bg-surface hover:text-ink" title={prevSameDay ? prevLabel : neighbors.prev.venue ?? ""}>
+                <Link href={showHref(neighbors.prev.date, neighbors.prev.order)} className="text-muted transition hover:text-ink" title={prevSameDay ? prevLabel : neighbors.prev.venue ?? ""}>
                   ‹ {formatShortDate(neighbors.prev.date)}
                 </Link>
               )}
               {neighbors.next && (
-                <Link href={showHref(neighbors.next.date, neighbors.next.order)} className="rounded px-2 py-1 text-muted transition hover:bg-surface hover:text-ink" title={nextSameDay ? nextLabel : neighbors.next.venue ?? ""}>
+                <Link href={showHref(neighbors.next.date, neighbors.next.order)} className="text-muted transition hover:text-ink" title={nextSameDay ? nextLabel : neighbors.next.venue ?? ""}>
                   {formatShortDate(neighbors.next.date)} ›
                 </Link>
               )}
@@ -157,7 +160,7 @@ export default async function ShowPage({ params, searchParams }: Params) {
             <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-faint">
               Also this day:
               {siblings.map((s) => (
-                <Link key={s.showId} href={showHref(s.date, s.order)} className="text-spruce underline underline-offset-4 transition hover:text-ink">
+                <Link key={s.showId} href={showHref(s.date, s.order)} className={chromeLink}>
                   Show {s.order}{s.venue ? ` · ${s.venue}` : ""}
                 </Link>
               ))}
@@ -285,7 +288,7 @@ function NoShowPage({
         <div className="mt-6">
           <NilState href={`/shows?year=${year}`} linkLabel={`browse ${year} shows`}>
             Goose didn&rsquo;t play this night (or it isn&rsquo;t logged). See{" "}
-            <Link href="/on-this-day" className="text-spruce underline underline-offset-4 hover:text-ink">on this day</Link>
+            <Link href="/on-this-day" className={chromeLink}>on this day</Link>
           </NilState>
         </div>
       </Container>
@@ -296,8 +299,8 @@ function NoShowPage({
             <FolioNav
               prevHref={neighbors.prev ? showHref(neighbors.prev.date, neighbors.prev.order) : null}
               nextHref={neighbors.next ? showHref(neighbors.next.date, neighbors.next.order) : null}
-              prevLabel="Nearest before"
-              nextLabel="Nearest after"
+              prevLabel="nearest before"
+              nextLabel="nearest after"
             />
           </Container>
         </footer>

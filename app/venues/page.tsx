@@ -5,7 +5,7 @@ import { Search } from "@/app/_components/marks";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { listVenues, showsByState, showsByCountry, normalizeCountry, type VenueRow } from "@/lib/queries/dimensions";
 import { VenueMap, VenueMapTable } from "@/app/_components/venue-map";
-import { PageHead, FilterLink, FilterRow, NilState } from "@/app/_components/page-chrome";
+import { PageHead, FilterLink, FilterRow, NilState, chromeLink } from "@/app/_components/page-chrome";
 import { SectionRule, Ledger } from "@/app/_components/forms";
 import { locationLine, compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
@@ -180,7 +180,7 @@ export default async function VenuesPage({
               <a
                 key={g.id}
                 href={`#${g.id}`}
-                className="text-spruce underline underline-offset-4 transition hover:text-ink"
+                className={chromeLink}
               >
                 {g.label}
               </a>

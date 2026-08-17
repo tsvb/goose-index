@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { clsx } from "./clsx";
 
+/** The canonical spruce chrome link: underlined, hovers to ink. Covers the
+ * one-off spruce links scattered across the fancy/functional pages (crumbs,
+ * "back to X", empty-state recovery links) — not the whole-row hover on
+ * ledger/search entries, which underlines without a color shift. */
+export const chromeLink = "text-spruce underline underline-offset-4 transition hover:text-ink";
+
 /** Page opening: lowercase kicker, the title, a mono meta line. No rules,
  * no glow, no motion — sections below start with their own SectionRule. */
 export function PageHead({
@@ -114,7 +120,7 @@ export function NilState({
     <div className="py-12 text-center">
       <p className="text-muted">{children} —</p>
       {href && linkLabel && (
-        <Link href={href} className="mt-3 inline-block text-sm text-spruce underline underline-offset-4 hover:text-ink">
+        <Link href={href} className={clsx("mt-3 inline-block text-sm", chromeLink)}>
           {linkLabel}
         </Link>
       )}

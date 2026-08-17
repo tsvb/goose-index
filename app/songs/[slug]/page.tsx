@@ -4,7 +4,7 @@ import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, MetaTable, DocSection } from "@/app/_components/doc";
 import { SectionRule } from "@/app/_components/forms";
-import { NilState } from "@/app/_components/page-chrome";
+import { NilState, chromeLink } from "@/app/_components/page-chrome";
 import { FactRibbon, PlaysPerYearChart, SetPlacementBars, GapSparkline, PerformanceTable, AppearsOn } from "@/app/_components/song";
 import { getSongBySlug, getSongPerformances, getSongAlbums, type SongStat, type SongAlbum } from "@/lib/queries/songs";
 import { getExperience } from "@/lib/experience.server";
@@ -14,12 +14,11 @@ import { entityMetadata } from "@/lib/site";
 
 /** Crumb trail for the fancy/functional song page — plain text, spruce links. */
 function SongCrumb({ name }: { name: string }) {
-  const linkClass = "text-spruce underline underline-offset-4 transition hover:text-ink";
   return (
     <nav className="text-[0.7rem] text-faint">
-      <Link href="/" className={linkClass}>Index</Link>
+      <Link href="/" className={chromeLink}>Index</Link>
       {" › "}
-      <Link href="/songs" className={linkClass}>Songs</Link>
+      <Link href="/songs" className={chromeLink}>Songs</Link>
       {" › "}
       <span>{name}</span>
     </nav>
@@ -126,7 +125,7 @@ export default async function SongPage({ params }: Params) {
             {song.longestVersions.length > 0 && (
               <section>
                 <SectionRule title="longest versions" seed="song-longest-versions" />
-                <ul className="space-y-1 text-sm">{song.longestVersions.map((v) => <li key={v.showId} className="flex justify-between gap-3"><span className="tabular-nums text-gold">{v.trackTime}</span><Link href={showHref(v.date, v.order)} className="text-muted hover:text-ink">{v.date} · {v.venue ?? "—"}</Link></li>)}</ul>
+                <ul className="space-y-1 text-sm">{song.longestVersions.map((v) => <li key={v.showId} className="flex justify-between gap-3"><span className="tabular-nums text-ink">{v.trackTime}</span><Link href={showHref(v.date, v.order)} className="text-muted hover:text-ink">{v.date} · {v.venue ?? "—"}</Link></li>)}</ul>
               </section>
             )}
             {song.topVenues.length > 0 && (
@@ -179,7 +178,7 @@ function NeverPlayed({ song, tag, experience }: { song: SongStat; tag: string; e
           In the songbook, but never yet played live. The Index keeps a page for every song in the
           book — this one is still waiting for its first night. When it debuts, the plays, gaps,
           set placements, and longest versions will be logged here. Or see{" "}
-          <Link href="/stats/debuts" className="text-spruce underline underline-offset-4 hover:text-ink">recent debuts</Link>{" "}
+          <Link href="/stats/debuts" className={chromeLink}>recent debuts</Link>{" "}
           in the meantime.
         </NilState>
       </div>

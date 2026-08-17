@@ -98,6 +98,14 @@ describe("ShowPage prev/next navigation", () => {
     expect(html).toMatch(/hover:text-ink/);
     expect(html).not.toContain("hover:text-gold");
     expect(html).not.toContain("hover:text-steel");
+    // No rounded-chip hover fill on the top bar — text-only hover.
+    expect(html).not.toContain("hover:bg-surface");
+    expect(html).not.toMatch(/rounded px-2 py-1/);
+  });
+
+  it("the back arrow carries no hover motion — the live dot is the only motion", async () => {
+    const html = await render("2025-06-25");
+    expect(html).not.toContain("group-hover:-translate-x-0.5");
   });
 });
 
@@ -130,8 +138,8 @@ describe("ShowPage no-show date recovery", () => {
     expect(html).toContain('href="/shows?year=2019"');
     expect(html).toContain("browse 2019 shows");
     expect(html).toContain('href="/on-this-day"');
-    expect(html).toContain("Nearest before");
-    expect(html).toContain("Nearest after");
+    expect(html).toContain("nearest before");
+    expect(html).toContain("nearest after");
     expect(html).toContain('href="/shows/2019-03-16"');
     expect(html).toContain('href="/shows/2019-03-22"');
     expect(html).not.toContain("stage-glow");

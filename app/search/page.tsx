@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { SearchBox } from "@/app/_components/search-box";
-import { PageHead, NilState } from "@/app/_components/page-chrome";
+import { PageHead, NilState, chromeLink } from "@/app/_components/page-chrome";
 import { SectionRule, Ledger, LedgerEntry } from "@/app/_components/forms";
 import { searchShows, type ShowSummary } from "@/lib/queries/shows";
 import { searchSongs, type SongSearchRow } from "@/lib/queries/songs";
@@ -181,9 +181,9 @@ export default async function SearchPage({ searchParams }: Props) {
           No results for &ldquo;{term}&rdquo;. Try a song like{" "}
           <span className="font-mono text-steel">Hot Tea</span>, a date like{" "}
           <span className="font-mono text-steel">2022-06-24</span>, a venue name, or a city. Or browse{" "}
-          <Link href="/shows" className="text-spruce underline underline-offset-4 hover:text-ink">all shows</Link>
+          <Link href="/shows" className={chromeLink}>all shows</Link>
           {" · "}
-          <Link href="/songs" className="text-spruce underline underline-offset-4 hover:text-ink">the song catalog</Link>.
+          <Link href="/songs" className={chromeLink}>the song catalog</Link>.
         </NilState>
       )}
 
@@ -202,7 +202,7 @@ export default async function SearchPage({ searchParams }: Props) {
                 href={songHref(s)}
                 className="group flex items-center justify-between gap-4 py-2.5"
               >
-                <span className="min-w-0 flex-1 truncate text-ink underline-offset-4 group-hover:text-spruce group-hover:underline">
+                <span className="min-w-0 flex-1 truncate text-ink underline-offset-4 group-hover:underline">
                   {s.name}
                 </span>
                 <span className="shrink-0 text-right text-[0.8rem] text-muted">
@@ -258,7 +258,7 @@ export default async function SearchPage({ searchParams }: Props) {
                   className="group flex items-center justify-between gap-4 py-2.5"
                 >
                   <span className="min-w-0 flex-1 truncate">
-                    <span className="text-ink underline-offset-4 group-hover:text-spruce group-hover:underline">
+                    <span className="text-ink underline-offset-4 group-hover:underline">
                       {v.name}
                     </span>
                     {loc && <span className="ml-2 truncate text-[0.8rem] text-muted">{loc}</span>}
@@ -297,7 +297,7 @@ export default async function SearchPage({ searchParams }: Props) {
                   className="group flex items-center justify-between gap-4 py-2.5"
                 >
                   <span className="min-w-0 flex-1 truncate">
-                    <span className="text-ink underline-offset-4 group-hover:text-spruce group-hover:underline">
+                    <span className="text-ink underline-offset-4 group-hover:underline">
                       {t.name}
                     </span>
                     {dateRange && <span className="ml-2 font-mono text-[0.7rem] text-faint">{dateRange}</span>}

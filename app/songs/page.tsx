@@ -4,7 +4,7 @@ import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb } from "@/app/_components/doc";
 import { SongIndexTable } from "@/app/_components/song";
 import { Search } from "@/app/_components/marks";
-import { PageHead, FilterLink, FilterRow, FolioNav } from "@/app/_components/page-chrome";
+import { PageHead, FilterLink, FilterRow, FolioNav, chromeLink } from "@/app/_components/page-chrome";
 import { PenRule, PenNote } from "@/app/_components/pen";
 import { listSongs, OVERDUE_MIN_PLAYS, type SongSort, type SongFacet } from "@/lib/queries/songs";
 import { compact } from "@/lib/queries/format";
@@ -91,7 +91,7 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
       <PageHead
         kicker="goose index · the catalog"
         title="songs"
-        meta={`${compact(total)} songs · sort the whole catalog any way you like`}
+        meta={`${compact(total)} ${total === 1 ? "song" : "songs"} · sort the whole catalog any way you like`}
       />
 
       <div className="mb-4 flex flex-col gap-3">
@@ -138,7 +138,7 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
       )}
       {sort === "overdue" && (
         <PenNote className="mb-4">
-          {OVERDUE_NOTE}<Link href="/stats/current-gaps" className="not-italic text-spruce underline underline-offset-4 hover:text-ink">Most Overdue</Link> in Stats.
+          {OVERDUE_NOTE}<Link href="/stats/current-gaps" className={`not-italic ${chromeLink}`}>Most Overdue</Link> in Stats.
         </PenNote>
       )}
 

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, MetaTable, DocSection, ShowTable } from "@/app/_components/doc";
-import { NilState } from "@/app/_components/page-chrome";
+import { NilState, chromeLink } from "@/app/_components/page-chrome";
 import { Ledger, LedgerEntry } from "@/app/_components/forms";
 import { getTourMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
@@ -68,7 +68,7 @@ export default async function TourPage({ params }: Params) {
       <header className="border-b border-line">
         <Container className="py-10 sm:py-14">
           <p className="text-[0.7rem] lowercase text-faint">
-            <Link href="/tours" className="text-spruce underline underline-offset-4 transition hover:text-ink">
+            <Link href="/tours" className={chromeLink}>
               tours
             </Link>
           </p>

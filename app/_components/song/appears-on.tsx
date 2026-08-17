@@ -51,7 +51,7 @@ export function AppearsOn({ albums, minimal = false }: { albums: SongAlbum[]; mi
           const meta = `${a.releaseDate ? a.releaseDate.slice(0, 4) + " · " : ""}${releaseKind(a)} · track ${a.trackNum}`;
           const body = (
             <>
-              <span className="min-w-0 flex-1 truncate text-ink underline-offset-4 transition group-hover:text-spruce group-hover:underline">{a.title}</span>
+              <span className="min-w-0 flex-1 truncate text-ink underline-offset-4 transition group-hover:underline">{a.title}</span>
               <span className="shrink-0 font-mono text-[0.65rem] text-faint">{meta}</span>
               {href && (
                 <span className="shrink-0 font-mono text-[0.62rem] text-sage group-hover:text-sage-deep">

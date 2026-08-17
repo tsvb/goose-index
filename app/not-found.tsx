@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/app/_components/container";
-import { PageHead } from "@/app/_components/page-chrome";
+import { PageHead, chromeLink } from "@/app/_components/page-chrome";
+import { clsx } from "@/app/_components/clsx";
 import { PenRule } from "@/app/_components/pen";
 import { getExperience } from "@/lib/experience.server";
 import { Doc, Breadcrumb } from "@/app/_components/doc";
@@ -9,7 +10,7 @@ export default async function NotFound() {
   const experience = await getExperience();
 
   // Minimal mode gets a plain document, not the immersive hero — the fancy
-  // stage-glow markup reads as noise in the 1.0 edition.
+  // PageHead + pen-rule treatment reads as noise in the 1.0 edition.
   if (experience === "minimal") {
     return (
       <Container className="py-8">
@@ -39,11 +40,11 @@ export default async function NotFound() {
         </p>
         <PenRule seed="404" className="mx-auto mt-8 max-w-xs" />
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <Link href="/" className="lowercase text-spruce underline underline-offset-4 transition hover:text-ink">
+          <Link href="/" className={clsx("lowercase", chromeLink)}>
             back to the index
           </Link>
           <span className="hidden text-line sm:inline">·</span>
-          <Link href="/shows" className="lowercase text-spruce underline underline-offset-4 transition hover:text-ink">
+          <Link href="/shows" className={clsx("lowercase", chromeLink)}>
             browse all shows
           </Link>
         </div>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { AnchorFlash } from "@/app/_components/anchor-flash";
 import { Container } from "@/app/_components/container";
-import { PageHead, FilterLink, FilterRow, FolioNav, NilState } from "@/app/_components/page-chrome";
+import { PageHead, FilterLink, FilterRow, FolioNav, NilState, chromeLink } from "@/app/_components/page-chrome";
 import { Ledger, LedgerEntry } from "@/app/_components/forms";
 import { PenRule } from "@/app/_components/pen";
 import { listShows, findLatestPastShow } from "@/lib/queries/shows";
@@ -35,8 +35,7 @@ export async function generateMetadata({
 }
 
 /** Chrome links (companion/jump) — spruce, not a filter state. */
-const spruceLinkClass =
-  "font-mono text-xs lowercase text-spruce underline underline-offset-4 transition hover:text-ink";
+const spruceLinkClass = `font-mono text-xs lowercase ${chromeLink}`;
 
 export default async function ShowsBrowsePage({
   searchParams,
@@ -159,9 +158,9 @@ export default async function ShowsBrowsePage({
                 {n}
               </FilterLink>
             ))}
-            <FilterLink href={href({ dir: flipDir })} active={false}>
+            <Link href={href({ dir: flipDir })} className={spruceLinkClass}>
               {flipDirLabel.toLowerCase()}
-            </FilterLink>
+            </Link>
             {jumpHref && (
               <Link href={jumpHref} className={spruceLinkClass}>
                 {jumpLabel} →

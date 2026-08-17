@@ -166,6 +166,14 @@ describe("SongPage furniture — breadcrumb, tag, section rules", () => {
     const html = await render();
     expect(html).not.toContain('class="mb-2 font-display text-base text-ink"');
   });
+
+  it("longest-version durations wear ink, not the gold alias — durations are content", async () => {
+    const html = await render();
+    const idx = html.indexOf("12:34");
+    const tag = html.slice(html.lastIndexOf("<span", idx), idx);
+    expect(tag).toContain("text-ink");
+    expect(tag).not.toContain("text-gold");
+  });
 });
 
 describe("SongPage metadata description grammar", () => {

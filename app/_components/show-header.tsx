@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Container } from "./container";
 import { MapPin } from "./marks";
 import { Doc, Breadcrumb, MetaTable } from "./doc";
+import { chromeLink } from "./page-chrome";
 import { dateParts, locationLine, formatDuration, trackSeconds } from "@/lib/queries/format";
 import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
 import type { Experience } from "@/lib/experience";
@@ -145,7 +146,7 @@ export function ShowHeader({
       <Container className="py-10 sm:py-14">
         <p className="text-[0.7rem] lowercase text-faint">
           {show.tourId && show.tour ? (
-            <Link href={`/tours/${show.tourId}`} className="text-spruce underline underline-offset-4 transition hover:text-ink">{show.tour}</Link>
+            <Link href={`/tours/${show.tourId}`} className={chromeLink}>{show.tour}</Link>
           ) : ("Goose")}
           {"  ·  "}
           {dp.weekday}
@@ -156,7 +157,7 @@ export function ShowHeader({
         <p className="mt-4 flex flex-wrap items-baseline gap-x-2 text-xl">
           <span className="text-muted">at</span>
           {show.venueId ? (
-            <Link href={`/venues/${show.venueId}`} className="font-display text-2xl text-spruce underline decoration-spruce/30 underline-offset-4 transition hover:text-ink">{show.venue}</Link>
+            <Link href={`/venues/${show.venueId}`} className={`font-display text-2xl decoration-spruce/30 ${chromeLink}`}>{show.venue}</Link>
           ) : (
             <span className="font-display text-2xl text-ink">{show.venue ?? "Unknown venue"}</span>
           )}
