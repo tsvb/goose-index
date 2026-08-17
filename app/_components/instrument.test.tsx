@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { TickRuler, Gauge } from "./instrument";
 
@@ -45,5 +45,15 @@ describe("Gauge", () => {
     expect(html).toContain("74");
     expect(html).toContain("shows");
     expect(html).toContain("text-hand");
+  });
+  it("degenerate scale (min === max) renders without duplicate-key warnings", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const html = renderToStaticMarkup(<Gauge min={0} max={0} value={0} unit="shows" />);
+      expect(html).toContain("shows");
+      expect(spy).not.toHaveBeenCalled();
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
