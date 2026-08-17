@@ -46,11 +46,15 @@ describe("Gauge", () => {
     expect(html).toContain("shows");
     expect(html).toContain("text-hand");
   });
-  it("degenerate scale (min === max) renders without duplicate-key warnings", () => {
+  it("degenerate scale (min === max) renders clean — no NaN coordinates, no warnings", () => {
+    // Key uniqueness on degenerate scales is by construction (index keys) and
+    // invisible to SSR; what CAN regress here is the x() min===max guard,
+    // whose failure emits NaN-attribute warnings through console.error.
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     try {
       const html = renderToStaticMarkup(<Gauge min={0} max={0} value={0} unit="shows" />);
       expect(html).toContain("shows");
+      expect(html).not.toContain("NaN");
       expect(spy).not.toHaveBeenCalled();
     } finally {
       spy.mockRestore();
