@@ -98,7 +98,7 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                           <a
                             href={`#fn-${e.uniqueId}`}
                             aria-label={`Footnote ${fnIndex.get(e.uniqueId)} for ${e.song}`}
-                            className="font-mono text-[0.65rem] text-sage hover:underline"
+                            className="font-mono text-[0.65rem] text-spruce hover:underline"
                           >
                             {fnIndex.get(e.uniqueId)}
                           </a>
@@ -127,7 +127,7 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                   if (e.footnote) {
                     items.push(
                       <li key={`fn-${e.uniqueId}`} id={`fn-${e.uniqueId}`} className="flex gap-2.5 text-[0.82rem] leading-relaxed text-muted">
-                        <span className="mt-0.5 w-3.5 shrink-0 text-right font-mono text-[0.7rem] text-sage">{fnIndex.get(e.uniqueId)}</span>
+                        <span className="mt-0.5 w-3.5 shrink-0 text-right font-mono text-[0.7rem] text-spruce">{fnIndex.get(e.uniqueId)}</span>
                         <span>
                           <span className="text-ink">{e.song}</span> — {e.footnote}
                         </span>
@@ -160,7 +160,7 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
         <span className="uppercase tracking-[0.18em]">Reading the ledger</span>
         <span><span className="text-steel">›</span> = segue</span>
         <span><Flame className="inline h-3 w-3 -translate-y-px text-ember" strokeWidth={1.7} /> = jam chart pick</span>
-        <span><span className="text-sage">¹</span> = see the notes under each set</span>
+        <span><span className="text-spruce">¹</span> = see the notes under each set</span>
       </p>
     </div>
   );

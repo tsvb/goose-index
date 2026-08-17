@@ -185,13 +185,6 @@
    Until every page is rebuilt on the new forms, nothing floats and nothing
    is a rounded box. rounded-full is exempt so icon circles stay circles
    until their components retire. */
-[data-experience="fancy"] .surface-card {
-  background: transparent;
-  border: 0;
-  border-top: 1px solid var(--line-soft);
-  border-bottom: 1px solid var(--line-soft);
-  border-radius: 0;
-}
 [data-experience="fancy"] :is(.rounded, .rounded-md, .rounded-lg, .rounded-xl) {
   border-radius: 0;
 }
@@ -211,22 +204,6 @@
     var(--line) 92%,
     transparent
   );
-}
-
-/* Eyebrow / overline — mono, tracked-out, the "catalog label" voice */
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--gold-soft);
-}
-
-/* Subtle ledger paper on surfaces */
-.surface-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 0.5rem;
 }
 
 /* Link affordance for inline text links */
@@ -458,16 +435,6 @@
   font-weight: 800;
   letter-spacing: -0.015em;
 }
-[data-experience="functional"] .eyebrow { color: var(--gold-soft); }
-/* Glossy panels — reskins the shared .surface-card used across listing/home bodies. */
-[data-experience="functional"] .surface-card {
-  background: linear-gradient(#ffffff, #f1f7fc);
-  border: 1px solid #c4d4e2;
-  border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(40, 70, 110, 0.18);
-}
-[data-experience="functional"] .surface-card > li:nth-child(even) { background: #eef5fb; }
-[data-experience="functional"] .surface-card > li:hover { background: #fff7e0; }
 /* Gel button (used by functional components). */
 [data-experience="functional"] .gel {
   display: inline-flex;
@@ -629,11 +596,6 @@
 [data-experience="minimal"] .fade-in {
   animation: none;
 }
-[data-experience="minimal"] .eyebrow {
-  letter-spacing: 0.12em;
-  color: var(--faint);
-}
-
 /* ---- Phase 2: song stats (Fancy base; Functional reskin below) ---- */
 .song-ribbon { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 1rem 0; }
 .song-fact { background: var(--surface); padding: 0.6rem 0.85rem; }
