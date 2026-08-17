@@ -13,8 +13,8 @@
 ## Global Constraints
 
 - Fonts: `-apple-system, system-ui, sans-serif` body/display; `ui-monospace, SFMono-Regular, Menlo, monospace` for mono. **No webfonts, no `next/font` imports anywhere.**
-- Fog values: paper `#f3f5f7`, ink `#1f242b`, muted `#5d6672`, faint `#8b95a1`, steel `#46708f`, hand `#d9a406`, spruce `#47776b`, pencil `#7b8590`, line `rgba(31,36,43,.28)`, line-soft `rgba(31,36,43,.13)`.
-- Slate values: paper `#22262d`, ink `#e8ecf1`, muted `#aab3bd`, faint `#7e8894`, steel `#7ba3c4`, hand `#f2b705`, spruce `#7fae9f`, pencil `#98a1ab`, line `rgba(232,236,241,.3)`, line-soft `rgba(232,236,241,.14)`.
+- Fog values (AA-retuned post-review; `app/globals-contrast.test.ts` is the gate): paper `#f3f5f7`, ink `#1f242b`, muted `#5d6672`, faint `#657080`, steel `#46708f`, hand `#a67f05`, spruce `#47776b`, pencil `#5f6873`, ember (text-safe heat/live) `#8a6504`, line `rgba(31,36,43,.28)`, line-soft `rgba(31,36,43,.13)`.
+- Slate values: paper `#22262d`, ink `#e8ecf1`, muted `#aab3bd`, faint `#848e9b`, steel `#7ba3c4`, hand `#f2b705`, spruce `#7fae9f`, pencil `#98a1ab`, ember `#f2b705`, line `rgba(232,236,241,.3)`, line-soft `rgba(232,236,241,.14)`.
 - One meaning per color: ink=content, steel=structure, hand=now/the reading, spruce=links only, pencil=the human margin.
 - Motion budget: only the live dot pulses; no entrance animations, no hover lift/shadow/translate.
 - Pen wobble is **deterministic** — seeded from a stable string key, never `Math.random()`.
