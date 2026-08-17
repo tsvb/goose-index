@@ -718,12 +718,14 @@ export function TickRuler({
           {minors.map((mx) => (
             <line key={mx} x1={mx} y1={BASE} x2={mx} y2={BASE - 4} />
           ))}
-          {majors.map((m) => (
-            <line key={`M${m.at}`} x1={x(m.at, min, max)} y1={BASE} x2={x(m.at, min, max)} y2={BASE - 8} />
+          {/* Index keys, not `m.at`: a degenerate scale (min === max, e.g. a
+              Gauge over a single value) puts two majors at one position. */}
+          {majors.map((m, i) => (
+            <line key={`M${i}`} x1={x(m.at, min, max)} y1={BASE} x2={x(m.at, min, max)} y2={BASE - 8} />
           ))}
         </g>
-        {majors.map((m) => (
-          <text key={`L${m.at}`} x={x(m.at, min, max)} y={BASE + 11} fontSize="8" textAnchor="middle" fill="var(--faint)">
+        {majors.map((m, i) => (
+          <text key={`L${i}`} x={x(m.at, min, max)} y={BASE + 11} fontSize="8" textAnchor="middle" fill="var(--faint)">
             {m.label}
           </text>
         ))}
