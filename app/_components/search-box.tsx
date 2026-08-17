@@ -47,14 +47,14 @@ function SearchBoxForm({ size, seed }: { size: Size; seed: string }) {
   if (size === "full") {
     return (
       <form onSubmit={submit} className="group relative w-full">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-faint transition group-focus-within:text-gold" />
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-faint transition group-focus-within:text-steel" />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={selectAll}
-          placeholder="Try a song, a date (2022-06-24), a venue, or a city…"
+          placeholder="try a song, a date (2022-06-24), a venue, or a city…"
           aria-label="Search the index"
-          className="w-full rounded-full border border-line bg-surface py-3.5 pl-12 pr-4 text-ink placeholder:text-faint outline-none transition focus:border-gold"
+          className="w-full rounded-none border-0 border-b border-line bg-transparent py-3 pl-12 pr-4 text-ink placeholder:text-faint outline-none transition focus:border-steel"
         />
       </form>
     );
@@ -62,14 +62,14 @@ function SearchBoxForm({ size, seed }: { size: Size; seed: string }) {
 
   return (
     <form onSubmit={submit} className="group relative hidden sm:block">
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint transition group-focus-within:text-gold" />
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint transition group-focus-within:text-steel" />
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
         onFocus={selectAll}
-        placeholder="Search…"
+        placeholder="search…"
         aria-label="Search the index"
-        className="w-36 rounded-full border border-line bg-surface/60 py-2 pl-8 pr-3 text-sm text-ink placeholder:text-faint outline-none transition focus:w-52 focus:border-gold"
+        className="w-36 rounded-none border-0 border-b border-line bg-transparent py-1.5 pl-8 pr-3 text-sm text-ink placeholder:text-faint outline-none transition focus:w-52 focus:border-steel"
       />
     </form>
   );

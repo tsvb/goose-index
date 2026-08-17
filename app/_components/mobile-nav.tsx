@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, Search } from "./marks";
+import { Search } from "./marks";
 
 const NAV = [
   { href: "/shows", label: "Shows" },
@@ -63,9 +63,9 @@ export function MobileNav() {
         onClick={() => setOpen((o) => !o)}
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
-        className="grid h-9 w-9 place-items-center rounded-full border border-line text-muted transition hover:border-gold hover:text-gold"
+        className="text-[0.85rem] lowercase text-muted underline underline-offset-4 transition hover:text-ink"
       >
-        {open ? <X className="h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
+        {open ? "close" : "menu"}
       </button>
 
       {open && (
@@ -79,16 +79,16 @@ export function MobileNav() {
             onClick={() => setOpen(false)}
             className="fixed inset-0 top-[var(--header-h,4rem)] z-30 cursor-default bg-bg-deep/50"
           />
-          <div className="fixed inset-x-0 top-[var(--header-h,4rem)] z-40 max-h-[calc(100dvh-var(--header-h,4rem))] overflow-y-auto overscroll-contain border-b border-line bg-bg shadow-[0_24px_48px_-20px_var(--shadow)]">
+          <div className="fixed inset-x-0 top-[var(--header-h,4rem)] z-40 max-h-[calc(100dvh-var(--header-h,4rem))] overflow-y-auto overscroll-contain border-b border-line bg-paper">
             <div className="space-y-5 px-5 py-6">
               <form onSubmit={submit} className="group relative">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint group-focus-within:text-gold" />
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint group-focus-within:text-steel" />
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search songs, shows, venues…"
+                  placeholder="search songs, shows, venues…"
                   aria-label="Search the index"
-                  className="w-full rounded-full border border-line bg-surface py-3 pl-10 pr-4 text-ink placeholder:text-faint outline-none focus:border-gold"
+                  className="w-full rounded-none border-0 border-b border-line bg-transparent py-3 pl-10 pr-4 text-ink placeholder:text-faint outline-none focus:border-steel"
                 />
               </form>
               <nav className="flex flex-col">
@@ -99,11 +99,11 @@ export function MobileNav() {
                       key={n.href}
                       href={n.href}
                       onClick={() => setOpen(false)}
-                      className={`border-b border-line-soft py-3 font-display text-xl last:border-0 ${
-                        active ? "text-gold" : "text-ink"
+                      className={`border-b border-line-soft py-3 text-lg lowercase last:border-0 ${
+                        active ? "text-steel" : "text-ink"
                       }`}
                     >
-                      {n.label}
+                      {n.label.toLowerCase()}
                     </Link>
                   );
                 })}

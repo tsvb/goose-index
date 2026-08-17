@@ -33,13 +33,32 @@ beforeEach(() => {
 describe("MobileNav drawer", () => {
   it("mentions songs in the search placeholder", () => {
     const html = renderToStaticMarkup(<MobileNav />);
-    expect(html).toContain('placeholder="Search songs, shows, venues…"');
+    expect(html).toContain('placeholder="search songs, shows, venues…"');
   });
 
   it("renders the section links", () => {
     const html = renderToStaticMarkup(<MobileNav />);
     expect(html).toContain('href="/songs"');
     expect(html).toContain('href="/shows"');
+  });
+
+  it("trigger is text (menu/close), not an icon-circle button", () => {
+    const html = renderToStaticMarkup(<MobileNav />);
+    const trigger = html.match(/<button[^>]*aria-expanded[^>]*>([^<]*)<\/button>/)?.[1];
+    expect(trigger).toBe("close"); // forced open by the useState mock above
+    expect(html).not.toContain("rounded-full border border-line");
+  });
+
+  it("sheet is a hairline border, no drop shadow", () => {
+    const html = renderToStaticMarkup(<MobileNav />);
+    expect(html).toContain("bg-paper");
+    expect(html).not.toContain("shadow");
+  });
+
+  it("nav links are lowercase text, active state reads text-steel not text-gold", () => {
+    const html = renderToStaticMarkup(<MobileNav />);
+    expect(html).toContain(">shows<");
+    expect(html).not.toContain("text-gold");
   });
 
   it("offsets the scrim and sheet by the live header height, not a hardcoded top-16", () => {

@@ -43,11 +43,19 @@ describe("SearchBox", () => {
 
   it("mentions songs in the full-size placeholder", () => {
     const html = renderToStaticMarkup(<SearchBox size="full" />);
-    expect(html).toContain("Try a song, a date (2022-06-24), a venue, or a city…");
+    expect(html).toContain("try a song, a date (2022-06-24), a venue, or a city…");
   });
 
   it("keeps the compact placeholder terse", () => {
     const html = renderToStaticMarkup(<SearchBox />);
-    expect(html).toContain('placeholder="Search…"');
+    expect(html).toContain('placeholder="search…"');
+  });
+
+  it("is a hairline underline, not a pill", () => {
+    const html = renderToStaticMarkup(<SearchBox size="full" />);
+    expect(html).toContain("border-b");
+    expect(html).toContain("focus:border-steel");
+    expect(html).not.toContain("rounded-full");
+    expect(html).not.toContain("gold");
   });
 });
