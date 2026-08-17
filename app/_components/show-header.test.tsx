@@ -34,14 +34,21 @@ describe("ShowHeader", () => {
     expect(html.match(/<h1/g)).toHaveLength(1);
     expect(html).toMatch(/<h1[^>]*>June 26, 2026<\/h1>/);
   });
-  it("fancy renders a lowercase kicker and one h1 with the long date — no stage glow, no almanac hook, no entry stamp", () => {
+  it("fancy renders a kicker (weekday folded, tour name kept authored-case) and one h1 with the long date — no stage glow, no almanac hook, no entry stamp", () => {
     const html = renderToStaticMarkup(<ShowHeader show={show} date="2026-06-26" setlist={setlist} experience="fancy" />);
     expect(html).not.toContain("stage-glow");
     expect(html).not.toContain("almanac-masthead");
     expect(html).not.toContain("entry-stamp");
-    expect(html).toContain("lowercase");
+    expect(html).toContain("friday"); // the weekday chrome token folds
     expect(html.match(/<h1[^>]*>/g)?.length).toBe(1);
     expect(html).toMatch(/<h1[^>]*>June 26, 2026<\/h1>/);
+  });
+  it("fancy keeps the authored tour name's case in the kicker — casing is a fact about the data, not chrome", () => {
+    const html = renderToStaticMarkup(<ShowHeader show={show} date="2026-06-26" setlist={setlist} experience="fancy" />);
+    expect(html).toContain(">Summer Tour 2026<"); // not "summer tour 2026"
+    // The kicker <p> itself carries no blanket lowercase class anymore — only
+    // the weekday token folds, done explicitly in JS (see above).
+    expect(html).toContain('<p class="text-[0.7rem] text-faint">');
   });
   it("ignores a stray entryNumber — the prop moved to the page's folio", () => {
     // ShowHeader's type no longer declares entryNumber; cast past it to prove

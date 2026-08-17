@@ -144,12 +144,17 @@ export function ShowHeader({
           line + stat/listen row are bespoke, so they sit alongside it rather
           than inside PageHead's meta slot. */}
       <Container className="py-10 sm:py-14">
-        <p className="text-[0.7rem] lowercase text-faint">
+        {/* Casing boundary: the tour link is authored data (a tour name like
+            "Summer Tour 2026") and keeps its case; only the chrome words
+            around it — the "goose" fallback and the weekday — fold, and they
+            fold explicitly rather than via a blanket `lowercase` class, which
+            used to case-fold the tour name too. */}
+        <p className="text-[0.7rem] text-faint">
           {show.tourId && show.tour ? (
             <Link href={`/tours/${show.tourId}`} className={chromeLink}>{show.tour}</Link>
-          ) : ("Goose")}
+          ) : ("goose")}
           {"  ·  "}
-          {dp.weekday}
+          {dp.weekday.toLowerCase()}
         </p>
         <h1 className="mt-1 font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-5xl">
           {dp.month} {dp.day}, {dp.year}

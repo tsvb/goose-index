@@ -25,6 +25,14 @@ function SongCrumb({ name }: { name: string }) {
   );
 }
 
+/** The cover/original tag for the fancy/functional chrome slot: "cover"/
+ * "original" is a chrome word and folds, but the artist name is authored
+ * data and keeps its case. (The bug this replaces: a blanket `lowercase`
+ * class on the tag's <span> used to fold the artist name along with it.) */
+function chromeTag(song: Pick<SongStat, "isOriginal" | "originalArtist">) {
+  return song.isOriginal ? "original" : <>cover · {song.originalArtist ?? "trad."}</>;
+}
+
 export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ slug: string }> };
 
@@ -64,6 +72,10 @@ export default async function SongPage({ params }: Params) {
   const song = await getSongBySlug(slug);
   if (!song) notFound();
   const experience = await getExperience();
+  // Minimal's doc-crumb doesn't fold chrome words (see ShowHeader's minimal
+  // branch), so it keeps its original capitalized "Cover"/"Original" text;
+  // the fancy/functional chrome slot uses chromeTag() below instead, which
+  // folds only the chrome word and keeps the artist name authored-case.
   const tag = song.isOriginal ? "Original" : `Cover · ${song.originalArtist ?? "trad."}`;
 
   // A song with no performances has no ribbon, charts, or table worth rendering
@@ -107,7 +119,7 @@ export default async function SongPage({ params }: Params) {
         <SongCrumb name={song.name} />
         <div className="mt-2 flex flex-wrap items-baseline gap-3">
           <h1 className="font-display text-[2.2rem] leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
-          <span className="font-mono text-[0.7rem] lowercase text-faint">{tag}</span>
+          <span className="font-mono text-[0.7rem] text-faint">{chromeTag(song)}</span>
         </div>
         <FactRibbon facts={facts(song)} />
         <AppearsOn albums={albums} />
@@ -171,7 +183,7 @@ function NeverPlayed({ song, tag, experience }: { song: SongStat; tag: string; e
       <SongCrumb name={song.name} />
       <div className="mt-2 flex flex-wrap items-baseline gap-3">
         <h1 className="font-display text-[2.2rem] leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
-        <span className="font-mono text-[0.7rem] lowercase text-faint">{tag}</span>
+        <span className="font-mono text-[0.7rem] text-faint">{chromeTag(song)}</span>
       </div>
       <div className="mt-8">
         <NilState href="/songs" linkLabel="browse the catalog">

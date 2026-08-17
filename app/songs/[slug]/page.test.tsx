@@ -143,11 +143,21 @@ describe("SongPage furniture — breadcrumb, tag, section rules", () => {
     expect(tag).toContain('href="/songs"');
   });
 
-  it("renders the tag as plain lowercase mono text, not a bordered pill", async () => {
+  it("renders the tag as plain mono text, not a bordered pill", async () => {
     h.song = song({ timesPlayed: 2, isOriginal: false, originalArtist: "Trad.", debutDate: "2021-06-01" });
     const html = await render();
     expect(html).not.toContain("rounded-full border border-line");
-    expect(html).toMatch(/<span class="[^"]*\blowercase\b[^"]*">Cover · Trad\.<\/span>/);
+    expect(html).toContain('<span class="font-mono text-[0.7rem] text-faint">cover · Trad.</span>');
+  });
+
+  it("folds only the chrome word 'cover' — the authored artist name keeps its case", async () => {
+    // A blanket `lowercase` class used to fold the whole tag, including the
+    // artist name; only the literal "cover"/"original" word should fold now.
+    h.song = song({ timesPlayed: 2, isOriginal: false, originalArtist: "The Beatles", debutDate: "2021-06-01" });
+    const html = await render();
+    expect(html).toContain("cover · The Beatles");
+    expect(html).not.toContain("cover · the beatles");
+    expect(html).not.toMatch(/class="[^"]*\blowercase\b[^"]*">cover/);
   });
 
   it("renders section headings through SectionRule, lowercase, ruled", async () => {
