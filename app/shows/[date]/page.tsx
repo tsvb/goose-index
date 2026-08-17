@@ -7,7 +7,7 @@ import { Setlist } from "@/app/_components/setlist";
 import { ArrowLeft } from "@/app/_components/marks";
 import { ShowHeader } from "@/app/_components/show-header";
 import { LiveRefresh } from "@/app/_components/live-refresh";
-import { FolioNav, NilState, chromeLink } from "@/app/_components/page-chrome";
+import { FolioNav, NilState, chromeLink, chromeDate } from "@/app/_components/page-chrome";
 import { PenRule } from "@/app/_components/pen";
 import { liveCandidateDate } from "@/lib/live";
 import { maybeLiveSync } from "@/lib/sync/maybe-live";
@@ -127,12 +127,12 @@ export default async function ShowPage({ params, searchParams }: Params) {
             <div className="flex items-center gap-1 font-mono text-xs">
               {neighbors.prev && (
                 <Link href={showHref(neighbors.prev.date, neighbors.prev.order)} className="text-muted transition hover:text-ink" title={prevSameDay ? prevLabel : neighbors.prev.venue ?? ""}>
-                  ‹ {formatShortDate(neighbors.prev.date)}
+                  ‹ {chromeDate(neighbors.prev.date)}
                 </Link>
               )}
               {neighbors.next && (
                 <Link href={showHref(neighbors.next.date, neighbors.next.order)} className="text-muted transition hover:text-ink" title={nextSameDay ? nextLabel : neighbors.next.venue ?? ""}>
-                  {formatShortDate(neighbors.next.date)} ›
+                  {chromeDate(neighbors.next.date)} ›
                 </Link>
               )}
             </div>
@@ -214,8 +214,8 @@ export default async function ShowPage({ params, searchParams }: Params) {
             <FolioNav
               prevHref={neighbors.prev ? showHref(neighbors.prev.date, neighbors.prev.order) : null}
               nextHref={neighbors.next ? showHref(neighbors.next.date, neighbors.next.order) : null}
-              prevLabel={neighbors.prev ? `${formatShortDate(neighbors.prev.date)}${neighbors.prev.venue ? ` · ${neighbors.prev.venue}` : ""}` : "previous"}
-              nextLabel={neighbors.next ? `${formatShortDate(neighbors.next.date)}${neighbors.next.venue ? ` · ${neighbors.next.venue}` : ""}` : "next"}
+              prevLabel={neighbors.prev ? `${chromeDate(neighbors.prev.date)}${neighbors.prev.venue ? ` · ${neighbors.prev.venue}` : ""}` : "previous"}
+              nextLabel={neighbors.next ? `${chromeDate(neighbors.next.date)}${neighbors.next.venue ? ` · ${neighbors.next.venue}` : ""}` : "next"}
               center={entryNumber != null ? `entry no. ${entryNumber}` : undefined}
             />
           </Container>

@@ -39,7 +39,7 @@ beforeEach(() => {
 describe("SongsPage head", () => {
   it("renders the lowercase kicker, the 'songs' title, and the count line as meta", async () => {
     const html = await render();
-    expect(html).toContain("goose index · the catalog");
+    expect(html).toMatch(/<p[^>]*>the catalog<\/p>/); // kicker dropped the "goose index · " prefix
     expect(html.match(/<h1[^>]*>/g)?.length).toBe(1);
     expect(html).toMatch(/<h1[^>]*>songs<\/h1>/);
     expect(html).toContain("1 song · sort the whole catalog any way you like");

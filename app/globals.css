@@ -245,8 +245,8 @@
 /* Everything is drawn from theme tokens, so a post reskins with the edition
    and theme like the rest of the site: Caslon letterpress on the almanac
    themes, Plex on XL II, Georgia in the 1.0 document. Colour keeps its one
-   meaning — gold marks structure (markers, the quote rule), sage stays on
-   links via .link, ember appears nowhere because prose has no heat. */
+   meaning — steel marks structure, spruce stays on links via .link, ember
+   appears nowhere because prose has no heat. */
 .post-prose {
   max-width: 68ch;
   font-size: 1.02rem;
@@ -275,10 +275,10 @@
   margin: 0.35em 0;
 }
 .post-prose li::marker {
-  color: var(--gold);
+  color: var(--steel);
 }
 .post-prose blockquote {
-  border-left: 2px solid var(--gold);
+  border-left: 2px solid var(--steel);
   margin: 1.4em 0;
   padding-left: 1.1em;
   color: var(--muted);

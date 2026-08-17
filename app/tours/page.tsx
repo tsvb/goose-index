@@ -69,7 +69,7 @@ export default async function ToursPage() {
               <SectionRule
                 title={group.year}
                 href={`/years/${group.year}`}
-                linkLabel="the year page"
+                linkLabel={`year ${group.year} page`}
                 seed={`tours-year-${group.year}`}
               />
             ) : (

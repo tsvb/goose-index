@@ -89,7 +89,7 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
   return (
     <Container>
       <PageHead
-        kicker="goose index · the catalog"
+        kicker="the catalog"
         title="songs"
         meta={`${compact(total)} ${total === 1 ? "song" : "songs"} · sort the whole catalog any way you like`}
       />

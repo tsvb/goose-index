@@ -1,11 +1,19 @@
 import Link from "next/link";
 import { clsx } from "./clsx";
+import { formatShortDate } from "@/lib/queries/format";
 
 /** The canonical spruce chrome link: underlined, hovers to ink. Covers the
  * one-off spruce links scattered across the fancy/functional pages (crumbs,
  * "back to X", empty-state recovery links) — not the whole-row hover on
  * ledger/search entries, which underlines without a color shift. */
 export const chromeLink = "text-spruce underline underline-offset-4 transition hover:text-ink";
+
+/** Short-date casing rule: mono chrome slots (folio labels, nav) print
+ * lowercase months — "jun 24, 2025" — while authored/data dates elsewhere
+ * (long dates, metadata, ledger rows) keep formatShortDate's normal casing. */
+export function chromeDate(date: string): string {
+  return formatShortDate(date).replace(/^[A-Za-z]+/, (month) => month.toLowerCase());
+}
 
 /** Page opening: lowercase kicker, the title, a mono meta line. No rules,
  * no glow, no motion — sections below start with their own SectionRule. */

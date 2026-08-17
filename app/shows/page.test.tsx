@@ -44,7 +44,7 @@ beforeEach(() => {
 describe("ShowsBrowsePage head", () => {
   it("renders the lowercase kicker, the 'every show' title, and the count line as meta", async () => {
     const html = await render();
-    expect(html).toContain("goose index · shows");
+    expect(html).toMatch(/<p[^>]*>shows<\/p>/); // kicker dropped the "goose index · " prefix
     expect(html.match(/<h1[^>]*>/g)?.length).toBe(1);
     expect(html).toMatch(/<h1[^>]*>every show<\/h1>/);
   });

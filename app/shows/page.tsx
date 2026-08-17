@@ -121,7 +121,7 @@ export default async function ShowsBrowsePage({
     <>
       <AnchorFlash />
       <Container>
-        <PageHead kicker="goose index · shows" title="every show" meta={countLine} />
+        <PageHead kicker="shows" title="every show" meta={countLine} />
 
         <div className="flex flex-col gap-3">
           {/* Year filter */}

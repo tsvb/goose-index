@@ -1,6 +1,15 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { PageHead, FilterLink, FilterRow, FolioNav, NilState } from "./page-chrome";
+import { PageHead, FilterLink, FilterRow, FolioNav, NilState, chromeDate } from "./page-chrome";
+
+describe("chromeDate", () => {
+  it("lowercases formatShortDate's month token for mono chrome slots", () => {
+    expect(chromeDate("2025-06-24")).toBe("jun 24, 2025");
+  });
+  it("only folds the month — the day and year stay as digits", () => {
+    expect(chromeDate("2026-01-05")).toBe("jan 5, 2026");
+  });
+});
 
 describe("PageHead", () => {
   it("renders a lowercase kicker, exactly one h1, and a mono meta line", () => {

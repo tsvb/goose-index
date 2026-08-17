@@ -49,6 +49,11 @@ describe("BlogPage", () => {
     expect(html).toContain("Jul 1, 2026");
     expect(html).toContain("2 posts");
     expect(html).toContain('href="/blog/feed.xml"');
+    // De-carded: ledger rows, not a surface-card list; no eyebrow/gold-hover chrome.
+    expect(html).not.toContain("surface-card");
+    expect(html).not.toContain("eyebrow");
+    expect(html).not.toMatch(/text-gold|hover:text-gold/);
+    expect(html).toContain("group-hover:underline");
   });
 
   it("minimal renders the plain document table with the same links", async () => {

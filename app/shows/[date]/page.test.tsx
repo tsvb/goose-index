@@ -121,8 +121,8 @@ describe("ShowPage prev/next folio footer", () => {
   it("folio labels carry the neighbor's venue, matching the approved mockup", async () => {
     h.neighbors = { prev: neighbor("2025-06-24", 1), next: neighbor("2025-06-26", 2) };
     const html = await render("2025-06-25");
-    expect(html).toContain("Jun 24, 2025 · Venue A");
-    expect(html).toContain("Jun 26, 2025 · Venue A");
+    expect(html).toContain("jun 24, 2025 · Venue A");
+    expect(html).toContain("jun 26, 2025 · Venue A");
   });
 });
 
