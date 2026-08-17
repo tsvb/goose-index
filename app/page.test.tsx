@@ -6,6 +6,7 @@ const h = vi.hoisted(() => ({
   recent: [] as Record<string, unknown>[],
   tonight: [] as Record<string, unknown>[],
   onThisDay: [] as Record<string, unknown>[],
+  firstDate: "2016-08-03" as string | null,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -17,7 +18,7 @@ vi.mock("@/lib/experience.server", () => ({ getExperience: async () => h.experie
 vi.mock("@/lib/queries/stats", () => ({
   getOverviewStats: async () => ({
     showsPlayed: 392, upcoming: 3, songs: 613, songsInCatalog: 621, venues: 191, performances: 6459,
-    firstDate: "2016-08-03", lastPlayedDate: "2026-07-11",
+    firstDate: h.firstDate, lastPlayedDate: "2026-07-11",
   }),
 }));
 vi.mock("@/lib/queries/shows", () => ({
@@ -25,9 +26,6 @@ vi.mock("@/lib/queries/shows", () => ({
   getUpcomingShows: async () => [],
   getOnThisDay: async () => h.onThisDay,
   getTonightShows: async () => h.tonight,
-  // Ledger entries (played shows WITH logged setlists) — deliberately fewer
-  // than showsPlayed (392) to pin that the nameplate cites THIS number.
-  getLedgerEntryCount: async () => 389,
 }));
 
 import Home from "./page";
@@ -47,6 +45,7 @@ beforeEach(() => {
   h.experience = "fancy";
   h.tonight = [];
   h.onThisDay = [];
+  h.firstDate = "2016-08-03";
   h.recent = [
     show(9, "2026-07-10", "Red Rocks", 1),
     show(8, "2026-07-09", "The Cap", 1),
@@ -54,33 +53,42 @@ beforeEach(() => {
 });
 
 describe("Home section headings", () => {
-  it("renders 'On This Day' and 'Latest shows' as real h2s under the single h1", async () => {
+  it("renders 'on this day' and 'latest shows' as real h2s under the single h1", async () => {
     h.onThisDay = [show(7, "2016-07-11", "Nectar's", 1)];
     const html = await render();
     expect(html.match(/<h1/g)).toHaveLength(1);
-    // Casing is unified on "On This Day" everywhere user-facing.
-    expect(html).toMatch(/<h2[^>]*>On This Day/);
-    expect(html).not.toContain("On this day");
-    expect(html).toMatch(/<h2[^>]*>Latest shows<\/h2>/);
+    // The date tail is computed from the fixture's onThisDay date, not hard-coded.
+    expect(html).toMatch(/<h2[^>]*>on this day/);
+    expect(html).toContain("on this day · july 11");
+    expect(html).toMatch(/<h2[^>]*>latest shows<\/h2>/);
+  });
+});
+
+describe("Home layout — the card grid is gone", () => {
+  it("renders no card-grid markup anywhere on the page", async () => {
+    h.onThisDay = [show(7, "2016-07-11", "Nectar's", 1)];
+    h.tonight = [show(99, "2026-07-11", "Tonight Amphitheatre")];
+    const html = await render();
+    expect(html).not.toMatch(/rounded-lg|surface-card|hover:-translate-y/);
   });
 });
 
 describe("Home hero + browse funnels", () => {
-  it("labels the hero show count as 'Shows played', not a bare 'Shows'", async () => {
+  it("labels the hero figure as 'shows played', not a bare 'shows'", async () => {
     const html = await render();
-    expect(html).toContain("Shows played");
-    // The old ambiguous label is gone (would leave a stray "Shows" tile).
-    expect(html).not.toMatch(/>Shows<\/span>/);
+    expect(html).toContain("shows played");
+    // The old ambiguous label is gone (would leave a stray "shows" tile).
+    expect(html).not.toMatch(/>shows<\/span>/);
   });
 
-  it("funnels into Songs and Stats from the browse rail", async () => {
+  it("funnels into songs and stats from the contents rail", async () => {
     const html = await render();
     // Songs row — count comes from the whole songbook, not the played-song total.
     expect(html).toContain('href="/songs"');
     expect(html).toContain("621 songs, sorted any way");
     // Stats row.
     expect(html).toContain('href="/stats"');
-    expect(html).toContain("Cuts, gaps, and debuts");
+    expect(html).toContain("cuts, gaps, and debuts");
   });
 
   it("minimal browse line links Songs and Stats too", async () => {
@@ -92,64 +100,43 @@ describe("Home hero + browse funnels", () => {
   });
 });
 
-describe("Home almanac nameplate", () => {
-  it("computes every nameplate figure from the stats — volume, number, est, span", async () => {
-    // Pin the clock so the volume (years since first show) and the year span
-    // are deterministic; the component derives both at render time.
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-07-20T12:00:00Z"));
-    try {
-      const html = await render();
-      expect(html).toContain('class="almanac-nameplate"');
-      expect(html).toContain("GOOSE INDEX");
-      // firstDate 2016 → VOL. X in 2026, EST. 2016. "No." cites the LEDGER
-      // entry count (389), NOT showsPlayed (392) — the masthead must agree
-      // with the newest show page's Entry No. stamp, not the hero stat.
-      expect(html).toContain("VOL. X · No. 389 · EST. 2016");
-      expect(html).not.toContain("No. 392");
-      expect(html).toContain("AN ALMANAC OF EVERY SHOW · 2016–2026");
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it("adds no heading — the hero h1 stays the page's only h1", async () => {
+describe("Home year ruler", () => {
+  it("renders the record's span when firstDate exists", async () => {
     const html = await render();
-    expect(html).toContain("almanac-nameplate");
-    expect(html.match(/<h1/g)).toHaveLength(1);
+    expect(html).toContain("the record, 2016 → now");
+    expect(html).toContain("text-hand");
   });
 
-  it("keeps the nameplate out of minimal and functional", async () => {
-    for (const exp of ["minimal", "functional"] as const) {
-      h.experience = exp;
-      const html = await render();
-      expect(html).not.toContain("almanac-nameplate");
-    }
+  it("renders no ruler without a firstDate", async () => {
+    h.firstDate = null;
+    const html = await render();
+    expect(html).not.toContain("the record,");
   });
 });
 
 describe("Home Tonight banner", () => {
-  it("renders no banner when nothing is dated today", async () => {
+  it("renders no tonight entry when nothing is dated today", async () => {
     const html = await render();
-    expect(html).not.toContain("live-pill");
-    expect(html).not.toContain("The setlist will appear here live");
+    expect(html).not.toContain("bg-hand");
+    expect(html).not.toContain("the setlist will appear live");
   });
 
-  it("hoists tonight's show into a banner linking to the show page", async () => {
+  it("hoists tonight's show into a ledger entry linking to the show page", async () => {
     h.tonight = [show(99, "2026-07-11", "Tonight Amphitheatre")];
     const html = await render();
-    expect(html).toContain("live-pill");
+    expect(html).toContain("tonight");
+    expect(html).toContain("bg-hand");
     expect(html).toContain("Tonight Amphitheatre");
     expect(html).toContain('href="/shows/2026-07-11"');
-    expect(html).toContain("The setlist will appear here live");
+    expect(html).toContain("the setlist will appear live");
   });
 
-  it("excludes tonight's show from Latest shows", async () => {
+  it("excludes tonight's show from latest shows", async () => {
     const tonightShow = show(99, "2026-07-11", "Tonight Amphitheatre");
     h.tonight = [tonightShow];
     h.recent = [tonightShow, ...h.recent]; // getRecentShows still includes today
     const html = await render();
-    // Once in the banner, not again as a "no setlist" card under Freshly logged.
+    // Once in the tonight ledger, not again as a "no setlist" entry under Latest shows.
     expect(html.split("Tonight Amphitheatre").length - 1).toBe(1);
     expect(html).toContain("Red Rocks"); // the rest of the recents survive
   });
