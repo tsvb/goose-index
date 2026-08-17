@@ -61,7 +61,7 @@ not a page.
 
 The statistics pages deliberately avoid a generic chart component. The rules — each question
 gets the form its number actually is; colour means exactly one thing per section; a claim
-never travels without its evidence — are written up under **"How the charts work"** in
+never travels without its evidence — are written up under **"The charts are the point"** in
 [`README.md`](README.md). Read it before changing a chart; breaking one of those rules is a
 bug even when it renders. (Kept there rather than repeated here, so the two can't drift.)
 
