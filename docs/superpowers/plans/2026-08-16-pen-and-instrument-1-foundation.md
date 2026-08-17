@@ -122,7 +122,7 @@ Immediately after the new `:root` block, add (the duplication between the two sl
 }
 ```
 
-Then delete **every** remaining rule whose selector mentions `data-theme` — the `[data-theme="light"|"dark"|"pod"|"xl2"|"registrar"]` token blocks and all theme-scoped reskins (almanac masthead/nameplate/entry-stamp/entry-folio/setlist/tape/notes blocks, xl2 and registrar body/heading/chart/scrollbar/selection overrides). Verify with:
+Then delete **every** remaining rule whose selector mentions `data-theme` — the `[data-theme="light"|"dark"|"pod"|"xl2"|"registrar"]` token blocks and all theme-scoped reskins (almanac masthead/nameplate/entry-stamp/entry-folio/setlist/tape/notes blocks, xl2 and registrar body/heading/chart/scrollbar/selection overrides). **Exception — the `--nugs-*` link palette:** the old `[data-theme="light"]` block carried WCAG-driven light-paper overrides for `--nugs-link/-strong`, `--nugs-watch/-strong`, `--nugs-track`; that split is contrast machinery, not a theme identity. Port it: the light-safe values go on `:root` (fog), and the surviving dark-safe defaults move into **both** slate blocks added above (keeping the `data-theme` grep count at 2). Verify with:
 
 Run: `grep -c 'data-theme' app/globals.css`
 Expected: `2` (the two slate selectors added above)
@@ -171,7 +171,9 @@ In `@layer base`: change `::selection` to `background: var(--steel); color: var(
 [data-experience="fancy"] :is(.rounded, .rounded-md, .rounded-lg, .rounded-xl) {
   border-radius: 0;
 }
-[data-experience="fancy"] .hover\:-translate-y-0\.5:hover { transform: none; }
+/* Tailwind v4 compiles -translate-y-* to the `translate` property; keep
+   `transform: none` too in case a future utility routes through it. */
+[data-experience="fancy"] .hover\:-translate-y-0\.5:hover { translate: none; transform: none; }
 [data-experience="fancy"] [class*="hover:shadow"]:hover { box-shadow: none; }
 ```
 
