@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const h = vi.hoisted(() => ({ forcedOpen: false }));
+const h = vi.hoisted(() => ({ forcedOpen: false, pathname: "/" }));
 
 // The drawer only renders when `open` is true, and the node test environment
 // can't click the trigger. Flip MobileNav's first useState(false) — the open
@@ -21,13 +21,14 @@ vi.mock("react", async (importOriginal) => {
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: () => {}, push: () => {} }),
-  usePathname: () => "/",
+  usePathname: () => h.pathname,
 }));
 
 import { MobileNav, bindSheetDismissal } from "./mobile-nav";
 
 beforeEach(() => {
   h.forcedOpen = false;
+  h.pathname = "/";
 });
 
 describe("MobileNav drawer", () => {
@@ -55,10 +56,20 @@ describe("MobileNav drawer", () => {
     expect(html).not.toContain("shadow");
   });
 
-  it("nav links are lowercase text, active state reads text-steel not text-gold", () => {
+  it("nav links render lowercase text, no text-gold anywhere", () => {
     const html = renderToStaticMarkup(<MobileNav />);
     expect(html).toContain(">shows<");
     expect(html).not.toContain("text-gold");
+  });
+
+  it("the active section link reads text-steel; the rest stay text-ink", () => {
+    h.pathname = "/shows";
+    const html = renderToStaticMarkup(<MobileNav />);
+    const showsLink = html.match(/<a[^>]*href="\/shows"[^>]*>[^<]*<\/a>/)?.[0];
+    const songsLink = html.match(/<a[^>]*href="\/songs"[^>]*>[^<]*<\/a>/)?.[0];
+    expect(showsLink).toContain("text-steel");
+    expect(songsLink).toContain("text-ink");
+    expect(songsLink).not.toContain("text-steel");
   });
 
   it("offsets the scrim and sheet by the live header height, not a hardcoded top-16", () => {
