@@ -54,18 +54,19 @@ export function CutSwitcher({ active }: { active: string }) {
 export function StatsShell({ cut, children }: { cut: CutMeta; children: ReactNode }) {
   return (
     <>
-      <header className="relative overflow-hidden border-b border-line">
-        <div className="stage-glow inset-x-0 top-0 h-72" />
-        <Container className="relative py-9">
+      {/* PageHead-style markup, written inline: the kicker carries a real
+          stats link (PageHead's own kicker is plain text only). */}
+      <header className="border-b border-line">
+        <Container className="py-10 sm:py-14">
           <p className="text-[0.7rem] lowercase text-faint">
             <Link href="/stats" className={chromeLink}>
               stats
             </Link>
           </p>
-          <h1 className="mt-3 font-display text-[2.2rem] leading-none tracking-tight text-ink sm:text-4xl">
+          <h1 className="mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
             {cut.title}
           </h1>
-          <p className="mt-2 font-mono text-xs text-faint">{cut.blurb}</p>
+          <p className="mt-2 font-mono text-[0.75rem] text-faint">{cut.blurb}</p>
         </Container>
       </header>
       <Container className="py-8">
