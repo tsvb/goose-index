@@ -69,8 +69,10 @@ contrast but must keep the roles and the temperature.
 - Hand yellow is the Braun second hand, and the successor of XL II's "one warm filament."
   It is brighter in the dark, like the real clocks. It is never text-only: a yellow mark
   always accompanies a written value, so color is never the sole carrier.
-- Ember retires with the old palette. Setlist heat moves to ink weight plus explicit
-  duration figures.
+- Ember survived the retune as its own role (decided during plans 1–4): **heat, overdue,
+  and the text-safe amber** — jam tape segments, red-zone rings and needles, and every
+  amber word ("live", "tonight", hot-day labels). It is derived from the hand's amber
+  family but tuned to 4.5:1 text contrast per theme.
 - Type: `-apple-system, system-ui, sans-serif` everywhere; `font-variant-numeric:
   tabular-nums` on all data. No display faces, no webfonts, nothing shipped.
 - Voice: site chrome (headings, labels, nav, buttons, empty states) is lowercase.
@@ -104,7 +106,7 @@ contrast but must keep the roles and the temperature.
 | Controls (filters, sort, pagination) | Underlined lowercase text; pagination as folio numbers. No pills, no rounded buttons. |
 | Inputs (search) | A hairline-underlined field, no box. |
 | Empty state | A nil sentence: `no shows match. —` No dashed boxes. |
-| Live | Yellow dot + lowercase `live`/`tonight` in hand yellow; the live-refresh behavior is unchanged. |
+| Live | Hand-yellow dot (the mark) + lowercase `live`/`tonight` words in ember (text-safe amber); the live-refresh behavior is unchanged. |
 | Notes/prose asides | Pen-ruled margin paragraphs (the "from the notes" treatment), not accent-bordered cards. |
 | Loading | Plain pulse lines in `--line-soft`; no card-shaped skeletons. |
 
