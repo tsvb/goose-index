@@ -79,7 +79,13 @@ contrast but must keep the roles and the temperature.
   animation and all hover-lift/translate effects retire. `prefers-reduced-motion` stills
   the dot too.
 - Hover affordance: whole-entry links show a hairline underline under their title on
-  hover; inline prose links are spruce-underlined always. Nothing moves, nothing glows.
+  hover — underline ONLY, no color shift; inline prose links are spruce-underlined
+  always. Nothing moves, nothing glows.
+- Controls split by role: filter *states* are FilterLinks (steel when active); chrome
+  *actions* (sort toggles, jump links, companion links) are spruce — a control that can
+  never be "active" is an action, not a filter. (Settled at the plan-3 review.)
+- Casing at the boundary: user search terms, venue names, tour names, and song titles are
+  authored/data — no CSS `lowercase` may sit on an element that renders them.
 
 ## The vocabulary (content kind → form)
 
