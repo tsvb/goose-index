@@ -173,7 +173,7 @@ export function ShowHeader({
             // would read like a broken page, not a pending one.
             <>
               <span>Setlist not yet in the ledger — check back soon</span>
-              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className="text-sage transition hover:text-ink">View on elgoose ↗</a></>)}
+              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className={chromeLink}>View on elgoose ↗</a></>)}
             </>
           ) : (
             <>
@@ -182,7 +182,7 @@ export function ShowHeader({
               <span><span className="text-ink">{setCount}</span> {setCount === 1 ? "set" : "sets"}</span>
               {encores > 0 && (<><span className="text-line">·</span><span><span className="text-ink">{encores}</span> {encores === 1 ? "encore" : "encores"}</span></>)}
               {durationLogged && (<><span className="text-line">·</span><span><span className="text-ink">{durationLogged}</span> logged</span></>)}
-              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className="text-sage transition hover:text-ink">View on elgoose ↗</a></>)}
+              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className={chromeLink}>View on elgoose ↗</a></>)}
               <span className="text-line">·</span>
               <ShowBandcamp url={show.bandcampUrl} />
               <ShowNugs date={date} venue={show.venue} />

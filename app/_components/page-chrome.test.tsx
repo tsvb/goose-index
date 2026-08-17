@@ -80,6 +80,20 @@ describe("FilterLink", () => {
     expect(html).toContain("Simmer Down Tour");
     expect(html).not.toMatch(/\blowercase\b/);
   });
+  it("active carries aria-current=\"page\"; inactive carries none", () => {
+    const activeHtml = renderToStaticMarkup(
+      <FilterLink href="/x" active>
+        x
+      </FilterLink>,
+    );
+    expect(activeHtml).toContain('aria-current="page"');
+    const inactiveHtml = renderToStaticMarkup(
+      <FilterLink href="/x" active={false}>
+        x
+      </FilterLink>,
+    );
+    expect(inactiveHtml).not.toContain("aria-current");
+  });
 });
 
 describe("FilterRow", () => {

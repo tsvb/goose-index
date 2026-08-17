@@ -46,7 +46,7 @@ describe("BlogPage", () => {
     expect(html).toContain('href="/blog/first-post"');
     expect(html).toContain("The second post");
     expect(html).toContain("A later note about the charts.");
-    expect(html).toContain("Jul 1, 2026");
+    expect(html).toContain("jul 1, 2026");
     expect(html).toContain("2 posts");
     expect(html).toContain('href="/blog/feed.xml"');
     // De-carded: ledger rows, not a surface-card list; no eyebrow/gold-hover chrome.

@@ -40,8 +40,8 @@ export async function generateMetadata({ params }: Params, parent: ResolvingMeta
 
 /** Legend for the gap sparkline — must describe only what the chart actually renders. */
 function gapLegend(hasBusts: boolean, longestGap: number | null, timesPlayed: number): string {
-  if (hasBusts) return `Orange = a "Dusted Off" return (gap in this song's longest 5%, ≥15 shows).`;
-  if ((longestGap ?? 0) > 0) return `Orange = the longest gap (${longestGap} shows). No "Dusted Off" returns yet — that takes a gap of ≥15 shows.`;
+  if (hasBusts) return `The ember bars mark "Dusted Off" returns (gap in this song's longest 5%, ≥15 shows).`;
+  if ((longestGap ?? 0) > 0) return `The ember bar marks the longest gap (${longestGap} shows). No "Dusted Off" returns yet — that takes a gap of ≥15 shows.`;
   return timesPlayed === 1 ? "Played once — no gaps between plays yet." : "No gaps yet — played at every show since its debut.";
 }
 

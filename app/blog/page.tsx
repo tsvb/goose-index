@@ -2,10 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb } from "@/app/_components/doc";
-import { PageHead, chromeLink } from "@/app/_components/page-chrome";
+import { PageHead, chromeLink, chromeDate } from "@/app/_components/page-chrome";
 import { SectionRule, Ledger } from "@/app/_components/forms";
 import { listPosts } from "@/lib/blog/posts";
-import { formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
 
@@ -81,7 +80,7 @@ export default async function BlogPage() {
         <Ledger seed="blog">
           {posts.map((p) => (
             <Link key={p.slug} href={`/blog/${p.slug}`} className="group flex flex-col gap-1 py-3">
-              <span className="font-mono text-xs text-steel">{formatShortDate(p.date)}</span>
+              <span className="font-mono text-xs text-steel">{chromeDate(p.date)}</span>
               <span className="text-[1.05rem] text-ink underline-offset-4 group-hover:underline">{p.title}</span>
               <span className="text-sm text-muted">{p.summary}</span>
             </Link>

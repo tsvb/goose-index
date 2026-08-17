@@ -57,6 +57,7 @@ export function FilterLink({
   return (
     <Link
       href={href}
+      aria-current={active ? "page" : undefined}
       className={clsx(
         "font-mono text-xs underline underline-offset-4 transition",
         !preserveCase && "lowercase",

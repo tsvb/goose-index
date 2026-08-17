@@ -4,11 +4,11 @@ import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { MapPin } from "@/app/_components/marks";
 import { Doc, Breadcrumb, MetaTable, DocSection, ShowTable } from "@/app/_components/doc";
-import { NilState, chromeLink } from "@/app/_components/page-chrome";
+import { NilState, chromeLink, chromeDate } from "@/app/_components/page-chrome";
 import { Ledger, LedgerEntry } from "@/app/_components/forms";
 import { getVenueMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
-import { locationLine, compact, formatShortDate } from "@/lib/queries/format";
+import { locationLine, compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { entityMetadata } from "@/lib/site";
 
@@ -70,10 +70,10 @@ export default async function VenuePage({ params }: Params) {
     statParts.push(`cap. ${compact(venue.capacity)}`);
   }
   if (venue.first) {
-    statParts.push(`first ${formatShortDate(venue.first)}`);
+    statParts.push(`first ${chromeDate(venue.first)}`);
   }
   if (venue.last) {
-    statParts.push(`last ${formatShortDate(venue.last)}`);
+    statParts.push(`last ${chromeDate(venue.last)}`);
   }
 
   return (

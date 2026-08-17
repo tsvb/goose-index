@@ -39,9 +39,11 @@ describe("StatsCut cut-switcher and methodology footnote", () => {
     const idx = html.lastIndexOf(">Most Overdue<");
     const tag = html.slice(html.lastIndexOf("<a", idx), idx);
     expect(tag).toContain("text-steel");
+    expect(tag).toContain('aria-current="page"');
     const otherIdx = html.indexOf(">Rarities<");
     const otherTag = html.slice(html.lastIndexOf("<a", otherIdx), otherIdx);
     expect(otherTag).not.toContain("text-steel");
+    expect(otherTag).not.toContain("aria-current");
     expect(html).toContain('href="/stats/set-stats"');
   });
 

@@ -90,6 +90,7 @@ describe("Oracle page (fancy)", () => {
     const idx = html.lastIndexOf(">Oracle<");
     const tag = html.slice(html.lastIndexOf("<a", idx), idx);
     expect(tag).toContain("text-steel"); // oracle is the active filter
+    expect(tag).toContain('aria-current="page"');
     expect(html).toContain("Five readings off the catalog"); // methodology footnote
   });
 

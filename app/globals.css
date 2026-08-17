@@ -41,8 +41,9 @@
      needs to clear 3:1 (it's a mark, always paired with written values),
      but --ember is consumed as TEXT (.live-pill, .overdue, .song-bust) and
      has to clear 4.5:1 on its own. Same amber family as --hand, darkened
-     for the text role. Ember aliases retire with Plan 5; until then --ember
-     is heat/live text, derived from the hand's amber but text-safe. */
+     for the text role. Ember is a permanent role — heat, overdue, and the
+     text-safe amber — not a legacy alias; it survives the Plan 5 alias
+     purge, tuned to 4.5:1 text contrast per theme. */
   --ember: #8a6504;
   --shadow: transparent;
 }
@@ -64,7 +65,8 @@
     color-scheme: dark;
     /* --ember: the hand's amber already clears 4.5:1 as text on slate
        paper, so unlike fog it doesn't need its own darker literal — same
-       value as --hand, named for the text role. Retires with Plan 5. */
+       value as --hand, named for the text role. A permanent role (see the
+       :root block above), not a legacy alias. */
     --ember: #f2b705;
 
     /* Dark-safe nugs text colors — WCAG contrast machinery ported from the
