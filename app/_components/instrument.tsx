@@ -46,9 +46,9 @@ export function TickRuler({
           </text>
         ))}
         {reading && (
-          <g className="text-hand">
-            <line x1={x(reading.at, min, max)} y1={BASE} x2={x(reading.at, min, max)} y2={4} stroke="currentColor" strokeWidth="2" />
-            <circle cx={x(reading.at, min, max)} cy={4} r="2.2" fill="currentColor" stroke="none" />
+          <g>
+            <line x1={x(reading.at, min, max)} y1={BASE} x2={x(reading.at, min, max)} y2={4} stroke="var(--hand)" strokeWidth="2" />
+            <circle cx={x(reading.at, min, max)} cy={4} r="2.2" fill="var(--hand)" stroke="none" />
           </g>
         )}
       </svg>

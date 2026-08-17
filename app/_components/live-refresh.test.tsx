@@ -99,9 +99,9 @@ describe("bindLiveRefresh — visibility-aware polling", () => {
 });
 
 describe("LiveRefresh markup", () => {
-  it("renders the live pill by default", () => {
+  it("renders the live flag by default", () => {
     const html = renderToStaticMarkup(<LiveRefresh />);
-    expect(html).toContain("live-pill");
+    expect(html).toContain("live-flag");
     expect(html).toContain(">live<");
     expect(html).not.toContain("LIVE");
     expect(html).toContain('role="status"');
@@ -111,6 +111,6 @@ describe("LiveRefresh markup", () => {
     const html = renderToStaticMarkup(<LiveRefresh minimal />);
     expect(html).toContain("doc-live");
     expect(html).toContain("in progress");
-    expect(html).not.toContain("live-pill");
+    expect(html).not.toContain("live-flag");
   });
 });

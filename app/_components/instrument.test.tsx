@@ -17,12 +17,17 @@ describe("TickRuler", () => {
     const html = renderToStaticMarkup(
       <TickRuler min={2014} max={2026} majors={majors} reading={{ at: 2026, label: "now" }} />,
     );
-    expect(html).toContain("text-hand");
+    // Explicit stroke/fill, not "text-hand" — text-hand on running text is the
+    // bug this rule exists to catch; the reading's line+circle carry the mark
+    // as SVG paint attributes instead.
+    expect(html).toContain('stroke="var(--hand)"');
+    expect(html).toContain('fill="var(--hand)"');
+    expect(html).not.toContain("text-hand");
     expect(html).toContain("now");
   });
   it("no reading, no hand", () => {
     const html = renderToStaticMarkup(<TickRuler min={2014} max={2026} majors={majors} />);
-    expect(html).not.toContain("text-hand");
+    expect(html).not.toContain("var(--hand)");
   });
   it("is crisp — instruments never wobble", () => {
     const html = renderToStaticMarkup(<TickRuler min={0} max={10} majors={[{ at: 0, label: "0" }]} />);
@@ -44,7 +49,7 @@ describe("Gauge", () => {
     const html = renderToStaticMarkup(<Gauge min={0} max={100} value={74} unit="shows" />);
     expect(html).toContain("74");
     expect(html).toContain("shows");
-    expect(html).toContain("text-hand");
+    expect(html).toContain('stroke="var(--hand)"');
   });
   it("degenerate scale (min === max) renders clean — no NaN coordinates, no warnings", () => {
     // Key uniqueness on degenerate scales is by construction (index keys) and

@@ -104,7 +104,7 @@ describe("Home year ruler", () => {
   it("renders the record's span when firstDate exists", async () => {
     const html = await render();
     expect(html).toContain("the record, 2016 → now");
-    expect(html).toContain("text-hand");
+    expect(html).toContain('stroke="var(--hand)"');
   });
 
   it("renders no ruler without a firstDate", async () => {
@@ -146,7 +146,7 @@ describe("Home Tonight banner", () => {
     h.experience = "minimal";
     h.tonight = [show(99, "2026-07-11", "Tonight Amphitheatre")];
     const html = await render();
-    expect(html).not.toContain("live-pill");
+    expect(html).not.toContain("live-flag");
     expect(html).toContain("Tonight");
     expect(html).toContain('href="/shows/2026-07-11"');
     expect(html).toContain("the setlist will appear live");

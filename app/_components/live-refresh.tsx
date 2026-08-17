@@ -53,7 +53,7 @@ export function LiveRefresh({ minimal }: { minimal?: boolean }) {
     return <p className="doc-live" role="status">This show is in progress — the setlist updates automatically.</p>;
   }
   return (
-    <span className="live-pill" role="status" aria-label="Show in progress — the setlist updates automatically">
+    <span className="live-flag" role="status" aria-label="Show in progress — the setlist updates automatically">
       <span className="live-dot" aria-hidden />
       live
     </span>

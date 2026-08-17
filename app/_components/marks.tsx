@@ -18,34 +18,6 @@ function Svg({ className, strokeWidth = 1.5, children }: IconProps & { children:
   );
 }
 
-/** The signature mark: a goose feather (also the index's quill). */
-export function Feather({ className, strokeWidth }: IconProps) {
-  return (
-    <Svg className={className} strokeWidth={strokeWidth}>
-      <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" />
-      <path d="M16 8 2 22" />
-      <path d="M17.5 15H9" />
-    </Svg>
-  );
-}
-
-export function Sun({ className, strokeWidth }: IconProps) {
-  return (
-    <Svg className={className} strokeWidth={strokeWidth}>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-    </Svg>
-  );
-}
-
-export function Moon({ className, strokeWidth }: IconProps) {
-  return (
-    <Svg className={className} strokeWidth={strokeWidth}>
-      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-    </Svg>
-  );
-}
-
 export function Search({ className, strokeWidth }: IconProps) {
   return (
     <Svg className={className} strokeWidth={strokeWidth}>
@@ -64,15 +36,6 @@ export function ArrowLeft({ className, strokeWidth }: IconProps) {
   );
 }
 
-export function ArrowRight({ className, strokeWidth }: IconProps) {
-  return (
-    <Svg className={className} strokeWidth={strokeWidth}>
-      <path d="M5 12h14" />
-      <path d="m12 5 7 7-7 7" />
-    </Svg>
-  );
-}
-
 /** Jam-chart marker. */
 export function Flame({ className, strokeWidth }: IconProps) {
   return (
@@ -87,62 +50,6 @@ export function MapPin({ className, strokeWidth }: IconProps) {
     <Svg className={className} strokeWidth={strokeWidth}>
       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
       <circle cx="12" cy="10" r="3" />
-    </Svg>
-  );
-}
-
-export function Calendar({ className, strokeWidth }: IconProps) {
-  return (
-    <Svg className={className} strokeWidth={strokeWidth}>
-      <rect width="18" height="18" x="3" y="4" rx="2" />
-      <path d="M3 10h18M8 2v4M16 2v4" />
-    </Svg>
-  );
-}
-
-export function Menu({ className, strokeWidth }: IconProps) {
-  return (
-    <Svg className={className} strokeWidth={strokeWidth}>
-      <path d="M4 6h16M4 12h16M4 18h16" />
-    </Svg>
-  );
-}
-
-export function X({ className, strokeWidth }: IconProps) {
-  return (
-    <Svg className={className} strokeWidth={strokeWidth}>
-      <path d="M18 6 6 18M6 6l12 12" />
-    </Svg>
-  );
-}
-
-export function Disc({ className, strokeWidth }: IconProps) {
-  return (
-    <Svg className={className} strokeWidth={strokeWidth}>
-      <circle cx="12" cy="12" r="9" />
-      <circle cx="12" cy="12" r="2.5" />
-    </Svg>
-  );
-}
-
-/** Compact cassette — the shell, two hubs, and the pinch-roller notch. */
-export function Cassette({ className, strokeWidth }: IconProps) {
-  return (
-    <Svg className={className} strokeWidth={strokeWidth}>
-      <rect x="2" y="5" width="20" height="14" rx="1.5" />
-      <circle cx="8.5" cy="11.5" r="2" />
-      <circle cx="15.5" cy="11.5" r="2" />
-      <path d="M7 19l1.4-2.4h7.2L17 19" />
-    </Svg>
-  );
-}
-
-/** Accession tag — the string hole where a hand-written label would hang. */
-export function Tag({ className, strokeWidth }: IconProps) {
-  return (
-    <Svg className={className} strokeWidth={strokeWidth}>
-      <path d="M11 3H5a2 2 0 0 0-2 2v6l9.5 9.5a2 2 0 0 0 2.83 0l5.67-5.67a2 2 0 0 0 0-2.83L11.83 3.34A2 2 0 0 0 11 3Z" />
-      <circle cx="7.5" cy="7.5" r="1.25" />
     </Svg>
   );
 }

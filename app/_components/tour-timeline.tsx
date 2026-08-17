@@ -162,7 +162,21 @@ export function TourTimeline({
                     // hand; the tour-name label is text, so it stays in ember — hand is
                     // a mark-only color, never text (see the pen & instrument roles).
                     const markColour = future ? "var(--faint)" : hot ? "var(--hand)" : "var(--steel)";
-                    const nameColour = future ? "var(--faint)" : hot ? "var(--ember)" : "var(--steel)";
+                    // The label sits on its own bar's tinted wash (22%/30% color-mix over
+                    // --bg-deep), not on plain paper — a computed background the standing
+                    // contrast gate (app/globals-contrast.test.ts) can't see, since it only
+                    // reads :root hex literals. Measured (scratchpad script, CSS Color 4
+                    // srgb math + WCAG luminance): plain --steel/--ember on that wash is
+                    // 3.65:1 fog / 3.85:1 slate (steel) and 3.52:1 fog / 4.24:1 slate
+                    // (ember) — below the site's 4.5:1 text floor. Mixing 30% toward --ink
+                    // (same idiom as the steel-mix hover recipes elsewhere) clears it in
+                    // both themes: steel 5.09:1 fog / 5.03:1 slate, ember 4.96:1 fog /
+                    // 4.75:1 slate. See tour-timeline-label-contrast.test.ts.
+                    const nameColour = future
+                      ? "var(--faint)"
+                      : hot
+                        ? "color-mix(in srgb, var(--ember) 70%, var(--ink) 30%)"
+                        : "color-mix(in srgb, var(--steel) 70%, var(--ink) 30%)";
                     const top = 2 + li * (LANE.h + LANE.gap);
                     const pct = (iso: string) => (dayOfYear(iso) / days) * 100;
 

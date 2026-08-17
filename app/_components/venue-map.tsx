@@ -79,10 +79,7 @@ export function VenueMap({ states, countries }: { states: StateShows[]; countrie
           <span className="text-[0.7rem] lowercase text-faint">beyond the us</span>
           <ul className="mt-3 flex flex-wrap gap-2">
             {countries.map((c) => (
-              <li
-                key={c.country}
-                className="flex items-baseline gap-2 rounded border border-line bg-surface/60 px-3 py-1.5"
-              >
+              <li key={c.country} className="flex items-baseline gap-2 py-1">
                 <span className="font-display text-[0.9rem] text-ink">{c.country}</span>
                 <span className="font-mono text-[0.65rem] tabular-nums text-ink">{c.shows}</span>
                 <span className="font-mono text-[0.6rem] text-faint">

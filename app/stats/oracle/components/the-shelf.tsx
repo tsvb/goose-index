@@ -162,7 +162,7 @@ export function TheShelf({ data }: { data: ShelfRow[] }) {
               </div>
               <div className="mt-2 w-full">
                 {song.slug ? (
-                  <Link href={`/songs/${song.slug}`} className="block truncate font-display text-[0.9rem] text-ink hover:text-steel">
+                  <Link href={`/songs/${song.slug}`} className="block truncate font-display text-[0.9rem] text-ink underline-offset-4 hover:underline">
                     {song.name}
                   </Link>
                 ) : (

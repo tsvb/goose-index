@@ -56,6 +56,13 @@ describe("CareerChart", () => {
     expect(html).toContain("107 shows");
   });
 
+  it("draws every non-peak year's bar in steel, not the retired gold alias", () => {
+    const html = renderToStaticMarkup(<CareerChart years={YEARS} />);
+    // 2022 and 2026 aren't the peak (2017 is) — their fill must be steel.
+    expect(html).toContain("background:var(--steel)");
+    expect(html).not.toMatch(/background:var\(--gold/);
+  });
+
   it("links each year to its own page", () => {
     const html = renderToStaticMarkup(<CareerChart years={YEARS} />);
     expect(html).toContain('href="/years/2017"');

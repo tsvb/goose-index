@@ -96,6 +96,21 @@ describe("TourTimeline", () => {
     expect(html).toContain("Summer Tour 2018");
   });
 
+  it("draws the non-busiest run's bar and ticks in steel, not the retired gold alias", () => {
+    const html = renderToStaticMarkup(
+      <TourTimeline
+        today={TODAY}
+        untouredShows={0}
+        tours={[
+          tour({ tourId: 1, name: "Small Tour 2019", start: "2019-01-01", end: "2019-01-10", shows: 3 }),
+          tour({ tourId: 2, name: "Summer Tour 2018", start: "2018-06-01", end: "2018-09-01", shows: 32 }),
+        ]}
+      />,
+    );
+    expect(html).toContain("var(--steel)");
+    expect(html).not.toMatch(/var\(--gold/);
+  });
+
   it("renders nothing rather than an empty frame", () => {
     expect(renderToStaticMarkup(<TourTimeline tours={[]} untouredShows={0} today={TODAY} />)).toBe("");
   });

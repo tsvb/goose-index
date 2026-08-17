@@ -127,7 +127,7 @@ const THRESHOLDS: { token: string; min: number }[] = [
   { token: "steel", min: 4.5 }, // dates/structure text
   { token: "spruce", min: 4.5 }, // links
   { token: "hand", min: 3.0 }, // a mark, always paired with written values
-  { token: "ember", min: 4.5 }, // heat/live text (.live-pill, .overdue, .song-bust)
+  { token: "ember", min: 4.5 }, // heat/live text (.live-flag, .overdue, .song-bust)
 ];
 
 describe("fog theme — token contrast against --paper", () => {

@@ -104,7 +104,7 @@ export function VenueDepth({ data }: { data: DeepestVenueRow[] }) {
               </p>
               <p className="mt-0.5 truncate text-center font-display text-[0.82rem] text-ink">
                 {v.slug ? (
-                  <Link href={`/venues/${v.slug}`} className="hover:text-steel">
+                  <Link href={`/venues/${v.slug}`} className="underline-offset-4 hover:underline">
                     {v.name}
                   </Link>
                 ) : (

@@ -40,7 +40,7 @@
   --surface-2: color-mix(in oklab, var(--ink) 5%, var(--paper));
   /* --ember is its own AA-safe literal, not a --hand alias: --hand only
      needs to clear 3:1 (it's a mark, always paired with written values),
-     but --ember is consumed as TEXT (.live-pill, .overdue, .song-bust) and
+     but --ember is consumed as TEXT (.live-flag, .overdue, .song-bust) and
      has to clear 4.5:1 on its own. Same amber family as --hand, darkened
      for the text role. Ember is a permanent role — heat, overdue, and the
      text-safe amber — not a legacy alias; it survives the Plan 5 alias
@@ -178,13 +178,22 @@
 /* Tabular figures wherever data is set in mono. */
 .font-mono { font-variant-numeric: tabular-nums; }
 
-/* ---- De-carding bridge (outlives Plan 5 Task 2) ----
+/* ---- De-carding bridge (outlives Plan 5 Task 3) ----
    Until every page is rebuilt on the new forms, nothing floats and nothing
    is a rounded box. rounded-full is exempt so icon circles stay circles
    until their components retire. Deletion is gated on a zero-consumer grep
-   for .rounded/.rounded-md/.rounded-lg/.rounded-xl in fancy-rendered
-   components — real ones remain (e.g. songs/page.tsx, venues/page.tsx,
-   setlist/fancy.tsx), so this block stays for a later task. */
+   for bare .rounded/.rounded-md/.rounded-lg/.rounded-xl class TOKENS (not
+   variant-prefixed ones like focus:rounded-md, which compile to their own
+   selector and never match this rule) inside markup that actually renders
+   under data-experience="fancy". Plan 5 Task 3 re-ran that grep after its
+   stragglers landed: venue-map.tsx's country chips (a real prior consumer)
+   lost their `rounded border`, and two entries an earlier pass flagged —
+   songs/page.tsx and venues/page.tsx — turned out on inspection to sit
+   inside `experience === "functional"` branches only, never fancy, so they
+   were never actually live for this selector. What remains: setlist/
+   fancy.tsx's empty-state card (`rounded-lg`) and skeleton.tsx's
+   SkeletonBar (`rounded`, deliberately experience-neutral so it renders
+   under fancy too). Still non-zero, so this block stays. */
 [data-experience="fancy"] :is(.rounded, .rounded-md, .rounded-lg, .rounded-xl) {
   border-radius: 0;
 }
@@ -192,19 +201,6 @@
    `transform: none` too in case a future utility routes through it. */
 [data-experience="fancy"] .hover\:-translate-y-0\.5:hover { translate: none; transform: none; }
 [data-experience="fancy"] [class*="hover:shadow"]:hover { box-shadow: none; }
-
-/* Hairline rule — 1px --line, faded to transparent at both ends so it
-   reads as a quiet divider rather than a hard edge. */
-.hairline {
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    var(--line) 8%,
-    var(--line) 92%,
-    transparent
-  );
-}
 
 /* Link affordance for inline text links */
 .link {
@@ -355,20 +351,6 @@
   border-radius: 0;
 }
 
-/* ---- Motion ---- */
-@keyframes fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.fade-in {
-  animation: fade 0.9s ease both;
-}
-@media (prefers-reduced-motion: reduce) {
-  .fade-in {
-    animation: none;
-  }
-}
-
 /* Custom scrollbar — warm, unobtrusive */
 * {
   scrollbar-color: var(--line) transparent;
@@ -399,7 +381,7 @@
   --ink: #2a3a47;
   /* Text tokens hold ≥4.5:1 (WCAG AA) on --bg and --surface — blue-slate
      grays, gel blues, and the link green pulled darker; ember darkened for
-     its text roles (.overdue, .live-pill). */
+     its text roles (.overdue, .live-flag). */
   --muted: #526577;
   --faint: #5a6c7c;
   --line: #c4d4e2;
@@ -589,17 +571,8 @@
 [data-experience="minimal"] ol.doc-notes { font-size: 0.9rem; color: var(--muted); padding-left: 1.4rem; line-height: 1.55; }
 [data-experience="minimal"] .doc-foot { margin-top: 1.8rem; padding-top: 0.6rem; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--muted); }
 
-/* Drop atmosphere + entrance motion outside Fancy. */
-[data-experience="functional"] .stage-glow,
-[data-experience="minimal"] .stage-glow {
-  display: none;
-}
-[data-experience="functional"] .fade-in,
-[data-experience="minimal"] .fade-in {
-  animation: none;
-}
 /* ---- Phase 2: song stats (Fancy base; Functional reskin below) ---- */
-.song-ribbon { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 1rem 0; }
+.song-ribbon { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); overflow: hidden; margin: 1rem 0; }
 .song-fact { background: var(--surface); padding: 0.6rem 0.85rem; }
 .song-fact-v { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; color: var(--ink); font-variant-numeric: tabular-nums; }
 .song-fact-k { font-size: 0.65rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
@@ -616,25 +589,19 @@
 
 .song-ppy { display: flex; align-items: flex-end; gap: 4px; height: 96px; border-bottom: 1px solid var(--line); }
 .song-ppy-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
-.song-ppy-bar { width: 100%; background: linear-gradient(180deg, var(--steel), color-mix(in oklab, var(--steel) 70%, black)); border-radius: 3px 3px 0 0; min-height: 3px; }
+.song-ppy-bar { width: 100%; background: var(--steel); min-height: 3px; }
 .song-ppy-ct { font-size: 0.65rem; color: var(--muted); }
 .song-ppy-yr { font-size: 0.65rem; color: var(--faint); }
 
 .song-bars { display: grid; gap: 6px; }
 .song-barrow { display: grid; grid-template-columns: 84px 1fr 40px; align-items: center; gap: 10px; font-size: 0.82rem; }
-.song-bar { height: 9px; border-radius: 5px; background: var(--surface-2, #2a2016); overflow: hidden; }
-.song-bar > span { display: block; height: 100%; background: linear-gradient(90deg, color-mix(in oklab, var(--steel) 70%, black), var(--steel)); }
+.song-bar { height: 9px; background: var(--surface-2, #2a2016); overflow: hidden; }
+.song-bar > span { display: block; height: 100%; background: var(--steel); }
 .song-bar-pct { color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
 
-.song-spark { display: flex; align-items: flex-end; gap: 2px; height: 52px; }
-.song-spark i { flex: 1; background: var(--steel); border-radius: 1px; opacity: 0.8; min-height: 1px; }
-.song-spark i.bust { background: var(--ember, #ff8a3d); opacity: 1; }
-.song-mspark { display: inline-flex; align-items: flex-end; gap: 1px; height: 18px; width: 64px; vertical-align: middle; }
-.song-mspark i { flex: 1; background: var(--steel); border-radius: 1px; opacity: 0.85; min-height: 1px; }
-
 /* dense table — pin identity column, scroll the rest */
-.song-scroll { position: relative; border: 1px solid var(--line); border-radius: 10px; }
-.song-scroll-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
+.song-scroll { position: relative; border: 1px solid var(--line); }
+.song-scroll-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .song-scroll-fade { position: absolute; top: 0; right: 0; width: 24px; height: 100%; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg) 80%, transparent)); }
 .song-scroll-hint { font-size: 0.65rem; color: var(--faint); text-align: right; margin: 0 8px 5px; }
 table.song-table { border-collapse: collapse; width: 100%; font-size: 0.85rem; white-space: nowrap; }
@@ -678,8 +645,7 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 
 /* Functional (Web 2.0) reskin */
 [data-experience="functional"] .song-fact-v { color: #2c7cc4; }
-[data-experience="functional"] .song-ppy-bar, [data-experience="functional"] .song-bar > span, [data-experience="functional"] .song-spark i, [data-experience="functional"] .song-mspark i { background: linear-gradient(180deg, #5aa9e6, #2c7cc4); }
-[data-experience="functional"] .song-spark i.bust { background: linear-gradient(180deg, #f4a72b, #d98a10); }
+[data-experience="functional"] .song-ppy-bar, [data-experience="functional"] .song-bar > span { background: linear-gradient(180deg, #5aa9e6, #2c7cc4); }
 [data-experience="functional"] table.song-table th { background: linear-gradient(#4a9be0, #2c7cc4); color: #fff; text-shadow: 0 -1px 0 rgba(0,0,0,0.22); }
 [data-experience="functional"] table.song-table td { background: #fff; }
 [data-experience="functional"] table.song-table tbody tr:nth-child(even) td { background: #eef5fb; }
@@ -748,9 +714,9 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 }
 
 /* ---- Live show ----
-   No pill: the dot is the mark (--hand, 3:1 is enough for a mark), the word
-   is the text and has to clear 4.5:1 on its own, so it wears --ember. */
-.live-pill {
+   Not a pill — a flag: the dot is the mark (--hand, 3:1 is enough for a mark),
+   the word is the text and has to clear 4.5:1 on its own, so it wears --ember. */
+.live-flag {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--font-mono); font-size: 0.7rem;
   color: var(--ember);

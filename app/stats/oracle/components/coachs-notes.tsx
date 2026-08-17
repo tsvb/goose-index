@@ -31,7 +31,7 @@ export function CoachsNotes({ data }: { data: CoachsNoteRow[] }) {
           <div className="min-w-0 flex-1 p-4 sm:p-5">
             <header className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-line-soft pb-2">
               <h3 className="font-display text-base text-ink">
-                <Link href={showHref(note.showDate, note.showOrder)} className="hover:text-steel">
+                <Link href={showHref(note.showDate, note.showOrder)} className="underline-offset-4 hover:underline">
                   {formatShortDate(note.showDate)}
                 </Link>
               </h3>
