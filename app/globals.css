@@ -637,7 +637,7 @@
 /* ---- Phase 2: song stats (Fancy base; Functional reskin below) ---- */
 .song-ribbon { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 1rem 0; }
 .song-fact { background: var(--surface); padding: 0.6rem 0.85rem; }
-.song-fact-v { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; color: var(--gold); font-variant-numeric: tabular-nums; }
+.song-fact-v { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; color: var(--ink); font-variant-numeric: tabular-nums; }
 .song-fact-k { font-size: 0.65rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
 @media (max-width: 640px) { .song-ribbon { grid-template-columns: 1fr 1fr; } }
 
@@ -652,14 +652,14 @@
 
 .song-ppy { display: flex; align-items: flex-end; gap: 4px; height: 96px; border-bottom: 1px solid var(--line); }
 .song-ppy-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
-.song-ppy-bar { width: 100%; background: linear-gradient(180deg, var(--gold), var(--gold-deep, #c8902f)); border-radius: 3px 3px 0 0; min-height: 3px; }
+.song-ppy-bar { width: 100%; background: linear-gradient(180deg, var(--steel), color-mix(in oklab, var(--steel) 70%, black)); border-radius: 3px 3px 0 0; min-height: 3px; }
 .song-ppy-ct { font-size: 0.65rem; color: var(--muted); }
 .song-ppy-yr { font-size: 0.65rem; color: var(--faint); }
 
 .song-bars { display: grid; gap: 6px; }
 .song-barrow { display: grid; grid-template-columns: 84px 1fr 40px; align-items: center; gap: 10px; font-size: 0.82rem; }
 .song-bar { height: 9px; border-radius: 5px; background: var(--surface-2, #2a2016); overflow: hidden; }
-.song-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-deep, #c8902f), var(--gold)); }
+.song-bar > span { display: block; height: 100%; background: linear-gradient(90deg, color-mix(in oklab, var(--steel) 70%, black), var(--steel)); }
 .song-bar-pct { color: var(--gold); font-variant-numeric: tabular-nums; text-align: right; }
 
 .song-spark { display: flex; align-items: flex-end; gap: 2px; height: 52px; }

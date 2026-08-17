@@ -45,7 +45,8 @@ describe("GapSparkline", () => {
     const widths = rectWidths(html);
     expect(widths.length).toBeGreaterThan(0);
     expect(widths.every((w) => w > 0)).toBe(true);
-    expect(html).toContain("var(--ember");
+    expect(html).toContain("var(--steel)"); // the field — normal bars
+    expect(html).toContain("var(--ember");   // the heat — dusted-off bust bars
   });
 
   it("summarizes the data in an aria-label instead of per-bar titles alone", () => {
@@ -95,6 +96,7 @@ describe("MiniSparkline", () => {
   it("stays decorative and renders one bar per value", () => {
     const html = renderToStaticMarkup(<MiniSparkline values={Array.from({ length: 13 }, (_, i) => i)} />);
     expect(html).toContain("aria-hidden");
+    expect(html).toContain("var(--steel)"); // field, not the retired gold
     expect(pathBarWidths(html)).toHaveLength(13);
   });
 

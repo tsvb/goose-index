@@ -67,12 +67,12 @@ export function CareerChart({ years }: { years: CareerYear[] }) {
                   style={{
                     height: covered,
                     background: y.partial
-                      ? "color-mix(in srgb, var(--gold) 22%, transparent)"
+                      ? "color-mix(in srgb, var(--steel) 22%, transparent)"
                       : isPeak
-                        ? "var(--ember)"
-                        : "var(--gold)",
+                        ? "var(--hand)"
+                        : "var(--steel)",
                     opacity: y.partial ? 1 : 0.85,
-                    border: y.partial ? "1px dashed var(--gold)" : "none",
+                    border: y.partial ? "1px dashed var(--steel)" : "none",
                   }}
                 />
               </span>

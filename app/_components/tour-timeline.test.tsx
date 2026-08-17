@@ -92,7 +92,7 @@ describe("TourTimeline", () => {
         ]}
       />,
     );
-    expect(html).toContain("var(--ember)");
+    expect(html).toContain("var(--hand)");
     expect(html).toContain("Summer Tour 2018");
   });
 

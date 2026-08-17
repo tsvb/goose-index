@@ -52,7 +52,7 @@ describe("CareerChart", () => {
 
   it("marks the busiest completed year", () => {
     const html = renderToStaticMarkup(<CareerChart years={YEARS} />);
-    expect(html).toContain("var(--ember)");
+    expect(html).toContain("var(--hand)");
     expect(html).toContain("107 shows");
   });
 

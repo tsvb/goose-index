@@ -158,7 +158,11 @@ export function TourTimeline({
                     const legs = splitLegs(t.dates);
                     const future = t.start > today;
                     const hot = t.tourId === busiest.tourId;
-                    const colour = future ? "var(--faint)" : hot ? "var(--ember)" : "var(--gold)";
+                    // Marks (the connector, the bar, its ticks) read the busiest run in
+                    // hand; the tour-name label is text, so it stays in ember — hand is
+                    // a mark-only color, never text (see the pen & instrument roles).
+                    const markColour = future ? "var(--faint)" : hot ? "var(--hand)" : "var(--steel)";
+                    const nameColour = future ? "var(--faint)" : hot ? "var(--ember)" : "var(--steel)";
                     const top = 2 + li * (LANE.h + LANE.gap);
                     const pct = (iso: string) => (dayOfYear(iso) / days) * 100;
 
@@ -176,7 +180,7 @@ export function TourTimeline({
                               width: `${pct(legs[legs.length - 1].start) - pct(legs[0].end)}%`,
                               top: top + LANE.h / 2,
                               height: 1,
-                              borderTop: `1px dotted ${colour}`,
+                              borderTop: `1px dotted ${markColour}`,
                               opacity: 0.45,
                             }}
                           />
@@ -200,9 +204,9 @@ export function TourTimeline({
                                 background: future
                                   ? "transparent"
                                   : hot
-                                    ? "color-mix(in srgb, var(--ember) 30%, transparent)"
-                                    : "color-mix(in srgb, var(--gold) 22%, transparent)",
-                                border: `1px solid ${future ? "var(--line)" : hot ? "var(--ember)" : "color-mix(in srgb, var(--gold) 55%, transparent)"}`,
+                                    ? "color-mix(in srgb, var(--hand) 30%, transparent)"
+                                    : "color-mix(in srgb, var(--steel) 22%, transparent)",
+                                border: `1px solid ${future ? "var(--line)" : hot ? "var(--hand)" : "color-mix(in srgb, var(--steel) 55%, transparent)"}`,
                                 borderStyle: future ? "dashed" : "solid",
                               }}
                             >
@@ -215,7 +219,7 @@ export function TourTimeline({
                                     className="absolute bottom-[2px] h-[5px] w-px"
                                     style={{
                                       left: `${Math.min(at, 99)}%`,
-                                      background: d > today ? "var(--faint)" : hot ? "var(--ember)" : "var(--gold)",
+                                      background: d > today ? "var(--faint)" : hot ? "var(--hand)" : "var(--steel)",
                                     }}
                                   />
                                 );
@@ -225,7 +229,7 @@ export function TourTimeline({
                               {i === 0 && (
                                 <span
                                   className="pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
-                                  style={{ color: colour }}
+                                  style={{ color: nameColour }}
                                 >
                                   {shortName(t.name)}
                                 </span>
