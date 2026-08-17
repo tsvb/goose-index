@@ -71,7 +71,7 @@ describe("VenuesPage grouping", () => {
 
   it("makes group headers sticky below the fancy header", async () => {
     const html = await render();
-    expect(html).toContain("sticky top-16");
+    expect(html).toContain("sticky top-[calc(3.5rem_+_6px)]"); // real masthead height
     h.experience = "functional";
     expect(await render()).toContain("sticky top-12"); // shorter w2 appbar
   });

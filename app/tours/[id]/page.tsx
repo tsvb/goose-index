@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
-import { ShowRow } from "@/app/_components/show-card";
 import { Doc, Breadcrumb, MetaTable, DocSection, ShowTable } from "@/app/_components/doc";
+import { NilState } from "@/app/_components/page-chrome";
+import { Ledger, LedgerEntry } from "@/app/_components/forms";
 import { getTourMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
 import { formatShortDate } from "@/lib/queries/format";
@@ -62,23 +63,19 @@ export default async function TourPage({ params }: Params) {
 
   return (
     <article>
-      {/* Hero header */}
-      <header className="relative overflow-hidden border-b border-line">
-        <div className="stage-glow inset-x-0 top-0 h-72" />
-        <Container className="relative py-12 sm:py-16">
-          <span className="eyebrow rise" style={{ animationDelay: "0ms" }}>
-            <Link href="/tours" className="transition hover:text-gold">Tours</Link>
-          </span>
-          <h1
-            className="rise mt-3 font-display text-[2.4rem] leading-none tracking-tight text-ink sm:text-5xl"
-            style={{ animationDelay: "60ms" }}
-          >
+      {/* PageHead-style markup, written inline: the kicker carries a real
+          tours link (PageHead's own kicker is plain text only). */}
+      <header className="border-b border-line">
+        <Container className="py-10 sm:py-14">
+          <p className="text-[0.7rem] lowercase text-faint">
+            <Link href="/tours" className="text-spruce underline underline-offset-4 transition hover:text-ink">
+              tours
+            </Link>
+          </p>
+          <h1 className="mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
             {tour.name}
           </h1>
-          <p
-            className="rise mt-4 font-mono text-xs text-faint"
-            style={{ animationDelay: "120ms" }}
-          >
+          <p className="mt-2 font-mono text-[0.75rem] text-faint">
             {tour.shows} {tour.shows === 1 ? "show" : "shows"}
             {dateRange && (
               <>
@@ -93,13 +90,13 @@ export default async function TourPage({ params }: Params) {
       {/* Show list */}
       <Container className="py-10 sm:py-14">
         {shows.length === 0 ? (
-          <p className="font-mono text-sm text-faint">No shows found for this tour.</p>
+          <NilState>No shows found for this tour.</NilState>
         ) : (
-          <div className="surface-card overflow-hidden px-2">
+          <Ledger seed={`tour-${tourId}`}>
             {shows.map((show) => (
-              <ShowRow key={show.showId} show={show} context="tour" />
+              <LedgerEntry key={show.showId} show={show} context="tour" />
             ))}
-          </div>
+          </Ledger>
         )}
       </Container>
     </article>

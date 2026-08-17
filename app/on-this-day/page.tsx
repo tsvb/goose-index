@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
-import { ShowCard } from "@/app/_components/show-card";
-import { Calendar } from "@/app/_components/marks";
+import { PageHead } from "@/app/_components/page-chrome";
+import { Ledger, LedgerEntry } from "@/app/_components/forms";
 import { getOnThisDay } from "@/lib/queries/shows";
 import { formatMonthDay, compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
@@ -29,52 +29,28 @@ export default async function OnThisDayPage() {
   }
 
   return (
-    <>
-      {/* Hero */}
-      <header className="relative overflow-hidden border-b border-line">
-        <div className="stage-glow inset-x-0 top-0 h-72" />
-        <Container className="relative py-14 sm:py-20">
-          <span className="eyebrow rise flex items-center gap-2" style={{ animationDelay: "0ms" }}>
-            <Calendar className="h-4 w-4" />
-            On This Day
-          </span>
-          <h1
-            className="rise mt-4 font-display text-[3.5rem] leading-none tracking-tight text-ink sm:text-6xl"
-            style={{ animationDelay: "60ms" }}
-          >
-            {title}
-          </h1>
-          {rows.length > 0 && (
-            <p
-              className="rise mt-4 text-lg text-muted"
-              style={{ animationDelay: "120ms" }}
-            >
-              Goose has played{" "}
-              <span className="text-ink">{compact(rows.length)}</span>{" "}
-              {rows.length === 1 ? "show" : "shows"} on this date over the years.
-            </p>
-          )}
-        </Container>
-      </header>
+    <Container>
+      <PageHead
+        kicker="on this day"
+        title={title}
+        meta={
+          rows.length > 0
+            ? `Goose has played ${compact(rows.length)} ${rows.length === 1 ? "show" : "shows"} on this date over the years.`
+            : undefined
+        }
+      />
 
-      {/* Shows grid or empty state */}
-      <section>
-        <Container className="py-12">
-          {rows.length === 0 ? (
-            <div className="py-16 text-center">
-              <p className="font-display text-2xl text-muted">
-                No Goose shows fall on today&apos;s date — yet.
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {rows.map((show) => (
-                <ShowCard key={show.showId} show={show} />
-              ))}
-            </div>
-          )}
-        </Container>
-      </section>
-    </>
+      {rows.length === 0 ? (
+        <p className="py-12 text-center font-mono text-sm text-faint">
+          No Goose shows fall on today&apos;s date — yet.
+        </p>
+      ) : (
+        <Ledger seed="on-this-day">
+          {rows.map((show) => (
+            <LedgerEntry key={show.showId} show={show} />
+          ))}
+        </Ledger>
+      )}
+    </Container>
   );
 }

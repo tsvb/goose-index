@@ -1,10 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
-import { SectionHeader } from "@/app/_components/section-header";
-import { ShowRow } from "@/app/_components/show-card";
 import { SearchBox } from "@/app/_components/search-box";
-import { ArrowRight, Calendar, Disc, MapPin } from "@/app/_components/marks";
+import { PageHead, NilState } from "@/app/_components/page-chrome";
+import { SectionRule, Ledger, LedgerEntry } from "@/app/_components/forms";
 import { searchShows, type ShowSummary } from "@/lib/queries/shows";
 import { searchSongs, type SongSearchRow } from "@/lib/queries/songs";
 import { searchVenues, searchTours, listYears, type VenueRow, type TourRow } from "@/lib/queries/dimensions";
@@ -136,23 +135,25 @@ export default async function SearchPage({ searchParams }: Props) {
 
   if (!term) {
     return (
-      <div className="relative overflow-hidden border-b border-line">
-        <div className="stage-glow inset-x-0 top-0 h-72" />
-        <Container className="relative py-16 sm:py-24">
-          <span className="eyebrow">Search the index</span>
-          <h1 className="mt-4 font-display text-[2.4rem] leading-[1.06] tracking-tight text-ink sm:text-5xl">
-            Every show. Every night.
-            <br />
-            <span className="italic text-gold">Find yours.</span>
-          </h1>
+      <Container>
+        <PageHead
+          kicker="search the index"
+          title={
+            <>
+              every show. every night.
+              <br />
+              <span className="text-steel">find yours.</span>
+            </>
+          }
+        >
           <p className="mt-4 max-w-md text-muted">
             Search by song (Hot Tea), date (2022-06-24), venue, city, or tour.
           </p>
           <div className="mt-8 max-w-xl">
             <SearchBox size="full" />
           </div>
-        </Container>
-      </div>
+        </PageHead>
+      </Container>
     );
   }
 
@@ -160,217 +161,162 @@ export default async function SearchPage({ searchParams }: Props) {
   const total = r.songs.length + r.shows.length + r.venues.length + r.tours.length;
 
   return (
-    <>
-      {/* Header */}
-      <div className="relative overflow-hidden border-b border-line">
-        <div className="stage-glow inset-x-0 top-0 h-72" />
-        <Container className="relative py-12 sm:py-16">
-          <span className="eyebrow">Search the index</span>
-          <h1 className="mt-3 font-display text-[2rem] leading-tight tracking-tight text-ink sm:text-4xl">
-            Results for{" "}
-            <span className="italic text-gold">&ldquo;{term}&rdquo;</span>
-          </h1>
-          <div className="mt-6 max-w-xl">
-            <SearchBox size="full" />
-          </div>
-        </Container>
-      </div>
+    <Container>
+      <PageHead
+        kicker="search the index"
+        title={
+          <>
+            results for <span className="text-steel">&ldquo;{term}&rdquo;</span>
+          </>
+        }
+      >
+        <div className="mt-6 max-w-xl">
+          <SearchBox size="full" />
+        </div>
+      </PageHead>
 
-      <Container className="py-12">
-        {/* Empty state */}
-        {total === 0 && (
-          <div className="py-16 text-center">
-            <p className="font-display text-2xl text-ink">
-              No results for &ldquo;{term}&rdquo;
-            </p>
-            <p className="mt-3 text-muted">
-              Try a song like{" "}
-              <span className="font-mono text-gold-soft">Hot Tea</span>, a date
-              like <span className="font-mono text-gold-soft">2022-06-24</span>,
-              a venue name, or a city.
-            </p>
-            <div className="mt-8 flex flex-col items-center gap-3">
+      {/* Empty state */}
+      {total === 0 && (
+        <NilState href={songCatalogHref(term)} linkLabel={`search the song catalog for “${term}”`}>
+          No results for &ldquo;{term}&rdquo;. Try a song like{" "}
+          <span className="font-mono text-steel">Hot Tea</span>, a date like{" "}
+          <span className="font-mono text-steel">2022-06-24</span>, a venue name, or a city. Or browse{" "}
+          <Link href="/shows" className="text-spruce underline underline-offset-4 hover:text-ink">all shows</Link>
+          {" · "}
+          <Link href="/songs" className="text-spruce underline underline-offset-4 hover:text-ink">the song catalog</Link>.
+        </NilState>
+      )}
+
+      {/* Songs — the #1 lookup on a setlist site, so they lead. */}
+      {r.songs.length > 0 && (
+        <section className="mb-12">
+          <SectionRule
+            title={`songs · ${r.songsTotal}`}
+            href={r.songsTotal > r.songs.length ? songCatalogHref(term) : undefined}
+            seed="search-songs"
+          />
+          <Ledger seed="search-songs">
+            {r.songs.map((s) => (
               <Link
-                href={songCatalogHref(term)}
-                className="group inline-flex items-center gap-1.5 font-mono text-xs text-sage transition hover:text-ink"
+                key={s.songId}
+                href={songHref(s)}
+                className="group flex items-center justify-between gap-4 py-2.5"
               >
-                Search the song catalog for &ldquo;{term}&rdquo;
-                <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                <span className="min-w-0 flex-1 truncate text-ink underline-offset-4 group-hover:text-spruce group-hover:underline">
+                  {s.name}
+                </span>
+                <span className="shrink-0 text-right text-[0.8rem] text-muted">
+                  {s.lastPlayedDate ? `last played ${formatShortDate(s.lastPlayedDate)}` : "not yet played live"}
+                </span>
+                <span className="shrink-0 text-right font-mono text-[0.7rem] text-faint">
+                  {s.timesPlayed} {s.timesPlayed === 1 ? "play" : "plays"}
+                </span>
               </Link>
-              <p className="font-mono text-xs text-faint">
-                or browse{" "}
-                <Link href="/shows" className="text-sage transition hover:text-ink">
-                  all shows
-                </Link>{" "}
-                ·{" "}
-                <Link href="/songs" className="text-sage transition hover:text-ink">
-                  the song catalog
+            ))}
+          </Ledger>
+        </section>
+      )}
+
+      {/* Year shortcut — a bare year query almost always means "show me that year". */}
+      {r.year != null && (
+        <Link href={`/years/${r.year}`} className="group mb-8 flex items-baseline justify-between gap-4 py-2">
+          <span className="font-mono text-[0.95rem] text-steel">year {r.year}</span>
+          <span className="text-[0.8rem] lowercase text-spruce underline underline-offset-4 transition group-hover:text-ink">
+            every show from {r.year} →
+          </span>
+        </Link>
+      )}
+
+      {/* Shows */}
+      {r.shows.length > 0 && (
+        <section className="mb-12">
+          <SectionRule title={`shows · ${r.showsTotal}`} seed="search-shows" />
+          <Ledger seed="search-shows">
+            {r.shows.map((show) => (
+              <LedgerEntry key={show.showId} show={show} />
+            ))}
+          </Ledger>
+          {r.showsTotal > r.shows.length && (
+            <p className="mt-3 font-mono text-[0.7rem] text-faint">
+              Showing the {r.shows.length} most recent of {r.showsTotal} matching shows
+            </p>
+          )}
+        </section>
+      )}
+
+      {/* Venues */}
+      {r.venues.length > 0 && (
+        <section className="mb-12">
+          <SectionRule title={`venues · ${r.venuesTotal}`} seed="search-venues" />
+          <Ledger seed="search-venues">
+            {r.venues.map((v) => {
+              const loc = locationLine(v.city, v.state, v.country);
+              return (
+                <Link
+                  key={v.venueId}
+                  href={`/venues/${v.venueId}`}
+                  className="group flex items-center justify-between gap-4 py-2.5"
+                >
+                  <span className="min-w-0 flex-1 truncate">
+                    <span className="text-ink underline-offset-4 group-hover:text-spruce group-hover:underline">
+                      {v.name}
+                    </span>
+                    {loc && <span className="ml-2 truncate text-[0.8rem] text-muted">{loc}</span>}
+                  </span>
+                  <span className="shrink-0 text-right font-mono text-[0.7rem] text-faint">
+                    {v.shows} {v.shows === 1 ? "show" : "shows"}
+                  </span>
                 </Link>
-              </p>
-            </div>
-          </div>
-        )}
+              );
+            })}
+          </Ledger>
+          {r.venuesTotal > r.venues.length && (
+            <p className="mt-3 font-mono text-[0.7rem] text-faint">
+              Showing {r.venues.length} of {r.venuesTotal} matching venues
+            </p>
+          )}
+        </section>
+      )}
 
-        {/* Songs — the #1 lookup on a setlist site, so they lead. */}
-        {r.songs.length > 0 && (
-          <section className="mb-12">
-            <SectionHeader
-              eyebrow="From the catalog"
-              title={`Songs · ${r.songsTotal}`}
-              href={r.songsTotal > r.songs.length ? songCatalogHref(term) : undefined}
-              linkLabel="See all"
-            />
-            <ul className="surface-card divide-y divide-line-soft">
-              {r.songs.map((s) => (
-                <li key={s.songId}>
-                  <Link
-                    href={songHref(s)}
-                    className="group flex items-center gap-4 px-4 py-4 transition hover:bg-surface-2"
-                  >
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line text-faint transition group-hover:border-gold group-hover:text-gold">
-                      <Disc className="h-4 w-4" />
+      {/* Tours */}
+      {r.tours.length > 0 && (
+        <section className="mb-12">
+          <SectionRule title={`tours · ${r.toursTotal}`} seed="search-tours" />
+          <Ledger seed="search-tours">
+            {r.tours.map((t) => {
+              const dateRange =
+                t.start && t.end
+                  ? `${formatShortDate(t.start)} – ${formatShortDate(t.end)}`
+                  : t.start
+                  ? `from ${formatShortDate(t.start)}`
+                  : null;
+              return (
+                <Link
+                  key={t.tourId}
+                  href={`/tours/${t.tourId}`}
+                  className="group flex items-center justify-between gap-4 py-2.5"
+                >
+                  <span className="min-w-0 flex-1 truncate">
+                    <span className="text-ink underline-offset-4 group-hover:text-spruce group-hover:underline">
+                      {t.name}
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-display text-base text-ink transition group-hover:text-gold">
-                        {s.name}
-                      </div>
-                      <div className="truncate text-sm text-muted">
-                        {s.lastPlayedDate
-                          ? `Last played ${formatShortDate(s.lastPlayedDate)}`
-                          : "Not yet played live"}
-                      </div>
-                    </div>
-                    <span className="font-mono text-[0.7rem] text-faint">
-                      {s.timesPlayed} {s.timesPlayed === 1 ? "play" : "plays"}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {/* Year shortcut — a bare year query almost always means "show me that year". */}
-        {r.year != null && (
-          <Link
-            href={`/years/${r.year}`}
-            className="group mb-8 flex items-center gap-4 rounded-lg border border-gold/40 bg-surface px-5 py-4 transition hover:-translate-y-0.5 hover:border-gold hover:bg-surface-2"
-          >
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-line text-gold transition group-hover:border-gold">
-              <Calendar className="h-5 w-5" />
-            </span>
-            <div className="flex-1">
-              <div className="font-display text-lg text-ink transition group-hover:text-gold">
-                Year {r.year}
-              </div>
-              <div className="text-sm text-muted">Every show from {r.year}, in one place</div>
-            </div>
-            <ArrowRight className="h-4 w-4 text-faint transition group-hover:translate-x-0.5 group-hover:text-gold" />
-          </Link>
-        )}
-
-        {/* Shows */}
-        {r.shows.length > 0 && (
-          <section className="mb-12">
-            <SectionHeader eyebrow="Matching nights" title={`Shows · ${r.showsTotal}`} />
-            <div className="surface-card divide-y divide-line-soft">
-              {r.shows.map((show) => (
-                <ShowRow key={show.showId} show={show} />
-              ))}
-            </div>
-            {r.showsTotal > r.shows.length && (
-              <p className="mt-3 font-mono text-[0.7rem] text-faint">
-                Showing the {r.shows.length} most recent of {r.showsTotal} matching shows
-              </p>
-            )}
-          </section>
-        )}
-
-        {/* Venues */}
-        {r.venues.length > 0 && (
-          <section className="mb-12">
-            <SectionHeader eyebrow="Places" title={`Venues · ${r.venuesTotal}`} />
-            <ul className="surface-card divide-y divide-line-soft">
-              {r.venues.map((v) => {
-                const loc = locationLine(v.city, v.state, v.country);
-                return (
-                  <li key={v.venueId}>
-                    <Link
-                      href={`/venues/${v.venueId}`}
-                      className="group flex items-center gap-4 px-4 py-4 transition hover:bg-surface-2"
-                    >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line text-faint transition group-hover:border-gold group-hover:text-gold">
-                        <MapPin className="h-4 w-4" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate font-display text-base text-ink transition group-hover:text-gold">
-                          {v.name}
-                        </div>
-                        {loc && (
-                          <div className="truncate text-sm text-muted">{loc}</div>
-                        )}
-                      </div>
-                      <span className="font-mono text-[0.7rem] text-faint">
-                        {v.shows} {v.shows === 1 ? "show" : "shows"}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-            {r.venuesTotal > r.venues.length && (
-              <p className="mt-3 font-mono text-[0.7rem] text-faint">
-                Showing {r.venues.length} of {r.venuesTotal} matching venues
-              </p>
-            )}
-          </section>
-        )}
-
-        {/* Tours */}
-        {r.tours.length > 0 && (
-          <section className="mb-12">
-            <SectionHeader eyebrow="Runs & eras" title={`Tours · ${r.toursTotal}`} />
-            <ul className="surface-card divide-y divide-line-soft">
-              {r.tours.map((t) => {
-                const dateRange =
-                  t.start && t.end
-                    ? `${formatShortDate(t.start)} – ${formatShortDate(t.end)}`
-                    : t.start
-                    ? `From ${formatShortDate(t.start)}`
-                    : null;
-                return (
-                  <li key={t.tourId}>
-                    <Link
-                      href={`/tours/${t.tourId}`}
-                      className="group flex items-center gap-4 px-4 py-4 transition hover:bg-surface-2"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate font-display text-base text-ink transition group-hover:text-gold">
-                          {t.name}
-                        </div>
-                        {dateRange && (
-                          <div className="font-mono text-[0.7rem] text-faint">
-                            {dateRange}
-                          </div>
-                        )}
-                      </div>
-                      <span className="font-mono text-[0.7rem] text-faint">
-                        {t.shows} {t.shows === 1 ? "show" : "shows"}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-            {r.toursTotal > r.tours.length && (
-              <p className="mt-3 font-mono text-[0.7rem] text-faint">
-                Showing {r.tours.length} of {r.toursTotal} matching tours
-              </p>
-            )}
-          </section>
-        )}
-      </Container>
-    </>
+                    {dateRange && <span className="ml-2 font-mono text-[0.7rem] text-faint">{dateRange}</span>}
+                  </span>
+                  <span className="shrink-0 text-right font-mono text-[0.7rem] text-faint">
+                    {t.shows} {t.shows === 1 ? "show" : "shows"}
+                  </span>
+                </Link>
+              );
+            })}
+          </Ledger>
+          {r.toursTotal > r.tours.length && (
+            <p className="mt-3 font-mono text-[0.7rem] text-faint">
+              Showing {r.tours.length} of {r.toursTotal} matching tours
+            </p>
+          )}
+        </section>
+      )}
+    </Container>
   );
 }
 

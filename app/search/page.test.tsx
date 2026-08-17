@@ -76,8 +76,8 @@ describe("SearchPage songs group", () => {
     expect(html).toContain('href="/songs/jive-ii"');
     expect(html).toContain("Jive II");
     expect(html).toContain("284 plays");
-    expect(html).toContain("Last played Jun 12, 2026");
-    expect(html.indexOf("Songs · ")).toBeLessThan(html.indexOf("Shows · "));
+    expect(html).toContain("last played Jun 12, 2026");
+    expect(html.indexOf("songs · ")).toBeLessThan(html.indexOf("shows · "));
   });
 
   it("falls back to the songId href when slug is null and words a never-played song honestly", async () => {
@@ -85,22 +85,22 @@ describe("SearchPage songs group", () => {
     const html = await render({ q: "song" });
     expect(html).toContain('href="/songs/456"');
     expect(html).toContain("0 plays");
-    expect(html).toContain("Not yet played live");
+    expect(html).toContain("not yet played live");
   });
 
-  it("shows the full match total with a See-all link when truncated", async () => {
+  it("shows the full match total with a see-all link when truncated", async () => {
     h.songs = Array.from({ length: 13 }, (_, i) => song(i + 1));
     const html = await render({ q: "song" });
-    expect(html).toContain("Songs · 13");
+    expect(html).toContain("songs · 13");
     expect(html).toContain('href="/songs?q=song"');
-    expect(html).toContain("See all");
+    expect(html).toContain("see all");
     expect(html).not.toContain("Song 13"); // only the 12 on-page rows render
   });
 
-  it("omits the See-all link when every match is on the page", async () => {
+  it("omits the see-all link when every match is on the page", async () => {
     h.songs = [song(1), song(2)];
     const html = await render({ q: "song" });
-    expect(html).toContain("Songs · 2");
+    expect(html).toContain("songs · 2");
     expect(html).not.toContain("/songs?q=");
   });
 });
@@ -110,7 +110,7 @@ describe("SearchPage group counts", () => {
     h.showRows = Array.from({ length: 24 }, (_, i) => show(i + 1));
     h.showTotal = 52;
     const html = await render({ q: "red rocks" });
-    expect(html).toContain("Shows · 52");
+    expect(html).toContain("shows · 52");
     expect(html).toContain("Showing the 24 most recent of 52 matching shows");
   });
 
@@ -120,9 +120,9 @@ describe("SearchPage group counts", () => {
     h.tourRows = [{ tourId: 3, name: "Summer Tour", year: 2024, shows: 5, start: "2024-06-01", end: "2024-08-01" }];
     h.tourTotal = 9;
     const html = await render({ q: "red rocks" });
-    expect(html).toContain("Venues · 14");
+    expect(html).toContain("venues · 14");
     expect(html).toContain("Showing 1 of 14 matching venues");
-    expect(html).toContain("Tours · 9");
+    expect(html).toContain("tours · 9");
     expect(html).toContain("Showing 1 of 9 matching tours");
   });
 });
@@ -134,8 +134,8 @@ describe("SearchPage year shortcut", () => {
     h.years = [{ year: 2024, shows: 40, songs: 400 }];
     const html = await render({ q: "2024" });
     expect(html).toContain('href="/years/2024"');
-    expect(html).toContain("Year 2024");
-    expect(html.indexOf("/years/2024")).toBeLessThan(html.indexOf("Shows · "));
+    expect(html).toContain("year 2024");
+    expect(html.indexOf("/years/2024")).toBeLessThan(html.indexOf("shows · "));
   });
 
   it("skips the shortcut for a year Goose never played", async () => {

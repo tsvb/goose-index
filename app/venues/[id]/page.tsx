@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
-import { ShowRow } from "@/app/_components/show-card";
 import { MapPin } from "@/app/_components/marks";
 import { Doc, Breadcrumb, MetaTable, DocSection, ShowTable } from "@/app/_components/doc";
+import { NilState } from "@/app/_components/page-chrome";
+import { Ledger, LedgerEntry } from "@/app/_components/forms";
 import { getVenueMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
 import { locationLine, compact, formatShortDate } from "@/lib/queries/format";
@@ -77,32 +78,25 @@ export default async function VenuePage({ params }: Params) {
 
   return (
     <article>
-      {/* Hero */}
-      <header className="relative overflow-hidden border-b border-line">
-        <div className="stage-glow inset-x-0 top-0 h-72" />
-        <Container className="relative py-12 sm:py-16">
-          <span className="eyebrow rise" style={{ animationDelay: "0ms" }}>
-            <Link href="/venues" className="transition hover:text-gold">Venues</Link>
-          </span>
-          <h1
-            className="rise mt-4 font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-5xl"
-            style={{ animationDelay: "60ms" }}
-          >
+      {/* PageHead-style markup, written inline: the kicker carries a real
+          venues link (PageHead's own kicker is plain text only). */}
+      <header className="border-b border-line">
+        <Container className="py-10 sm:py-14">
+          <p className="text-[0.7rem] lowercase text-faint">
+            <Link href="/venues" className="text-spruce underline underline-offset-4 transition hover:text-ink">
+              venues
+            </Link>
+          </p>
+          <h1 className="mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
             {venue.name}
           </h1>
           {loc && (
-            <p
-              className="rise mt-3 flex items-center gap-1.5 text-muted"
-              style={{ animationDelay: "120ms" }}
-            >
+            <p className="mt-3 flex items-center gap-1.5 text-muted">
               <MapPin className="h-4 w-4 text-faint" />
               {loc}
             </p>
           )}
-          <p
-            className="rise mt-4 font-mono text-xs text-faint"
-            style={{ animationDelay: "180ms" }}
-          >
+          <p className="mt-2 font-mono text-[0.75rem] text-faint">
             {statParts.map((part, i) => (
               <span key={i}>
                 {i > 0 && <span className="mx-1.5 text-line">·</span>}
@@ -116,17 +110,17 @@ export default async function VenuePage({ params }: Params) {
       {/* Shows list */}
       <Container className="py-10">
         {shows.length === 0 ? (
-          <p className="font-mono text-sm text-faint">No shows logged yet.</p>
+          <NilState>No shows logged yet.</NilState>
         ) : (
           <div>
             <p className="mb-4 font-mono text-xs text-faint">
               {shows.length} {shows.length === 1 ? "show" : "shows"} — newest first
             </p>
-            <div className="surface-card overflow-hidden px-2">
+            <Ledger seed={`venue-${venueId}`}>
               {shows.map((show) => (
-                <ShowRow key={show.showId} show={show} context="venue" />
+                <LedgerEntry key={show.showId} show={show} context="venue" />
               ))}
-            </div>
+            </Ledger>
           </div>
         )}
       </Container>

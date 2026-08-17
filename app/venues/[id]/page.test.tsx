@@ -37,8 +37,8 @@ describe("VenuePage show rows are venue-aware", () => {
   it("names the venue once (hero) — rows promote the date instead", async () => {
     const html = await render();
     expect(html.split("Dillon Amphitheater").length - 1).toBe(1); // hero only, not per row
-    expect(html).toContain("August 30, 2024"); // date in the row display slot
-    expect(html).toContain("July 1, 2023");
+    expect(html).toContain("aug 30, 2024"); // date in the row display slot
+    expect(html).toContain("jul 1, 2023");
     expect(html).toContain("Summer Tour 2024"); // tour survives in the row
   });
 
