@@ -90,6 +90,11 @@ describe("LedgerEntry", () => {
     const html = renderToStaticMarkup(<LedgerEntry show={show} context="tour" />);
     expect(html).not.toContain("Summer Tour 2026");
   });
+  it("venue context with no tour falls back to the lowercase weekday", () => {
+    const html = renderToStaticMarkup(<LedgerEntry show={{ ...show, tour: null }} context="venue" />);
+    expect(html).toContain(">wednesday<");
+    expect(html).not.toContain("Summer Tour 2026");
+  });
 });
 
 describe("TonightEntry", () => {

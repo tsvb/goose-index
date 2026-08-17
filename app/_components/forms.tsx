@@ -60,7 +60,7 @@ export function LedgerEntry({ show, context }: { show: ShowSummary; context?: "v
   const onVenue = context === "venue";
   const month = dp.month.slice(0, 3).toLowerCase();
   const display = onVenue ? `${month} ${dp.day}, ${dp.year}` : (show.venue ?? "Unknown venue");
-  const sub = onVenue ? (show.tour ?? loc) : loc;
+  const sub = onVenue ? (show.tour ?? dp.weekday.toLowerCase()) : loc;
   return (
     <Link
       href={showHref(show.date, show.order)}
