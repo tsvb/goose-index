@@ -52,11 +52,13 @@ describe("SetlistFancy", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
     expect(html).toContain("No setlist");
   });
-  it("links the song and marks a Dusted Off return with an explanatory title", () => {
+  it("links the song and marks a Dusted Off return with a pen note and its title", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[entry({ song: "Hot Tea", slug: "hot-tea", gap: 52, isDustedOff: true })]} showDate="2024-04-20" venue={null} />);
     expect(html).toContain('href="/songs/hot-tea"');
-    expect(html).toContain("Dusted Off");
+    expect(html).toContain("first in 52 shows");
     expect(html).toContain('title="First play in 52 shows"');
+    expect(html).toContain("italic");
+    expect(html).not.toContain("border-ember/45"); // no pill border on the row anymore
   });
   it("renders a one-line legend decoding the marks, but not on the empty state", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[entry({ song: "Hot Tea" })]} showDate="2024-04-20" venue={null} />);
@@ -67,23 +69,25 @@ describe("SetlistFancy", () => {
     const empty = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
     expect(empty).not.toContain("Reading the ledger");
   });
-  it("spends ember on heat only — flames and the Dusted Off pill, never the segue caret", () => {
+  it("spends ember on heat only — flames and the pen note, never the segue caret", () => {
     const html = renderToStaticMarkup(
       <SetlistFancy entries={[
         entry({ uniqueId: "a", song: "Hot Tea", transition: ">", isJamchart: true, jamchartNotes: "huge" }),
         entry({ uniqueId: "b", song: "Arcadia", position: 2, gap: 52, isDustedOff: true }),
       ]} showDate="2024-04-20" venue={null} />,
     );
-    // Inline flame + endnote flame + legend flame all wear ember, none gold.
+    // Inline flame + endnote flame + legend flame all wear ember, none steel.
     expect(html.match(/<svg[^>]*class="[^"]*text-ember/g)).toHaveLength(3);
-    expect(html).not.toMatch(/<svg[^>]*class="[^"]*text-gold/);
-    // The Dusted Off pill: ember border + ember text.
-    expect(html).toMatch(/border-ember\/45[^"]*text-ember/);
-    expect(html).not.toContain("border-gold/40");
-    // Segue carets (row + legend) stay gold — structure, not heat.
-    expect(html).toContain('<span class="mr-1 select-none text-gold">›</span>');
-    expect(html).toContain('<span class="text-gold">›</span>');
-    // Legend swatch for the Dusted Off mark is ember too.
+    expect(html).not.toMatch(/<svg[^>]*class="[^"]*text-steel/);
+    expect(html).not.toMatch(/text-gold/);
+    // The Dusted Off return is a pencil margin note now, not an ember pill.
+    expect(html).toContain("first in 52 shows");
+    expect(html).toContain('title="First play in 52 shows"');
+    expect(html).not.toContain("border-ember/45");
+    // Segue carets (row + legend) now wear steel — structure, not heat.
+    expect(html).toContain('<span class="mr-1 select-none text-steel">›</span>');
+    expect(html).toContain('<span class="text-steel">›</span>');
+    // Legend swatch for the Dusted Off mark stays ember (heat), unaffected.
     expect(html).toContain('<span class="text-ember">Dusted Off · n</span>');
   });
   it("tags every row with the setlist-row hook the almanac themes rule", () => {

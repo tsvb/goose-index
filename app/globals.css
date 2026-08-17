@@ -100,17 +100,6 @@
   --nugs-track: #7fbfe8;
 }
 
-/* --- Load-bearing, not decorative: pages still render this markup (entry
-   stamps, folios, the almanac nameplate) from the old Almanac design, and
-   this rule is what hides it now that pen & instrument replaced it. Rule
-   and markup are deleted together in Plans 2–3 as each page is rebuilt;
-   until then, removing just this rule would make the old markup reappear. --- */
-.entry-stamp,
-.entry-folio,
-.almanac-nameplate {
-  display: none;
-}
-
 /* ---- Type tokens — overridable per experience. The `@theme inline` map below
    inlines `var(--type-*)` into the font utilities, so redefining these on a
    `[data-experience]` selector actually re-fonts the page (like the colors). ---- */

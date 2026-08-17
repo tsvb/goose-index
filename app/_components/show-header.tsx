@@ -68,16 +68,12 @@ function computeStats(date: string, setlist: SetlistEntry[]) {
 }
 
 export function ShowHeader({
-  show, date, setlist, experience, entryNumber = null,
+  show, date, setlist, experience,
 }: {
   show: ShowDetail;
   date: string;
   setlist: SetlistEntry[];
   experience: Experience;
-  /** 1-based position in the played-show ledger (getShowEntryNumber). Null —
-   * an upcoming night, or nothing logged yet — means no stamp: the number is
-   * computed or absent, never guessed. */
-  entryNumber?: number | null;
 }) {
   const { dp, encores, setCount, totalSecs, known } = computeStats(date, setlist);
   const loc = locationLine(show.city, show.state, show.country);
@@ -141,34 +137,26 @@ export function ShowHeader({
   }
 
   return (
-    <header className="relative overflow-hidden border-b border-line">
-      <div className="stage-glow inset-x-0 top-0 h-72" />
-      {/* almanac-masthead: the letterpress themes hang their double rule off
-          this wrapper via CSS; the class carries no styles elsewhere. */}
-      <Container className="almanac-masthead relative py-12 sm:py-16">
-        {/* Rubber-stamp entry number — display:none outside the two almanac
-            themes (globals.css). Rendered only when the ledger position is
-            actually computed. */}
-        {entryNumber != null && (
-          <div className="entry-stamp">
-            <span>SHOW</span>
-            <span>No. {entryNumber}</span>
-          </div>
-        )}
-        <span className="eyebrow">
+    <header className="border-b border-line">
+      {/* PageHead-style markup, written inline: the kicker carries a real
+          tour link (PageHead's own kicker is plain text only) and the venue
+          line + stat/listen row are bespoke, so they sit alongside it rather
+          than inside PageHead's meta slot. */}
+      <Container className="py-10 sm:py-14">
+        <p className="text-[0.7rem] lowercase text-faint">
           {show.tourId && show.tour ? (
-            <Link href={`/tours/${show.tourId}`} className="transition hover:text-gold">{show.tour}</Link>
+            <Link href={`/tours/${show.tourId}`} className="text-spruce underline underline-offset-4 transition hover:text-ink">{show.tour}</Link>
           ) : ("Goose")}
           {"  ·  "}
-          {dp.weekday}
-        </span>
-        <h1 className="rise mt-3 font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-5xl">
+          {dp.weekday.toLowerCase()}
+        </p>
+        <h1 className="mt-1 font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-5xl">
           {dp.month} {dp.day}, {dp.year}
         </h1>
         <p className="mt-4 flex flex-wrap items-baseline gap-x-2 text-xl">
           <span className="text-muted">at</span>
           {show.venueId ? (
-            <Link href={`/venues/${show.venueId}`} className="font-display text-2xl text-gold underline decoration-gold/30 underline-offset-4 transition hover:decoration-gold">{show.venue}</Link>
+            <Link href={`/venues/${show.venueId}`} className="font-display text-2xl text-spruce underline decoration-spruce/30 underline-offset-4 transition hover:text-ink">{show.venue}</Link>
           ) : (
             <span className="font-display text-2xl text-ink">{show.venue ?? "Unknown venue"}</span>
           )}

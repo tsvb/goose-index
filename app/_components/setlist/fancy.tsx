@@ -8,6 +8,7 @@ import { groupSets, isSegue } from "./shared";
 import { SetTape } from "./tape";
 import { NugsLink } from "../nugs-link";
 import { nugsTrackHref, nugsWebFallback } from "@/lib/nugs";
+import { PenNote } from "../pen";
 
 export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEntry[]; showDate: string; venue: string | null }) {
   if (entries.length === 0) {
@@ -63,7 +64,7 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                       // paper (globals.css); carries no styles elsewhere.
                       "setlist-row group relative flex items-baseline gap-3 py-[7px] pl-4 nugs-row",
                       inRun &&
-                        "before:absolute before:left-[1px] before:w-[2px] before:rounded-full before:bg-gold/45",
+                        "before:absolute before:left-[1px] before:w-[2px] before:rounded-full before:bg-steel/45",
                       inRun && thread,
                     )}
                   >
@@ -71,12 +72,12 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                       {i + 1}
                     </span>
                     <span className="flex-1 leading-snug">
-                      {segFromPrev && <span className="mr-1 select-none text-gold">›</span>}
+                      {segFromPrev && <span className="mr-1 select-none text-steel">›</span>}
                       {e.slug
                         ? <Link href={`/songs/${e.slug}`} className="text-[1.02rem] text-ink hover:underline">{e.song}</Link>
                         : <span className="text-[1.02rem] text-ink">{e.song}</span>}
                       {/* Heat wears ember, everywhere heat appears (flames,
-                          Dusted Off); gold stays structural — segue carets,
+                          Dusted Off); steel stays structural — segue carets,
                           rules. The XL II discipline, applied to all fancy
                           themes. */}
                       {e.isJamchart && (
@@ -84,7 +85,11 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                           <Flame className="ml-1.5 inline h-[15px] w-[15px] -translate-y-px text-ember" strokeWidth={1.7} />
                         </span>
                       )}
-                      {e.isDustedOff && <span title={`First play in ${e.gap} shows`} className="ml-2 inline-block whitespace-nowrap rounded-full border border-ember/45 px-2 py-0.5 align-middle font-mono text-[0.6rem] text-ember">{RETURN_LABEL} · {e.gap}</span>}
+                      {e.isDustedOff && (
+                        <span title={`First play in ${e.gap} shows`}>
+                          <PenNote className="ml-2 inline">first in {e.gap} shows</PenNote>
+                        </span>
+                      )}
                       {!e.isOriginal && e.originalArtist && (
                         <span className="ml-2 align-baseline text-xs italic text-faint">{e.originalArtist}</span>
                       )}
@@ -152,7 +157,7 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
           numbered endnotes, and the Dusted Off pill. */}
       <p className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line-soft pt-3 font-mono text-[0.65rem] leading-relaxed text-faint">
         <span className="uppercase tracking-[0.18em]">Reading the ledger</span>
-        <span><span className="text-gold">›</span> = segue</span>
+        <span><span className="text-steel">›</span> = segue</span>
         <span><Flame className="inline h-3 w-3 -translate-y-px text-ember" strokeWidth={1.7} /> = jam chart pick</span>
         <span><span className="text-sage">¹</span> = see the notes under each set</span>
         <span><span className="text-ember">{RETURN_LABEL} · n</span> = first play in n shows</span>
