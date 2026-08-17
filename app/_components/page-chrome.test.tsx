@@ -13,6 +13,7 @@ describe("PageHead", () => {
     expect(html).toMatch(/<h1[^>]*>All shows<\/h1>/);
     expect(html).toContain("823 shows since 1991");
     expect(html).toContain("font-mono");
+    expect(html).not.toContain("text-pencil"); // PageHead draws no rule
   });
   it("omits the kicker and meta paragraphs when absent", () => {
     const html = renderToStaticMarkup(<PageHead title="Just a title" />);
@@ -66,6 +67,7 @@ describe("FilterRow", () => {
     );
     expect(html).toContain("tour");
     expect(html).toContain("lowercase");
+    expect(html).toContain("<span"); // the label span
   });
   it("no label, no label span", () => {
     const html = renderToStaticMarkup(
@@ -75,6 +77,8 @@ describe("FilterRow", () => {
         </FilterLink>
       </FilterRow>,
     );
+    // FilterRow's only <span> is the label; FilterLink renders an <a>, not a span.
+    expect(html).not.toContain("<span");
     expect(html).not.toMatch(/rounded|surface-card/);
   });
 });
