@@ -449,8 +449,24 @@
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
 }
 /* The global steel focus ring is blue-on-blue on the appbar (1.1–1.3:1) —
-   keep the ring, swap it to white there. */
-[data-experience="functional"] .w2-appbar :focus-visible { outline-color: #fff; }
+   keep the ring, swap it to white there. Scoped to the appbar's own
+   on-gradient controls (brand link, primary nav, the .appbar-search
+   subtree, the Settings toggle, and the mobile-nav trigger) rather than a
+   bare `.w2-appbar :focus-visible`: MobileNav's sheet renders inside this
+   same header as a DOM descendant of .w2-appbar, so the bare selector used
+   to also catch the sheet's own search input and nav links — a white ring
+   on the sheet's bg-paper (#e7f0f9) is ~1.15:1, invisible for keyboard
+   users (WCAG 1.4.11 wants 3:1). The sheet's own controls fall back to the
+   global steel ring instead — functional --steel (#1f6cb0) on --paper
+   (#e7f0f9) is ~4.7:1, comfortably clear of 3:1. */
+[data-experience="functional"] .w2-appbar .w2-brand:focus-visible,
+[data-experience="functional"] .w2-appbar .w2-navlink:focus-visible,
+[data-experience="functional"] .w2-appbar .appbar-search :focus-visible,
+[data-experience="functional"] .w2-appbar [aria-label="Settings"]:focus-visible,
+[data-experience="functional"] .w2-appbar [aria-label="Open menu"]:focus-visible,
+[data-experience="functional"] .w2-appbar [aria-label="Close menu"]:focus-visible {
+  outline-color: #fff;
+}
 /* The 3.0 underline search sits on the appbar gradient here — give it appbar
    ink. Scoped to .appbar-search (the hook the header puts on that one
    SearchBox instance, in site-header.tsx) rather than a bare

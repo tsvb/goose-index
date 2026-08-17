@@ -54,6 +54,24 @@ describe("SiteHeader variants", () => {
     expect(css).not.toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+input\s*\{/);
     expect(css).not.toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+input::placeholder\s*\{/);
   });
+  it("the functional appbar's white focus-ring rule is scoped to its own on-gradient controls, not every focus-visible element under .w2-appbar", () => {
+    // Same leak as the input-color bug above: a bare `.w2-appbar :focus-visible`
+    // rule also caught the mobile-nav sheet's own search input and section
+    // links (DOM descendants of .w2-appbar even though they render on the
+    // sheet's own bg-paper) — a white ring there is ~1.15:1, invisible for
+    // keyboard users. The rule must instead name only the appbar's direct
+    // controls: the brand link, the primary nav links, the .appbar-search
+    // subtree, the Settings toggle, and the mobile-nav trigger button.
+    const css = fs.readFileSync(path.join(__dirname, "..", "globals.css"), "utf8");
+    expect(css).toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+\.w2-brand:focus-visible/);
+    expect(css).toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+\.w2-navlink:focus-visible/);
+    expect(css).toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+\.appbar-search\s+:focus-visible/);
+    expect(css).toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+\[aria-label="Settings"\]:focus-visible/);
+    expect(css).toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+\[aria-label="Open menu"\]:focus-visible/);
+    expect(css).toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+\[aria-label="Close menu"\]:focus-visible/);
+    // The old bare-selector form must be gone, not just shadowed.
+    expect(css).not.toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+:focus-visible\s*\{/);
+  });
   it("minimal is a plain text nav: no svg, not sticky, underlined links", () => {
     const html = renderToStaticMarkup(<HeaderMinimal experience="minimal" />);
     expect(html).not.toContain("<svg");

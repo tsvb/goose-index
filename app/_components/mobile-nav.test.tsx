@@ -97,6 +97,31 @@ describe("MobileNav drawer", () => {
     // source, not a hardcoded white.
     expect(html).toContain("text-ink placeholder:text-faint");
   });
+
+  it("the sheet's own controls carry none of the hooks the appbar's white focus-ring rule targets — they must fall back to the global steel ring", () => {
+    // Companion to the input-color pin above, for focus-visible instead of
+    // color. globals.css's white-ring rule for the functional appbar is
+    // scoped to `.w2-brand`, `.w2-navlink`, `.appbar-search`, and the
+    // `aria-label="Settings"`/"Open menu"/"Close menu" controls — all of
+    // which sit directly on the appbar gradient. The sheet (this component's
+    // search input and section links) is a DOM descendant of .w2-appbar too,
+    // but renders on its own bg-paper: if any of those hooks leaked onto its
+    // markup, a white ring there would be ~1.15:1, invisible for keyboard
+    // users. Its search input already carries neither "Open menu" nor
+    // "Close menu" (that's the trigger button's aria-label, asserted
+    // separately below), and its nav links use plain <a> tags, not
+    // NavLink/.w2-navlink.
+    const html = renderToStaticMarkup(<MobileNav />);
+    expect(html).not.toContain("w2-navlink");
+    expect(html).not.toContain("w2-brand");
+    expect(html).not.toContain("appbar-search");
+    // The sheet's own search input is a distinct element from the trigger
+    // button — it carries its own "Search the index" label, not the
+    // trigger's "Open menu"/"Close menu" (the only aria-labels the white-ring
+    // rule matches by attribute).
+    const sheetInput = html.match(/<input[^>]*>/)?.[0];
+    expect(sheetInput).toContain('aria-label="Search the index"');
+  });
 });
 
 describe("bindSheetDismissal — Escape closes, background scroll locks", () => {

@@ -201,4 +201,30 @@ describe("TourTimeline legs", () => {
     // Repeating it on every leg would read as two separate tours.
     expect([...html.matchAll(/>Summer</g)]).toHaveLength(1);
   });
+
+  it("delivers the label color via --tour-label-color, not a bare inline color: — a revert to style={{ color: nameColour }} would beat the CSS rules in globals.css (base + functional override) and silently reintroduce the 2.0 AA failure while every other test here stays green", () => {
+    const html = renderToStaticMarkup(
+      <TourTimeline
+        today="2026-07-13"
+        untouredShows={0}
+        tours={[
+          tour({
+            tourId: 44, name: "Summer Tour 2026", start: "2026-06-13", end: "2026-09-02", shows: 8,
+            dates: ["2026-06-13", "2026-06-19", "2026-06-26", "2026-07-04", "2026-08-13", "2026-08-19", "2026-08-27", "2026-09-02"],
+          }),
+        ]}
+      />,
+    );
+    const label = html.match(/<span class="tour-timeline-label[^>]*>Summer[^<]*<\/span>/)?.[0];
+    expect(label, "label span not found").toBeTruthy();
+    expect(label).toContain("tour-timeline-label");
+    // The CSS custom property is set inline...
+    expect(label).toMatch(/style="[^"]*--tour-label-color:[^;"]+/);
+    // ...but a bare `color:` is not — that would out-specificity/out-order
+    // both the base `.tour-timeline-label { color: var(--tour-label-color) }`
+    // rule and functional's `[data-experience="functional"] .tour-timeline-label
+    // { color: var(--ink) }` override.
+    const style = label!.match(/style="([^"]*)"/)?.[1] ?? "";
+    expect(style).not.toMatch(/(^|;)\s*color:/);
+  });
 });
