@@ -9,5 +9,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["**/*.test.ts", "**/*.test.tsx"],
+    // .claude/worktrees holds full nested checkouts; without this, a run from
+    // the main checkout discovers every test twice and the copies interfere.
+    exclude: ["**/node_modules/**", "**/.claude/**"],
   },
 });
