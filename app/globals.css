@@ -15,11 +15,11 @@
   --paper: #f3f5f7;
   --ink: #1f242b;
   --muted: #5d6672;
-  --faint: #8b95a1;
+  --faint: #657080;
   --steel: #46708f;
-  --hand: #d9a406;
+  --hand: #a67f05;
   --spruce: #47776b;
-  --pencil: #7b8590;
+  --pencil: #5f6873;
   --line: rgba(31, 36, 43, 0.28);
   --line-soft: rgba(31, 36, 43, 0.13);
   color-scheme: light;
@@ -34,7 +34,13 @@
   --gold-deep: var(--steel);
   --sage: var(--spruce);
   --sage-deep: var(--spruce);
-  --ember: var(--hand);
+  /* --ember is its own AA-safe literal, not a --hand alias: --hand only
+     needs to clear 3:1 (it's a mark, always paired with written values),
+     but --ember is consumed as TEXT (.live-pill, .overdue, .song-bust) and
+     has to clear 4.5:1 on its own. Same amber family as --hand, darkened
+     for the text role. Ember aliases retire with Plan 5; until then --ember
+     is heat/live text, derived from the hand's amber but text-safe. */
+  --ember: #8a6504;
   --shadow: transparent;
 }
 
@@ -45,7 +51,7 @@
     --paper: #22262d;
     --ink: #e8ecf1;
     --muted: #aab3bd;
-    --faint: #7e8894;
+    --faint: #848e9b;
     --steel: #7ba3c4;
     --hand: #f2b705;
     --spruce: #7fae9f;
@@ -53,6 +59,10 @@
     --line: rgba(232, 236, 241, 0.3);
     --line-soft: rgba(232, 236, 241, 0.14);
     color-scheme: dark;
+    /* --ember: the hand's amber already clears 4.5:1 as text on slate
+       paper, so unlike fog it doesn't need its own darker literal — same
+       value as --hand, named for the text role. Retires with Plan 5. */
+    --ember: #f2b705;
 
     /* Dark-safe nugs text colors — WCAG contrast machinery ported from the
        old per-theme split, not a theme identity. Fog's defaults (below,
@@ -68,7 +78,7 @@
   --paper: #22262d;
   --ink: #e8ecf1;
   --muted: #aab3bd;
-  --faint: #7e8894;
+  --faint: #848e9b;
   --steel: #7ba3c4;
   --hand: #f2b705;
   --spruce: #7fae9f;
@@ -76,6 +86,8 @@
   --line: rgba(232, 236, 241, 0.3);
   --line-soft: rgba(232, 236, 241, 0.14);
   color-scheme: dark;
+  /* --ember: see the media-query block above. */
+  --ember: #f2b705;
 
   /* Dark-safe nugs text colors — see the media-query block above. */
   --nugs-link: #8fc6ee;
