@@ -53,6 +53,15 @@
     --line: rgba(232, 236, 241, 0.3);
     --line-soft: rgba(232, 236, 241, 0.14);
     color-scheme: dark;
+
+    /* Dark-safe nugs text colors — WCAG contrast machinery ported from the
+       old per-theme split, not a theme identity. Fog's defaults (below,
+       on :root) carry the light-safe values instead. */
+    --nugs-link: #8fc6ee;
+    --nugs-link-strong: #bfe0fb;
+    --nugs-watch: #c6b8ee;
+    --nugs-watch-strong: #ddd0fb;
+    --nugs-track: #7fbfe8;
   }
 }
 :root[data-theme="slate"] {
@@ -67,6 +76,13 @@
   --line: rgba(232, 236, 241, 0.3);
   --line-soft: rgba(232, 236, 241, 0.14);
   color-scheme: dark;
+
+  /* Dark-safe nugs text colors — see the media-query block above. */
+  --nugs-link: #8fc6ee;
+  --nugs-link-strong: #bfe0fb;
+  --nugs-watch: #c6b8ee;
+  --nugs-watch-strong: #ddd0fb;
+  --nugs-track: #7fbfe8;
 }
 
 /* --- Almanac-only flourishes (hook classes; markup is server-rendered in all
@@ -171,7 +187,9 @@
 [data-experience="fancy"] :is(.rounded, .rounded-md, .rounded-lg, .rounded-xl) {
   border-radius: 0;
 }
-[data-experience="fancy"] .hover\:-translate-y-0\.5:hover { transform: none; }
+/* Tailwind v4 compiles -translate-y-* to the `translate` property; keep
+   `transform: none` too in case a future utility routes through it. */
+[data-experience="fancy"] .hover\:-translate-y-0\.5:hover { translate: none; transform: none; }
 [data-experience="fancy"] [class*="hover:shadow"]:hover { box-shadow: none; }
 
 /* Hairline rule with a faint gold tick, ledger style */
@@ -667,19 +685,21 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 [data-experience="functional"] .song-bust { color: #b8501a; border-color: #f4a72b; }
 
 /* ---- nugs "Listen / Watch" affordance ---- */
-/* Cool "player" blues/violets, deliberately apart from the ledger palette. */
+/* Cool "player" blues/violets, deliberately apart from the ledger palette.
+   Fog-safe text colors below (link/link-strong/watch/watch-strong/track) —
+   dark-safe values for slate live on the two slate blocks up top. */
 :root {
-  --nugs-link: #8fc6ee;
-  --nugs-link-strong: #bfe0fb;
+  --nugs-link: #1d5c86;
+  --nugs-link-strong: #144a6d;
   --nugs-line: #34506a;
   --nugs-line-strong: #4a78a6;
   --nugs-wash: linear-gradient(180deg, rgba(60,110,160,0.16), rgba(40,70,110,0.10));
-  --nugs-watch: #c6b8ee;
-  --nugs-watch-strong: #ddd0fb;
+  --nugs-watch: #5f4399;
+  --nugs-watch-strong: #443070;
   --nugs-watch-line: #4a3f6a;
   --nugs-watch-line-strong: #6a5aa0;
   --nugs-watch-wash: linear-gradient(180deg, rgba(110,80,170,0.16), rgba(70,55,120,0.10));
-  --nugs-track: #7fbfe8;
+  --nugs-track: #1a567e;
   --nugs-track-line: #2f4860;
 }
 
