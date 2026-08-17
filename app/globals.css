@@ -5,381 +5,68 @@
    Warm archival ledger × golden live-show night.
    ============================================================ */
 
-/* ---- Runtime theme tokens (switchable via [data-theme]) ---- */
+/* ---- Pen & instrument tokens ----
+   One meaning per color (spec 2026-08-16): ink=content · steel=the record's
+   structure · hand=now and the reading · spruce=links only · pencil=the human
+   margin. Fog is the light page; slate (below) the dark. Legacy names alias
+   the new roles so un-migrated utilities re-temper instead of breaking; the
+   aliases die with Plan 5. */
 :root {
-  --bg: #15110c;
-  --bg-deep: #100c08;
-  --surface: #1d1710;
-  --surface-2: #261d14;
-  --ink: #f3ead9;
-  --muted: #b6a585;
-  /* ≥4.5:1 (WCAG AA) on --bg and --surface — text-faint styles 0.55–0.85rem text. */
-  --faint: #94856b;
-  --line: #362b1e;
-  --line-soft: #2a2117;
-  --gold: #edab44;
-  --gold-soft: #c9892f;
-  --gold-deep: #a06d22;
-  --sage: #8cbda9;
-  --sage-deep: #5f9d86;
-  --ember: #e08a4a;
-  --shadow: rgba(0, 0, 0, 0.55);
-  color-scheme: dark;
-}
-
-/* Almanac — Cream: ink on printed almanac stock. Anchor object: a printed
-   almanac + library card catalog. Three roles, same in Kraft below: --gold is
-   the structural accent (eyebrows, rules, segue carets, stamps, hover), --sage
-   carries links & references, --ember is heat and heat only. */
-:root[data-theme="light"] {
-  --bg: #f0e7d2;
-  --bg-deep: #e7dcc2;
-  --surface: #f7f0df;
-  --surface-2: #efe6cf;
-  --ink: #221c14;
-  --muted: #6c5c44;
-  /* ≥4.5:1 (WCAG AA) on --bg (4.56) and --surface (4.94) — text-faint styles
-     0.55–0.85rem text. */
-  --faint: #77654a;
-  --line: #cbbf9f;
-  --line-soft: #ddd2b6;
-  /* Structural accent = oxblood, the date-stamp red. */
-  --gold: #8a2b22;
-  --gold-soft: #7d2620;
-  --gold-deep: #6f221c;
-  /* Links & references = ledger green. */
-  --sage: #2f6a4a;
-  --sage-deep: #265a3e;
-  /* Heat only (jams, bust-outs, live, overdue) — 4.74:1 on --bg, 5.13:1 on
-     --surface (AA at the sizes it styles). Keep this exact hex. Its
-     predecessor #a5511c measured 4.4986:1 on --bg — that rounds to 4.50 but
-     axe (correctly) fails it, since AA needs the unrounded ratio ≥ 4.5. */
-  --ember: #a04e1b;
-  --shadow: rgba(80, 56, 20, 0.12);
-  --type-display: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
-  --type-body: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
-  --type-mono: var(--font-courier-prime), ui-monospace, SFMono-Regular, monospace;
+  --paper: #f3f5f7;
+  --ink: #1f242b;
+  --muted: #5d6672;
+  --faint: #8b95a1;
+  --steel: #46708f;
+  --hand: #d9a406;
+  --spruce: #47776b;
+  --pencil: #7b8590;
+  --line: rgba(31, 36, 43, 0.28);
+  --line-soft: rgba(31, 36, 43, 0.13);
   color-scheme: light;
+
+  /* Legacy aliases — Plan 5 removes these with their last consumers. */
+  --bg: var(--paper);
+  --bg-deep: var(--paper);
+  --surface: var(--paper);
+  --surface-2: color-mix(in oklab, var(--ink) 5%, var(--paper));
+  --gold: var(--steel);
+  --gold-soft: var(--steel);
+  --gold-deep: var(--steel);
+  --sage: var(--spruce);
+  --sage-deep: var(--spruce);
+  --ember: var(--hand);
+  --shadow: transparent;
 }
 
-/* Almanac — Kraft: cream ink on brown paper, the material of tape-trading
-   (J-cards, B&P mailers). Same roles as Cream; only the stock changes. */
-:root[data-theme="dark"] {
-  --bg: #2a2014;
-  --bg-deep: #201811;
-  --surface: #342719;
-  --surface-2: #3d2f1e;
-  --ink: #ede0c4;
-  --muted: #bcaa86;
-  /* ≥4.5:1 (WCAG AA) on --bg (5.39) and --surface (4.88) — text-faint styles
-     0.55–0.85rem text. Same hue/sat as the handoff's #a08d69, which measured
-     4.49 on --surface and failed AA; lightness nudged up until both pass. */
-  --faint: #a59473;
-  --line: #4c3a24;
-  --line-soft: #3d2e1c;
-  /* Structural accent = warm cream-gold. */
-  --gold: #d8b98a;
-  --gold-soft: #c7a877;
-  --gold-deep: #b39463;
-  /* Links & references = sage. */
-  --sage: #9fb389;
-  --sage-deep: #b3c49f;
-  /* Heat only = ember. */
-  --ember: #ecab52;
-  --shadow: rgba(0, 0, 0, 0.55);
-  --type-display: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
-  --type-body: var(--font-libre-caslon), Georgia, "Times New Roman", serif;
-  --type-mono: var(--font-courier-prime), ui-monospace, SFMono-Regular, monospace;
+/* Slate — the dark cave. Follows the system unless the visitor pins fog;
+   an explicit slate pin wins in both directions. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="fog"]) {
+    --paper: #22262d;
+    --ink: #e8ecf1;
+    --muted: #aab3bd;
+    --faint: #7e8894;
+    --steel: #7ba3c4;
+    --hand: #f2b705;
+    --spruce: #7fae9f;
+    --pencil: #98a1ab;
+    --line: rgba(232, 236, 241, 0.3);
+    --line-soft: rgba(232, 236, 241, 0.14);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="slate"] {
+  --paper: #22262d;
+  --ink: #e8ecf1;
+  --muted: #aab3bd;
+  --faint: #7e8894;
+  --steel: #7ba3c4;
+  --hand: #f2b705;
+  --spruce: #7fae9f;
+  --pencil: #98a1ab;
+  --line: rgba(232, 236, 241, 0.3);
+  --line-soft: rgba(232, 236, 241, 0.14);
   color-scheme: dark;
-}
-
-/* Pod — matte-black player hardware: graphite neutrals (the warm ledger
-   browns go cold), hairline strokes, and one loud accent — Warhol-banana
-   yellow. Inspired by the click-wheel era of dark handheld players. */
-:root[data-theme="pod"] {
-  --bg: #161618;
-  --bg-deep: #101012;
-  --surface: #1f1f22;
-  --surface-2: #29292d;
-  --ink: #f4f4f6;
-  --muted: #9d9da4;
-  /* ≥4.5:1 (WCAG AA) on --surface and --bg — text-faint styles 0.55–0.85rem text. */
-  --faint: #8a8a92;
-  --line: #333338;
-  --line-soft: #28282c;
-  --gold: #f2cf3e;
-  --gold-soft: #d8b52f;
-  --gold-deep: #a98f24;
-  --sage: #8fb2c9;
-  --sage-deep: #6e93ab;
-  --ember: #ef9646;
-  --shadow: rgba(0, 0, 0, 0.65);
-  color-scheme: dark;
-}
-
-/* XL II — high-bias chrome cassette × Braun wall clock × tube amp.
-   Thesis: a cold instrument with one hot filament.
-
-   The chassis is deliberately COLD graphite — the tape-nostalgia cliché is
-   sepia, and this theme refuses it: no browns, beiges or tans anywhere. The
-   working accent is chrome cyan, because XL II is a *chrome* tape and should
-   feel like cold metal. Warmth is rationed to a single colour, --ember, which
-   the design system already reserves for heat (live shows, overdue songs,
-   bust-outs) — so the one warm thing on screen is always the one hot thing in
-   the data. That is the whole idea; keep it. */
-:root[data-theme="xl2"] {
-  --bg: #0e1114;
-  --bg-deep: #08090b;
-  --surface: #161a1f;
-  --surface-2: #1f242b;
-  --ink: #eef2f5;
-  --muted: #99a4ae;
-  /* ≥4.5:1 (WCAG AA) on --bg and --surface — text-faint styles 0.55–0.85rem text. */
-  --faint: #8b959e;
-  --line: #2b323a;
-  --line-soft: #21262c;
-  /* Chrome — the instrument. Bars, rules, ticks, focus. `--gold-deep` only ever
-     fills graphics (bars, sparks), some at 80% opacity: held at ≥3:1 (WCAG
-     1.4.11) against every surface once composited. */
-  --gold: #5ccfe6;
-  --gold-soft: #3fb2cb;
-  --gold-deep: #3496b0;
-  /* Below 0 dB — the nominal end of a VU scale. */
-  --sage: #6fd3a0;
-  --sage-deep: #4fb27f;
-  /* The filament. The only warm colour in the theme — spend it on heat only. */
-  --ember: #ff9d3c;
-  --shadow: rgba(0, 0, 0, 0.7);
-  /* Plex is the engineered, rational face here — Rams by way of IBM — and Plex
-     Mono is the silkscreened legend on the shell. */
-  --type-display: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --type-body: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --type-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
-  color-scheme: dark;
-}
-
-/* Braun legibility: one width per digit, so columns of numbers line up as a
-   scale rather than as text. */
-:root[data-theme="xl2"] body {
-  font-variant-numeric: tabular-nums;
-}
-:root[data-theme="xl2"] h1,
-:root[data-theme="xl2"] h2,
-:root[data-theme="xl2"] h3,
-:root[data-theme="xl2"] h4 {
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-/* The signature motif: a clock-face minute scale in place of a plain rule.
-   Ticks hang off a hairline, exactly like the bezel of a Braun BN wall clock. */
-:root[data-theme="xl2"] .hairline {
-  height: 5px;
-  background:
-    repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px 9px) top / 100% 4px no-repeat,
-    linear-gradient(var(--line-soft), var(--line-soft)) bottom / 100% 1px no-repeat;
-}
-
-/* Chassis: squared off, with a chrome bezel highlight along the top edge. */
-:root[data-theme="xl2"] .surface-card {
-  background: linear-gradient(180deg, var(--surface), var(--bg-deep));
-  border-radius: 2px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
-}
-
-/* The tube. Not decorative atmosphere — a filament behind the chassis. */
-:root[data-theme="xl2"] .stage-glow {
-  background: radial-gradient(
-    58% 78% at 50% -12%,
-    color-mix(in oklab, var(--ember) 34%, transparent),
-    transparent 72%
-  );
-}
-:root[data-theme="xl2"] .live-dot {
-  box-shadow: 0 0 9px 1px var(--ember);
-}
-
-/* Silkscreened legend. */
-:root[data-theme="xl2"] .eyebrow {
-  color: var(--gold);
-  font-size: 0.64rem;
-  letter-spacing: 0.28em;
-}
-
-/* Meters, not candy: flat fills, square ends. A bar is a reading. */
-:root[data-theme="xl2"] .song-ppy-bar,
-:root[data-theme="xl2"] .song-bar,
-:root[data-theme="xl2"] .song-bar > span,
-:root[data-theme="xl2"] .song-spark i,
-:root[data-theme="xl2"] .song-mspark i,
-:root[data-theme="xl2"] .song-ribbon {
-  border-radius: 0;
-}
-:root[data-theme="xl2"] .song-ppy-bar,
-:root[data-theme="xl2"] .song-bar > span {
-  background: var(--gold);
-}
-:root[data-theme="xl2"] .song-spark i,
-:root[data-theme="xl2"] .song-mspark i {
-  background: var(--gold-deep);
-}
-/* Past 0 dB. */
-:root[data-theme="xl2"] .song-spark i.bust {
-  background: var(--ember);
-}
-
-/* Moulded ABS, not paper — the grain nearly vanishes. */
-:root[data-theme="xl2"] .grain-overlay {
-  opacity: 0.02;
-}
-
-:root[data-theme="xl2"] ::selection {
-  background: var(--gold);
-  color: #0e1114;
-}
-:root[data-theme="xl2"] ::-webkit-scrollbar-thumb {
-  border-radius: 0;
-}
-
-/* ============================================================
-   Registrar — a museum wall placard beside a framed print: gallery-dark
-   walls, brass rail lighting, a typed catalog card under the exhibit.
-   Fraunces carries anything that reads as *content* (headings); Archivo
-   carries anything that reads as *record* (labels, figures) — no separate
-   mono face, Archivo's tabular figures and wdth axis do that job instead.
-   ============================================================ */
-:root[data-theme="registrar"] {
-  --bg: #0b0b0c;
-  --bg-deep: #060607;
-  --surface: #141415;
-  --surface-2: #1c1c1d;
-  --ink: #efeae4;
-  --muted: #9a9893;
-  /* ≥4.5:1 (WCAG AA) on --bg (5.80) and --surface (5.43) — text-faint styles
-     0.55–0.85rem text. */
-  --faint: #8f8b84;
-  --line: #2a2927;
-  --line-soft: #201f1e;
-  /* Structural accent = the brass rail light. */
-  --gold: #c9a15b;
-  --gold-soft: #b48f4f;
-  --gold-deep: #93762f;
-  /* Links & references = verdigris, the patina on the case hardware. */
-  --sage: #7fa39a;
-  --sage-deep: #5f8880;
-  /* Heat only = the red string on an accession tag. */
-  --ember: #d1673a;
-  --shadow: rgba(0, 0, 0, 0.6);
-  --type-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  --type-body: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --type-mono: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  color-scheme: dark;
-}
-
-/* Catalog card: tabular figures wherever a reading appears — a record's
-   numbers should line up as a column, the same thesis as XL II's Braun rule. */
-:root[data-theme="registrar"] body {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Fraunces at heading size: soft and a little irregular, like hand-set
-   display type on a placard. Weight stays light — wall text, not a shout. */
-:root[data-theme="registrar"] h1,
-:root[data-theme="registrar"] h2 {
-  letter-spacing: -0.006em;
-  font-variation-settings: "opsz" 40, "wght" 440, "SOFT" 35, "WONK" 1;
-}
-/* Smaller headings calm down — less optical size, no wonk — the way the
-   source mockup's big masthead differs from its small, upright subhead. */
-:root[data-theme="registrar"] h3,
-:root[data-theme="registrar"] h4 {
-  letter-spacing: -0.004em;
-  font-variation-settings: "opsz" 18, "wght" 380, "SOFT" 25, "WONK" 0;
-}
-
-/* Eyebrow: the typed catalog label, Archivo pulled to its narrowest width —
-   the same trick the source mockup uses for CAMERA / LENS / EXPOSURE. */
-:root[data-theme="registrar"] .eyebrow {
-  font-family: var(--font-archivo);
-  font-variation-settings: "wdth" 68, "wght" 600;
-  color: var(--gold-soft);
-}
-
-/* Vitrine glass, not paper — the grain is barely there. */
-:root[data-theme="registrar"] .grain-overlay {
-  opacity: 0.02;
-}
-
-/* ============================================================
-   Almanac letterpress — shared by light (Cream) + dark (Kraft).
-   Everything here is scoped to the two almanac themes; pod and
-   xl2 must render pixel-identically with or without this block.
-   Every element rule also carries [data-experience="fancy"]: the
-   saved theme persists across experiences, and without the guard
-   these rules would restyle the 2.0/1.0 editions (e.g. Caslon's
-   weight-400 headings beating functional's weight-800).
-   ============================================================ */
-
-/* Caslon wants its own weight/tracking (base sets 460 / -0.01em for grotesques). */
-:root[data-theme="light"][data-experience="fancy"] :is(h1, h2, h3, h4),
-:root[data-theme="dark"][data-experience="fancy"] :is(h1, h2, h3, h4) {
-  font-weight: 400;
-  letter-spacing: 0;
-}
-
-/* Letterpress has no stage light. */
-:root[data-theme="light"][data-experience="fancy"] .stage-glow,
-:root[data-theme="dark"][data-experience="fancy"] .stage-glow {
-  display: none;
-}
-
-/* Cards: squared ledger stock, hairline, no lift shadow. */
-:root[data-theme="light"][data-experience="fancy"] .surface-card,
-:root[data-theme="dark"][data-experience="fancy"] .surface-card {
-  border-radius: 2px;
-  box-shadow: none;
-}
-
-/* Square the bespoke utility cards (ShowCard, BrowseLink, prev/next) for these
-   themes without touching pod/xl2. */
-:root[data-theme="light"][data-experience="fancy"] .rounded-lg,
-:root[data-theme="dark"][data-experience="fancy"] .rounded-lg {
-  border-radius: 3px;
-}
-
-/* Printed cards don't float: neutralize the Tailwind hover lift + shadow on
-   card links (the utilities stay in the markup so pod/xl2 keep their lift).
-   Tailwind v4 compiles -translate-y-* to the `translate` property; `transform`
-   is included in case a future utility goes through it instead. */
-:root[data-theme="light"][data-experience="fancy"] .hover\:-translate-y-0\.5:hover,
-:root[data-theme="dark"][data-experience="fancy"] .hover\:-translate-y-0\.5:hover {
-  translate: none;
-  transform: none;
-}
-:root[data-theme="light"][data-experience="fancy"] [class*="hover:shadow"]:hover,
-:root[data-theme="dark"][data-experience="fancy"] [class*="hover:shadow"]:hover {
-  box-shadow: none;
-}
-
-/* Kraft fibre — tune the shared grain overlay. (Cream reuses the existing
-   light multiply rule beside .grain-overlay's base declaration below.) */
-:root[data-theme="dark"][data-experience="fancy"] .grain-overlay {
-  opacity: 0.06;
-}
-
-/* Eyebrow: catalog label, a touch calmer. */
-:root[data-theme="light"][data-experience="fancy"] .eyebrow,
-:root[data-theme="dark"][data-experience="fancy"] .eyebrow {
-  letter-spacing: 0.2em;
-}
-
-/* Selection reads as an inked stamp. Base rule hardcodes #15110c text on
-   var(--gold): on Cream's oxblood gold that is 2.19:1 — swap to cream stock
-   on oxblood, 7.55:1 (AA). On Kraft the base rule already lands #15110c on
-   cream-gold #d8b98a = 10.05:1, and reads as highlighter on kraft — kept. */
-:root[data-theme="light"][data-experience="fancy"] ::selection {
-  background: var(--gold);
-  color: #f7f0df;
 }
 
 /* --- Almanac-only flourishes (hook classes; markup is server-rendered in all
@@ -390,189 +77,13 @@
   display: none;
 }
 
-/* Rubber-stamp show number ("SHOW / No. N") in the fancy show header. Pinned
-   top-right of the .almanac-masthead (which is position: relative in the show
-   header). Desktop-and-up only: on phones it would sit on the eyebrow/date. */
-@media (min-width: 640px) {
-  :root[data-theme="light"][data-experience="fancy"] .entry-stamp,
-  :root[data-theme="dark"][data-experience="fancy"] .entry-stamp {
-    display: inline-block;
-    position: absolute;
-    top: 3.6rem;
-    right: 2rem;
-    transform: rotate(-6deg);
-    border: 2px solid var(--gold);
-    border-radius: 2px;
-    color: var(--gold);
-    padding: 6px 11px 5px;
-    text-align: center;
-    opacity: 0.9;
-    font-family: var(--type-mono);
-    font-weight: 700;
-    text-transform: uppercase;
-    line-height: 1.2;
-  }
-  :root[data-theme="dark"][data-experience="fancy"] .entry-stamp {
-    opacity: 0.85;
-  }
-}
-/* Two lines: the small "SHOW" word, then the larger number that must not wrap. */
-:root[data-theme="light"][data-experience="fancy"] .entry-stamp > :first-child,
-:root[data-theme="dark"][data-experience="fancy"] .entry-stamp > :first-child {
-  display: block;
-  font-size: 0.72rem;
-  letter-spacing: 0.2em;
-}
-:root[data-theme="light"][data-experience="fancy"] .entry-stamp > :last-child,
-:root[data-theme="dark"][data-experience="fancy"] .entry-stamp > :last-child {
-  display: block;
-  font-size: 1.15rem;
-  letter-spacing: 0.06em;
-  margin-top: 1px;
-  white-space: nowrap;
-}
-
-/* Folio footer line per show ("The Goose Almanac · … · Entry No. N · …"). */
-:root[data-theme="light"][data-experience="fancy"] .entry-folio,
-:root[data-theme="dark"][data-experience="fancy"] .entry-folio {
-  display: block;
-  margin-top: 22px;
-  border-top: 1px solid var(--ink);
-  padding-top: 12px;
-  text-align: center;
-  font-family: var(--type-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-:root[data-theme="dark"][data-experience="fancy"] .entry-folio {
-  border-top-color: var(--gold);
-}
-
-/* Home nameplate / running head (mock 1b/1c): the internals are almanac-only
-   markup laid out with utilities (they resolve to Caslon/Courier through the
-   --type-* tokens here); this reveals the block and closes its container with
-   the same double rule as the masthead. */
-:root[data-theme="light"][data-experience="fancy"] .almanac-nameplate,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate {
-  display: block;
-}
-/* The nameplate's closing double rule (2px over 1px), full width. */
-:root[data-theme="light"][data-experience="fancy"] .almanac-nameplate > div,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div {
-  position: relative;
-  border-bottom: 2px solid var(--ink);
-  padding-bottom: 10px;
-}
-:root[data-theme="light"][data-experience="fancy"] .almanac-nameplate > div::after,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3px;
-  border-top: 1px solid var(--ink);
-}
-:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-nameplate > div::after {
-  border-color: var(--gold);
-}
-
-/* Masthead: the almanac's double rule (2px over 1px) under a title block.
-   Drawn with a border + absolute ::after so it works on flex wrappers too.
-   Heavy printed rules are ink on cream, cream-gold on kraft. */
-:root[data-theme="light"][data-experience="fancy"] .almanac-masthead,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead {
-  position: relative;
-  border-bottom: 2px solid var(--ink);
-  padding-bottom: 10px;
-}
-:root[data-theme="light"][data-experience="fancy"] .almanac-masthead::after,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3px;
-  border-top: 1px solid var(--ink);
-}
-:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead,
-:root[data-theme="dark"][data-experience="fancy"] .almanac-masthead::after {
-  border-color: var(--gold);
-}
-
-/* Ruled setlist rows: the account-book line under every entry, so text always
-   sits on a line. */
-:root[data-theme="light"][data-experience="fancy"] .setlist-row,
-:root[data-theme="dark"][data-experience="fancy"] .setlist-row {
-  border-bottom: 1px solid var(--line-soft);
-}
-:root[data-theme="light"][data-experience="fancy"] .setlist-row:last-child,
-:root[data-theme="dark"][data-experience="fancy"] .setlist-row:last-child {
-  border-bottom: 0;
-}
-
-/* "From the notes": hairline rules and an italic body — not a left-accent card. */
-:root[data-theme="light"][data-experience="fancy"] .show-notes-aside,
-:root[data-theme="dark"][data-experience="fancy"] .show-notes-aside {
-  border: 0;
-  border-top: 1px solid var(--line-soft);
-  border-bottom: 1px solid var(--line-soft);
-  border-radius: 0;
-  background: transparent;
-  padding-left: 0;
-  padding-right: 0;
-}
-:root[data-theme="light"][data-experience="fancy"] .show-notes-aside p,
-:root[data-theme="dark"][data-experience="fancy"] .show-notes-aside p {
-  font-style: italic;
-}
-
-/* SetTape (setlist/tape.tsx) becomes the ruled measure strip: 8px tall, flat
-   paper-tone segments on a hairline field, jams in ember. Hooks on the stable
-   .set-tape-strip class the component exposes for exactly this purpose. */
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip,
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip {
-  height: 8px;
-  background: var(--line);
-  border-color: var(--line);
-  border-radius: 1px;
-}
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > span,
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > span {
-  opacity: 1;
-}
-/* Timed, no jam: paper tone, printed flat. */
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > .bg-gold,
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > .bg-gold {
-  background-color: var(--line-soft);
-}
-/* Jam: the one warm thing on the strip. */
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > .bg-ember,
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > .bg-ember {
-  background-color: var(--ember);
-}
-/* Untimed hatched slivers: give the hatch a deep-paper ground so its --line
-   stripes stay visible now that the strip's own field is --line. */
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > [class*="repeating-linear-gradient"],
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > [class*="repeating-linear-gradient"] {
-  background-color: var(--bg-deep);
-}
-/* Song boundaries tighten from 3px gaps to 1px rules (segue splices keep
-   their inline 1px --bg-deep seam; first segment stays flush). */
-:root[data-theme="light"][data-experience="fancy"] .set-tape-strip > .ml-\[3px\]:not(:first-child),
-:root[data-theme="dark"][data-experience="fancy"] .set-tape-strip > .ml-\[3px\]:not(:first-child) {
-  margin-left: 1px;
-}
-
 /* ---- Type tokens — overridable per experience. The `@theme inline` map below
    inlines `var(--type-*)` into the font utilities, so redefining these on a
    `[data-experience]` selector actually re-fonts the page (like the colors). ---- */
 :root {
-  --type-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
-  --type-body: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-  --type-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
+  --type-display: -apple-system, system-ui, sans-serif;
+  --type-body: -apple-system, system-ui, sans-serif;
+  --type-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 /* ---- Map tokens into Tailwind's theme (inline = resolves at runtime) ---- */
@@ -596,6 +107,11 @@
   --color-sage: var(--sage);
   --color-sage-deep: var(--sage-deep);
   --color-ember: var(--ember);
+  --color-paper: var(--paper);
+  --color-steel: var(--steel);
+  --color-hand: var(--hand);
+  --color-spruce: var(--spruce);
+  --color-pencil: var(--pencil);
 }
 
 /* ---- Base ---- */
@@ -615,12 +131,12 @@
     overflow-x: hidden;
   }
   ::selection {
-    background: var(--gold);
-    color: #15110c;
+    background: var(--steel);
+    color: var(--paper);
   }
   /* Keyboard focus — visible gold ring, never on mouse click */
   :where(a, button, input, [tabindex]):focus-visible {
-    outline: 2px solid var(--gold);
+    outline: 2px solid var(--steel);
     outline-offset: 2px;
     border-radius: 3px;
   }
@@ -629,7 +145,7 @@
   }
   h1, h2, h3, h4 {
     font-family: var(--type-display);
-    font-weight: 460;
+    font-weight: 600;
     letter-spacing: -0.01em;
   }
   /* Optical sizing for variable display faces (Bricolage). */
@@ -638,35 +154,25 @@
   }
 }
 
-/* ---- Texture & atmosphere ---- */
-.grain-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.04;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-:root[data-theme="light"][data-experience="fancy"] .grain-overlay {
-  mix-blend-mode: multiply;
-  opacity: 0.05;
-}
-/* Pod is molded plastic, not paper — barely-there grain. */
-:root[data-theme="pod"] .grain-overlay {
-  opacity: 0.025;
-}
+/* Tabular figures wherever data is set in mono. */
+.font-mono { font-variant-numeric: tabular-nums; }
 
-/* Stage-light glow — place inside a relatively-positioned hero */
-.stage-glow {
-  position: absolute;
-  pointer-events: none;
-  background: radial-gradient(
-    60% 80% at 50% -10%,
-    color-mix(in oklab, var(--gold) 38%, transparent),
-    transparent 70%
-  );
+/* ---- De-carding bridge (dies with Plan 5) ----
+   Until every page is rebuilt on the new forms, nothing floats and nothing
+   is a rounded box. rounded-full is exempt so icon circles stay circles
+   until their components retire. */
+[data-experience="fancy"] .surface-card {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+  border-radius: 0;
 }
+[data-experience="fancy"] :is(.rounded, .rounded-md, .rounded-lg, .rounded-xl) {
+  border-radius: 0;
+}
+[data-experience="fancy"] .hover\:-translate-y-0\.5:hover { transform: none; }
+[data-experience="fancy"] [class*="hover:shadow"]:hover { box-shadow: none; }
 
 /* Hairline rule with a faint gold tick, ledger style */
 .hairline {
@@ -846,28 +352,15 @@
 }
 
 /* ---- Motion ---- */
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 @keyframes fade {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-.rise {
-  animation: rise 0.72s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 .fade-in {
   animation: fade 0.9s ease both;
 }
 @media (prefers-reduced-motion: reduce) {
-  .rise, .fade-in {
+  .fade-in {
     animation: none;
   }
 }
@@ -1015,7 +508,7 @@
 [data-experience="functional"] [aria-label="Open menu"]:hover,
 [data-experience="functional"] [aria-label="Close menu"]:hover { background: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.6); color: #fff; }
 
-/* Minimal — flat, high-contrast, single look (ignores data-theme). */
+/* Minimal — flat, high-contrast, single look. */
 :root[data-experience="minimal"] {
   --bg: #ffffff;
   --bg-deep: #ffffff;
@@ -1174,10 +667,7 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 [data-experience="functional"] .song-bust { color: #b8501a; border-color: #f4a72b; }
 
 /* ---- nugs "Listen / Watch" affordance ---- */
-/* Cool "player" blues/violets, deliberately apart from the ledger palette.
-   Tokenized per [data-theme]: defaults are the dark-theme values (pod inherits
-   them — they read fine on graphite); light re-derives every text color for
-   cream at ≥4.5:1 (WCAG AA) incl. the translucent wash, borders at parity. */
+/* Cool "player" blues/violets, deliberately apart from the ledger palette. */
 :root {
   --nugs-link: #8fc6ee;
   --nugs-link-strong: #bfe0fb;
@@ -1191,20 +681,6 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
   --nugs-watch-wash: linear-gradient(180deg, rgba(110,80,170,0.16), rgba(70,55,120,0.10));
   --nugs-track: #7fbfe8;
   --nugs-track-line: #2f4860;
-}
-:root[data-theme="light"] {
-  --nugs-link: #1d5c86;
-  --nugs-link-strong: #144a6d;
-  --nugs-line: #8ba6bb;
-  --nugs-line-strong: #4f7899;
-  --nugs-wash: linear-gradient(180deg, rgba(60,110,160,0.10), rgba(40,70,110,0.05));
-  --nugs-watch: #5f4399;
-  --nugs-watch-strong: #443070;
-  --nugs-watch-line: #a89bce;
-  --nugs-watch-line-strong: #7a68ac;
-  --nugs-watch-wash: linear-gradient(180deg, rgba(110,80,170,0.10), rgba(70,55,120,0.05));
-  --nugs-track: #1a567e;
-  --nugs-track-line: #93acc0;
 }
 
 /* show-header link (Listen / Watch) — tasteful secondary */
