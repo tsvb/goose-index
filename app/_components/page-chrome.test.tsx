@@ -54,6 +54,23 @@ describe("FilterLink", () => {
     );
     expect(html).not.toMatch(/rounded|surface-card/);
   });
+  it("folds children to lowercase by default", () => {
+    const html = renderToStaticMarkup(
+      <FilterLink href="/x" active={false}>
+        Most Played
+      </FilterLink>,
+    );
+    expect(html).toMatch(/\blowercase\b/);
+  });
+  it("preserveCase omits the lowercase token — authored data keeps its casing", () => {
+    const html = renderToStaticMarkup(
+      <FilterLink href="/shows?tour=1" active={false} preserveCase>
+        Simmer Down Tour
+      </FilterLink>,
+    );
+    expect(html).toContain("Simmer Down Tour");
+    expect(html).not.toMatch(/\blowercase\b/);
+  });
 });
 
 describe("FilterRow", () => {
@@ -143,6 +160,15 @@ describe("NilState", () => {
   it("no href or linkLabel, no link", () => {
     const html = renderToStaticMarkup(<NilState>nothing here</NilState>);
     expect(html).not.toContain("<a");
+  });
+  it("does not case-fold an authored linkLabel — a search term keeps its casing", () => {
+    const html = renderToStaticMarkup(
+      <NilState href="/songs?q=Hot%20Tea" linkLabel='Search the song catalog for "Hot Tea"'>
+        no results
+      </NilState>,
+    );
+    expect(html).toContain('Search the song catalog for &quot;Hot Tea&quot;');
+    expect(html).not.toMatch(/\blowercase\b/);
   });
   it("stays flat — no card classes", () => {
     const html = renderToStaticMarkup(<NilState>nothing here</NilState>);

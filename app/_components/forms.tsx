@@ -85,7 +85,7 @@ export function LedgerEntry({ show, context }: { show: ShowSummary; context?: "v
       </span>
       <span className="text-right font-mono text-[0.7rem] text-faint">
         {context !== "tour" && !onVenue && show.tour && (
-          <span className="mb-0.5 hidden max-w-[14rem] truncate lowercase sm:block">{show.tour}</span>
+          <span className="mb-0.5 hidden max-w-[14rem] truncate sm:block">{show.tour}</span>
         )}
         <span className="block">
           {show.songCount > 0 ? `${show.songCount} songs` : "—"}

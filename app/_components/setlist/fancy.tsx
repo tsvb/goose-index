@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Flame } from "../marks";
 import { clsx } from "../clsx";
-import { trackSeconds, formatDuration, RETURN_LABEL } from "@/lib/queries/format";
+import { trackSeconds, formatDuration } from "@/lib/queries/format";
 import type { SetlistEntry } from "@/lib/queries/shows";
 import { groupSets, isSegue } from "./shared";
 import { SetTape } from "./tape";
@@ -153,14 +153,14 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
       })}
 
       {/* Legend — the almanac explains its own marks. Keep in step with what
-          the rows above actually render: segue carets, jam-chart flames,
-          numbered endnotes, and the Dusted Off pill. */}
+          the rows above actually render: segue carets, jam-chart flames, and
+          numbered endnotes. (Dusted Off is a pen note that names itself —
+          "first in n shows" — so it needs no separate legend entry.) */}
       <p className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line-soft pt-3 font-mono text-[0.65rem] leading-relaxed text-faint">
         <span className="uppercase tracking-[0.18em]">Reading the ledger</span>
         <span><span className="text-steel">›</span> = segue</span>
         <span><Flame className="inline h-3 w-3 -translate-y-px text-ember" strokeWidth={1.7} /> = jam chart pick</span>
         <span><span className="text-sage">¹</span> = see the notes under each set</span>
-        <span><span className="text-ember">{RETURN_LABEL} · n</span> = first play in n shows</span>
       </p>
     </div>
   );

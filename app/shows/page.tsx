@@ -145,7 +145,7 @@ export default async function ShowsBrowsePage({
             <FilterRow label="tours">
               <FilterLink href={href({ tourId: null })} active={!tourId}>All {year}</FilterLink>
               {tourOptions.map((t) => (
-                <FilterLink key={t.tourId} href={href({ tourId: t.tourId })} active={tourId === t.tourId}>
+                <FilterLink key={t.tourId} href={href({ tourId: t.tourId })} active={tourId === t.tourId} preserveCase>
                   {t.name}
                 </FilterLink>
               ))}

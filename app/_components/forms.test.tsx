@@ -95,6 +95,13 @@ describe("LedgerEntry", () => {
     expect(html).toContain(">wednesday<");
     expect(html).not.toContain("Summer Tour 2026");
   });
+  it("keeps the tour eyebrow's authored casing — tour names never case-fold", () => {
+    const html = renderToStaticMarkup(<LedgerEntry show={show} />);
+    const idx = html.indexOf("Summer Tour 2026");
+    expect(idx).toBeGreaterThan(-1);
+    const tag = html.slice(html.lastIndexOf("<span", idx), idx);
+    expect(tag).not.toMatch(/\blowercase\b/);
+  });
 });
 
 describe("TonightEntry", () => {

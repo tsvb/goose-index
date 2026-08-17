@@ -65,7 +65,8 @@ describe("SetlistFancy", () => {
     expect(html).toContain("Reading the ledger");
     expect(html).toContain("segue");
     expect(html).toContain("jam chart pick");
-    expect(html).toContain("first play in n shows");
+    // Dusted Off is a pen note that names itself — no separate legend entry.
+    expect(html).not.toContain("first play in n shows");
     const empty = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
     expect(empty).not.toContain("Reading the ledger");
   });
@@ -87,8 +88,8 @@ describe("SetlistFancy", () => {
     // Segue carets (row + legend) now wear steel — structure, not heat.
     expect(html).toContain('<span class="mr-1 select-none text-steel">›</span>');
     expect(html).toContain('<span class="text-steel">›</span>');
-    // Legend swatch for the Dusted Off mark stays ember (heat), unaffected.
-    expect(html).toContain('<span class="text-ember">Dusted Off · n</span>');
+    // The legend no longer decodes Dusted Off — the pen note explains itself.
+    expect(html).not.toContain("Dusted Off · n");
   });
   it("tags every row with the setlist-row hook the almanac themes rule", () => {
     const entries = [

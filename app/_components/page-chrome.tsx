@@ -26,21 +26,26 @@ export function PageHead({
   );
 }
 
-/** One text filter. Active wears steel; nothing is a pill. */
+/** One text filter. Active wears steel; nothing is a pill. Chrome labels
+ * (years, sorts, counts) fold to lowercase; pass `preserveCase` for filters
+ * whose children are authored data (e.g. tour names) that must not fold. */
 export function FilterLink({
   href,
   active,
+  preserveCase = false,
   children,
 }: {
   href: string;
   active: boolean;
+  preserveCase?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
       className={clsx(
-        "font-mono text-xs lowercase underline underline-offset-4 transition",
+        "font-mono text-xs underline underline-offset-4 transition",
+        !preserveCase && "lowercase",
         active ? "font-semibold text-steel" : "text-muted hover:text-ink",
       )}
     >
@@ -109,7 +114,7 @@ export function NilState({
     <div className="py-12 text-center">
       <p className="text-muted">{children} —</p>
       {href && linkLabel && (
-        <Link href={href} className="mt-3 inline-block text-sm lowercase text-spruce underline underline-offset-4 hover:text-ink">
+        <Link href={href} className="mt-3 inline-block text-sm text-spruce underline underline-offset-4 hover:text-ink">
           {linkLabel}
         </Link>
       )}
