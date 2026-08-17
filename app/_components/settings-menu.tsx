@@ -66,9 +66,14 @@ export function SettingsMenu({ current }: { current: Experience }) {
 
   function chooseTheme(next: Theme) {
     setTheme(next);
-    document.documentElement.setAttribute("data-theme", next);
+    if (next === "auto") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", next);
+    }
     try {
-      localStorage.setItem("ga-theme", next);
+      if (next === "auto") localStorage.removeItem("ga-theme");
+      else localStorage.setItem("ga-theme", next);
     } catch {
       /* ignore */
     }

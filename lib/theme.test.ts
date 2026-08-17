@@ -1,36 +1,36 @@
 import { describe, it, expect } from "vitest";
-import { THEME_VALUES, DEFAULT_THEME, resolveTheme, themeScript } from "./theme";
+import { THEME_VALUES, PINNED_THEMES, DEFAULT_THEME, resolveTheme, themeScript } from "./theme";
 
-// A theme has to be known in three places at once: the menu that offers it, the
-// pre-paint script that re-applies it, and the SSR default. Adding XL II and
-// missing one of them is the drift these pin down.
+// The theme model is three-valued: auto (follow the system — the default and
+// the absence of a data-theme attribute) plus the two pins, fog and slate.
+// The pre-paint script applies only pins; auto must NOT set an attribute, or
+// the prefers-color-scheme media query could never decide.
 describe("theme", () => {
-  it("defaults to a theme the site actually ships", () => {
+  it("defaults to auto, which is a real option", () => {
+    expect(DEFAULT_THEME).toBe("auto");
     expect(THEME_VALUES).toContain(DEFAULT_THEME);
-    expect(resolveTheme(DEFAULT_THEME)).toBe(DEFAULT_THEME);
   });
 
-  it("lets every theme survive a reload", () => {
-    // The allowlist is generated from THEME_VALUES, so this holds by
-    // construction — but assert it, because the failure is silent: a theme
-    // missing from the script is saved on click and ignored on the next load,
-    // and the visitor's choice quietly reverts to the default.
-    for (const t of THEME_VALUES) {
+  it("pins are exactly fog and slate, and both survive a reload", () => {
+    expect([...PINNED_THEMES]).toEqual(["fog", "slate"]);
+    for (const t of PINNED_THEMES) {
       expect(themeScript).toContain(`t==='${t}'`);
     }
   });
 
-  it("re-applies the saved theme before first paint", () => {
+  it("the pre-paint script never pins auto", () => {
+    expect(themeScript).not.toContain("t==='auto'");
     expect(themeScript).toContain("localStorage.getItem('ga-theme')");
     expect(themeScript).toContain("setAttribute('data-theme'");
   });
 
-  it("rejects anything that isn't a theme", () => {
-    expect(resolveTheme("sepia")).toBeNull();
+  it("rejects junk and the five retired theme names", () => {
+    for (const legacy of ["xl2", "pod", "registrar", "light", "dark"]) {
+      expect(resolveTheme(legacy)).toBeNull();
+    }
     expect(resolveTheme("")).toBeNull();
     expect(resolveTheme(null)).toBeNull();
     expect(resolveTheme(undefined)).toBeNull();
-    // Not a value someone can smuggle into the DOM attribute.
-    expect(resolveTheme("xl2; drop table")).toBeNull();
+    expect(resolveTheme("fog; drop table")).toBeNull();
   });
 });
