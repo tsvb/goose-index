@@ -86,7 +86,10 @@ describe("Oracle page (fancy)", () => {
     const html = await render();
     expect(html).toContain('href="/stats"');
     expect(html).toContain('href="/stats/most-played"'); // switcher includes siblings
-    expect(html).toContain('aria-current="page"'); // oracle is active
+    // "Oracle" also appears in the page's own <h1>; the switcher's copy is the last one.
+    const idx = html.lastIndexOf(">Oracle<");
+    const tag = html.slice(html.lastIndexOf("<a", idx), idx);
+    expect(tag).toContain("text-steel"); // oracle is the active filter
     expect(html).toContain("Five readings off the catalog"); // methodology footnote
   });
 

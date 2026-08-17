@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Container } from "@/app/_components/container";
+import { FilterLink, FilterRow, chromeLink } from "@/app/_components/page-chrome";
 import { CUTS, type CutMeta } from "./cuts";
 import type { SongSort } from "@/lib/queries/songs";
 
@@ -38,17 +39,14 @@ export function MinimalNoteRow({ cut }: { cut: CutMeta }) {
 
 export function CutSwitcher({ active }: { active: string }) {
   return (
-    <nav aria-label="Stats cuts" className="mb-5 flex flex-wrap items-center gap-1.5 font-mono text-xs">
-      {CUTS.map((c) => (
-        <Link
-          key={c.slug}
-          href={`/stats/${c.slug}`}
-          aria-current={c.slug === active ? "page" : undefined}
-          className={c.slug === active ? "rounded-full bg-gold/15 px-3 py-1 text-gold ring-1 ring-gold/40" : "rounded-full px-3 py-1 text-muted transition hover:text-ink"}
-        >
-          {c.title}
-        </Link>
-      ))}
+    <nav aria-label="Stats cuts" className="mb-5">
+      <FilterRow>
+        {CUTS.map((c) => (
+          <FilterLink key={c.slug} href={`/stats/${c.slug}`} active={c.slug === active}>
+            {c.title}
+          </FilterLink>
+        ))}
+      </FilterRow>
     </nav>
   );
 }
@@ -59,11 +57,11 @@ export function StatsShell({ cut, children }: { cut: CutMeta; children: ReactNod
       <header className="relative overflow-hidden border-b border-line">
         <div className="stage-glow inset-x-0 top-0 h-72" />
         <Container className="relative py-9">
-          <span className="eyebrow">
-            <Link href="/stats" className="hover:text-gold">
-              Stats
+          <p className="text-[0.7rem] lowercase text-faint">
+            <Link href="/stats" className={chromeLink}>
+              stats
             </Link>
-          </span>
+          </p>
           <h1 className="mt-3 font-display text-[2.2rem] leading-none tracking-tight text-ink sm:text-4xl">
             {cut.title}
           </h1>
@@ -76,7 +74,7 @@ export function StatsShell({ cut, children }: { cut: CutMeta; children: ReactNod
         <p className="mt-8 border-t border-line pt-3 font-mono text-[0.68rem] text-faint">
           {cut.note}
           {cut.songsSort && (
-            <> · <Link href={songsSortHref(cut.songsSort)} className="underline hover:text-gold">same sort, full catalog →</Link></>
+            <> · <Link href={songsSortHref(cut.songsSort)} className={chromeLink}>same sort, full catalog →</Link></>
           )}
         </p>
       </Container>
