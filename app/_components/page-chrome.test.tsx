@@ -115,6 +115,13 @@ describe("FolioNav", () => {
     const html = renderToStaticMarkup(<FolioNav prevHref="/a" nextHref="/b" />);
     expect(html).not.toMatch(/rounded|surface-card/);
   });
+  it("does not case-fold authored labels — no lowercase class on the nav", () => {
+    const html = renderToStaticMarkup(
+      <FolioNav prevHref="/a" nextHref="/b" prevLabel="Aug 11 · The Salt Shed" />,
+    );
+    expect(html).toContain("Aug 11 · The Salt Shed"); // authored content keeps its casing
+    expect(html).not.toMatch(/\blowercase\b/);
+  });
 });
 
 describe("NilState", () => {

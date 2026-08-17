@@ -75,7 +75,7 @@ export function FolioNav({
   center?: React.ReactNode;
 }) {
   return (
-    <nav className="flex items-baseline justify-between gap-4 font-mono text-xs lowercase">
+    <nav className="flex items-baseline justify-between gap-4 font-mono text-xs">
       {prevHref ? (
         <Link href={prevHref} className="text-muted underline underline-offset-4 hover:text-ink">
           ← {prevLabel}
