@@ -441,6 +441,18 @@
   --type-body: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   --type-mono: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color-scheme: light;
+
+  /* Inverse aliases — the experiences predate the new names; dies with
+     Plan 5. The base layer (@layer base above) consumes --steel/--paper
+     globally (::selection, :focus-visible), and this block only redeclares
+     the legacy names it's always used — without these, a dark-OS visitor
+     here would silently inherit the fog/slate --steel/--paper instead of
+     this experience's own --gold/--bg. */
+  --paper: var(--bg);
+  --steel: var(--gold);
+  --hand: var(--ember);
+  --spruce: var(--sage);
+  --pencil: var(--muted);
 }
 [data-experience="functional"] body {
   background: linear-gradient(#eef5fb, #d6e6f4) fixed;
@@ -560,6 +572,18 @@
   --type-body: Georgia, "Times New Roman", serif;
   --type-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   color-scheme: light;
+
+  /* Inverse aliases — the experiences predate the new names; dies with
+     Plan 5. Without these, a dark-OS visitor here would silently inherit
+     the fog/slate --steel/--paper the base layer's ::selection and
+     :focus-visible consume globally, instead of this experience's own flat
+     --gold/--bg (e.g. the #7ba3c4 slate focus ring at ~2.67:1 on this
+     block's white --bg). */
+  --paper: var(--bg);
+  --steel: var(--gold);
+  --hand: var(--ember);
+  --spruce: var(--sage);
+  --pencil: var(--muted);
 }
 
 [data-experience="minimal"] a {
