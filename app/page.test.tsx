@@ -59,7 +59,7 @@ describe("Home section headings", () => {
     expect(html.match(/<h1/g)).toHaveLength(1);
     // The date tail is computed from the fixture's onThisDay date, not hard-coded.
     expect(html).toMatch(/<h2[^>]*>on this day/);
-    expect(html).toContain("on this day · july 11");
+    expect(html).toContain("on this day · jul 11");
     expect(html).toMatch(/<h2[^>]*>latest shows<\/h2>/);
   });
 });

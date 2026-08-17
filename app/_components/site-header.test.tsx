@@ -25,9 +25,9 @@ describe("SiteHeader variants", () => {
       expect(html.toLowerCase()).toContain(label);
     }
     expect(html).toContain("text-pencil"); // the pen rule under the masthead
-    // The wordmark link itself carries no badge — icon-circle buttons from
-    // SearchBox/SettingsMenu/MobileNav legitimately keep rounded-full (the
-    // de-carding bridge in globals.css exempts them until they retire).
+    // The wordmark link itself carries no badge — SettingsMenu's gear button
+    // legitimately keeps rounded-full (it's a real icon-circle control, not a
+    // decorative card).
     const wordmark = html.match(/<a[^>]*href="\/"[^>]*>[^<]*<\/a>/)?.[0];
     expect(wordmark).not.toContain("rounded-full"); // the feather badge is gone
     expect(html).not.toContain("backdrop-blur");

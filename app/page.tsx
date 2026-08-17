@@ -6,7 +6,7 @@ import { SectionRule, Ledger, LedgerEntry, TonightEntry, ContentsRow, Figure } f
 import { TickRuler } from "./_components/instrument";
 import { getOverviewStats } from "@/lib/queries/stats";
 import { getRecentShows, getUpcomingShows, getOnThisDay, getTonightShows } from "@/lib/queries/shows";
-import { compact, yearOf, formatMonthDay, locationLine, showHref } from "@/lib/queries/format";
+import { compact, yearOf, dateParts, locationLine, showHref } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
 import { Doc, MetaTable, ShowTable, DocSection } from "./_components/doc";
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default async function Home() {
   const [stats, recentRaw, upcoming, onThisDay, tonight] = await Promise.all([
     getOverviewStats(),
-    // Over-fetch so filtering tonight's show(s) out still leaves six cards.
+    // Over-fetch so filtering tonight's show(s) out still leaves six entries.
     getRecentShows(9),
     getUpcomingShows(4),
     getOnThisDay(),
@@ -26,8 +26,8 @@ export default async function Home() {
   ]);
   const experience = await getExperience();
 
-  // Tonight's show gets its own banner — keep it out of "Latest shows", where
-  // it would read as a stale "no setlist" card.
+  // Tonight's show gets its own ledger section — keep it out of latest shows,
+  // where it would read as a stale nil entry.
   const tonightIds = new Set(tonight.map((s) => s.showId));
   const recent = recentRaw.filter((s) => !tonightIds.has(s.showId)).slice(0, 6);
 
@@ -75,7 +75,8 @@ export default async function Home() {
 
   const sinceYear = stats.firstDate ? yearOf(stats.firstDate) : null;
   const currentYear = new Date().getFullYear();
-  const todayLabel = onThisDay.length ? formatMonthDay(onThisDay[0].date).toLowerCase() : "";
+  const todayDp = onThisDay.length ? dateParts(onThisDay[0].date) : null;
+  const todayLabel = todayDp ? `${todayDp.month.slice(0, 3).toLowerCase()} ${todayDp.day}` : "";
 
   return (
     <>

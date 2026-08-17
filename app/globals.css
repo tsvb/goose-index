@@ -524,6 +524,15 @@
 /* The global gold focus ring is blue-on-blue on the appbar (1.1–1.3:1) —
    keep the ring, swap it to white there. */
 [data-experience="functional"] .w2-appbar :focus-visible { outline-color: #fff; }
+/* The 3.0 underline search sits on the appbar gradient here — give it appbar
+   ink until plan 5 re-cuts the 2.0 chrome. */
+[data-experience="functional"] .w2-appbar input {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+[data-experience="functional"] .w2-appbar input::placeholder {
+  color: rgba(255, 255, 255, 0.75);
+}
 /* Glossy panel + badges (show header). */
 [data-experience="functional"] .w2-panel {
   background: linear-gradient(#ffffff, #f1f7fc); border: 1px solid #c4d4e2; border-radius: 12px;
@@ -549,14 +558,14 @@
   display: inline-block; background: linear-gradient(#ffd86b, #f4a72b); border: 1px solid #d9952a; border-radius: 5px;
   color: #7a4e06; font-size: 10px; font-weight: 800; padding: 1px 5px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
-/* Icon toggles (settings gear, mobile menu) sit on the blue functional
-   appbar — make them read white. */
-[data-experience="functional"] [aria-label="Settings"],
+/* Icon toggle (settings gear) sits on the blue functional appbar — make it
+   read white. */
+[data-experience="functional"] [aria-label="Settings"] { color: #fff; background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.4); }
+[data-experience="functional"] [aria-label="Settings"]:hover { background: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.6); color: #fff; }
+/* The mobile-nav trigger is now bare text, not a boxed icon — just make the
+   text read white on the appbar. */
 [data-experience="functional"] [aria-label="Open menu"],
-[data-experience="functional"] [aria-label="Close menu"] { color: #fff; background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.4); }
-[data-experience="functional"] [aria-label="Settings"]:hover,
-[data-experience="functional"] [aria-label="Open menu"]:hover,
-[data-experience="functional"] [aria-label="Close menu"]:hover { background: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.6); color: #fff; }
+[data-experience="functional"] [aria-label="Close menu"] { color: #fff; background: none; border: 0; }
 
 /* Minimal — flat, high-contrast, single look. */
 :root[data-experience="minimal"] {
