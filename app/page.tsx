@@ -84,7 +84,7 @@ export default async function Home() {
       <section>
         <Container className="pt-12 pb-10 sm:pt-16">
           <h1 className="max-w-3xl text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
-            every <span className="text-steel">Goose</span> show, indexed.
+            <span className="text-steel">Goose</span> Index(ed)
           </h1>
           <p className="mt-3 max-w-xl text-[0.95rem] leading-relaxed text-muted">
             {compact(stats.showsPlayed)} shows{sinceYear ? ` since ${sinceYear}` : ""} — full setlists
