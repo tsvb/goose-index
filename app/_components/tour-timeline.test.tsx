@@ -107,7 +107,12 @@ describe("TourTimeline", () => {
         ]}
       />,
     );
-    expect(html).toContain("var(--steel)");
+    // toContain("var(--steel)") alone now also passes on the label's own
+    // color-mix(in srgb, var(--steel) N%, var(--ink) N%) — tighten to the
+    // two specific emissions this test actually means: the leg wash and
+    // the per-show ticks.
+    expect(html).toMatch(/background:color-mix\(in srgb, ?var\(--steel\) 22%/); // leg wash
+    expect(html).toContain("background:var(--steel)"); // ticks
     expect(html).not.toMatch(/var\(--gold/);
   });
 

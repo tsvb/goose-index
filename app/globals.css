@@ -646,6 +646,13 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 /* Functional (Web 2.0) reskin */
 [data-experience="functional"] .song-fact-v { color: #2c7cc4; }
 [data-experience="functional"] .song-ppy-bar, [data-experience="functional"] .song-bar > span { background: linear-gradient(180deg, #5aa9e6, #2c7cc4); }
+/* Radii are period identity here, not carding: base/3.0 stays square (de-carding),
+   but 2.0 keeps the rounded geometry it always had. */
+[data-experience="functional"] .song-ribbon { border-radius: 12px; }
+[data-experience="functional"] .song-ppy-bar { border-radius: 3px 3px 0 0; }
+[data-experience="functional"] .song-bar { border-radius: 5px; }
+[data-experience="functional"] .song-scroll { border-radius: 10px; }
+[data-experience="functional"] .song-scroll-inner { border-radius: 10px; }
 [data-experience="functional"] table.song-table th { background: linear-gradient(#4a9be0, #2c7cc4); color: #fff; text-shadow: 0 -1px 0 rgba(0,0,0,0.22); }
 [data-experience="functional"] table.song-table td { background: #fff; }
 [data-experience="functional"] table.song-table tbody tr:nth-child(even) td { background: #eef5fb; }
