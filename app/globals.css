@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Goose Almanac — "The Almanac" design system
-   Warm archival ledger × golden live-show night.
+   Goose Index — "Pen & instrument" design system
+   Fog (light) and slate (dark), drawn once and reused: ink=content,
+   steel=the record's structure, hand=now and the reading, spruce=links,
+   pencil=the human margin. Three experiences (3.0/2.0/1.0) pivot the
+   same tokens into three distinct system types below.
    ============================================================ */
 
 /* ---- Pen & instrument tokens ----
@@ -97,8 +100,11 @@
   --nugs-track: #7fbfe8;
 }
 
-/* --- Almanac-only flourishes (hook classes; markup is server-rendered in all
-   themes and revealed only here) --- */
+/* --- Load-bearing, not decorative: pages still render this markup (entry
+   stamps, folios, the almanac nameplate) from the old Almanac design, and
+   this rule is what hides it now that pen & instrument replaced it. Rule
+   and markup are deleted together in Plans 2–3 as each page is rebuilt;
+   until then, removing just this rule would make the old markup reappear. --- */
 .entry-stamp,
 .entry-folio,
 .almanac-nameplate {
@@ -162,7 +168,7 @@
     background: var(--steel);
     color: var(--paper);
   }
-  /* Keyboard focus — visible gold ring, never on mouse click */
+  /* Keyboard focus — visible steel ring, never on mouse click */
   :where(a, button, input, [tabindex]):focus-visible {
     outline: 2px solid var(--steel);
     outline-offset: 2px;
@@ -176,7 +182,8 @@
     font-weight: 600;
     letter-spacing: -0.01em;
   }
-  /* Optical sizing for variable display faces (Bricolage). */
+  /* Optical sizing for variable-weight display faces — a no-op wherever
+     the active experience's --type-display isn't one. */
   .font-display {
     font-optical-sizing: auto;
   }
@@ -204,7 +211,8 @@
 [data-experience="fancy"] .hover\:-translate-y-0\.5:hover { translate: none; transform: none; }
 [data-experience="fancy"] [class*="hover:shadow"]:hover { box-shadow: none; }
 
-/* Hairline rule with a faint gold tick, ledger style */
+/* Hairline rule — 1px --line, faded to transparent at both ends so it
+   reads as a quiet divider rather than a hard edge. */
 .hairline {
   height: 1px;
   background: linear-gradient(

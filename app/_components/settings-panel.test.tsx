@@ -23,7 +23,7 @@ describe("SettingsPanel", () => {
     expect(html).toContain("3.0");
     expect(html).toContain("2.0");
     expect(html).toContain("1.0");
-    expect(html).toContain("Charts, themes, motion");
+    expect(html).toContain("Charts, pen &amp; instrument"); // React escapes & in rendered markup
     expect(html).toContain("Same charts, glossy skin");
     expect(html).toContain("Plain document, no charts");
   });

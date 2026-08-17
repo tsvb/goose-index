@@ -20,8 +20,10 @@ const NAV = [
 
 export function HeaderFancy({ experience }: { experience: Experience }) {
   return (
-    // --header-h mirrors the Container's h-14 — MobileNav offsets its sheet from it.
-    <header className="sticky top-0 z-40 bg-paper [--header-h:3.5rem]">
+    // --header-h is the full header box: h-14 plus the 6px PenRule below
+    // it — MobileNav offsets its sheet from it, and without the rule's
+    // height the sheet overlaps it.
+    <header className="sticky top-0 z-40 bg-paper [--header-h:calc(3.5rem_+_6px)]">
       <Container className="flex h-14 items-center justify-between gap-4">
         <Link href="/" className="shrink-0 text-[0.95rem] font-semibold lowercase tracking-tight text-ink hover:text-steel">
           goose index
