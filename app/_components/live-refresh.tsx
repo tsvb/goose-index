@@ -55,7 +55,7 @@ export function LiveRefresh({ minimal }: { minimal?: boolean }) {
   return (
     <span className="live-pill" role="status" aria-label="Show in progress — the setlist updates automatically">
       <span className="live-dot" aria-hidden />
-      LIVE
+      live
     </span>
   );
 }

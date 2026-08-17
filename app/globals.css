@@ -783,16 +783,16 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
   color: #1a4fa0; text-decoration: underline; font-size: inherit; border-radius: 0;
 }
 
-/* ---- Live show ---- */
+/* ---- Live show ----
+   No pill: the dot is the mark (--hand, 3:1 is enough for a mark), the word
+   is the text and has to clear 4.5:1 on its own, so it wears --ember. */
 .live-pill {
-  display: inline-flex; align-items: center; gap: 7px;
-  font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.18em;
-  color: var(--ember); border: 1px solid color-mix(in srgb, var(--ember) 55%, transparent);
-  border-radius: 999px; padding: 3px 11px;
-  background: color-mix(in srgb, var(--ember) 10%, transparent);
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 0.7rem;
+  color: var(--ember);
 }
 .live-dot {
-  width: 7px; height: 7px; border-radius: 999px; background: var(--ember);
+  width: 7px; height: 7px; border-radius: 999px; background: var(--hand);
   animation: live-pulse 1.6s ease-in-out infinite;
 }
 @keyframes live-pulse {

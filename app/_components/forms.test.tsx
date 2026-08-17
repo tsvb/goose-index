@@ -105,12 +105,13 @@ describe("LedgerEntry", () => {
 });
 
 describe("TonightEntry", () => {
-  it("wears the hand and promises the live setlist", () => {
+  it("the dot wears hand, the word wears ember", () => {
     const html = renderToStaticMarkup(<TonightEntry show={{ ...show, songCount: 0, hasNotes: false }} />);
     expect(html).toContain('href="/shows/2026-08-12"');
     expect(html).toContain("tonight");
-    expect(html).toContain("text-hand");
-    expect(html).toContain("bg-hand"); // the dot
+    expect(html).toContain("text-ember"); // running text needs AA, not the mark-only hand
+    expect(html).not.toContain("text-hand");
+    expect(html).toContain("bg-hand"); // the dot is a mark — 3:1 is enough
     expect(html).toContain("animate-pulse");
     expect(html).toContain("motion-reduce:animate-none");
     expect(html).toContain("the setlist will appear live");

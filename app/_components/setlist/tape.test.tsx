@@ -81,7 +81,7 @@ describe("SetTape", () => {
       />,
     );
     expect(html).toContain("bg-ember");
-    expect(html).toContain("bg-gold");
+    expect(html).toContain("bg-steel");
   });
 
   it("hatches a song with no logged time rather than dropping it", () => {

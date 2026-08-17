@@ -9,8 +9,8 @@ import { Doc, Breadcrumb } from "@/app/_components/doc";
 export default async function NotFound() {
   const experience = await getExperience();
 
-  // Minimal mode gets a plain document, not the immersive hero — the fancy
-  // PageHead + pen-rule treatment reads as noise in the 1.0 edition.
+  // Minimal mode gets a plain document — the fancy PageHead + pen-rule
+  // treatment reads as noise in the 1.0 edition.
   if (experience === "minimal") {
     return (
       <Container className="py-8">

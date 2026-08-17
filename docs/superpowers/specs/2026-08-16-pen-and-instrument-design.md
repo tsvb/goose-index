@@ -86,6 +86,7 @@ contrast but must keep the roles and the temperature.
   never be "active" is an action, not a filter. (Settled at the plan-3 review.)
 - Casing at the boundary: user search terms, venue names, tour names, and song titles are
   authored/data — no CSS `lowercase` may sit on an element that renders them.
+- Hand is a mark-only token (3:1); amber TEXT is always ember (4.5:1). "text-hand" styling running text is a bug.
 
 ## The vocabulary (content kind → form)
 

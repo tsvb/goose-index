@@ -40,8 +40,8 @@ export function SetTape({ entries }: { entries: SetlistEntry[] }) {
 
   return (
     <figure className="set-tape mb-4 mt-1">
-      {/* .set-tape-strip is a stable styling hook — the almanac themes reskin
-          this strip in globals.css; don't rename without updating those rules. */}
+      {/* .set-tape-strip is a stable styling hook — bare in globals.css today
+          (no theme reskins it), but don't rename without checking that first. */}
       <div className="set-tape-strip flex h-9 w-full overflow-hidden rounded-[2px] border border-line bg-bg-deep" aria-hidden="true">
         {entries.map((e, i) => {
           const secs = timed[i];
@@ -71,7 +71,7 @@ export function SetTape({ entries }: { entries: SetlistEntry[] }) {
                   ? "bg-[repeating-linear-gradient(135deg,var(--line)_0_2px,transparent_2px_5px)]"
                   : hot
                     ? "bg-ember opacity-90 hover:opacity-100"
-                    : "bg-gold opacity-55 hover:opacity-85",
+                    : "bg-steel opacity-55 hover:opacity-85",
               ].join(" ")}
             />
           );

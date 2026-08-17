@@ -102,7 +102,8 @@ describe("LiveRefresh markup", () => {
   it("renders the live pill by default", () => {
     const html = renderToStaticMarkup(<LiveRefresh />);
     expect(html).toContain("live-pill");
-    expect(html).toContain("LIVE");
+    expect(html).toContain(">live<");
+    expect(html).not.toContain("LIVE");
     expect(html).toContain('role="status"');
   });
 

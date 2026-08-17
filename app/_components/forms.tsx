@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Children } from "react";
 import { PenRule } from "./pen";
 import { clsx } from "./clsx";
+import { chromeLink } from "./page-chrome";
 import { showHref, dateParts, locationLine } from "@/lib/queries/format";
 import type { ShowSummary } from "@/lib/queries/shows";
 
@@ -23,10 +24,7 @@ export function SectionRule({
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-[0.8rem] font-semibold lowercase text-ink">{title}</h2>
         {href && (
-          <Link
-            href={href}
-            className="shrink-0 text-[0.75rem] lowercase text-spruce underline underline-offset-4 transition hover:text-ink"
-          >
+          <Link href={href} className={clsx("shrink-0 text-[0.75rem] lowercase", chromeLink)}>
             {linkLabel}
           </Link>
         )}
@@ -104,7 +102,7 @@ export function TonightEntry({ show }: { show: ShowSummary }) {
       href={showHref(show.date, show.order)}
       className="group grid grid-cols-[5.6rem_1fr_auto] items-baseline gap-x-4 py-2.5"
     >
-      <span className="flex items-center gap-1.5 font-mono text-[0.8rem] lowercase text-hand">
+      <span className="flex items-center gap-1.5 font-mono text-[0.8rem] lowercase text-ember">
         tonight
         <span
           aria-hidden

@@ -125,7 +125,8 @@ describe("Home Tonight banner", () => {
     h.tonight = [show(99, "2026-07-11", "Tonight Amphitheatre")];
     const html = await render();
     expect(html).toContain("tonight");
-    expect(html).toContain("bg-hand");
+    expect(html).toContain("text-ember"); // the word is AA text, not the mark-only hand
+    expect(html).toContain("bg-hand"); // the dot is the mark
     expect(html).toContain("Tonight Amphitheatre");
     expect(html).toContain('href="/shows/2026-07-11"');
     expect(html).toContain("the setlist will appear live");
