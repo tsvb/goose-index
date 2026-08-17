@@ -9,7 +9,7 @@ function day(dow: number, dayName: string, avgJams: number, totalShows: number):
 
 /** Spoke stroke widths, in render order (Mon → Sun). */
 function spokeWidths(html: string) {
-  return [...html.matchAll(/<line [^>]*stroke="var\(--(?:ember|gold|faint)\)" stroke-width="([\d.]+)"/g)].map((m) =>
+  return [...html.matchAll(/<line [^>]*stroke="var\(--(?:hand|steel|faint)\)" stroke-width="([\d.]+)"/g)].map((m) =>
     Number(m[1]),
   );
 }

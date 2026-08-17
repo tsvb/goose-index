@@ -104,7 +104,7 @@ function Spool({ wound, gap, red }: SpoolReading) {
   const thickness = Number(((TAPE.min + wound * TAPE.span) * (HUB.rim - HUB.core)).toFixed(2));
   const packOuter = HUB.core + thickness;
   const mid = HUB.core + thickness / 2;
-  const signal = red ? "var(--ember)" : "var(--gold)";
+  const signal = red ? "var(--ember)" : "var(--steel)";
 
   return (
     <svg viewBox="0 0 100 100" className="w-full" aria-hidden="true">
@@ -162,14 +162,14 @@ export function TheShelf({ data }: { data: ShelfRow[] }) {
               </div>
               <div className="mt-2 w-full">
                 {song.slug ? (
-                  <Link href={`/songs/${song.slug}`} className="block truncate font-display text-[0.9rem] text-ink hover:text-gold">
+                  <Link href={`/songs/${song.slug}`} className="block truncate font-display text-[0.9rem] text-ink hover:text-steel">
                     {song.name}
                   </Link>
                 ) : (
                   <span className="block truncate font-display text-[0.9rem] text-ink">{song.name}</span>
                 )}
                 <p className="mt-0.5 font-mono text-sm tabular-nums">
-                  <span className={r.red ? "text-ember" : "text-gold"}>{song.daysSincePlayed}</span>
+                  <span className={r.red ? "text-ember" : "text-steel"}>{song.daysSincePlayed}</span>
                   <span className="ml-1 text-xs text-faint">days</span>
                 </p>
                 <p className="mt-0.5 font-mono text-[0.62rem] leading-relaxed text-faint">
@@ -182,7 +182,7 @@ export function TheShelf({ data }: { data: ShelfRow[] }) {
       </ol>
       <p className="mt-5 max-w-2xl font-mono text-[0.62rem] leading-relaxed text-faint">
         Two readings per spool: the <span className="text-muted">tape</span> on the hub is how big a song is (total
-        plays), and the <span className="text-gold">ring</span> around it is how long since it was last played, closing
+        plays), and the <span className="text-steel">ring</span> around it is how long since it was last played, closing
         as the gap grows. Past a year the ring runs into the <span className="text-ember">red</span>. A thick spool
         inside a closed ring is the one to worry about — a staple the band has stopped playing.
       </p>

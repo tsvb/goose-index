@@ -27,14 +27,14 @@ function Splice({ weight }: { weight: number }) {
         y1={mid}
         x2={SPLICE.w - 10}
         y2={mid}
-        stroke="var(--gold)"
+        stroke="var(--steel)"
         strokeWidth={stroke}
         strokeLinecap="butt"
         opacity={0.45 + weight * 0.55}
       />
       <path
         d={`M${SPLICE.w - 11} ${mid - 4.5} L${SPLICE.w - 2} ${mid} L${SPLICE.w - 11} ${mid + 4.5} Z`}
-        fill="var(--gold)"
+        fill="var(--steel)"
         opacity={0.45 + weight * 0.55}
       />
     </svg>
@@ -82,7 +82,7 @@ export function TransitionsList({ data }: { data: TransitionRow[] }) {
 }
 
 function SongTag({ name, slug }: { name: string; slug: string | null }) {
-  const cls = "text-ink hover:text-gold";
+  const cls = "text-ink hover:text-steel";
   return slug ? (
     <Link href={`/songs/${slug}`} className={cls}>
       {name}
