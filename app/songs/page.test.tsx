@@ -36,6 +36,16 @@ beforeEach(() => {
   h.lastOpts = null;
 });
 
+describe("SongsPage head", () => {
+  it("renders the lowercase kicker, the 'songs' title, and the count line as meta", async () => {
+    const html = await render();
+    expect(html).toContain("goose index · the catalog");
+    expect(html.match(/<h1[^>]*>/g)?.length).toBe(1);
+    expect(html).toMatch(/<h1[^>]*>songs<\/h1>/);
+    expect(html).toContain("1 songs · sort the whole catalog any way you like");
+  });
+});
+
 describe("SongsPage name filter", () => {
   it("fancy renders a GET form to /songs seeded with the current q", async () => {
     const html = await render({ q: "tea" });
@@ -75,6 +85,13 @@ describe("SongsPage name filter", () => {
     expect(html).toContain('name="sort" value="rare"');
     expect(html).toContain(">Filter</button>");
   });
+
+  it("fancy filter input uses the search-box underline style, not a rounded chip", async () => {
+    const html = await render();
+    expect(html).toContain("border-b border-line");
+    expect(html).toContain("focus:border-steel");
+    expect(html).not.toContain("rounded-full border border-line bg-surface");
+  });
 });
 
 describe("SongsPage sorting", () => {
@@ -103,6 +120,35 @@ describe("SongsPage sorting", () => {
     const html = await render();
     expect(html).not.toContain("played ≥5 times");
   });
+
+  it("dresses the overdue note as a pen note (italic caveat), not a plain paragraph", async () => {
+    const html = await render({ sort: "overdue" });
+    expect(html).toContain("italic");
+  });
+});
+
+describe("SongsBrowsePage filter chrome", () => {
+  it("renders sort/facet as underlined text filters, not gold pill chrome", async () => {
+    const html = await render();
+    expect(html).not.toContain("rounded-full");
+    expect(html).not.toContain("bg-gold/15");
+    expect(html).not.toContain("ring-gold");
+    expect(html).not.toContain("ring-1");
+  });
+
+  it("drops the glowing hero header", async () => {
+    const html = await render();
+    expect(html).not.toContain("stage-glow");
+    expect(html).not.toContain("eyebrow");
+  });
+
+  it("marks the active sort with steel text, not a gold ring", async () => {
+    const html = await render({ sort: "rare" });
+    const idx = html.indexOf(">Rarest<");
+    const tag = html.slice(html.lastIndexOf("<a", idx), idx);
+    expect(tag).toContain("text-steel");
+    expect(tag).not.toContain("text-gold");
+  });
 });
 
 describe("SongsPage pagination", () => {
@@ -122,27 +168,27 @@ describe("SongsPage pagination", () => {
   it("hides the pager when everything fits on one page", async () => {
     h.total = 3; // e.g. ?q=jive
     const html = await render({ q: "jive" });
-    expect(html).not.toContain("Page 1 of");
-    expect(html).not.toContain("Previous");
+    expect(html).not.toContain("page 1 of");
+    expect(html).not.toContain('aria-disabled');
   });
 
-  it("renders Previous / Page N of M / Next preserving sort, facet and q", async () => {
+  it("renders the folio nav preserving sort, facet and q", async () => {
     h.total = 250; // 3 pages at 100/page
     const html = await render({ sort: "rare", facet: "covers", q: "a", page: "2" });
-    expect(html).toContain("Page 2 of 3");
-    expect(html).toContain('href="/songs?sort=rare&amp;facet=covers&amp;q=a&amp;page=3"'); // Next
-    expect(html).toContain('href="/songs?sort=rare&amp;facet=covers&amp;q=a"');            // Previous omits page=1
+    expect(html).toContain("page 2 of 3");
+    expect(html).toContain('href="/songs?sort=rare&amp;facet=covers&amp;q=a&amp;page=3"'); // next
+    expect(html).toContain('href="/songs?sort=rare&amp;facet=covers&amp;q=a"');            // previous omits page=1
   });
 
-  it("disables Previous on page 1 and Next on the last page", async () => {
+  it("disables the placeholder pager ends as inaccessible-to-nowhere on the first/last page", async () => {
     h.total = 150; // 2 pages
     const first = await render({});
-    expect(first).toContain("Page 1 of 2");
+    expect(first).toContain("page 1 of 2");
     expect(first).toContain('href="/songs?page=2"');
     expect(first).not.toContain("page=0");
     expect(first).toContain('aria-disabled="true"'); // placeholder span is machine-readably disabled
     const last = await render({ page: "2" });
-    expect(last).toContain("Page 2 of 2");
+    expect(last).toContain("page 2 of 2");
     expect(last).not.toContain("page=3");
     expect(last).toContain('aria-disabled="true"');
   });
@@ -159,7 +205,7 @@ describe("SongsPage pagination", () => {
     h.experience = "functional";
     h.total = 250;
     const html = await render({ page: "2" });
-    expect(html).toContain("Page 2 of 3");
+    expect(html).toContain("page 2 of 3");
     expect(html).toContain('href="/songs?page=3"');
   });
 

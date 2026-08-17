@@ -59,4 +59,10 @@ describe("route loading skeletons", () => {
       expect(html).not.toContain("stage-glow");
     });
   }
+
+  it("songs/[slug] ghosts the 8 facts as plain bars, not surface cards", () => {
+    const html = renderToStaticMarkup(<SongLoading />);
+    expect(html).not.toContain("surface-card");
+    expect(html.match(/animate-pulse/g)?.length).toBeGreaterThanOrEqual(8 * 2); // value + label bar per fact, at least
+  });
 });

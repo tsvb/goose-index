@@ -3,12 +3,28 @@ import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, MetaTable, DocSection } from "@/app/_components/doc";
+import { SectionRule } from "@/app/_components/forms";
+import { NilState } from "@/app/_components/page-chrome";
 import { FactRibbon, PlaysPerYearChart, SetPlacementBars, GapSparkline, PerformanceTable, AppearsOn } from "@/app/_components/song";
 import { getSongBySlug, getSongPerformances, getSongAlbums, type SongStat, type SongAlbum } from "@/lib/queries/songs";
 import { getExperience } from "@/lib/experience.server";
 import type { Experience } from "@/lib/experience";
 import { showHref, formatShortDate, formatDuration } from "@/lib/queries/format";
 import { entityMetadata } from "@/lib/site";
+
+/** Crumb trail for the fancy/functional song page — plain text, spruce links. */
+function SongCrumb({ name }: { name: string }) {
+  const linkClass = "text-spruce underline underline-offset-4 transition hover:text-ink";
+  return (
+    <nav className="text-[0.7rem] text-faint">
+      <Link href="/" className={linkClass}>Index</Link>
+      {" › "}
+      <Link href="/songs" className={linkClass}>Songs</Link>
+      {" › "}
+      <span>{name}</span>
+    </nav>
+  );
+}
 
 export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ slug: string }> };
@@ -89,31 +105,39 @@ export default async function SongPage({ params }: Params) {
   return (
     <>
       <Container className="py-7">
-        <Breadcrumb trail={[{ href: "/", label: "Index" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
+        <SongCrumb name={song.name} />
         <div className="mt-2 flex flex-wrap items-baseline gap-3">
           <h1 className="font-display text-[2.2rem] leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
-          <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.62rem] uppercase tracking-wider text-muted">{tag}</span>
+          <span className="font-mono text-[0.7rem] lowercase text-faint">{tag}</span>
         </div>
         <FactRibbon facts={facts(song)} />
         <AppearsOn albums={albums} />
         <div className="song-cols mt-6">
           <div className="space-y-7">
-            <section><h2 className="mb-2 font-display text-base text-ink">Plays per year</h2><PlaysPerYearChart data={song.playsPerYear} /></section>
-            <section><h2 className="mb-2 font-display text-base text-ink">Set placement</h2><SetPlacementBars placement={song.setPlacement} /></section>
-            {perfs.length > 0 && <section><h2 className="mb-2 font-display text-base text-ink">Gaps &amp; returns</h2><GapSparkline perfs={perfs} /><p className="mt-2 font-mono text-[0.68rem] text-faint">{gapLegend(perfs.some((p) => p.isDustedOff), song.longestGap, perfs.length)}</p></section>}
+            <section><SectionRule title="plays per year" seed="song-plays-per-year" /><PlaysPerYearChart data={song.playsPerYear} /></section>
+            <section><SectionRule title="set placement" seed="song-set-placement" /><SetPlacementBars placement={song.setPlacement} /></section>
+            {perfs.length > 0 && (
+              <section>
+                <SectionRule title="gaps & returns" seed="song-gaps-returns" />
+                <GapSparkline perfs={perfs} />
+                <p className="mt-2 font-mono text-[0.68rem] text-faint">{gapLegend(perfs.some((p) => p.isDustedOff), song.longestGap, perfs.length)}</p>
+              </section>
+            )}
             {song.longestVersions.length > 0 && (
-              <section><h2 className="mb-2 font-display text-base text-ink">Longest versions</h2>
+              <section>
+                <SectionRule title="longest versions" seed="song-longest-versions" />
                 <ul className="space-y-1 text-sm">{song.longestVersions.map((v) => <li key={v.showId} className="flex justify-between gap-3"><span className="tabular-nums text-gold">{v.trackTime}</span><Link href={showHref(v.date, v.order)} className="text-muted hover:text-ink">{v.date} · {v.venue ?? "—"}</Link></li>)}</ul>
               </section>
             )}
             {song.topVenues.length > 0 && (
-              <section><h2 className="mb-2 font-display text-base text-ink">Top venues</h2>
+              <section>
+                <SectionRule title="top venues" seed="song-top-venues" />
                 <ul className="space-y-1 text-sm">{song.topVenues.map((v) => <li key={v.venueId} className="flex justify-between gap-3"><Link href={`/venues/${v.venueId}`} className="text-muted hover:text-ink">{v.name}</Link><span className="tabular-nums text-faint">{v.count}×</span></li>)}</ul>
               </section>
             )}
           </div>
           <div>
-            <h2 className="mb-2 font-display text-base text-ink">Every performance <span className="font-mono text-xs text-faint">· {perfs.length}</span></h2>
+            <SectionRule title={<>every performance <span className="font-mono text-xs text-faint">· {perfs.length}</span></>} seed="song-every-performance" />
             <PerformanceTable perfs={perfs} />
           </div>
         </div>
@@ -145,23 +169,19 @@ function NeverPlayed({ song, tag, experience }: { song: SongStat; tag: string; e
   }
   return (
     <Container className="py-7">
-      <Breadcrumb trail={[{ href: "/", label: "Index" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
+      <SongCrumb name={song.name} />
       <div className="mt-2 flex flex-wrap items-baseline gap-3">
         <h1 className="font-display text-[2.2rem] leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
-        <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.62rem] uppercase tracking-wider text-muted">{tag}</span>
+        <span className="font-mono text-[0.7rem] lowercase text-faint">{tag}</span>
       </div>
-      <div className="mt-8 rounded-lg border border-dashed border-line bg-surface/50 px-6 py-14 text-center">
-        <p className="font-display text-xl text-ink">In the songbook, but never yet played live.</p>
-        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted">
-          The Index keeps a page for every song in the book — this one is still waiting for its
-          first night. When it debuts, the plays, gaps, set placements, and longest versions will
-          be logged here.
-        </p>
-        <p className="mt-6 font-mono text-xs">
-          <Link href="/songs" className="text-sage transition hover:text-ink">Browse the catalog →</Link>
-          <span className="mx-3 text-line">·</span>
-          <Link href="/stats/debuts" className="text-sage transition hover:text-ink">Recent debuts →</Link>
-        </p>
+      <div className="mt-8">
+        <NilState href="/songs" linkLabel="browse the catalog">
+          In the songbook, but never yet played live. The Index keeps a page for every song in the
+          book — this one is still waiting for its first night. When it debuts, the plays, gaps,
+          set placements, and longest versions will be logged here. Or see{" "}
+          <Link href="/stats/debuts" className="text-spruce underline underline-offset-4 hover:text-ink">recent debuts</Link>{" "}
+          in the meantime.
+        </NilState>
       </div>
     </Container>
   );
