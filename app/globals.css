@@ -27,16 +27,17 @@
   --line-soft: rgba(31, 36, 43, 0.13);
   color-scheme: light;
 
-  /* Legacy aliases — Plan 5 removes these with their last consumers. */
+  /* Legacy aliases still standing after Plan 5 Task 2 — --bg/--bg-deep/
+     --surface/--surface-2 have no role-token equivalent (surface-2 is a
+     tinted elevation, not a plain paper alias) and still have real
+     consumers across the site (venue-map.tsx, the-shelf.tsx, venue-depth.tsx,
+     tape.tsx, and several rules below); their deletion stays gated on a
+     zero-consumer grep for a later task. --gold*/--sage*/--shadow reached
+     zero consumers this task and are gone. */
   --bg: var(--paper);
   --bg-deep: var(--paper);
   --surface: var(--paper);
   --surface-2: color-mix(in oklab, var(--ink) 5%, var(--paper));
-  --gold: var(--steel);
-  --gold-soft: var(--steel);
-  --gold-deep: var(--steel);
-  --sage: var(--spruce);
-  --sage-deep: var(--spruce);
   /* --ember is its own AA-safe literal, not a --hand alias: --hand only
      needs to clear 3:1 (it's a mark, always paired with written values),
      but --ember is consumed as TEXT (.live-pill, .overdue, .song-bust) and
@@ -45,7 +46,6 @@
      text-safe amber — not a legacy alias; it survives the Plan 5 alias
      purge, tuned to 4.5:1 text contrast per theme. */
   --ember: #8a6504;
-  --shadow: transparent;
 }
 
 /* Slate — the dark cave. Follows the system unless the visitor pins fog;
@@ -126,11 +126,6 @@
   --color-faint: var(--faint);
   --color-line: var(--line);
   --color-line-soft: var(--line-soft);
-  --color-gold: var(--gold);
-  --color-gold-soft: var(--gold-soft);
-  --color-gold-deep: var(--gold-deep);
-  --color-sage: var(--sage);
-  --color-sage-deep: var(--sage-deep);
   --color-ember: var(--ember);
   --color-paper: var(--paper);
   --color-steel: var(--steel);
@@ -183,10 +178,13 @@
 /* Tabular figures wherever data is set in mono. */
 .font-mono { font-variant-numeric: tabular-nums; }
 
-/* ---- De-carding bridge (dies with Plan 5) ----
+/* ---- De-carding bridge (outlives Plan 5 Task 2) ----
    Until every page is rebuilt on the new forms, nothing floats and nothing
    is a rounded box. rounded-full is exempt so icon circles stay circles
-   until their components retire. */
+   until their components retire. Deletion is gated on a zero-consumer grep
+   for .rounded/.rounded-md/.rounded-lg/.rounded-xl in fancy-rendered
+   components — real ones remain (e.g. songs/page.tsx, venues/page.tsx,
+   setlist/fancy.tsx), so this block stays for a later task. */
 [data-experience="fancy"] :is(.rounded, .rounded-md, .rounded-lg, .rounded-xl) {
   border-radius: 0;
 }
@@ -210,14 +208,14 @@
 
 /* Link affordance for inline text links */
 .link {
-  color: var(--sage);
+  color: var(--spruce);
   text-decoration-line: underline;
-  text-decoration-color: color-mix(in oklab, var(--sage) 40%, transparent);
+  text-decoration-color: color-mix(in oklab, var(--spruce) 40%, transparent);
   text-underline-offset: 3px;
   transition: text-decoration-color 0.2s, color 0.2s;
 }
 .link:hover {
-  text-decoration-color: var(--sage);
+  text-decoration-color: var(--spruce);
 }
 
 /* ---- Blog post body (lib/blog + post-body.tsx) ---- */
@@ -385,7 +383,7 @@
   border: 3px solid var(--bg);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gold-deep);
+  background: color-mix(in oklab, var(--steel) 70%, black);
 }
 
 /* ============================================================
@@ -406,35 +404,26 @@
   --faint: #5a6c7c;
   --line: #c4d4e2;
   --line-soft: #e7eef5;
-  --gold: #1f6cb0;
-  --gold-soft: #1e639f;
-  --gold-deep: #1f5e93;
-  --sage: #3b7411;
-  --sage-deep: #305e0e;
   --ember: #a85413;
-  --shadow: rgba(40, 70, 110, 0.18);
   --type-display: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   --type-body: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   --type-mono: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color-scheme: light;
 
-  /* Inverse aliases — the experiences predate the new names; dies with
-     Plan 5. The base layer (@layer base above) consumes --steel/--paper
-     globally (::selection, :focus-visible), and this block only redeclares
-     the legacy names it's always used — without these, a dark-OS visitor
-     here would silently inherit the fog/slate --steel/--paper instead of
-     this experience's own --gold/--bg. FilterLink, FolioNav, PageHead, and
-     chromeLink components resolve their colors through these aliases
-     (--steel: var(--gold) for blue links, --spruce: var(--sage) for green).
-     Plan 5 Task 2 deletes these aliases: before deletion, define period-literal
-     role-token values (--steel, --spruce, --pencil) directly under
-     [data-experience="functional"] so those components' link colors don't
-     silently break to the light-theme defaults. */
-  --paper: var(--bg);
-  --steel: var(--gold);
-  --hand: var(--ember);
-  --spruce: var(--sage);
-  --pencil: var(--muted);
+  /* Period-literal role tokens (Plan 5 Task 2) — the values the old
+     --steel: var(--gold) / --spruce: var(--sage) / --pencil: var(--muted)
+     inverse aliases resolved to, now the roles' own definitions here, so
+     the swap is a visual no-op. The base layer (@layer base above) consumes
+     --steel/--paper globally (::selection, :focus-visible), and FilterLink,
+     FolioNav, PageHead, and chromeLink resolve their colors through
+     --steel/--spruce — without a literal here, a dark-OS visitor would
+     silently inherit the fog/slate values instead of this experience's own
+     blue/green. */
+  --paper: #e7f0f9;
+  --steel: #1f6cb0;
+  --hand: #a85413;
+  --spruce: #3b7411;
+  --pencil: #526577;
 }
 [data-experience="functional"] body {
   background: linear-gradient(#eef5fb, #d6e6f4) fixed;
@@ -485,7 +474,7 @@
   text-shadow: none;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
 }
-/* The global gold focus ring is blue-on-blue on the appbar (1.1–1.3:1) —
+/* The global steel focus ring is blue-on-blue on the appbar (1.1–1.3:1) —
    keep the ring, swap it to white there. */
 [data-experience="functional"] .w2-appbar :focus-visible { outline-color: #fff; }
 /* The 3.0 underline search sits on the appbar gradient here — give it appbar
@@ -551,29 +540,25 @@
   --faint: #6a6a6a;
   --line: #e3e3e0;
   --line-soft: #ededea;
-  --gold: #141414;
-  --gold-soft: #141414;
-  --gold-deep: #141414;
-  --sage: #1c5f4a;
-  --sage-deep: #164d3c;
   --ember: #141414;
-  --shadow: rgba(0, 0, 0, 0.12);
   --type-display: Georgia, "Times New Roman", serif;
   --type-body: Georgia, "Times New Roman", serif;
   --type-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   color-scheme: light;
 
-  /* Inverse aliases — the experiences predate the new names; dies with
-     Plan 5. Without these, a dark-OS visitor here would silently inherit
-     the fog/slate --steel/--paper the base layer's ::selection and
-     :focus-visible consume globally, instead of this experience's own flat
-     --gold/--bg (e.g. the #7ba3c4 slate focus ring at ~2.67:1 on this
-     block's white --bg). */
-  --paper: var(--bg);
-  --steel: var(--gold);
-  --hand: var(--ember);
-  --spruce: var(--sage);
-  --pencil: var(--muted);
+  /* Period-literal role tokens (Plan 5 Task 2) — the values the old
+     --steel: var(--gold) / --spruce: var(--sage) / --pencil: var(--muted)
+     inverse aliases resolved to, now the roles' own definitions here, so
+     the swap is a visual no-op. Without a literal here, a dark-OS visitor
+     would silently inherit the fog/slate --steel/--paper the base layer's
+     ::selection and :focus-visible consume globally, instead of this
+     experience's own flat black (e.g. the #7ba3c4 slate focus ring at
+     ~2.67:1 on this block's white --paper). */
+  --paper: #ffffff;
+  --steel: #141414;
+  --hand: #141414;
+  --spruce: #1c5f4a;
+  --pencil: #4a4a4a;
 }
 
 [data-experience="minimal"] a {
@@ -642,10 +627,10 @@
 .song-bar-pct { color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
 
 .song-spark { display: flex; align-items: flex-end; gap: 2px; height: 52px; }
-.song-spark i { flex: 1; background: var(--gold-deep, #c8902f); border-radius: 1px; opacity: 0.8; min-height: 1px; }
+.song-spark i { flex: 1; background: var(--steel); border-radius: 1px; opacity: 0.8; min-height: 1px; }
 .song-spark i.bust { background: var(--ember, #ff8a3d); opacity: 1; }
 .song-mspark { display: inline-flex; align-items: flex-end; gap: 1px; height: 18px; width: 64px; vertical-align: middle; }
-.song-mspark i { flex: 1; background: var(--gold-deep, #c8902f); border-radius: 1px; opacity: 0.85; min-height: 1px; }
+.song-mspark i { flex: 1; background: var(--steel); border-radius: 1px; opacity: 0.85; min-height: 1px; }
 
 /* dense table — pin identity column, scroll the rest */
 .song-scroll { position: relative; border: 1px solid var(--line); border-radius: 10px; }
@@ -657,8 +642,8 @@ table.song-table th { text-align: left; font-size: 0.58rem; letter-spacing: 0.09
 table.song-table td { padding: 5px 9px; border-bottom: 1px solid var(--line-soft, var(--line)); }
 table.song-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 table.song-table .dim { color: var(--faint); }
-table.song-table .gold { color: var(--gold); }
-table.song-table .gapcell { color: var(--gold); }
+table.song-table .rotation { color: var(--steel); }
+table.song-table .gapcell { color: var(--steel); }
 table.song-table .overdue { color: var(--ember, #ff8a3d); font-weight: 700; }
 table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; left: 0; z-index: 2; background: var(--bg); border-right: 1px solid var(--line); min-width: 120px; }
 .song-pin-name { display: block; overflow: hidden; text-overflow: ellipsis; }
@@ -674,22 +659,22 @@ table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; l
    is incomplete by design (only songs the band has played live appear), so a
    column of track numbers would show gaps and read as broken. */
 tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 7px 9px; position: sticky; left: 0; }
-.song-group-title { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--gold); }
+.song-group-title { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--steel); }
 .song-group-note { font-family: var(--font-mono); font-size: 0.62rem; color: var(--faint); margin-left: 8px; text-transform: none; letter-spacing: 0; }
-.song-group-link:hover .song-group-buy { color: var(--gold); border-color: var(--gold); }
+.song-group-link:hover .song-group-buy { color: var(--steel); border-color: var(--steel); }
 .song-group-buy { font-family: var(--font-mono); font-size: 0.58rem; color: var(--faint); border: 1px solid var(--line); border-radius: 2px; padding: 1px 5px; margin-left: 8px; text-transform: none; letter-spacing: 0.04em; transition: color .15s, border-color .15s; }
 
 /* Bandcamp — the band's own store. Reuses the nugs affordance's shape but gets
    its own colour so it doesn't read as a nugs link. */
-.nugs-show.bandcamp { color: var(--sage); border-color: color-mix(in srgb, var(--sage) 45%, transparent); background: color-mix(in srgb, var(--sage) 10%, transparent); }
-.nugs-show.bandcamp:hover { color: var(--sage-deep); border-color: var(--sage); }
+.nugs-show.bandcamp { color: var(--spruce); border-color: color-mix(in srgb, var(--spruce) 45%, transparent); background: color-mix(in srgb, var(--spruce) 10%, transparent); }
+.nugs-show.bandcamp:hover { color: color-mix(in oklab, var(--spruce) 70%, black); border-color: var(--spruce); }
 [data-experience="functional"] .nugs-show.bandcamp { color: #3b7411; border-color: #a9cf8a; background: linear-gradient(#ffffff, #eef7e8); }
 [data-experience="functional"] tr.song-group td { background: #dbe8f4; }
 [data-experience="functional"] .song-group-title { color: #1f5e93; }
 
 .song-cover { font-size: 0.65rem; color: var(--faint); margin-left: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
 .song-bust { font-size: 0.62rem; color: var(--ember, #ff8a3d); border: 1px solid color-mix(in srgb, var(--ember, #ff8a3d) 45%, transparent); border-radius: 999px; padding: 1px 7px; margin-right: 6px; }
-.song-jam { font-size: 0.62rem; color: var(--gold); }
+.song-jam { font-size: 0.62rem; color: var(--ember); }
 
 /* Functional (Web 2.0) reskin */
 [data-experience="functional"] .song-fact-v { color: #2c7cc4; }
@@ -789,7 +774,7 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 .show-anchor { scroll-margin-top: 6rem; }
 [data-experience="minimal"] .show-anchor { scroll-margin-top: 1.5rem; }
 @keyframes show-anchor-flash {
-  0%, 35% { background-color: color-mix(in srgb, var(--gold) 22%, transparent); }
+  0%, 35% { background-color: color-mix(in srgb, var(--steel) 22%, transparent); }
   100% { background-color: transparent; }
 }
 .show-anchor:target { animation: show-anchor-flash 2.6s ease-out forwards; }

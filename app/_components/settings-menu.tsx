@@ -91,7 +91,7 @@ export function SettingsMenu({ current }: { current: Experience }) {
         className={
           isText
             ? "underline"
-            : "grid h-9 w-9 place-items-center rounded-full border border-line text-muted transition hover:border-gold hover:text-gold"
+            : "grid h-9 w-9 place-items-center rounded-full border border-line text-muted transition hover:border-steel hover:text-steel"
         }
       >
         {isText ? "Settings" : <Settings className="h-[18px] w-[18px]" />}
