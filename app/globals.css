@@ -32,8 +32,9 @@
      tinted elevation, not a plain paper alias) and still have real
      consumers across the site (venue-map.tsx, the-shelf.tsx, venue-depth.tsx,
      tape.tsx, and several rules below); their deletion stays gated on a
-     zero-consumer grep for a later task. --gold*/--sage*/--shadow reached
-     zero consumers this task and are gone. */
+     zero-consumer grep for a later task. The --gold and --sage token
+     families, plus --shadow, reached zero consumers this task and are
+     gone. */
   --bg: var(--paper);
   --bg-deep: var(--paper);
   --surface: var(--paper);
