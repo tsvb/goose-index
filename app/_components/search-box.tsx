@@ -3,30 +3,37 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { Search } from "./marks";
+import { clsx } from "./clsx";
 
 type Size = "compact" | "full";
 
 // useSearchParams requires a Suspense boundary when the header renders inside
 // a statically prerendered page; the fallback is the same box unseeded, so the
 // layout never shifts.
-export function SearchBox({ size = "compact" }: { size?: Size }) {
+//
+// className is a hook for the *caller's* site, not the box's own look — e.g.
+// the functional appbar's `.w2-appbar input` reskin needs to land on this one
+// inline instance without also catching unrelated inputs elsewhere in the
+// header's DOM subtree (the mobile-nav sheet's input among them). Give it a
+// scoped class instead of matching every `input` under the appbar.
+export function SearchBox({ size = "compact", className }: { size?: Size; className?: string }) {
   return (
-    <Suspense fallback={<SearchBoxForm size={size} seed="" />}>
-      <SeededSearchBox size={size} />
+    <Suspense fallback={<SearchBoxForm size={size} seed="" className={className} />}>
+      <SeededSearchBox size={size} className={className} />
     </Suspense>
   );
 }
 
-function SeededSearchBox({ size }: { size: Size }) {
+function SeededSearchBox({ size, className }: { size: Size; className?: string }) {
   const pathname = usePathname();
   const params = useSearchParams();
   // Only echo ?q= on /search itself — elsewhere (e.g. /songs?q=) q is a local
   // filter that shouldn't leak into the global search box.
   const seed = pathname === "/search" ? (params.get("q") ?? "") : "";
-  return <SearchBoxForm size={size} seed={seed} />;
+  return <SearchBoxForm size={size} seed={seed} className={className} />;
 }
 
-function SearchBoxForm({ size, seed }: { size: Size; seed: string }) {
+function SearchBoxForm({ size, seed, className }: { size: Size; seed: string; className?: string }) {
   const router = useRouter();
   const [q, setQ] = useState(seed);
 
@@ -46,7 +53,7 @@ function SearchBoxForm({ size, seed }: { size: Size; seed: string }) {
 
   if (size === "full") {
     return (
-      <form onSubmit={submit} className="group relative w-full">
+      <form onSubmit={submit} className={clsx("group relative w-full", className)}>
         <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-faint transition group-focus-within:text-steel" />
         <input
           value={q}
@@ -61,7 +68,7 @@ function SearchBoxForm({ size, seed }: { size: Size; seed: string }) {
   }
 
   return (
-    <form onSubmit={submit} className="group relative hidden sm:block">
+    <form onSubmit={submit} className={clsx("group relative hidden sm:block", className)}>
       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint transition group-focus-within:text-steel" />
       <input
         value={q}

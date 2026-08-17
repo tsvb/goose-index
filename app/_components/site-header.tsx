@@ -68,7 +68,11 @@ export function HeaderFunctional({ experience }: { experience: Experience }) {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <SearchBox />
+          {/* appbar-search: scopes the appbar's white-on-gel input reskin
+              (globals.css) to this instance only, so it can't also catch the
+              mobile-nav sheet's input — MobileNav renders inside this same
+              header as a DOM descendant of .w2-appbar. */}
+          <SearchBox className="appbar-search" />
           <SettingsMenu current={experience} />
           <MobileNav />
         </div>

@@ -83,6 +83,20 @@ describe("MobileNav drawer", () => {
     expect(html).toContain("max-h-[calc(100dvh-var(--header-h,4rem))]");
     expect(html).toContain("overflow-y-auto");
   });
+
+  it("its own search input never carries the appbar-search hook — the functional appbar's white-on-gel input rule (globals.css) must not reach it", () => {
+    // MobileNav renders inside the same <header> as the functional appbar's
+    // .w2-appbar class (a DOM descendant, via site-header.tsx), so a bare
+    // `.w2-appbar input` rule used to also catch this sheet's input — white
+    // text on the sheet's own bg-paper, ~1.16:1, effectively invisible. The
+    // fix scopes that rule to `.appbar-search`, a hook only the appbar's own
+    // inline SearchBox carries (see site-header.tsx's HeaderFunctional).
+    const html = renderToStaticMarkup(<MobileNav />);
+    expect(html).not.toContain("appbar-search");
+    // ...and it keeps its own layered ink/faint utilities as its only color
+    // source, not a hardcoded white.
+    expect(html).toContain("text-ink placeholder:text-faint");
+  });
 });
 
 describe("bindSheetDismissal — Escape closes, background scroll locks", () => {

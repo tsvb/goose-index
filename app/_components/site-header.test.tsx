@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import fs from "node:fs";
+import path from "node:path";
 import { HeaderFancy, HeaderFunctional, HeaderMinimal } from "./site-header";
 
 const nav = { pathname: "/" };
@@ -36,6 +38,21 @@ describe("SiteHeader variants", () => {
     const html = renderToStaticMarkup(<HeaderFunctional experience="functional" />);
     expect(html).toContain("w2-appbar");
     expect(html).not.toContain("h-16");
+  });
+  it("functional's inline SearchBox carries the appbar-search hook the white-on-gel CSS rule targets", () => {
+    // Pins the fix for the mobile-sheet white-on-white bug: the appbar's own
+    // input reskin (globals.css) must be scoped to this hook, not to every
+    // `input` under .w2-appbar — MobileNav renders inside this same header.
+    const html = renderToStaticMarkup(<HeaderFunctional experience="functional" />);
+    expect(html).toContain("appbar-search");
+  });
+  it("the functional appbar's input-color CSS rule (and its ::placeholder twin) is scoped to .appbar-search, not every input under .w2-appbar", () => {
+    const css = fs.readFileSync(path.join(__dirname, "..", "globals.css"), "utf8");
+    expect(css).toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+\.appbar-search\s+input\s*\{/);
+    expect(css).toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+\.appbar-search\s+input::placeholder\s*\{/);
+    // The old bare-selector forms must be gone, not just shadowed by new rules.
+    expect(css).not.toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+input\s*\{/);
+    expect(css).not.toMatch(/\[data-experience="functional"\]\s+\.w2-appbar\s+input::placeholder\s*\{/);
   });
   it("minimal is a plain text nav: no svg, not sticky, underlined links", () => {
     const html = renderToStaticMarkup(<HeaderMinimal experience="minimal" />);
