@@ -7,7 +7,7 @@ export function normalizeVenue(s: string | null | undefined): string {
   return s
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")   // strip combining marks left by NFD
+    .replace(/[\u0300-\u036f]/g, "")   // strip combining marks left by NFD
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
