@@ -8,6 +8,7 @@ export function normalizeVenue(s: string | null | undefined): string {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")   // strip combining marks left by NFD
+    .replace(/['\u2019]/g, "")         // delete apostrophes outright: "Slim's" -> "slims"
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }

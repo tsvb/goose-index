@@ -11,12 +11,27 @@ describe("normalizeVenue", () => {
     expect(normalizeVenue("Théâtre  St-Denis!")).toBe("theatre st denis");
     expect(normalizeVenue(null)).toBe("");
   });
+
+  // Venue data carries both the ASCII and typographic apostrophe. Dropping them
+  // outright (rather than turning them into a space) is what lets a hint of
+  // "Slims" match a nugs venue of "Slim's".
+  it("deletes apostrophes rather than spacing them out", () => {
+    expect(normalizeVenue("Slim's")).toBe("slims");
+    expect(normalizeVenue("Slim’s")).toBe("slims");
+  });
+  it("still spaces out other punctuation, with no double spaces", () => {
+    expect(normalizeVenue("Théâtre St-Denis")).toBe("theatre st denis");
+    expect(normalizeVenue("Music & Arts Fest")).toBe("music arts fest");
+  });
 });
 
 describe("venueMatches", () => {
   it("matches in either direction — a hint may be shorter or longer", () => {
     expect(venueMatches("Salt Shed", "The Salt Shed, Chicago")).toBe(true);
     expect(venueMatches("The Salt Shed, Chicago", "Salt Shed")).toBe(true);
+  });
+  it("matches across an apostrophe difference", () => {
+    expect(venueMatches("Slims", "Slim's, San Francisco")).toBe(true);
   });
   it("does not match different venues", () => {
     expect(venueMatches("Red Rocks", "The Salt Shed")).toBe(false);
