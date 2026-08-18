@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { sql } from "drizzle-orm";
 import { makeTestDb } from "@/db/testing";
+import { etToday } from "@/lib/today";
 import {
   upsertArtists, upsertVenues, upsertTours, upsertSongs, upsertShows, upsertPerformances,
 } from "@/db/repository";
@@ -25,6 +25,13 @@ afterAll(() => ctx.close());
 
 const RETURNING_SONG_ID = 800;
 const FILLER_SONG_ID = 801;
+
+/** The calendar day after an ISO date. */
+function nextDay(iso: string): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
 
 /**
  * Seed 20 shows on distinct dates.
@@ -227,11 +234,9 @@ describe("getTonightShows", () => {
   });
 
   it("returns only today's shows, in show order", async () => {
-    // The db decides what "today" is (avoids TZ drift between JS and Postgres).
-    const res = await (ctx.db as unknown as { execute: (q: unknown) => Promise<unknown> })
-      .execute(sql`select current_date::text as today, (current_date + 1)::text as tomorrow`);
-    const rows = (Array.isArray(res) ? res : (res as { rows: unknown[] }).rows) as { today: string; tomorrow: string }[];
-    const { today, tomorrow } = rows[0];
+    // "Today" is the site's clock (ET), never the database's — see lib/today.ts.
+    const today = etToday();
+    const tomorrow = nextDay(today);
     // Two shows today (seeded out of order) and one tomorrow.
     await upsertShows(ctx.db, [
       { showId: 60, showDate: today, showOrder: 2 },
@@ -254,6 +259,28 @@ describe("getTonightShows", () => {
     expect(recent[0].showId).toBe(60); // today, highest show order first
     expect(recent.map((s) => s.showId)).not.toContain(62); // tomorrow stays upcoming
   });
+
+  it("is still empty at 9pm ET the night before a show, after UTC has rolled over", async () => {
+    // Postgres runs UTC in production; `current_date` was already the show's
+    // date, so the home page announced Tonight on a night with no show.
+    await upsertShows(ctx.db, [{
+      showId: 63, showDate: "2029-06-15", artistId: 1, venueId: 1, tourId: null,
+      title: null, permalink: "p63", showOrder: 1, notes: null, createdAt: null, updatedAt: null,
+    }]);
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      const { getTonightShows, getUpcomingShows } = await import("./shows");
+      vi.setSystemTime(new Date("2029-06-15T01:50:00Z")); // 2029-06-14 21:50 ET
+      expect(await getTonightShows()).toEqual([]);
+      // and it is still announced as upcoming rather than falling through the gap
+      expect((await getUpcomingShows(5)).map((s) => s.showId)).toContain(63);
+
+      vi.setSystemTime(new Date("2029-06-15T05:00:00Z")); // 2029-06-15 01:00 ET
+      expect((await getTonightShows()).map((s) => s.showId)).toEqual([63]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe("getShowEntryNumber", () => {
@@ -263,10 +290,7 @@ describe("getShowEntryNumber", () => {
     // show with a NULL order, a played show with no performances, and an
     // upcoming show that (perversely) already has a performance row — to prove
     // the date guard holds independently of the performances guard.
-    const res = await (ctx.db as unknown as { execute: (q: unknown) => Promise<unknown> })
-      .execute(sql`select (current_date + 1)::text as tomorrow`);
-    const rows = (Array.isArray(res) ? res : (res as { rows: unknown[] }).rows) as { tomorrow: string }[];
-    const { tomorrow } = rows[0];
+    const tomorrow = nextDay(etToday());
     await upsertShows(ctx.db, [
       { showId: 80, showDate: "2023-05-01", showOrder: 1 },
       { showId: 81, showDate: "2023-05-01", showOrder: 2 },
@@ -307,10 +331,7 @@ describe("getShowEntryNumber", () => {
 
   it("returns null for an upcoming show even if a performance row sneaks in", async () => {
     const { getShowEntryNumber } = await import("./shows");
-    const res = await (ctx.db as unknown as { execute: (q: unknown) => Promise<unknown> })
-      .execute(sql`select (current_date + 1)::text as tomorrow`);
-    const rows = (Array.isArray(res) ? res : (res as { rows: unknown[] }).rows) as { tomorrow: string }[];
-    expect(await getShowEntryNumber(rows[0].tomorrow, 1)).toBeNull();
+    expect(await getShowEntryNumber(nextDay(etToday()), 1)).toBeNull();
   });
 
   it("returns null for a date with no show at all", async () => {

@@ -2,6 +2,7 @@ import { db } from "@/db/client";
 import { shows, venues, tours } from "@/db/schema";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { escapeLike } from "@/lib/util";
+import { today, etYear } from "./today";
 
 export type YearRow = { year: number; shows: number; songs: number };
 
@@ -17,7 +18,7 @@ export async function listYears(): Promise<YearRow[]> {
       songs: sql<number>`sum((select count(*) from performances p where p.show_id = shows.show_id))::int`,
     })
     .from(shows)
-    .where(sql`${shows.showDate} <= current_date`)
+    .where(sql`${shows.showDate} <= ${today()}`)
     .groupBy(sql`extract(year from ${shows.showDate})`)
     .orderBy(sql`extract(year from ${shows.showDate}) desc`);
   return rows;
@@ -224,7 +225,7 @@ export async function showsByState(): Promise<StateShows[]> {
     select v.state, count(distinct s.show_id)::int as shows, count(distinct v.venue_id)::int as venues
     from shows s
     join venues v on v.venue_id = s.venue_id
-    where s.show_date <= current_date
+    where s.show_date <= ${today()}
       and v.state is not null
       and (v.country is null or v.country ~* '^(usa|us|united states)')
     group by v.state
@@ -240,7 +241,7 @@ export async function showsByCountry(): Promise<CountryShows[]> {
     select v.country, count(distinct s.show_id)::int as shows, count(distinct v.venue_id)::int as venues
     from shows s
     join venues v on v.venue_id = s.venue_id
-    where s.show_date <= current_date
+    where s.show_date <= ${today()}
       and v.country is not null
       and v.country !~* '^(usa|us|united states)'
     group by v.country
@@ -288,7 +289,7 @@ export async function tourTimeline(): Promise<{ tours: TourSpan[]; untouredShows
            min(s.show_date)::text as start,
            max(s.show_date)::text as "end",
            count(s.show_id)::int as shows,
-           count(*) filter (where s.show_date > current_date)::int as upcoming,
+           count(*) filter (where s.show_date > ${today()})::int as upcoming,
            array_agg(s.show_date::text order by s.show_date) as dates
     from tours t
     join shows s on s.tour_id = t.tour_id
@@ -351,13 +352,13 @@ export async function careerYears(): Promise<CareerYear[]> {
              extract(year from s.show_date)::int as year,
              (select count(*) from performances p where p.show_id = s.show_id)::int as songs
       from shows s
-      where s.show_date <= current_date
+      where s.show_date <= ${today()}
     ),
     debut as (
       select p.song_id, extract(year from min(s.show_date))::int as year
       from performances p
       join shows s on s.show_id = p.show_id
-      where s.show_date <= current_date
+      where s.show_date <= ${today()}
       group by p.song_id
     )
     select ps.year,
@@ -372,7 +373,7 @@ export async function careerYears(): Promise<CareerYear[]> {
     group by ps.year
     order by ps.year asc
   `));
-  const thisYear = new Date().getUTCFullYear();
+  const thisYear = etYear();
   return rows.map((r) => ({
     year: num(r.year),
     shows: num(r.shows),

@@ -1,5 +1,6 @@
 import { db } from "@/db/client";
 import { sql } from "drizzle-orm";
+import { today } from "./today";
 
 function firstRow(result: unknown): Record<string, unknown> {
   const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
@@ -23,14 +24,14 @@ export async function getOverviewStats(): Promise<OverviewStats> {
   const r = firstRow(
     await db.execute(sql`
       select
-        (select count(*)::int from shows where show_date <= current_date) as shows_played,
-        (select count(*)::int from shows where show_date > current_date) as upcoming,
+        (select count(*)::int from shows where show_date <= ${today()}) as shows_played,
+        (select count(*)::int from shows where show_date > ${today()}) as upcoming,
         (select count(distinct song_id)::int from performances) as songs,
         (select count(*)::int from songs) as songs_in_catalog,
         (select count(*)::int from venues v where exists (select 1 from shows s where s.venue_id = v.venue_id)) as venues,
         (select count(*)::int from performances) as performances,
         (select min(show_date)::text from shows) as first_date,
-        (select max(show_date)::text from shows where show_date <= current_date) as last_played_date
+        (select max(show_date)::text from shows where show_date <= ${today()}) as last_played_date
     `),
   );
   return {

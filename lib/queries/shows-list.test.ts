@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { sql } from "drizzle-orm";
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import { makeTestDb } from "@/db/testing";
+import { etToday } from "@/lib/today";
 import { upsertArtists, upsertVenues, upsertTours, upsertShows } from "@/db/repository";
 
 let _testDb: Awaited<ReturnType<typeof makeTestDb>>["db"] | null = null;
@@ -21,10 +21,8 @@ afterAll(() => ctx.close());
 
 const TOUR_ID = 9;
 
-async function today(): Promise<string> {
-  const res = (await ctx.db.execute(sql`select current_date::text as d`)) as unknown as { rows: { d: string }[] };
-  return (Array.isArray(res) ? (res as { d: string }[]) : res.rows)[0].d;
-}
+// The site's clock, not the database's — see lib/today.ts.
+const today = () => etToday();
 
 beforeAll(async () => {
   await upsertArtists(ctx.db, [{ artistId: 1, name: "Goose" }]);
@@ -85,7 +83,7 @@ describe("findLatestPastShow", () => {
 
   it("flags a show happening today", async () => {
     const { findLatestPastShow } = await import("./shows");
-    const d = await today();
+    const d = today();
     await upsertShows(ctx.db, [{
       showId: 50, showDate: d, artistId: 1, venueId: 1, tourId: null,
       title: null, permalink: "ptoday", showOrder: 1, notes: null, createdAt: null, updatedAt: null,
@@ -94,5 +92,38 @@ describe("findLatestPastShow", () => {
     expect(r!.showId).toBe(50);
     expect(r!.date).toBe(d);
     expect(r!.isToday).toBe(true);
+  });
+
+  // 9:50pm ET the night before a show. Postgres runs UTC in production, so
+  // `current_date` had already rolled over to the show's date, and the shows
+  // page put a "tonight's show" jump on a night with no show.
+  describe("across the UTC date rollover", () => {
+    const eveningBefore = new Date("2029-06-15T01:50:00Z"); // 2029-06-14 21:50 ET
+    const afterEtMidnight = new Date("2029-06-15T05:00:00Z"); // 2029-06-15 01:00 ET
+
+    beforeAll(async () => {
+      await upsertShows(ctx.db, [{
+        showId: 52, showDate: "2029-06-15", artistId: 1, venueId: 1, tourId: null,
+        title: null, permalink: "p52", showOrder: 1, notes: null, createdAt: null, updatedAt: null,
+      }]);
+    });
+    beforeEach(() => vi.useFakeTimers({ toFake: ["Date"] }));
+    afterEach(() => vi.useRealTimers());
+
+    it("leaves tomorrow night's show in the future all evening", async () => {
+      vi.setSystemTime(eveningBefore);
+      const { findLatestPastShow } = await import("./shows");
+      const r = await findLatestPastShow({ dir: "asc", perPage: 50 });
+      expect(r!.showId).not.toBe(52);
+      expect(r!.isToday).toBe(false); // no show tonight → "most recent show"
+    });
+
+    it("flags it once ET itself reaches the date", async () => {
+      vi.setSystemTime(afterEtMidnight);
+      const { findLatestPastShow } = await import("./shows");
+      const r = await findLatestPastShow({ dir: "asc", perPage: 50 });
+      expect(r!.showId).toBe(52);
+      expect(r!.isToday).toBe(true);
+    });
   });
 });

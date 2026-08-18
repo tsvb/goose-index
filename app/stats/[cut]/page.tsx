@@ -5,6 +5,7 @@ import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
 import { SongIndexTable, PlaysPerYearChart } from "@/app/_components/song";
 import { chromeLink } from "@/app/_components/page-chrome";
+import { etYear } from "@/lib/today";
 import { CUTS } from "../cuts";
 import { StatsShell, MinimalCutRow, MinimalNoteRow, songsSortHref } from "../_shell";
 import {
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 function yearsFor(rows: SongIndexRow[]): number[] {
   const n = rows[0]?.playsPerYear.length ?? 0;
-  const hi = new Date().getUTCFullYear();
+  const hi = etYear();
   return Array.from({ length: n }, (_, i) => hi - (n - 1) + i);
 }
 

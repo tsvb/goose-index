@@ -3,6 +3,7 @@ import { sql, type SQL } from "drizzle-orm";
 import { setLabel } from "@/app/_components/setlist/shared";
 import { trackSeconds } from "@/lib/queries/format";
 import { escapeLike } from "@/lib/util";
+import { today, etYear } from "./today";
 
 function allRows(result: unknown): Record<string, unknown>[] {
   const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
@@ -29,13 +30,15 @@ export function isDustedOffGap(gap: number | null, songGaps: number[]): boolean 
 // show_seq: number every PLAYED show with performances by (date, order).
 // song_show: one row per (song, show) so same-show reprises don't create negative gaps.
 // gapped: per (song, show) gap = seq - lag(seq) - 1.
-const SHOW_SEQ = sql`
+// Built per call, not once at import: it binds today's date, and a warm
+// serverless instance outlives midnight.
+const showSeq = () => sql`
   show_seq as (
     select s.show_id,
            row_number() over (order by s.show_date, coalesce(s.show_order, 1)) as seq,
            s.show_date
     from shows s
-    where s.show_date <= current_date
+    where s.show_date <= ${today()}
       and exists (select 1 from performances p where p.show_id = s.show_id)
   ),
   song_show as (
@@ -59,7 +62,7 @@ export type SongPerf = {
 
 export async function getSongPerformances(songId: number): Promise<SongPerf[]> {
   const rows = allRows(await db.execute(sql`
-    with ${SHOW_SEQ}
+    with ${showSeq()}
     select p.unique_id, s.show_date::text as date, s.show_id, s.show_order as "order",
            v.name as venue, v.city, v.state,
            p.set_type, p.set_number, p.position, p.track_time,
@@ -157,10 +160,10 @@ export async function listSongs(
 
   // year span for the sparkline
   const [span] = allRows(await db.execute(sql`
-    select extract(year from min(show_date))::int as lo, extract(year from current_date)::int as hi
-    from shows where show_date <= current_date
+    select extract(year from min(show_date))::int as lo, extract(year from ${today()})::int as hi
+    from shows where show_date <= ${today()}
   `));
-  const lo = num(span?.lo) || new Date().getUTCFullYear();
+  const lo = num(span?.lo) || etYear();
   const hi = num(span?.hi) || lo;
   const years: number[] = [];
   for (let y = lo; y <= hi; y++) years.push(y);
@@ -181,7 +184,7 @@ export async function listSongs(
     sql`times_played desc, lower(name) asc`;
 
   const rows = allRows(await db.execute(sql`
-    with ${SHOW_SEQ},
+    with ${showSeq()},
     ${PRIMARY_ALBUM},
     agg as (
       select song_id, count(*)::int as times_played,
@@ -209,7 +212,7 @@ export async function listSongs(
   // total counts the whole cut, not the window, so page math stays right even
   // when the requested page runs off the end (mirrors listShows).
   const [cnt] = allRows(await db.execute(sql`
-    with ${SHOW_SEQ},
+    with ${showSeq()},
     agg as (select song_id, count(*)::int as times_played from song_show group by song_id)
     select count(*)::int as total
     from songs so
@@ -222,7 +225,7 @@ export async function listSongs(
   const ppyRows = allRows(await db.execute(sql`
     select p.song_id, extract(year from s.show_date)::int as year, count(*)::int as c
     from performances p join shows s on s.show_id = p.show_id
-    where s.show_date <= current_date group by 1, 2
+    where s.show_date <= ${today()} group by 1, 2
   `));
   const ppy = new Map<number, Map<number, number>>();
   for (const r of ppyRows) {
@@ -278,7 +281,7 @@ export interface SongSearchRow {
 export async function searchSongs(q: string, limit = 12): Promise<{ rows: SongSearchRow[]; total: number }> {
   const like = `%${escapeLike(q.trim())}%`;
   const raw = allRows(await db.execute(sql`
-    with ${SHOW_SEQ},
+    with ${showSeq()},
     agg as (
       select song_id, count(*)::int as times_played, max(show_date)::text as last_date
       from song_show group by song_id
@@ -323,11 +326,11 @@ export async function currentGaps(limit = 100): Promise<SongIndexRow[]> {
 
 export async function debutsByYear(): Promise<{ year: number; count: number }[]> {
   const byYear = allRows(await db.execute(sql`
-    with ${SHOW_SEQ},
+    with ${showSeq()},
     debut as (select song_id, min(show_date) as d from song_show group by song_id)
     select extract(year from d)::int as year, count(*)::int as count from debut group by 1 order by 1
   `)).map((r) => ({ year: num(r.year), count: num(r.count) }));
-  return zeroFillYears(byYear, new Date().getUTCFullYear());
+  return zeroFillYears(byYear, etYear());
 }
 
 export async function recentDebuts(limit = 25): Promise<{ slug: string; name: string; date: string; venue: string | null }[]> {
@@ -335,7 +338,7 @@ export async function recentDebuts(limit = 25): Promise<{ slug: string; name: st
     with first_play as (
       select p.song_id, min(s.show_date) as d
       from performances p join shows s on s.show_id = p.show_id
-      where s.show_date <= current_date group by p.song_id
+      where s.show_date <= ${today()} group by p.song_id
     )
     select so.slug, so.name, fp.d::text as date,
       (select v.name from shows s2 left join venues v on v.venue_id = s2.venue_id
@@ -357,7 +360,7 @@ export async function setStats(): Promise<{ key: string; label: string; rows: { 
       select so.slug, so.name, count(*)::int as count
       from performances p join songs so on so.song_id = p.song_id
       join shows s on s.show_id = p.show_id
-      where s.show_date <= current_date and (${b.cond})
+      where s.show_date <= ${today()} and (${b.cond})
       group by so.slug, so.name order by count desc, so.name asc limit 15
     `)).map((r) => ({ slug: String(r.slug), name: String(r.name), count: num(r.count) }));
     out.push({ key: b.key, label: b.label, rows });
@@ -383,7 +386,7 @@ export type StatsHubHighlights = {
  */
 export async function statsHubHighlights(): Promise<StatsHubHighlights> {
   const [row] = allRows(await db.execute(sql`
-    with ${SHOW_SEQ},
+    with ${showSeq()},
     agg as (
       select song_id, count(*)::int as times_played,
              min(show_date) as debut_date,
@@ -413,7 +416,7 @@ export async function statsHubHighlights(): Promise<StatsHubHighlights> {
     select so.name, so.slug, count(*)::int as count
     from performances p join songs so on so.song_id = p.song_id
     join shows s on s.show_id = p.show_id
-    where s.show_date <= current_date
+    where s.show_date <= ${today()}
       and p.position = 1 and (p.set_number = '1' or p.set_type = 'One Set')
     group by so.slug, so.name order by count(*) desc, so.name asc limit 1
   `));
@@ -445,7 +448,7 @@ export async function getSongBySlug(slug: string): Promise<SongStat | null> {
 
   // current gap = max(seq) - last perf seq
   const [cg] = allRows(await db.execute(sql`
-    with ${SHOW_SEQ}
+    with ${showSeq()}
     select (select max(seq) from show_seq) - max(g.seq) as current_gap
     from gapped g where g.song_id = ${songId}
   `));
@@ -453,7 +456,7 @@ export async function getSongBySlug(slug: string): Promise<SongStat | null> {
 
   // rotation = timesPlayed / shows since debut (inclusive)
   const [rot] = allRows(await db.execute(sql`
-    with ${SHOW_SEQ},
+    with ${showSeq()},
     deb as (select min(seq) as d from gapped where song_id = ${songId})
     select (select count(*) from show_seq, deb where seq >= deb.d) as denom
   `));
@@ -465,10 +468,10 @@ export async function getSongBySlug(slug: string): Promise<SongStat | null> {
     allRows(await db.execute(sql`
       select extract(year from s.show_date)::int as year, count(*)::int as count
       from performances p join shows s on s.show_id = p.show_id
-      where p.song_id = ${songId} and s.show_date <= current_date
+      where p.song_id = ${songId} and s.show_date <= ${today()}
       group by 1 order by 1
     `)).map((r) => ({ year: num(r.year), count: num(r.count) })),
-    new Date().getUTCFullYear(),
+    etYear(),
   );
 
   // set placement percentages

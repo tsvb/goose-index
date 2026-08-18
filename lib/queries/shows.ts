@@ -4,6 +4,7 @@ import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { p95, isDustedOffGap } from "./songs";
 import { normalizeDateQuery } from "./search-dates";
 import { escapeLike } from "@/lib/util";
+import { today } from "./today";
 
 function allRows(result: unknown): Record<string, unknown>[] {
   const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
@@ -54,14 +55,14 @@ function baseShowQuery() {
 
 export async function getRecentShows(limit = 6): Promise<ShowSummary[]> {
   return baseShowQuery()
-    .where(sql`${shows.showDate} <= current_date`)
+    .where(sql`${shows.showDate} <= ${today()}`)
     .orderBy(desc(shows.showDate), desc(shows.showOrder))
     .limit(limit);
 }
 
 export async function getUpcomingShows(limit = 5): Promise<ShowSummary[]> {
   return baseShowQuery()
-    .where(sql`${shows.showDate} > current_date`)
+    .where(sql`${shows.showDate} > ${today()}`)
     .orderBy(asc(shows.showDate), asc(shows.showOrder))
     .limit(limit);
 }
@@ -69,7 +70,7 @@ export async function getUpcomingShows(limit = 5): Promise<ShowSummary[]> {
 /** Past shows that happened on today's month + day, most recent first. */
 export async function getOnThisDay(): Promise<ShowSummary[]> {
   return baseShowQuery()
-    .where(sql`to_char(${shows.showDate}, 'MM-DD') = to_char(current_date, 'MM-DD') and ${shows.showDate} < current_date`)
+    .where(sql`to_char(${shows.showDate}, 'MM-DD') = to_char(${today()}, 'MM-DD') and ${shows.showDate} < ${today()}`)
     .orderBy(desc(shows.showDate));
 }
 
@@ -82,12 +83,12 @@ export async function getShowsOnDate(date: string): Promise<ShowSummary[]> {
 /**
  * Shows dated today — the home page's Tonight banner. Usually one show, but
  * multi-show days (matinee + evening) return all of them in show order.
- * getRecentShows still includes today (date <= current_date); callers that
+ * getRecentShows still includes today (date <= today); callers that
  * hoist tonight into its own treatment filter these ids out themselves.
  */
 export async function getTonightShows(): Promise<ShowSummary[]> {
   return baseShowQuery()
-    .where(sql`${shows.showDate} = current_date`)
+    .where(sql`${shows.showDate} = ${today()}`)
     .orderBy(asc(shows.showOrder));
 }
 
@@ -167,7 +168,7 @@ export async function getSetlist(showId: number): Promise<SetlistEntry[]> {
   const gapRows = allRows(await db.execute(sql`
     with show_seq as (
       select s.show_id, row_number() over (order by s.show_date, coalesce(s.show_order,1)) as seq
-      from shows s where s.show_date <= current_date and exists (select 1 from performances p where p.show_id = s.show_id)
+      from shows s where s.show_date <= ${today()} and exists (select 1 from performances p where p.show_id = s.show_id)
     ),
     song_show as (select distinct p.song_id, ss.seq, ss.show_id from performances p join show_seq ss on ss.show_id = p.show_id),
     gapped as (select song_id, seq, show_id, seq - lag(seq) over (partition by song_id order by seq) - 1 as gap from song_show),
@@ -193,7 +194,7 @@ export async function getSetlist(showId: number): Promise<SetlistEntry[]> {
 
 /**
  * 1-based position of a show in the chronological ledger of played shows —
- * the almanac's "Entry No. N". Walks the same sequence SHOW_SEQ numbers
+ * the almanac's "Entry No. N". Walks the same sequence showSeq() numbers
  * (`(show_date, coalesce(show_order, 1))`, played shows with performances
  * only), so the stamp always agrees with the gap math.
  *
@@ -210,7 +211,7 @@ export async function getShowEntryNumber(date: string, order: number | null): Pr
            bool_or(s.show_date = ${date}::date and coalesce(s.show_order, 1) = ${ord}) as counted
     from shows s
     where (s.show_date, coalesce(s.show_order, 1)) <= (${date}::date, ${ord})
-      and s.show_date <= current_date
+      and s.show_date <= ${today()}
       and exists (select 1 from performances p where p.show_id = s.show_id)
   `));
   return row?.counted ? Number(row.n) : null;
@@ -307,10 +308,10 @@ export async function findLatestPastShow(
       showId: shows.showId,
       date: shows.showDate,
       order: shows.showOrder,
-      isToday: sql<boolean>`${shows.showDate} = current_date`,
+      isToday: sql<boolean>`${shows.showDate} = ${today()}`,
     })
     .from(shows)
-    .where(withFilter(sql`${shows.showDate} <= current_date`))
+    .where(withFilter(sql`${shows.showDate} <= ${today()}`))
     .orderBy(desc(shows.showDate), desc(shows.showOrder))
     .limit(1);
   if (!target) return null;

@@ -10,6 +10,7 @@ import { listSongs, OVERDUE_MIN_PLAYS, type SongSort, type SongFacet } from "@/l
 import { compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
+import { etYear } from "@/lib/today";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Songs", description: "Every Goose song, sortable by plays, rarity, gap, and debut.", alternates: { canonical: canonicalUrl("/songs") } };
@@ -185,6 +186,6 @@ function buildHref(sp: { sort: string; facet: string; q: string; page?: number }
 // The index rows carry counts aligned to the band's year span; recover labels from the first row length.
 function deriveYears(rows: { playsPerYear: number[] }[]): number[] {
   const n = rows[0].playsPerYear.length;
-  const hi = new Date().getUTCFullYear();
+  const hi = etYear();
   return Array.from({ length: n }, (_, i) => hi - (n - 1) + i);
 }

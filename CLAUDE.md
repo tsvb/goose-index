@@ -23,6 +23,20 @@ brew services run postgresql@16
 
 (`npm run db:up` starts a docker Postgres instead, on machines that have docker.)
 
+## The site's clock
+
+Nothing asks Postgres what day it is. `current_date` follows the database server's
+timezone — UTC on Neon, the laptop's zone on a local Postgres — so "today" used to mean
+different days in dev and prod, and in production it rolled over at **8pm ET**. That is how
+the shows page came to offer a "tonight's show" jump on a night with no show: from 8pm the
+database already called it tomorrow.
+
+`lib/today.ts` owns the answer (`etToday()`, `etYear()`), anchored to Eastern Time — the
+same zone `lib/live.ts` anchors the live window to. Queries interpolate `today()` from
+`lib/queries/today.ts` instead of writing `current_date`; pages that need the date or year
+call `etToday()` / `etYear()` rather than `new Date()`. Adding a `current_date` back
+re-opens the bug, silently and only in production.
+
 ## Copy and voice
 
 This site's job is to tell the truth about a dataset. Copy that overstates what the

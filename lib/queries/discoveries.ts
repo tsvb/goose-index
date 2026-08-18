@@ -1,6 +1,7 @@
 import { db } from "@/db/client";
 import { sql } from "drizzle-orm";
 import { WEEKDAYS } from "@/lib/queries/format";
+import { today } from "./today";
 
 function allRows(result: unknown): Record<string, unknown>[] {
   const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
@@ -40,7 +41,7 @@ export async function dayOfWeekJams(): Promise<DayOfWeekJamsRow[]> {
       left join performances p
         on p.show_id = s.show_id
        and (p.is_jam = true or p.is_jamchart = true)
-      where s.show_date <= current_date
+      where s.show_date <= ${today()}
       group by s.show_id, s.show_date
     )
     select dow,
@@ -168,12 +169,12 @@ export async function originalsOnTheShelf(): Promise<ShelfRow[]> {
            so.slug,
            max(sh.show_date)::text as last_played_date,
            count(*)::int as total_plays,
-           (current_date - max(sh.show_date))::int as days_since_played
+           (${today()} - max(sh.show_date))::int as days_since_played
     from performances p
     join shows sh on sh.show_id = p.show_id
     join songs so on so.song_id = p.song_id
     where so.is_original = true
-      and sh.show_date <= current_date
+      and sh.show_date <= ${today()}
       and so.name !~* '(^|\\s)jam$'
       and so.name !~ '^[(]'
       and so.name !~* '^interlude(\\s|$)'
@@ -217,7 +218,7 @@ export async function deepestVenues(): Promise<DeepestVenueRow[]> {
       from venues v
       join shows sh on sh.venue_id = v.venue_id
       join performances p on p.show_id = sh.show_id
-      where sh.show_date <= current_date
+      where sh.show_date <= ${today()}
       group by v.venue_id, v.name, v.slug
     )
     select venue_id, name, slug, total_shows, total_performances, total_jams,

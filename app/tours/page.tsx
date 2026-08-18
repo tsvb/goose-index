@@ -9,6 +9,7 @@ import { SectionRule, Ledger } from "@/app/_components/forms";
 import { formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
+import { etToday } from "@/lib/today";
 
 export const metadata: Metadata = {
   title: "Tours",
@@ -19,9 +20,8 @@ export const metadata: Metadata = {
 export default async function ToursPage() {
   const [tours, timeline] = await Promise.all([listTours(), tourTimeline()]);
   const experience = await getExperience();
-  // Rendered server-side, so "today" is the server's day — the same clock the
-  // rest of the site's `current_date` comparisons already use.
-  const today = new Date().toISOString().slice(0, 10);
+  // Same clock as every query on the page — ET, not the server's zone.
+  const today = etToday();
 
   if (experience === "minimal") {
     return (
