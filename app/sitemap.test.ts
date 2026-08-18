@@ -14,7 +14,7 @@ import { SITE_URL } from "@/lib/site";
 describe("sitemap", () => {
   it("lists the section indexes, including /years", async () => {
     const urls = (await sitemap()).map((e) => e.url);
-    for (const path of ["/shows", "/songs", "/stats", "/tours", "/venues", "/years", "/on-this-day"]) {
+    for (const path of ["/shows", "/songs", "/stats", "/tours", "/venues", "/years", "/on-this-day", "/listen-links"]) {
       expect(urls).toContain(`${SITE_URL}${path}`);
     }
   });
