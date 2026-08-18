@@ -41,3 +41,13 @@ describe("SiteFooter edition line", () => {
     expect(html).toContain("Settings link in the header");
   });
 });
+
+describe("SiteFooter listen-links entry", () => {
+  it("every edition links the listen-links page", () => {
+    for (const F of [FooterMinimal, FooterFunctional, FooterFancy]) {
+      const html = renderToStaticMarkup(<F />);
+      expect(html).toContain('href="/listen-links"');
+      expect(html.toLowerCase()).toContain("listen links");
+    }
+  });
+});
