@@ -91,10 +91,13 @@ describe("ShowHeader nugs.net control", () => {
     });
   }
 
-  it("the Watch button falls back to the video route", () => {
+  it("the Watch button falls back to the video route, and Listen to the audio route", () => {
     const html = renderToStaticMarkup(
       <ShowHeader show={withContainer} date="2024-04-20" setlist={setlist} experience="fancy" />);
-    expect(html).toContain("https://play.nugs.net/watch/release/46887");
+    // Tie each fallback to ITS anchor — a bare toContain would pass even if the
+    // two fallbacks were swapped, since both URLs appear somewhere on the page.
+    expect(html).toMatch(/<a[^>]*class="nugs-show watch"[^>]*data-fallback="https:\/\/play\.nugs\.net\/watch\/release\/46887"/);
+    expect(html).toMatch(/<a[^>]*class="nugs-show"[^>]*data-fallback="https:\/\/play\.nugs\.net\/release\/46887"/);
   });
 
   it("without a container the fallbacks stay the artist+date search", () => {

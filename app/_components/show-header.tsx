@@ -57,7 +57,7 @@ function ShowNugs({
         {containerId != null && (
           <>
             {" · "}
-            <a href={nugsWebHref({ containerId })} target="_blank" rel="noopener noreferrer">open on nugs.net</a>
+            <a href={nugsWebHref({ containerId })} target="_blank" rel="noopener noreferrer" className="nugs-show">open on nugs.net</a>
           </>
         )}
       </>
