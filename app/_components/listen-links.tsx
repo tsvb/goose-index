@@ -111,10 +111,79 @@ function TryItBody({ example, urls }: { example: ListenExample; urls: ReturnType
   );
 }
 
-/** Placeholder seam for Task 3 — the developer reference renders here. */
+/** The applenugs:// grammar, one row per part. A real <table> in every edition —
+ *  this is reference material, not decoration. */
+const PARAMS: { part: string; required: string; notes: string }[] = [
+  { part: "applenugs://", required: "yes", notes: "The scheme AppleNugs registers. Not nugs:// — that belongs to the official app." },
+  { part: "show/<YYYY-MM-DD>", required: "yes", notes: "The performance date — the one identifier this site and nugs share natively." },
+  { part: "artist=<name>", required: "yes", notes: "Band name, e.g. Goose. Keeps the app's handler generic instead of hardcoding one artist." },
+  { part: "venue=<venue>", required: "no", notes: "Tie-break for two-show days. If it still can't decide, the app presents the matches." },
+  { part: "song=<title>&set=<n>&pos=<n>", required: "no", notes: "Start playback at one song; set/pos disambiguate a song played twice." },
+  { part: "media=audio|video", required: "no", notes: "audio when omitted." },
+];
+
+function DevReferenceBody() {
+  return (
+    <>
+      <p>The buttons emit this grammar:</p>
+      <p><code>{"applenugs://show/<YYYY-MM-DD>?artist=<name>[&venue=<venue>][&song=<title>&set=<n>&pos=<n>][&media=audio|video]"}</code></p>
+      <table>
+        <thead>
+          <tr><th>Part</th><th>Required</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          {PARAMS.map((p) => (
+            <tr key={p.part}>
+              <td><code>{p.part}</code></td>
+              <td>{p.required}</td>
+              <td>{p.notes}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>
+        Query values are percent-encoded with <code>%20</code> for spaces — never <code>+</code>.
+        Swift&rsquo;s <code>URLComponents</code> does not decode <code>+</code> to a space, so a{" "}
+        <code>+</code> reaches the app literally.
+      </p>
+      <p>
+        Song titles are matched against the resolved show&rsquo;s track list in three tiers:
+        exact normalized match, then a track title that contains the song, then the longest
+        track title the song contains (so a segue link like &ldquo;Madhuvan &gt; Hot Tea&rdquo;
+        still lands on &ldquo;Madhuvan&rdquo;).
+      </p>
+      <p>
+        Without the app, the same buttons fall back to the nugs web player at{" "}
+        <code>play.nugs.net</code> —{" "}
+        <code>{"/release/<id>"}</code> for audio, or{" "}
+        <code>{"/watch/release/<id>"}</code> for video — when this site
+        has resolved the show&rsquo;s id, and to a search otherwise. There is no per-track web
+        route.
+      </p>
+      <p>
+        The app, and the full contract, live at{" "}
+        <a href="https://github.com/tsvb/applenugs" target="_blank" rel="noopener noreferrer">github.com/tsvb/applenugs</a>.
+      </p>
+    </>
+  );
+}
+
 function DevReference({ minimal }: { minimal: boolean }) {
-  void minimal;
-  return null;
+  if (minimal) {
+    return (
+      <DocSection title="How the links are built">
+        <DevReferenceBody />
+      </DocSection>
+    );
+  }
+  return (
+    <details className="border-t border-line pt-4">
+      <summary className="cursor-pointer font-display text-xl text-ink">How the links are built</summary>
+      <div className="mt-4 space-y-4 [&_table]:w-full [&_td]:border-t [&_td]:border-line [&_td]:py-2 [&_td]:pr-3 [&_th]:pb-2 [&_th]:pr-3 [&_th]:text-left">
+        <DevReferenceBody />
+      </div>
+    </details>
+  );
 }
 
 const SECTIONS = (example: ListenExample | null, coverage: NugsCoverage | null) => {

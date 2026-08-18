@@ -80,4 +80,28 @@ describe("ListenLinksContent", () => {
       expect(html).not.toContain("returns you to");
     }
   });
+
+  it("the developer reference is collapsed on styled editions, plain on minimal", () => {
+    expect(render("fancy")).toContain("<details");
+    expect(render("functional")).toContain("<details");
+    const minimal = render("minimal");
+    expect(minimal).not.toContain("<details");
+    expect(minimal).toContain("How the links are built");
+  });
+
+  it("documents the grammar, the %20 rule with its reason, and the repo", () => {
+    const html = render("minimal");
+    expect(html).toContain(esc("applenugs://show/<YYYY-MM-DD>?artist=<name>"));
+    expect(html).toContain("%20");
+    expect(html).toContain("URLComponents");   // the reason, not just the rule
+    expect(html).toContain("github.com/tsvb/applenugs");
+  });
+
+  it("renders the parameter table as a real table in every edition", () => {
+    for (const e of ["minimal", "functional", "fancy"] as const) {
+      const html = render(e);
+      expect(html).toContain("<table");
+      expect(html).toContain("venue=");
+    }
+  });
 });
