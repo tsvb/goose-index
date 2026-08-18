@@ -49,6 +49,22 @@ describe("ListenLinksPage", () => {
     expect(html).toContain("476 of 855");
   });
 
+  it("on a two-show day, uses the row for THIS show, not the first row", async () => {
+    // Two rows for the date; the recent show is the SECOND. A regression to a
+    // bare details[0] would pick Early Venue's row (no container) and fail both
+    // assertions below.
+    h.recent = [{ showId: 10, date: "2024-04-20", order: 2, venue: "Late Venue", city: "Chicago",
+      state: "IL", country: "USA", tour: null, tourId: null, songCount: 2, hasNotes: false }];
+    h.details = [
+      { ...h.details[0], showId: 9, order: 1, venue: "Early Venue", nugsContainerId: null, nugsHasVideo: null },
+      { ...h.details[0], showId: 10, order: 2, venue: "Late Venue", nugsContainerId: 111, nugsHasVideo: false },
+    ];
+    const html = renderToStaticMarkup(await ListenLinksPage());
+    expect(html).toContain(esc(nugsShowHref({ date: "2024-04-20", venue: "Late Venue" })));
+    expect(html).toContain("https://play.nugs.net/release/111");
+    expect(html).not.toContain("Early%20Venue");
+  });
+
   it("renders the explanation even with an empty database", async () => {
     h.recent = [];
     const html = renderToStaticMarkup(await ListenLinksPage());
