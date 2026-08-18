@@ -77,11 +77,11 @@ Plus two resolved columns on `shows`: `nugs_container_id` and `nugs_has_video`, 
 
 Both exist because without the raw table you cannot distinguish *"nugs has this night and we
 failed to match it"* from *"nugs doesn't have this night"* — a distinction the `verify` and
-`audit-source` scripts trade on, and one the explainer page depends on to tell the truth.
+`audit-source` culture can trade on later, and one the explainer page depends on to tell the truth.
 
 ### Matching
 
-`scripts/nugs-match.ts` — pure and unit-tested, in the shape of `scripts/album-match.ts`.
+`lib/nugs-catalog/match.ts` — pure and unit-tested, in the shape of `scripts/album-match.ts`.
 
 - Date is the join key.
 - Two containers on one date are broken apart by **normalized venue containment** — the same
@@ -118,7 +118,7 @@ Which media each caller passes, stated so it isn't guessed:
 | caller | fallback target when a container is known |
 | --- | --- |
 | `▷ Listen on nugs` | `/release/<id>` |
-| `▷ Watch` | `/watch/release/<id>` |
+| `▷ Watch` | `/watch/release/<id>` when the container has video; the search otherwise — audio-only containers have no watch page worth landing on (measured 283 of 485 audio-only, 2026-08-18) |
 | `▷` setlist row | `/release/<id>` — there is no per-track web route |
 
 ### UI
