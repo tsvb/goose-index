@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import type { Experience } from "@/lib/experience";
 import { Doc, Breadcrumb, DocSection } from "./doc";
 import { Container } from "./container";
+import { PageHead } from "./page-chrome";
+import { SectionRule } from "./forms";
 import { NugsLink } from "./nugs-link";
 import { nugsShowHref, nugsTrackHref, nugsWebFallback } from "@/lib/nugs";
 
@@ -179,7 +181,7 @@ function DevReference({ minimal }: { minimal: boolean }) {
   }
   return (
     <details className="border-t border-line pt-4">
-      <summary className="cursor-pointer font-display text-xl text-ink">How the links are built</summary>
+      <summary className="cursor-pointer text-[0.8rem] font-semibold lowercase text-ink">How the links are built</summary>
       <div className="mt-4 space-y-4 [&_table]:w-full [&_td]:border-t [&_td]:border-line [&_td]:py-2 [&_td]:pr-3 [&_th]:pb-2 [&_th]:pr-3 [&_th]:text-left">
         <DevReferenceBody />
       </div>
@@ -220,16 +222,13 @@ export function ListenLinksContent({
   }
 
   return (
-    <Container className="max-w-3xl py-10 sm:py-14">
-      <span className="eyebrow">Listen links</span>
-      <h1 className="mt-3 font-display text-4xl tracking-tight text-ink sm:text-5xl">
-        How the listen links work
-      </h1>
-      <div className="mt-8 space-y-10 leading-relaxed text-muted [&_code]:text-[0.85em] [&_code]:break-all [&_strong]:text-ink [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mt-1.5">
+    <Container className="max-w-3xl pb-10 sm:pb-14">
+      <PageHead kicker="listen links" title="How the listen links work" />
+      <div className="space-y-10 leading-relaxed text-muted [&_code]:text-[0.85em] [&_code]:break-all [&_strong]:text-ink [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mt-1.5">
         {sections.map((s) => (
           <section key={s.title}>
-            <h2 className="mb-3 font-display text-xl text-ink">{s.title}</h2>
-            {s.body}
+            <SectionRule title={s.title} seed={`listen-${s.title}`} />
+            <div className="mt-3">{s.body}</div>
           </section>
         ))}
         <DevReference minimal={false} />
