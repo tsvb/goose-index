@@ -600,9 +600,7 @@ describe("createNugsCatalogClient", () => {
   it("throws on a non-ok response rather than returning a partial catalog", async () => {
     const impl = (async () => ({ ok: false, status: 503, json: async () => ({}) })) as unknown as typeof fetch;
     const client = createNugsCatalogClient({ fetchImpl: impl });
-    await expect(createNugsCatalogClient({ fetchImpl: impl }).fetchAllContainers())
-      .rejects.toThrow(/503/);
-    expect(client).toBeDefined();
+    await expect(client.fetchAllContainers()).rejects.toThrow(/503/);
   });
 });
 ```
@@ -1230,6 +1228,21 @@ The spec requires this explicitly. In `tsvb/applenugs`, fixtures are exactly how
 
 **Files:**
 - Create: `docs/superpowers/reports/2026-08-18-nugs-import-verification.md`
+
+- [ ] **Step 0: Make sure the local database actually has shows**
+
+Steps 3-5 compare resolved containers against shows, which says nothing if `shows` is empty.
+A fresh local database is empty, so sync it first:
+
+```bash
+npm run db:up
+DATABASE_URL='postgres://postgres:postgres@localhost:5432/goose' npm run db:migrate
+DATABASE_URL='postgres://postgres:postgres@localhost:5432/goose' npm run sync
+```
+
+This pulls elgoose.net into the local database and takes a few minutes. Confirm it finished with
+a non-zero show count before continuing. If `psql` is not installed, run the queries in the later
+steps through `npx tsx` against `db/client` instead — the numbers matter, the tool does not.
 
 - [ ] **Step 1: Dry-run the import against live nugs data**
 
