@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Experience } from "@/lib/experience";
 import { Doc, Breadcrumb, DocSection } from "./doc";
