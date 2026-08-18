@@ -14,6 +14,16 @@ describe("toISODate", () => {
     expect(toISODate("2026/08")).toBeNull();
     expect(toISODate(12345)).toBeNull();
   });
+  // A garbage month/day would otherwise reach the `date` column and abort the
+  // whole nightly transaction at insert — one bad row poisoning the batch.
+  it("rejects an out-of-range month or day", () => {
+    expect(toISODate("2026/13/45")).toBeNull();
+    expect(toISODate("2026/00/10")).toBeNull();
+    expect(toISODate("2026/12/00")).toBeNull();
+  });
+  it("still parses a valid boundary date", () => {
+    expect(toISODate("2026/12/31")).toBe("2026-12-31");
+  });
 });
 
 describe("parseContainers", () => {

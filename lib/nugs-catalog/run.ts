@@ -29,6 +29,16 @@ export async function runNugsImport(deps: {
   const fetchedAt = deps.now ?? new Date();
 
   const containers = await client.fetchAllContainers();
+  // A 200 with a changed JSON shape (or a new auth wall) parses to zero rows
+  // just like a truly empty catalog would — but an empty Goose catalog is
+  // impossible (485 real containers existed on 2026-08-18). Blanking every
+  // show's resolution on a green exit is the exact failure mode this guards
+  // against; throw before any write, dry-run summary included.
+  if (containers.length === 0) {
+    throw new Error(
+      "nugs catalog returned zero containers — refusing to blank every show's resolution (shape change or auth wall?)",
+    );
+  }
 
   const showRows = await db
     .select({ showId: shows.showId, date: shows.showDate, venue: venues.name })

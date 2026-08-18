@@ -80,6 +80,18 @@ describe("createNugsCatalogClient", () => {
     expect(ids).toEqual([1, 2, 3, 4, 5]);
   });
 
+  // If nugs ever ignored startOffset, every page would look identical and the
+  // loop would run to the CI timeout. A small pageSize keeps the fake fast
+  // while still exercising the 100-page ceiling.
+  it("throws when paging exceeds the page ceiling instead of looping forever", async () => {
+    const fullPage = [row(1, "2026/01/01"), row(2, "2026/01/02")];
+    const impl = (async () => ({
+      ok: true, status: 200, json: async () => ({ Response: { containers: fullPage } }),
+    })) as unknown as typeof fetch;
+    const client = createNugsCatalogClient({ fetchImpl: impl, pageSize: 2 });
+    await expect(client.fetchAllContainers()).rejects.toThrow(/paging exceeded 100 pages/);
+  });
+
   // A future video-only container (one that never appears in the audio list)
   // must survive the merge rather than being dropped.
   it("keeps a container that appears only in the video list", async () => {

@@ -3,9 +3,13 @@ import { parseContainers, rawContainerCount, type NugsContainer } from "./parse"
 /** nugs's legacy catalog host. Probed 2026-08-18: `catalog.containersAll` answers
  *  with no Authorization header at all. Goose is artistID 1205. */
 const DEFAULT_BASE = "https://streamapi.nugs.net/api.aspx";
-const DEFAULT_UA = "GooseIndex/0.1 (goose index fan project)";
+const DEFAULT_UA = "GooseIndex/1.0 (+https://github.com/tsvb/goose-index; nugs catalog import)";
 const GOOSE_ARTIST_ID = 1205;
 const DEFAULT_PAGE_SIZE = 100;   // limit > 100 returns HTTP 400
+// 10,000 containers at the default page size — far above any real catalog
+// (485 containers on 2026-08-18). Guards against an infinite loop if nugs
+// ever ignores startOffset and keeps serving the same full page forever.
+const MAX_PAGES = 100;
 
 export interface NugsCatalogClientOptions {
   artistId?: number;
@@ -50,7 +54,10 @@ export function createNugsCatalogClient(opts: NugsCatalogClientOptions = {}): Nu
   async function fetchList(videoOnly: boolean): Promise<NugsContainer[]> {
     const listName = videoOnly ? "video" : "audio";
     const all: NugsContainer[] = [];
-    for (let offset = 1; ; offset += pageSize) {
+    for (let offset = 1, page = 1; ; offset += pageSize, page += 1) {
+      if (page > MAX_PAGES) {
+        throw new Error("nugs catalog paging exceeded 100 pages — startOffset may be ignored");
+      }
       const res = await fetchImpl(url(offset, videoOnly), { headers: { "User-Agent": userAgent } });
       if (!res.ok) throw new Error(`nugs catalog (${listName}) HTTP ${res.status} at offset ${offset}`);
       const body = await res.json();

@@ -116,6 +116,26 @@ describe("runNugsImport", () => {
     expect(row.id).toBe(46887);
   });
 
+  it("throws on a catalog fetch that returns zero containers, leaving resolution untouched", async () => {
+    await seedShow(1, "2024-04-20", "The Salt Shed");
+    await runNugsImport({
+      client: clientOf([container(46887, "2024-04-20", "The Salt Shed", true)]),
+      db: ctx.db,
+    });
+
+    await expect(runNugsImport({ client: clientOf([]), db: ctx.db }))
+      .rejects.toThrow(/zero containers/);
+
+    // Neither the containers table nor the show's resolution was blanked.
+    const containerRows = await ctx.db.select().from(schema.nugsContainers);
+    expect(containerRows).toHaveLength(1);
+    expect(containerRows[0]).toMatchObject({ containerId: 46887, venueName: "The Salt Shed" });
+
+    const [row] = await ctx.db
+      .select({ id: schema.shows.nugsContainerId }).from(schema.shows).where(sql`${schema.shows.showId} = 1`);
+    expect(row.id).toBe(46887);
+  });
+
   it("rolls back the container upsert when a show update fails mid-transaction", async () => {
     await seedShow(1, "2024-04-20", "The Salt Shed");
     await seedShow(2, "2024-05-01", "Bimbo's 365 Club");
