@@ -50,3 +50,13 @@ export function parseContainers(json: unknown, opts: { hasVideo?: boolean } = {}
   }
   return out;
 }
+
+/** How many container rows the payload actually carried, before any of them were
+ *  dropped for being unparseable. Paging must terminate on THIS count: real rows
+ *  carry empty dates, so a full page can parse short, and breaking on the parsed
+ *  count would silently truncate the catalog. */
+export function rawContainerCount(json: unknown): number {
+  const containers = (json as { Response?: { containers?: unknown } } | null)
+    ?.Response?.containers;
+  return Array.isArray(containers) ? containers.length : 0;
+}

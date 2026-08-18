@@ -1,4 +1,4 @@
-import { parseContainers, type NugsContainer } from "./parse";
+import { parseContainers, rawContainerCount, type NugsContainer } from "./parse";
 
 /** nugs's legacy catalog host. Probed 2026-08-18: `catalog.containersAll` answers
  *  with no Authorization header at all. Goose is artistID 1205. */
@@ -42,15 +42,20 @@ export function createNugsCatalogClient(opts: NugsCatalogClientOptions = {}): Nu
     return `${baseUrl}?${qs}`;
   }
 
-  /** Page one list until a short page. `startOffset` is 1-based. */
+  /** Page one list until a short page. `startOffset` is 1-based. Termination is
+   *  decided on the RAW row count from the payload, not the parsed row count:
+   *  parseContainers legitimately drops rows (e.g. an empty performanceDateFormatted),
+   *  so a full raw page can parse short, and breaking on that would silently
+   *  truncate the catalog. */
   async function fetchList(videoOnly: boolean): Promise<NugsContainer[]> {
+    const listName = videoOnly ? "video" : "audio";
     const all: NugsContainer[] = [];
     for (let offset = 1; ; offset += pageSize) {
       const res = await fetchImpl(url(offset, videoOnly), { headers: { "User-Agent": userAgent } });
-      if (!res.ok) throw new Error(`nugs catalog HTTP ${res.status} at offset ${offset}`);
-      const page = parseContainers(await res.json(), { hasVideo: videoOnly });
-      all.push(...page);
-      if (page.length < pageSize) break;
+      if (!res.ok) throw new Error(`nugs catalog (${listName}) HTTP ${res.status} at offset ${offset}`);
+      const body = await res.json();
+      all.push(...parseContainers(body, { hasVideo: videoOnly }));
+      if (rawContainerCount(body) < pageSize) break;
     }
     return all;
   }

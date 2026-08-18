@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseContainers, toISODate } from "./parse";
+import { parseContainers, toISODate, rawContainerCount } from "./parse";
 
 const envelope = (containers: unknown[]) => ({ Response: { containers } });
 
@@ -74,5 +74,25 @@ describe("parseContainers", () => {
     ]));
     expect(rows).toHaveLength(1);
     expect(rows[0].containerId).toBe(2);
+  });
+});
+
+describe("rawContainerCount", () => {
+  it("counts the raw rows in a normal payload, unparseable ones included", () => {
+    expect(rawContainerCount(envelope([
+      { containerID: 1, performanceDateFormatted: "2026/07/04" },
+      { containerID: 9, performanceDateFormatted: "" },
+    ]))).toBe(2);
+  });
+
+  it("returns 0 when the containers key is missing", () => {
+    expect(rawContainerCount({ Response: {} })).toBe(0);
+    expect(rawContainerCount({})).toBe(0);
+    expect(rawContainerCount(null)).toBe(0);
+  });
+
+  it("returns 0 when containers isn't an array", () => {
+    expect(rawContainerCount(envelope("nonsense" as unknown as unknown[]))).toBe(0);
+    expect(rawContainerCount({ Response: { containers: {} } })).toBe(0);
   });
 });
