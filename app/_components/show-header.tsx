@@ -6,7 +6,7 @@ import { dateParts, locationLine, formatDuration, trackSeconds } from "@/lib/que
 import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
 import type { Experience } from "@/lib/experience";
 import { NugsLink } from "./nugs-link";
-import { nugsShowHref, nugsWebFallback } from "@/lib/nugs";
+import { nugsShowHref, nugsWebFallback, nugsWebHref } from "@/lib/nugs";
 import { bandcampHref } from "@/lib/bandcamp";
 
 /** The band's own release of this night, when they've put one out — 445 of the
@@ -36,21 +36,46 @@ function ShowBandcamp({ url, minimal = false }: { url: string | null; minimal?: 
   );
 }
 
-function ShowNugs({ date, venue, minimal = false }: { date: string; venue: string | null; minimal?: boolean }) {
-  const fallback = nugsWebFallback({ date, venue });
+function ShowNugs({
+  date, venue, containerId, minimal = false,
+}: {
+  date: string; venue: string | null;
+  containerId: number | null;
+  minimal?: boolean;
+}) {
+  // With a resolved container the fallback is the show's own page; without one it
+  // stays the artist+date search that shipped before this feature.
+  const audioFallback = nugsWebFallback({ date, venue, containerId });
+  const videoFallback = nugsWebFallback({ date, venue, containerId, media: "video" });
+
   if (minimal) {
     return (
       <>
-        <NugsLink href={nugsShowHref({ date, venue })} fallback={fallback} className="nugs-show">listen on nugs</NugsLink>
+        <NugsLink href={nugsShowHref({ date, venue })} fallback={audioFallback} className="nugs-show">listen on nugs</NugsLink>
         {" · "}
-        <NugsLink href={nugsShowHref({ date, venue, media: "video" })} fallback={fallback} className="nugs-show watch">watch</NugsLink>
+        <NugsLink href={nugsShowHref({ date, venue, media: "video" })} fallback={videoFallback} className="nugs-show watch">watch</NugsLink>
+        {containerId != null && (
+          <>
+            {" · "}
+            <a href={nugsWebHref({ containerId })} target="_blank" rel="noopener noreferrer">open on nugs.net</a>
+          </>
+        )}
       </>
     );
   }
   return (
     <span className="inline-flex items-center gap-1.5">
-      <NugsLink href={nugsShowHref({ date, venue })} fallback={fallback} className="nugs-show" title="Play this show on nugs">▷ Listen on nugs</NugsLink>
-      <NugsLink href={nugsShowHref({ date, venue, media: "video" })} fallback={fallback} className="nugs-show watch" title="Watch this show on nugs">▷ Watch</NugsLink>
+      <NugsLink href={nugsShowHref({ date, venue })} fallback={audioFallback} className="nugs-show" title="Play this show on nugs">▷ Listen on nugs</NugsLink>
+      <NugsLink href={nugsShowHref({ date, venue, media: "video" })} fallback={videoFallback} className="nugs-show watch" title="Watch this show on nugs">▷ Watch</NugsLink>
+      {containerId != null && (
+        <a
+          href={nugsWebHref({ containerId })}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="nugs-show"
+          title="Open this show on nugs.net (sign-in required)"
+        >↗ Open on nugs.net</a>
+      )}
     </span>
   );
 }
@@ -90,7 +115,7 @@ export function ShowHeader({
               { k: "Songs", v: setlist.length === 0 ? "Setlist not yet posted" : `${setlist.length} · ${setCount} ${setCount === 1 ? "set" : "sets"}${encores > 0 ? ` + ${encores} encore${encores === 1 ? "" : "s"}` : ""}${durationLogged ? ` · ${durationLogged}` : ""}` },
               ...(show.permalink ? [{ k: "Source", v: <a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer">elgoose.net</a> }] : []),
               // Nothing to play yet — a Listen row on an empty show is a dead end.
-              ...(setlist.length > 0 ? [{ k: "Listen", v: <><ShowBandcamp url={show.bandcampUrl} minimal /><ShowNugs date={date} venue={show.venue} minimal /></> }] : []),
+              ...(setlist.length > 0 ? [{ k: "Listen", v: <><ShowBandcamp url={show.bandcampUrl} minimal /><ShowNugs date={date} venue={show.venue} containerId={show.nugsContainerId} minimal /></> }] : []),
             ]}
           />
         </Doc>
@@ -122,7 +147,7 @@ export function ShowHeader({
                   {encores > 0 && <span className="w2-badge">{encores} enc</span>}
                   {durationLogged && <span className="w2-badge gold">{durationLogged}</span>}
                 </div>
-                <div className="mt-3 flex flex-wrap items-center gap-1.5"><ShowBandcamp url={show.bandcampUrl} /><ShowNugs date={date} venue={show.venue} /></div>
+                <div className="mt-3 flex flex-wrap items-center gap-1.5"><ShowBandcamp url={show.bandcampUrl} /><ShowNugs date={date} venue={show.venue} containerId={show.nugsContainerId} /></div>
               </>
             )}
           </div>
@@ -176,7 +201,7 @@ export function ShowHeader({
               {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className="text-sage transition hover:text-ink">View on elgoose ↗</a></>)}
               <span className="text-line">·</span>
               <ShowBandcamp url={show.bandcampUrl} />
-              <ShowNugs date={date} venue={show.venue} />
+              <ShowNugs date={date} venue={show.venue} containerId={show.nugsContainerId} />
             </>
           )}
         </div>

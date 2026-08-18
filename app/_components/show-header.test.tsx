@@ -72,3 +72,34 @@ describe("ShowHeader with no setlist yet", () => {
     expect(html).toContain("elgoose.net/setlists/p");
   });
 });
+
+describe("ShowHeader nugs.net control", () => {
+  const withContainer = { ...nugsShow, nugsContainerId: 46887, nugsHasVideo: true } as ShowDetail;
+  const withoutContainer = { ...nugsShow, nugsContainerId: null, nugsHasVideo: null } as ShowDetail;
+
+  for (const experience of ["minimal", "functional", "fancy"] as const) {
+    it(`${experience}: links the exact release when a container is known`, () => {
+      const html = renderToStaticMarkup(
+        <ShowHeader show={withContainer} date="2024-04-20" setlist={setlist} experience={experience} />);
+      expect(html).toContain("https://play.nugs.net/release/46887");
+    });
+
+    it(`${experience}: omits the control when no container is known`, () => {
+      const html = renderToStaticMarkup(
+        <ShowHeader show={withoutContainer} date="2024-04-20" setlist={setlist} experience={experience} />);
+      expect(html).not.toContain("play.nugs.net/release/");
+    });
+  }
+
+  it("the Watch button falls back to the video route", () => {
+    const html = renderToStaticMarkup(
+      <ShowHeader show={withContainer} date="2024-04-20" setlist={setlist} experience="fancy" />);
+    expect(html).toContain("https://play.nugs.net/watch/release/46887");
+  });
+
+  it("without a container the fallbacks stay the artist+date search", () => {
+    const html = renderToStaticMarkup(
+      <ShowHeader show={withoutContainer} date="2024-04-20" setlist={setlist} experience="fancy" />);
+    expect(html).toContain("play.nugs.net/#/search?searchTerm=Goose%202024-04-20");
+  });
+});
