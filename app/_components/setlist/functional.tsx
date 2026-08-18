@@ -9,7 +9,9 @@ import { nugsTrackHref, nugsWebFallback } from "@/lib/nugs";
 
 type Sort = "set" | "long" | "az";
 
-export function SetlistFunctional({ entries, showDate, venue }: { entries: SetlistEntry[]; showDate: string; venue: string | null }) {
+export function SetlistFunctional({
+  entries, showDate, venue, containerId = null,
+}: { entries: SetlistEntry[]; showDate: string; venue: string | null; containerId?: number | null }) {
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<Sort>("set");
   const [jamsOnly, setJamsOnly] = useState(false);
@@ -109,7 +111,7 @@ export function SetlistFunctional({ entries, showDate, venue }: { entries: Setli
                 <td>
                   <NugsLink
                     href={nugsTrackHref({ date: showDate, venue, song: r.e.song, set: r.e.setNumber, pos: r.e.position })}
-                    fallback={nugsWebFallback({ date: showDate, venue })}
+                    fallback={nugsWebFallback({ date: showDate, venue, containerId })}
                     className="nugs-track"
                     title={`Listen to ${r.e.song} on nugs`}
                     ariaLabel={`Listen to ${r.e.song} on nugs`}

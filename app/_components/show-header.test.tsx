@@ -105,4 +105,24 @@ describe("ShowHeader nugs.net control", () => {
       <ShowHeader show={withoutContainer} date="2024-04-20" setlist={setlist} experience="fancy" />);
     expect(html).toContain("play.nugs.net/#/search?searchTerm=Goose%202024-04-20");
   });
+
+  // 283 of 485 containers are audio-only (measured 2026-08-18): sending an
+  // app-less Watch click to /watch/release/<id> for those would land on a
+  // container with no video. Watch's fallback is the exact video page only
+  // when has_video is true; otherwise it degrades to the pre-branch search —
+  // Listen's fallback is unaffected either way.
+  it("the Watch fallback degrades to search when the container has no video", () => {
+    const audioOnly = { ...nugsShow, nugsContainerId: 46887, nugsHasVideo: false } as ShowDetail;
+    const html = renderToStaticMarkup(
+      <ShowHeader show={audioOnly} date="2024-04-20" setlist={setlist} experience="fancy" />);
+    expect(html).toMatch(/<a[^>]*class="nugs-show watch"[^>]*data-fallback="https:\/\/play\.nugs\.net\/#\/search\?searchTerm=Goose%202024-04-20"/);
+    expect(html).toMatch(/<a[^>]*class="nugs-show"[^>]*data-fallback="https:\/\/play\.nugs\.net\/release\/46887"/);
+  });
+
+  it("the Watch fallback degrades to search when has_video is unknown (null)", () => {
+    const unknownVideo = { ...nugsShow, nugsContainerId: 46887, nugsHasVideo: null } as ShowDetail;
+    const html = renderToStaticMarkup(
+      <ShowHeader show={unknownVideo} date="2024-04-20" setlist={setlist} experience="fancy" />);
+    expect(html).toMatch(/<a[^>]*class="nugs-show watch"[^>]*data-fallback="https:\/\/play\.nugs\.net\/#\/search\?searchTerm=Goose%202024-04-20"/);
+  });
 });

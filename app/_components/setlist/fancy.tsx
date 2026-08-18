@@ -9,7 +9,9 @@ import { SetTape } from "./tape";
 import { NugsLink } from "../nugs-link";
 import { nugsTrackHref, nugsWebFallback } from "@/lib/nugs";
 
-export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEntry[]; showDate: string; venue: string | null }) {
+export function SetlistFancy({
+  entries, showDate, venue, containerId = null,
+}: { entries: SetlistEntry[]; showDate: string; venue: string | null; containerId?: number | null }) {
   if (entries.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-line bg-surface/50 px-5 py-8 text-center text-muted">
@@ -99,7 +101,7 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                     )}
                     <NugsLink
                       href={nugsTrackHref({ date: showDate, venue, song: e.song, set: e.setNumber, pos: e.position })}
-                      fallback={nugsWebFallback({ date: showDate, venue })}
+                      fallback={nugsWebFallback({ date: showDate, venue, containerId })}
                       className="nugs-track ml-1 shrink-0"
                       title={`Listen to ${e.song} on nugs`}
                       ariaLabel={`Listen to ${e.song} on nugs`}
