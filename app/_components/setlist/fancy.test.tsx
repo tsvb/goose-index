@@ -125,4 +125,15 @@ describe("SetlistFancy", () => {
     expect(html).toContain("set=1");
     expect(html).toContain("pos=2");
   });
+  it("the row's web fallback is the exact release when a container is known, and search otherwise", () => {
+    const withContainer = renderToStaticMarkup(
+      <SetlistFancy entries={[entry({ song: "Hot Tea" })]} showDate="2024-04-20" venue="The Salt Shed" containerId={46887} />,
+    );
+    expect(withContainer).toMatch(/<a[^>]*class="nugs-track ml-1 shrink-0"[^>]*data-fallback="https:\/\/play\.nugs\.net\/release\/46887"/);
+
+    const withoutContainer = renderToStaticMarkup(
+      <SetlistFancy entries={[entry({ song: "Hot Tea" })]} showDate="2024-04-20" venue="The Salt Shed" containerId={null} />,
+    );
+    expect(withoutContainer).toMatch(/<a[^>]*class="nugs-track ml-1 shrink-0"[^>]*data-fallback="https:\/\/play\.nugs\.net\/#\/search\?searchTerm=Goose%202024-04-20"/);
+  });
 });

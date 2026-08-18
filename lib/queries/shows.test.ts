@@ -1,9 +1,11 @@
+import { sql } from "drizzle-orm";
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { makeTestDb } from "@/db/testing";
 import { etToday } from "@/lib/today";
 import {
   upsertArtists, upsertVenues, upsertTours, upsertSongs, upsertShows, upsertPerformances,
 } from "@/db/repository";
+import { getShowDetails, getNugsCoverage } from "./shows";
 
 // Redirect the module-level `db` in shows.ts to the PGlite test db.
 // vi.mock is hoisted; the lambda captures `_testDb` which is set before any test runs.
@@ -337,5 +339,60 @@ describe("getShowEntryNumber", () => {
   it("returns null for a date with no show at all", async () => {
     const { getShowEntryNumber } = await import("./shows");
     expect(await getShowEntryNumber("1999-01-01", 1)).toBeNull();
+  });
+});
+
+describe("getShowDetails exposes the resolved nugs container", () => {
+  beforeAll(async () => {
+    await upsertArtists(ctx.db, [{ artistId: 1205, name: "Goose" }]);
+    await upsertVenues(ctx.db, [{ venueId: 4600, name: "The Salt Shed", slug: "salt-shed",
+      city: "Chicago", state: "IL", country: "USA", zip: null, capacity: null }]);
+    await upsertShows(ctx.db, [
+      { showId: 46000, showDate: "2024-04-20", artistId: 1205, venueId: 4600, tourId: null,
+        title: null, permalink: null, showOrder: 1, notes: null, createdAt: null, updatedAt: null },
+      { showId: 46001, showDate: "2024-04-21", artistId: 1205, venueId: 4600, tourId: null,
+        title: null, permalink: null, showOrder: 1, notes: null, createdAt: null, updatedAt: null },
+    ]);
+    // Only the first of the two shows has been resolved to a container.
+    await ctx.db.execute(
+      sql`update shows set nugs_container_id = 46887, nugs_has_video = true where show_id = 46000`);
+  });
+
+  it("returns the stored container id and video flag", async () => {
+    const [row] = await getShowDetails("2024-04-20");
+    expect(row.nugsContainerId).toBe(46887);
+    expect(row.nugsHasVideo).toBe(true);
+  });
+
+  it("is null for a show with no resolved container", async () => {
+    const [row] = await getShowDetails("2024-04-21");
+    expect(row.nugsContainerId).toBeNull();
+    expect(row.nugsHasVideo).toBeNull();
+  });
+});
+
+describe("getNugsCoverage", () => {
+  it("counts resolved and total shows, live", async () => {
+    const before = await getNugsCoverage();
+    // Idempotent re-upsert — the artist may already exist from other blocks.
+    await upsertArtists(ctx.db, [{ artistId: 1205, name: "Goose" }]);
+    await upsertShows(ctx.db, [{ showId: 47000, showDate: "2024-05-01", artistId: 1205,
+      venueId: null, tourId: null, title: null, permalink: null, showOrder: 1, notes: null,
+      createdAt: null, updatedAt: null }]);
+    await ctx.db.execute(sql`update shows set nugs_container_id = 47001 where show_id = 47000`);
+    const after = await getNugsCoverage();
+    expect(after.total).toBe(before.total + 1);
+    expect(after.resolved).toBe(before.resolved + 1);
+    expect(after.resolved).toBeLessThanOrEqual(after.total);
+
+    // An UNRESOLVED show must move total but not resolved — this is the
+    // assertion that fails if the filter clause is ever dropped (an
+    // unfiltered `resolved` would count this row too).
+    await upsertShows(ctx.db, [{ showId: 47002, showDate: "2024-05-02", artistId: 1205,
+      venueId: null, tourId: null, title: null, permalink: null, showOrder: 1, notes: null,
+      createdAt: null, updatedAt: null }]);
+    const withUnresolved = await getNugsCoverage();
+    expect(withUnresolved.total).toBe(after.total + 1);
+    expect(withUnresolved.resolved).toBe(after.resolved);
   });
 });

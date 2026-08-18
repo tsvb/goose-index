@@ -98,6 +98,10 @@ export type ShowDetail = ShowSummary & {
   notes: string | null;
   /** The band's own release of this night, when they've put one out. */
   bandcampUrl: string | null;
+  /** The nugs container resolved for this night, or null when we couldn't
+   *  resolve one. Null means "link to a search", never "not on nugs". */
+  nugsContainerId: number | null;
+  nugsHasVideo: boolean | null;
 };
 
 export async function getShowDetails(date: string): Promise<ShowDetail[]> {
@@ -108,6 +112,8 @@ export async function getShowDetails(date: string): Promise<ShowDetail[]> {
       permalink: shows.permalink,
       notes: shows.notes,
       bandcampUrl: shows.bandcampUrl,
+      nugsContainerId: shows.nugsContainerId,
+      nugsHasVideo: shows.nugsHasVideo,
     })
     .from(shows)
     .leftJoin(venues, eq(venues.venueId, shows.venueId))
@@ -362,4 +368,18 @@ export async function searchShows(q: string, limit = 24): Promise<{ rows: ShowSu
     .where(where);
 
   return { rows, total };
+}
+
+/** How many shows currently resolve to a nugs container. The /listen-links page
+ *  states this at render time — copy rule 5: never hard-code a figure the
+ *  nightly import can change. Resolved means "we matched a container", NOT
+ *  "the rest aren't on nugs" — the site cannot know that. */
+export async function getNugsCoverage(): Promise<{ resolved: number; total: number }> {
+  const [row] = await db
+    .select({
+      resolved: sql<number>`count(*) filter (where ${shows.nugsContainerId} is not null)::int`,
+      total: sql<number>`count(*)::int`,
+    })
+    .from(shows);
+  return row ?? { resolved: 0, total: 0 };
 }

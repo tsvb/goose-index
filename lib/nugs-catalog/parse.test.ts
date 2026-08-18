@@ -1,0 +1,108 @@
+import { describe, it, expect } from "vitest";
+import { parseContainers, toISODate, rawContainerCount } from "./parse";
+
+const envelope = (containers: unknown[]) => ({ Response: { containers } });
+
+describe("toISODate", () => {
+  it("converts the API's slashed date to ISO", () => {
+    expect(toISODate("2026/08/16")).toBe("2026-08-16");
+  });
+  it("rejects anything that isn't a full date", () => {
+    expect(toISODate("")).toBeNull();
+    expect(toISODate(null)).toBeNull();
+    expect(toISODate(undefined)).toBeNull();
+    expect(toISODate("2026/08")).toBeNull();
+    expect(toISODate(12345)).toBeNull();
+  });
+  // A garbage month/day would otherwise reach the `date` column and abort the
+  // whole nightly transaction at insert — one bad row poisoning the batch.
+  it("rejects an out-of-range month or day", () => {
+    expect(toISODate("2026/13/45")).toBeNull();
+    expect(toISODate("2026/00/10")).toBeNull();
+    expect(toISODate("2026/12/00")).toBeNull();
+  });
+  it("still parses a valid boundary date", () => {
+    expect(toISODate("2026/12/31")).toBe("2026-12-31");
+  });
+});
+
+describe("parseContainers", () => {
+  it("pulls the fields we store", () => {
+    const rows = parseContainers(envelope([{
+      containerID: 46887,
+      performanceDateFormatted: "2026/08/16",
+      venueName: "Grand Theatre at Grand Sierra Resort",
+      venueCity: "Reno",
+      venueState: "NV",
+    }]));
+    expect(rows).toEqual([{
+      containerId: 46887,
+      performanceDate: "2026-08-16",
+      venueName: "Grand Theatre at Grand Sierra Resort",
+      venueCity: "Reno",
+      venueState: "NV",
+      hasVideo: false,
+    }]);
+  });
+
+  it("marks video when asked", () => {
+    const rows = parseContainers(
+      envelope([{ containerID: 46883, performanceDateFormatted: "2026/07/04" }]),
+      { hasVideo: true });
+    expect(rows[0].hasVideo).toBe(true);
+    expect(rows[0].venueName).toBeNull();
+  });
+
+  // Real catalog rows carry an empty performanceDateFormatted. Date is the join
+  // key, so a row without one cannot be matched to anything and is dropped.
+  it("drops rows with no usable date", () => {
+    expect(parseContainers(envelope([
+      { containerID: 1, performanceDateFormatted: "" },
+      { containerID: 2, performanceDateFormatted: "2026/07/04" },
+    ]))).toHaveLength(1);
+  });
+
+  it("drops rows with no container id", () => {
+    expect(parseContainers(envelope([
+      { performanceDateFormatted: "2026/07/04" },
+    ]))).toEqual([]);
+  });
+
+  it("returns empty for a shape it doesn't recognise instead of throwing", () => {
+    expect(parseContainers({})).toEqual([]);
+    expect(parseContainers(null)).toEqual([]);
+    expect(parseContainers({ Response: {} })).toEqual([]);
+  });
+
+  // The import runs unattended; one bad row must not poison the batch.
+  it("skips null and non-object rows instead of throwing", () => {
+    const rows = parseContainers(envelope([
+      null,
+      undefined,
+      "nonsense",
+      { containerID: 2, performanceDateFormatted: "2026/07/04" },
+    ]));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].containerId).toBe(2);
+  });
+});
+
+describe("rawContainerCount", () => {
+  it("counts the raw rows in a normal payload, unparseable ones included", () => {
+    expect(rawContainerCount(envelope([
+      { containerID: 1, performanceDateFormatted: "2026/07/04" },
+      { containerID: 9, performanceDateFormatted: "" },
+    ]))).toBe(2);
+  });
+
+  it("returns 0 when the containers key is missing", () => {
+    expect(rawContainerCount({ Response: {} })).toBe(0);
+    expect(rawContainerCount({})).toBe(0);
+    expect(rawContainerCount(null)).toBe(0);
+  });
+
+  it("returns 0 when containers isn't an array", () => {
+    expect(rawContainerCount(envelope("nonsense" as unknown as unknown[]))).toBe(0);
+    expect(rawContainerCount({ Response: { containers: {} } })).toBe(0);
+  });
+});

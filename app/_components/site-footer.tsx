@@ -45,6 +45,9 @@ export function FooterFancy() {
             </a>
             .
           </p>
+          <p className="mt-2 leading-relaxed">
+            <Link href="/listen-links" className="link">How the listen links work</Link>.
+          </p>
         </div>
       </Container>
       <div className="border-t border-line-soft">
@@ -68,7 +71,7 @@ export function FooterFunctional() {
     <footer className="mt-16 w2-appbar">
       <div style={{ textShadow: "0 -1px 0 rgba(0,0,0,.2)" }}>
         <Container className="flex flex-col items-center justify-between gap-2 py-4 text-xs text-white sm:flex-row">
-          <span>© {new Date().getFullYear()} Goose Index · data from elgoose.net · <a href={BANDCAMP_HOME} target="_blank" rel="noreferrer" className="underline">support Goose on Bandcamp</a></span>
+          <span>© {new Date().getFullYear()} Goose Index · data from elgoose.net · <a href={BANDCAMP_HOME} target="_blank" rel="noreferrer" className="underline">support Goose on Bandcamp</a> · <Link href="/listen-links" className="underline">how the listen links work</Link></span>
           <span>You&rsquo;re on the 2.0 edition — the gear up top switches to 3.0 (themed) or 1.0 (plain).</span>
           <span>Not affiliated with Goose. Built by fans.</span>
         </Container>
@@ -86,6 +89,7 @@ export function FooterMinimal() {
           <a href="https://elgoose.net" target="_blank" rel="noreferrer">elgoose.net</a>. A
           non-commercial fan project, not affiliated with Goose. Support the band directly on{" "}
           <a href={BANDCAMP_HOME} target="_blank" rel="noreferrer">Bandcamp</a>.
+          {" "}<Link href="/listen-links">How the listen links work</Link>.
         </p>
         <p className="mt-2">
           This is the 1.0 (plain) edition — the Settings link in the header switches to the
