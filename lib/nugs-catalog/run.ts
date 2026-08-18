@@ -50,31 +50,37 @@ export async function runNugsImport(deps: {
   };
   if (dryRun) return summary;
 
-  if (containers.length > 0) {
-    await db.insert(nugsContainers)
-      .values(containers.map((c) => ({ ...c, fetchedAt })))
-      .onConflictDoUpdate({
-        target: nugsContainers.containerId,
-        set: {
-          performanceDate: sql`excluded.performance_date`,
-          venueName: sql`excluded.venue_name`,
-          venueCity: sql`excluded.venue_city`,
-          venueState: sql`excluded.venue_state`,
-          hasVideo: sql`excluded.has_video`,
-          fetchedAt: sql`excluded.fetched_at`,
-        },
-      });
-  }
+  // The container upsert and the per-show update loop must land together: a
+  // process death partway through the loop must not leave some shows resolved
+  // against the freshly fetched catalog while the rest (and the containers
+  // table itself) still reflect the previous run.
+  await db.transaction(async (tx) => {
+    if (containers.length > 0) {
+      await tx.insert(nugsContainers)
+        .values(containers.map((c) => ({ ...c, fetchedAt })))
+        .onConflictDoUpdate({
+          target: nugsContainers.containerId,
+          set: {
+            performanceDate: sql`excluded.performance_date`,
+            venueName: sql`excluded.venue_name`,
+            venueCity: sql`excluded.venue_city`,
+            venueState: sql`excluded.venue_state`,
+            hasVideo: sql`excluded.has_video`,
+            fetchedAt: sql`excluded.fetched_at`,
+          },
+        });
+    }
 
-  // Recomputed every run, so a show that stops resolving is cleared.
-  for (const r of resolutions) {
-    await db.update(shows)
-      .set({
-        nugsContainerId: r.container?.containerId ?? null,
-        nugsHasVideo: r.container?.hasVideo ?? null,
-      })
-      .where(eq(shows.showId, r.showId));
-  }
+    // Recomputed every run, so a show that stops resolving is cleared.
+    for (const r of resolutions) {
+      await tx.update(shows)
+        .set({
+          nugsContainerId: r.container?.containerId ?? null,
+          nugsHasVideo: r.container?.hasVideo ?? null,
+        })
+        .where(eq(shows.showId, r.showId));
+    }
+  });
 
   return summary;
 }

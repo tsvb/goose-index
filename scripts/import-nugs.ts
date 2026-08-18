@@ -15,10 +15,10 @@ import { announceTarget } from "./target";
  *   npm run import-nugs -- --dry-run
  *   npm run import-nugs
  */
-announceTarget(process.env.DATABASE_URL ?? "");
+const dryRun = process.argv.includes("--dry-run");
+announceTarget(process.env.DATABASE_URL ?? "", { readOnly: dryRun });
 
 async function main() {
-  const dryRun = process.argv.includes("--dry-run");
   const ua = process.env.NUGS_USER_AGENT;
   const client = createNugsCatalogClient(ua ? { userAgent: ua } : {});
   const summary = await runNugsImport({ client, db: db as unknown as AppDb, dryRun });
