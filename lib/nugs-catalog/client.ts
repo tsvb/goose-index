@@ -56,7 +56,7 @@ export function createNugsCatalogClient(opts: NugsCatalogClientOptions = {}): Nu
     const all: NugsContainer[] = [];
     for (let offset = 1, page = 1; ; offset += pageSize, page += 1) {
       if (page > MAX_PAGES) {
-        throw new Error("nugs catalog paging exceeded 100 pages — startOffset may be ignored");
+        throw new Error(`nugs catalog paging exceeded ${MAX_PAGES} pages — startOffset may be ignored`);
       }
       const res = await fetchImpl(url(offset, videoOnly), { headers: { "User-Agent": userAgent } });
       if (!res.ok) throw new Error(`nugs catalog (${listName}) HTTP ${res.status} at offset ${offset}`);
