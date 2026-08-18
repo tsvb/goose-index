@@ -299,5 +299,15 @@ describe("getNugsCoverage", () => {
     expect(after.total).toBe(before.total + 1);
     expect(after.resolved).toBe(before.resolved + 1);
     expect(after.resolved).toBeLessThanOrEqual(after.total);
+
+    // An UNRESOLVED show must move total but not resolved — this is the
+    // assertion that fails if the filter clause is ever dropped (an
+    // unfiltered `resolved` would count this row too).
+    await upsertShows(ctx.db, [{ showId: 47002, showDate: "2024-05-02", artistId: 1205,
+      venueId: null, tourId: null, title: null, permalink: null, showOrder: 1, notes: null,
+      createdAt: null, updatedAt: null }]);
+    const withUnresolved = await getNugsCoverage();
+    expect(withUnresolved.total).toBe(after.total + 1);
+    expect(withUnresolved.resolved).toBe(after.resolved);
   });
 });
