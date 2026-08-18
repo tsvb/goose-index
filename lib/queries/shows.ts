@@ -343,3 +343,17 @@ export async function searchShows(q: string, limit = 24): Promise<{ rows: ShowSu
 
   return { rows, total };
 }
+
+/** How many shows currently resolve to a nugs container. The /listen-links page
+ *  states this at render time — copy rule 5: never hard-code a figure the
+ *  nightly import can change. Resolved means "we matched a container", NOT
+ *  "the rest aren't on nugs" — the site cannot know that. */
+export async function getNugsCoverage(): Promise<{ resolved: number; total: number }> {
+  const [row] = await db
+    .select({
+      resolved: sql<number>`count(*) filter (where ${shows.nugsContainerId} is not null)::int`,
+      total: sql<number>`count(*)::int`,
+    })
+    .from(shows);
+  return row ?? { resolved: 0, total: 0 };
+}

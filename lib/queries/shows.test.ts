@@ -4,7 +4,7 @@ import { makeTestDb } from "@/db/testing";
 import {
   upsertArtists, upsertVenues, upsertTours, upsertSongs, upsertShows, upsertPerformances,
 } from "@/db/repository";
-import { getShowDetails } from "./shows";
+import { getShowDetails, getNugsCoverage } from "./shows";
 
 // Redirect the module-level `db` in shows.ts to the PGlite test db.
 // vi.mock is hoisted; the lambda captures `_testDb` which is set before any test runs.
@@ -283,5 +283,21 @@ describe("getShowDetails exposes the resolved nugs container", () => {
     const [row] = await getShowDetails("2024-04-21");
     expect(row.nugsContainerId).toBeNull();
     expect(row.nugsHasVideo).toBeNull();
+  });
+});
+
+describe("getNugsCoverage", () => {
+  it("counts resolved and total shows, live", async () => {
+    const before = await getNugsCoverage();
+    // Idempotent re-upsert — the artist may already exist from other blocks.
+    await upsertArtists(ctx.db, [{ artistId: 1205, name: "Goose" }]);
+    await upsertShows(ctx.db, [{ showId: 47000, showDate: "2024-05-01", artistId: 1205,
+      venueId: null, tourId: null, title: null, permalink: null, showOrder: 1, notes: null,
+      createdAt: null, updatedAt: null }]);
+    await ctx.db.execute(sql`update shows set nugs_container_id = 47001 where show_id = 47000`);
+    const after = await getNugsCoverage();
+    expect(after.total).toBe(before.total + 1);
+    expect(after.resolved).toBe(before.resolved + 1);
+    expect(after.resolved).toBeLessThanOrEqual(after.total);
   });
 });
