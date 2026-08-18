@@ -43,6 +43,8 @@ export const shows = pgTable("shows", {
   notes: text("notes"),
   bandcampAlbumId: text("bandcamp_album_id"),
   bandcampUrl: text("bandcamp_url"),
+  nugsContainerId: integer("nugs_container_id"),
+  nugsHasVideo: boolean("nugs_has_video"),
   coachNotes: text("coach_notes"),
   createdAt: text("created_at"),
   updatedAt: text("updated_at"),
@@ -118,5 +120,20 @@ export const liveSyncState = pgTable("live_sync_state", {
   lastDate: text("last_date"),
   lastSummary: text("last_summary"),
 });
+
+/** What nugs's catalog API said, kept raw. The resolved winner lives on `shows`;
+ *  this table is what lets `verify` tell "nugs doesn't have this night" apart from
+ *  "we failed to match it". `fetched_at` makes staleness visible. */
+export const nugsContainers = pgTable("nugs_containers", {
+  containerId: integer("container_id").primaryKey(),
+  performanceDate: date("performance_date").notNull(),
+  venueName: text("venue_name"),
+  venueCity: text("venue_city"),
+  venueState: text("venue_state"),
+  hasVideo: boolean("has_video").notNull().default(false),
+  fetchedAt: timestamp("fetched_at", { withTimezone: true }),
+}, (t) => ({
+  dateIdx: index("nugs_containers_date_idx").on(t.performanceDate),
+}));
 
 export type AppDb = PgDatabase<any, Record<string, never>, any>;

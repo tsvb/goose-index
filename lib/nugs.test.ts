@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { nugsShowHref, nugsTrackHref, nugsWebFallback, NUGS_SCHEME } from "./nugs";
+import { nugsShowHref, nugsTrackHref, nugsWebFallback, nugsWebHref, NUGS_SCHEME } from "./nugs";
 
 describe("nugs URL builders", () => {
   it("scheme constant", () => {
@@ -28,6 +28,28 @@ describe("nugs URL builders", () => {
   });
   it("web fallback ignores venue — artist + date is the search term", () => {
     expect(nugsWebFallback({ date: "2024-04-20", venue: "The Salt Shed" }))
+      .toBe("https://play.nugs.net/#/search?searchTerm=Goose%202024-04-20");
+  });
+  it("web href: the audio route is /release/<id>", () => {
+    expect(nugsWebHref({ containerId: 46887 }))
+      .toBe("https://play.nugs.net/release/46887");
+  });
+  it("web href: the video route is /watch/release/<id>", () => {
+    expect(nugsWebHref({ containerId: 46887, media: "video" }))
+      .toBe("https://play.nugs.net/watch/release/46887");
+  });
+  it("web fallback: an exact release URL when the container is known", () => {
+    expect(nugsWebFallback({ date: "2024-04-20", containerId: 46887 }))
+      .toBe("https://play.nugs.net/release/46887");
+  });
+  it("web fallback: the video route when the caller asks for video", () => {
+    expect(nugsWebFallback({ date: "2024-04-20", containerId: 46887, media: "video" }))
+      .toBe("https://play.nugs.net/watch/release/46887");
+  });
+  it("web fallback: falls back to search when no container is known", () => {
+    expect(nugsWebFallback({ date: "2024-04-20", containerId: null }))
+      .toBe("https://play.nugs.net/#/search?searchTerm=Goose%202024-04-20");
+    expect(nugsWebFallback({ date: "2024-04-20" }))
       .toBe("https://play.nugs.net/#/search?searchTerm=Goose%202024-04-20");
   });
 });

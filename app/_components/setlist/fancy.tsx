@@ -11,7 +11,9 @@ import { nugsTrackHref, nugsWebFallback } from "@/lib/nugs";
 import { PenNote } from "../pen";
 import { NilState } from "../page-chrome";
 
-export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEntry[]; showDate: string; venue: string | null }) {
+export function SetlistFancy({
+  entries, showDate, venue, containerId = null,
+}: { entries: SetlistEntry[]; showDate: string; venue: string | null; containerId?: number | null }) {
   // A nil sentence, not a dashed box — no link out; there's nothing else on
   // this page to browse instead while a setlist is still pending.
   if (entries.length === 0) {
@@ -109,7 +111,7 @@ export function SetlistFancy({ entries, showDate, venue }: { entries: SetlistEnt
                     )}
                     <NugsLink
                       href={nugsTrackHref({ date: showDate, venue, song: e.song, set: e.setNumber, pos: e.position })}
-                      fallback={nugsWebFallback({ date: showDate, venue })}
+                      fallback={nugsWebFallback({ date: showDate, venue, containerId })}
                       className="nugs-track ml-1 shrink-0"
                       title={`Listen to ${e.song} on nugs`}
                       ariaLabel={`Listen to ${e.song} on nugs`}

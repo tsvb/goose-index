@@ -5,7 +5,9 @@ import { RETURN_LABEL } from "@/lib/queries/format";
 import { NugsLink } from "../nugs-link";
 import { nugsTrackHref, nugsWebFallback } from "@/lib/nugs";
 
-export function SetlistMinimal({ entries, showDate, venue }: { entries: SetlistEntry[]; showDate: string; venue: string | null }) {
+export function SetlistMinimal({
+  entries, showDate, venue, containerId = null,
+}: { entries: SetlistEntry[]; showDate: string; venue: string | null; containerId?: number | null }) {
   if (entries.length === 0) {
     return <p>No setlist has been recorded for this show yet.</p>;
   }
@@ -40,7 +42,7 @@ export function SetlistMinimal({ entries, showDate, venue }: { entries: SetlistE
                     <td className="num">
                       <NugsLink
                         href={nugsTrackHref({ date: showDate, venue, song: e.song, set: e.setNumber, pos: e.position })}
-                        fallback={nugsWebFallback({ date: showDate, venue })}
+                        fallback={nugsWebFallback({ date: showDate, venue, containerId })}
                         className="nugs-track"
                       >listen</NugsLink>
                     </td>
