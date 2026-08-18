@@ -1,7 +1,14 @@
 import type { NugsContainer } from "./parse";
 
-/** Lowercased, accent-folded, punctuation-stripped. Mirrors DeepLinkMatch.normalize
- *  in tsvb/applenugs so the site and the app break ties the same way. */
+/** Lowercased, accent-folded, punctuation-stripped.
+ *
+ *  Close to DeepLinkMatch.normalize in tsvb/applenugs, but deliberately NOT
+ *  identical — it is stricter in two places the app gets wrong. The app deletes
+ *  ALL punctuation with no substitute, so "St-Denis" collapses to "stdenis" and
+ *  stops matching a nugs venue of "St Denis", and " & " leaves a double space.
+ *  Here apostrophes are deleted (so "Slim's" matches a hint of "Slims") while
+ *  every other punctuation run becomes one space. Don't "restore parity" by
+ *  copying the app's rule; the app is the side that should be brought up. */
 export function normalizeVenue(s: string | null | undefined): string {
   if (!s) return "";
   return s

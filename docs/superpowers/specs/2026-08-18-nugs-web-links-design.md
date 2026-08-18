@@ -84,8 +84,14 @@ failed to match it"* from *"nugs doesn't have this night"* — a distinction the
 `scripts/nugs-match.ts` — pure and unit-tested, in the shape of `scripts/album-match.ts`.
 
 - Date is the join key.
-- Two containers on one date are broken apart by **normalized venue containment**, the same
-  bidirectional rule `DeepLinkMatch.venueMatches` uses in the app.
+- Two containers on one date are broken apart by **normalized venue containment** — the same
+  bidirectional containment idea `DeepLinkMatch.venueMatches` uses in the app, but **not the
+  same normalization**. Measured 2026-08-18, the app deletes all punctuation with no
+  substitute, which collapses `"St-Denis"` to `"stdenis"` (so it stops matching a nugs venue
+  of `"St Denis"`) and leaves a double space for `" & "`. This side deletes apostrophes — so
+  `"Slim's"` matches a hint of `"Slims"` — and turns every other punctuation run into a single
+  space. That is strictly better on both counts; the app is the side worth bringing up, as a
+  follow-up in `tsvb/applenugs`, not something to "fix" by copying the weaker rule here.
 - **Ambiguity leaves the show unmatched.** An unmatched show falls back to the current search
   behaviour, so an unresolved tie degrades to today's status quo rather than confidently
   linking the wrong night.
