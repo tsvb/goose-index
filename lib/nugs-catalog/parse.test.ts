@@ -63,4 +63,16 @@ describe("parseContainers", () => {
     expect(parseContainers(null)).toEqual([]);
     expect(parseContainers({ Response: {} })).toEqual([]);
   });
+
+  // The import runs unattended; one bad row must not poison the batch.
+  it("skips null and non-object rows instead of throwing", () => {
+    const rows = parseContainers(envelope([
+      null,
+      undefined,
+      "nonsense",
+      { containerID: 2, performanceDateFormatted: "2026/07/04" },
+    ]));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].containerId).toBe(2);
+  });
 });

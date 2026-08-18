@@ -34,6 +34,7 @@ export function parseContainers(json: unknown, opts: { hasVideo?: boolean } = {}
 
   const out: NugsContainer[] = [];
   for (const raw of containers) {
+    if (raw === null || typeof raw !== "object") continue;
     const c = raw as Record<string, unknown>;
     const containerId = typeof c.containerID === "number" ? c.containerID : null;
     const performanceDate = toISODate(c.performanceDateFormatted);
