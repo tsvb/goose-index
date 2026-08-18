@@ -153,10 +153,9 @@ function DevReferenceBody() {
         still lands on &ldquo;Madhuvan&rdquo;).
       </p>
       <p>
-        Without the app, the same buttons fall back to the nugs web player at{" "}
-        <code>play.nugs.net</code> —{" "}
-        <code>{"/release/<id>"}</code> for audio, or{" "}
-        <code>{"/watch/release/<id>"}</code> for video — when this site
+        Without the app, the same buttons fall back to the nugs web player —{" "}
+        <code>{"https://play.nugs.net/release/<id>"}</code>, or{" "}
+        <code>{"https://play.nugs.net/watch/release/<id>"}</code> for video — when this site
         has resolved the show&rsquo;s id, and to a search otherwise. There is no per-track web
         route.
       </p>

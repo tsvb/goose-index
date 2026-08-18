@@ -48,7 +48,9 @@ describe("ListenLinksContent", () => {
   it("the try-it link falls back to the search when no container is known", () => {
     const html = render("fancy", { ...example, containerId: null });
     expect(html).toContain(esc(nugsWebFallback({ date: example.date, venue: example.venue, containerId: null })));
-    expect(html).not.toContain("play.nugs.net/release/");
+    // The dev reference legitimately documents the "/release/<id>" SHAPE —
+    // what must be absent is any CONCRETE release URL (shape followed by a digit).
+    expect(html).not.toMatch(/play\.nugs\.net\/release\/\d/);
   });
 
   it("with no example, the explanation renders and the try-it block is gone", () => {
