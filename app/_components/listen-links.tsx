@@ -74,8 +74,10 @@ function LimitsBody({ coverage }: { coverage: NugsCoverage | null }) {
         )}
       </p>
       <p>
-        Two shows on one day are told apart by venue; where that isn&rsquo;t enough, the app
-        asks rather than guessing. And a web link reaches a show, never one song — the
+        Two shows on one day are told apart by venue. Where that isn&rsquo;t enough, this
+        site&rsquo;s web links fall back to a search rather than guessing — the app, given no
+        usable venue, opens the first show it finds on that date. And a web link reaches a
+        show, never one song — the
         row&rsquo;s ▷ starts the <em>app</em> at the song, but without the app you land on the
         whole show.
       </p>
@@ -103,7 +105,7 @@ function TryItBody({ example, urls }: { example: ListenExample; urls: ReturnType
           <p><code>{urls.track}</code></p>
         </>
       )}
-      <p>And the video side:</p>
+      <p>The same link, asking for video:</p>
       <p><code>{urls.watch}</code></p>
       <p>Where it sends you if the app doesn&rsquo;t open:</p>
       <p><code>{urls.fallback}</code></p>
@@ -117,8 +119,8 @@ const PARAMS: { part: string; required: string; notes: string }[] = [
   { part: "applenugs://", required: "yes", notes: "The scheme AppleNugs registers. Not nugs:// — that belongs to the official app." },
   { part: "show/<YYYY-MM-DD>", required: "yes", notes: "The performance date — the one identifier this site and nugs share natively." },
   { part: "artist=<name>", required: "yes", notes: "Band name, e.g. Goose. Keeps the app's handler generic instead of hardcoding one artist." },
-  { part: "venue=<venue>", required: "no", notes: "Tie-break for two-show days. If it still can't decide, the app presents the matches." },
-  { part: "song=<title>&set=<n>&pos=<n>", required: "no", notes: "Start playback at one song; set/pos disambiguate a song played twice." },
+  { part: "venue=<venue>", required: "no", notes: "Tie-break for two-show days (audio; video resolution is date-only). Without it the app opens the first show on the date; a venue matching nothing falls back to search." },
+  { part: "song=<title>&set=<n>&pos=<n>", required: "no", notes: "Start playback at one song. set/pos are sent for future disambiguation — matching today is title-only." },
   { part: "media=audio|video", required: "no", notes: "audio when omitted." },
 ];
 

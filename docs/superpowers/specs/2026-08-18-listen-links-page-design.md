@@ -60,8 +60,10 @@ Not `/listen` — the site plays nothing, and the name would promise a player th
    stated plainly: personal-install only, no App Store, no TestFlight.
 4. **What it can't do.** This index holds no nugs catalog data. A night listed here isn't
    necessarily on nugs; landing on an empty result means nugs doesn't have that night. Two-show
-   days are separated by venue, and where that isn't enough the app asks. A web link reaches a
-   show, never a single song.
+   days are separated by venue; where that isn't enough this site's web links fall back to a
+   search, and the app — measured against its source 2026-08-18, DeepLinkRouter takes the
+   first date match — opens the first show it finds ("the app asks" was the contract doc's
+   aspiration, never implemented). A web link reaches a show, never a single song.
 5. **Try it** — the live example (below).
 
 **Developer section**, below the fold — `<details>` in the styled experiences, a plain section
