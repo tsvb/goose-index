@@ -223,7 +223,7 @@ export function ListenLinksContent({
       <h1 className="mt-3 font-display text-4xl tracking-tight text-ink sm:text-5xl">
         How the listen links work
       </h1>
-      <div className="mt-8 space-y-10 leading-relaxed text-muted [&_code]:text-[0.85em] [&_code]:break-all [&_strong]:text-ink">
+      <div className="mt-8 space-y-10 leading-relaxed text-muted [&_code]:text-[0.85em] [&_code]:break-all [&_strong]:text-ink [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mt-1.5">
         {sections.map((s) => (
           <section key={s.title}>
             <h2 className="mb-3 font-display text-xl text-ink">{s.title}</h2>
