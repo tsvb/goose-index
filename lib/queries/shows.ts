@@ -97,6 +97,10 @@ export type ShowDetail = ShowSummary & {
   notes: string | null;
   /** The band's own release of this night, when they've put one out. */
   bandcampUrl: string | null;
+  /** The nugs container resolved for this night, or null when we couldn't
+   *  resolve one. Null means "link to a search", never "not on nugs". */
+  nugsContainerId: number | null;
+  nugsHasVideo: boolean | null;
 };
 
 export async function getShowDetails(date: string): Promise<ShowDetail[]> {
@@ -107,6 +111,8 @@ export async function getShowDetails(date: string): Promise<ShowDetail[]> {
       permalink: shows.permalink,
       notes: shows.notes,
       bandcampUrl: shows.bandcampUrl,
+      nugsContainerId: shows.nugsContainerId,
+      nugsHasVideo: shows.nugsHasVideo,
     })
     .from(shows)
     .leftJoin(venues, eq(venues.venueId, shows.venueId))

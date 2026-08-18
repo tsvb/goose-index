@@ -4,6 +4,7 @@ import { makeTestDb } from "@/db/testing";
 import {
   upsertArtists, upsertVenues, upsertTours, upsertSongs, upsertShows, upsertPerformances,
 } from "@/db/repository";
+import { getShowDetails } from "./shows";
 
 // Redirect the module-level `db` in shows.ts to the PGlite test db.
 // vi.mock is hoisted; the lambda captures `_testDb` which is set before any test runs.
@@ -253,5 +254,34 @@ describe("getTonightShows", () => {
     const recent = await getRecentShows(3);
     expect(recent[0].showId).toBe(60); // today, highest show order first
     expect(recent.map((s) => s.showId)).not.toContain(62); // tomorrow stays upcoming
+  });
+});
+
+describe("getShowDetails exposes the resolved nugs container", () => {
+  beforeAll(async () => {
+    await upsertArtists(ctx.db, [{ artistId: 1205, name: "Goose" }]);
+    await upsertVenues(ctx.db, [{ venueId: 4600, name: "The Salt Shed", slug: "salt-shed",
+      city: "Chicago", state: "IL", country: "USA", zip: null, capacity: null }]);
+    await upsertShows(ctx.db, [
+      { showId: 46000, showDate: "2024-04-20", artistId: 1205, venueId: 4600, tourId: null,
+        title: null, permalink: null, showOrder: 1, notes: null, createdAt: null, updatedAt: null },
+      { showId: 46001, showDate: "2024-04-21", artistId: 1205, venueId: 4600, tourId: null,
+        title: null, permalink: null, showOrder: 1, notes: null, createdAt: null, updatedAt: null },
+    ]);
+    // Only the first of the two shows has been resolved to a container.
+    await ctx.db.execute(
+      sql`update shows set nugs_container_id = 46887, nugs_has_video = true where show_id = 46000`);
+  });
+
+  it("returns the stored container id and video flag", async () => {
+    const [row] = await getShowDetails("2024-04-20");
+    expect(row.nugsContainerId).toBe(46887);
+    expect(row.nugsHasVideo).toBe(true);
+  });
+
+  it("is null for a show with no resolved container", async () => {
+    const [row] = await getShowDetails("2024-04-21");
+    expect(row.nugsContainerId).toBeNull();
+    expect(row.nugsHasVideo).toBeNull();
   });
 });
