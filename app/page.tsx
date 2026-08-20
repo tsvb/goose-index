@@ -87,8 +87,9 @@ export default async function Home() {
             <span className="text-steel">Goose</span> Index(ed)
           </h1>
           <p className="mt-3 max-w-xl text-[0.95rem] leading-relaxed text-muted">
-            {compact(stats.showsPlayed)} shows{sinceYear ? ` since ${sinceYear}` : ""} — full setlists
-            with segues and jams, every venue, every tour, and the story of each night.
+            {compact(stats.showsPlayed)} (-ish) shows since someone was keeping tabs. setlists,
+            segues, “jams” ’n stuff, venues (lots), tours, and stories about things that
+            happened along the way.
           </p>
           <div className="mt-6 max-w-xl">
             <SearchBox size="full" />
