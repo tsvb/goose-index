@@ -36,6 +36,9 @@ coverage/
 # brainstorm visual companion
 .superpowers/
 
+# token-optimizer MCP server cache (wiki evidence/metrics, regenerated per session)
+.token-optimizer/
+
 # bandcamp scraper outputs (regenerable from scripts/scrape_bandcamp.py)
 data/
 
