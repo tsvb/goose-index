@@ -14,6 +14,7 @@ const h = vi.hoisted<{
   shelf: ShelfRow[];
   venues: VenueRow[];
   notes: NoteRow[];
+  frontier: string | null;
 }>(() => ({
   experience: "fancy",
   dow: [
@@ -32,6 +33,7 @@ const h = vi.hoisted<{
   venues: [
     { venueId: 9, name: "The Capitol Theatre", slug: "capitol-theatre", totalShows: 8, totalPerformances: 120, totalJams: 40, jamPercentage: 33.3 },
   ],
+  frontier: null as string | null,
   notes: [
     { showId: 100, showDate: "2026-07-04", showOrder: 1, venueName: "SPAC", coachNotes: "Big night. Hunter → Arrow.", bandcampUrl: "https://goosetheband.bandcamp.com/album/2026-07-04-spac" },
     { showId: 101, showDate: "2026-06-20", showOrder: null, venueName: null, coachNotes: "Sit-in with the horns.", bandcampUrl: null },
@@ -52,6 +54,9 @@ vi.mock("@/lib/queries/discoveries", () => ({
 vi.mock("@/lib/queries/songs", () => ({
   OVERDUE_MIN_PLAYS: 5,
 }));
+vi.mock("@/lib/queries/jam-charts", () => ({
+  jamChartFrontier: async () => h.frontier,
+}));
 
 import OraclePage from "./page";
 
@@ -61,6 +66,7 @@ async function render() {
 
 beforeEach(() => {
   h.experience = "fancy";
+  h.frontier = null;
 });
 
 describe("Oracle page (fancy)", () => {
@@ -141,5 +147,19 @@ describe("Oracle page (minimal)", () => {
     const html = await render();
     // React escapes apostrophes to &#x27; in server-rendered HTML — match both forms.
     expect(html).not.toMatch(/Coach(&#x27;|')s notes/);
+  });
+});
+
+describe("OraclePage jam-chart window", () => {
+  it("says how far the charts have been read, so the window isn't a silent one", async () => {
+    h.frontier = "2026-07-04";
+    const html = await render();
+    // Both jam readings stop at the frontier, so both carry the date.
+    expect(html.match(/Charted through Jul 4, 2026\./g)?.length).toBe(2);
+  });
+
+  it("claims no window when no chart has ever been filed", async () => {
+    h.frontier = null;
+    expect(await render()).not.toContain("Charted through");
   });
 });

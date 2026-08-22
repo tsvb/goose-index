@@ -4,6 +4,7 @@ import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb } from "@/app/_components/doc";
 import { canonicalUrl } from "@/lib/site";
 import { getExperience } from "@/lib/experience.server";
+import { jamChartFrontier } from "@/lib/queries/jam-charts";
 import {
   dayOfWeekJams,
   topTransitions,
@@ -31,14 +32,20 @@ export const metadata: Metadata = {
 };
 
 export default async function OraclePage() {
-  const [experience, dow, transitions, shelf, venues, notes] = await Promise.all([
+  const [experience, dow, transitions, shelf, venues, notes, frontier] = await Promise.all([
     getExperience(),
     dayOfWeekJams(),
     topTransitions(),
     originalsOnTheShelf(),
     deepestVenues(),
     coachsNotes(),
+    jamChartFrontier(),
   ]);
+
+  // Both jam readings stop at the newest filed chart rather than at today, so
+  // they say where they stop. Without it the window is a silent one — the
+  // reading looks current while the last weeks of shows sit outside it.
+  const chartedThrough = frontier ? ` Charted through ${formatShortDate(frontier)}.` : "";
 
   if (experience === "minimal") {
     return (
@@ -132,7 +139,7 @@ export default async function OraclePage() {
       <div className="space-y-12">
         <OracleSection
           title="Which night runs hottest?"
-          blurb="Jam-tagged performances per show by weekday, read against the week's own mean. Spoke thickness is how many shows stand behind the reading."
+          blurb={`Jam-tagged performances per show by weekday, read against the week's own mean. Spoke thickness is how many shows stand behind the reading.${chartedThrough}`}
         >
           <DayOfWeekDial data={dow} />
         </OracleSection>
@@ -157,7 +164,7 @@ export default async function OraclePage() {
 
         <OracleSection
           title="Deepest venues"
-          blurb="The rooms that pull the most jams, as a share of everything played there (min 3 shows)."
+          blurb={`The rooms that pull the most jams, as a share of everything played there (min 3 shows).${chartedThrough}`}
         >
           <VenueDepth data={venues} />
         </OracleSection>
