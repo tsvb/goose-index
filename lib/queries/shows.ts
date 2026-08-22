@@ -134,7 +134,6 @@ export type SetlistEntry = {
   transition: string | null;
   isJamchart: boolean;
   jamchartNotes: string | null;
-  isJam: boolean;
   isReprise: boolean;
   isOriginal: boolean;
   originalArtist: string | null;
@@ -159,7 +158,6 @@ export async function getSetlist(showId: number): Promise<SetlistEntry[]> {
       transition: performances.transition,
       isJamchart: performances.isJamchart,
       jamchartNotes: performances.jamchartNotes,
-      isJam: performances.isJam,
       isReprise: performances.isReprise,
       isOriginal: songs.isOriginal,
       originalArtist: songs.originalArtist,

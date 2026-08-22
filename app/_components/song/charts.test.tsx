@@ -27,7 +27,7 @@ function perf(i: number, over: Partial<SongPerf> = {}): SongPerf {
   return {
     uniqueId: `p${i}`, date: `2020-01-${String((i % 28) + 1).padStart(2, "0")}`, showId: i, order: null,
     venue: null, city: null, state: null, setLabel: "Set 1", position: 1,
-    trackTime: null, seconds: null, gap: (i % 7) + 1, isJam: false, isJamchart: false, isDustedOff: false,
+    trackTime: null, seconds: null, gap: (i % 7) + 1, isJamchart: false, isDustedOff: false,
     ...over,
   };
 }

@@ -57,7 +57,7 @@ export type SongPerf = {
   venue: string | null; city: string | null; state: string | null;
   setLabel: string; position: number | null;
   trackTime: string | null; seconds: number | null;
-  gap: number | null; isJam: boolean; isJamchart: boolean; isDustedOff: boolean;
+  gap: number | null; isJamchart: boolean; isDustedOff: boolean;
 };
 
 export async function getSongPerformances(songId: number): Promise<SongPerf[]> {
@@ -66,7 +66,7 @@ export async function getSongPerformances(songId: number): Promise<SongPerf[]> {
     select p.unique_id, s.show_date::text as date, s.show_id, s.show_order as "order",
            v.name as venue, v.city, v.state,
            p.set_type, p.set_number, p.position, p.track_time,
-           g.gap, p.is_jam, p.is_jamchart
+           g.gap, p.is_jamchart
     from performances p
     join shows s on s.show_id = p.show_id
     left join venues v on v.venue_id = s.venue_id
@@ -83,7 +83,7 @@ export async function getSongPerformances(songId: number): Promise<SongPerf[]> {
       order: numOrNull(r.order), venue: strOrNull(r.venue), city: strOrNull(r.city), state: strOrNull(r.state),
       setLabel: setLabel(strOrNull(r.set_type), strOrNull(r.set_number)), position: numOrNull(r.position),
       trackTime: tt, seconds: trackSeconds(tt),
-      gap, isJam: Boolean(r.is_jam), isJamchart: Boolean(r.is_jamchart),
+      gap, isJamchart: Boolean(r.is_jamchart),
       isDustedOff: isDustedOffGap(gap, gaps),
     };
   });
@@ -481,7 +481,7 @@ export async function getSongBySlug(slug: string): Promise<SongStat | null> {
       count(*) filter (where set_number = '2')::int as set2,
       count(*) filter (where set_type = 'Encore' or set_number ilike 'e%')::int as encore,
       count(*) filter (where position = 1)::int as opener,
-      count(*) filter (where is_jam or is_jamchart)::int as jammed,
+      count(*) filter (where is_jamchart)::int as jammed,
       count(*)::int as total
     from performances where song_id = ${songId}
   `))[0];

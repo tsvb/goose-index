@@ -72,7 +72,7 @@ export async function dayOfWeekJams(): Promise<DayOfWeekJamsRow[]> {
       from shows s
       left join performances p
         on p.show_id = s.show_id
-       and (p.is_jam = true or p.is_jamchart = true)
+       and p.is_jamchart = true
       where s.show_date <= (select through from charted)
         and exists (select 1 from performances played where played.show_id = s.show_id)
       group by s.show_id, s.show_date
@@ -254,7 +254,7 @@ export async function deepestVenues(): Promise<DeepestVenueRow[]> {
              v.slug,
              count(distinct sh.show_id)::int as total_shows,
              count(p.unique_id)::int as total_performances,
-             sum(case when p.is_jam = true or p.is_jamchart = true then 1 else 0 end)::int as total_jams
+             sum(case when p.is_jamchart = true then 1 else 0 end)::int as total_jams
       from venues v
       join shows sh on sh.venue_id = v.venue_id
       join performances p on p.show_id = sh.show_id

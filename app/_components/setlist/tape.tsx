@@ -49,7 +49,7 @@ export function SetTape({ entries }: { entries: SetlistEntry[] }) {
           // A segue is unbroken tape: butt this segment against the last one.
           const joined = prev ? isSegue(prev.transition) : false;
           const weight = secs != null ? secs / total : UNKNOWN_WEIGHT;
-          const hot = e.isJamchart || e.isJam;
+          const hot = e.isJamchart;
 
           return (
             <span

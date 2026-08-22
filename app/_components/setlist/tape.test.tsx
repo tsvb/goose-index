@@ -15,7 +15,6 @@ function entry(over: Partial<SetlistEntry> & { song: string }): SetlistEntry {
     transition: null,
     isJamchart: false,
     jamchartNotes: null,
-    isJam: false,
     isReprise: false,
     isOriginal: true,
     originalArtist: null,

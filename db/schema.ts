@@ -67,6 +67,11 @@ export const performances = pgTable("performances", {
   isJamchart: boolean("is_jamchart").notNull().default(false),
   jamchartNotes: text("jamchart_notes"),
   isReprise: boolean("is_reprise").notNull().default(false),
+  // Mirrored from elgoose and read by nothing. It is 0 on all 9,595 setlist
+  // rows the API serves, for every artist — so "this was a jam" means
+  // `is_jamchart` alone, everywhere on the site. Kept because this table is a
+  // faithful cache of the source, not a curated subset; `checkDeadJamFlag` in
+  // lib/verify/checks.ts fails the nightly run if the field ever fills in.
   isJam: boolean("is_jam").notNull().default(false),
   isVerified: boolean("is_verified").notNull().default(false),
   footnote: text("footnote"),

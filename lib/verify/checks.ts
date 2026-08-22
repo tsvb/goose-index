@@ -37,6 +37,25 @@ export function checkEarliestShow(earliest: string | null): CheckResult {
     detail: `earliest=${earliest}` };
 }
 
+/**
+ * `is_jam` is elgoose's own column. The sync mirrors it faithfully and the site
+ * reads it nowhere: it is 0 on all 9,595 setlist rows the API serves, across
+ * every artist, so "this performance was a jam" means `is_jamchart` alone.
+ *
+ * Every jam figure on the site rests on that upstream fact, which makes it
+ * worth checking rather than assuming. If the curators ever start filling the
+ * field in, this fails loudly in the nightly run and the one-flag definition
+ * needs revisiting — better than silently dropping jams nobody notices are
+ * missing.
+ */
+export function checkDeadJamFlag(flagged: number): CheckResult {
+  return {
+    name: "is_jam still unused upstream (site reads is_jamchart alone)",
+    pass: flagged === 0,
+    detail: `${flagged} performances flagged is_jam`,
+  };
+}
+
 export function summarize(results: CheckResult[]): { ok: boolean; results: CheckResult[] } {
   return { ok: results.every((r) => r.pass), results };
 }
