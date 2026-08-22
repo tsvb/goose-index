@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  checkFloors, checkIntegrity, checkSpotShow, checkEarliestShow, summarize,
+  checkFloors, checkIntegrity, checkSpotShow, checkEarliestShow, checkDeadJamFlag, summarize,
 } from "./checks";
 
 describe("checkFloors", () => {
@@ -41,5 +41,15 @@ describe("summarize", () => {
     expect(summarize([{ name: "a", pass: true, detail: "" }]).ok).toBe(true);
     expect(summarize([{ name: "a", pass: true, detail: "" }, { name: "b", pass: false, detail: "" }]).ok)
       .toBe(false);
+  });
+});
+
+describe("checkDeadJamFlag", () => {
+  it("passes while elgoose leaves is_jam empty, fails the moment it doesn't", () => {
+    // The site reads is_jamchart alone because is_jam is 0 upstream for every
+    // artist. This is the tripwire on that assumption, not a data-quality check.
+    expect(checkDeadJamFlag(0).pass).toBe(true);
+    expect(checkDeadJamFlag(1).pass).toBe(false);
+    expect(checkDeadJamFlag(1).detail).toContain("1 performances flagged");
   });
 });

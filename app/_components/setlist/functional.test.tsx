@@ -8,7 +8,7 @@ function entry(p: Partial<SetlistEntry>): SetlistEntry {
     uniqueId: Math.random().toString(36).slice(2),
     songId: 1, song: "X", slug: null, setType: "Set", setNumber: "1",
     position: 1, trackTime: null, transition: null, isJamchart: false,
-    jamchartNotes: null, isJam: false, isReprise: false, isOriginal: true,
+    jamchartNotes: null, isReprise: false, isOriginal: true,
     originalArtist: null, footnote: null, gap: null, isDustedOff: false, ...p,
   };
 }

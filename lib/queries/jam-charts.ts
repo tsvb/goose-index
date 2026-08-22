@@ -3,6 +3,18 @@ import { db } from "@/db/client";
 import { today } from "./today";
 
 /**
+ * A jam is `is_jamchart`. That is the whole definition, and it is the same one
+ * in every query and every component — the star you see and the number you
+ * count come from one column.
+ *
+ * They didn't always. The three aggregates read `is_jam or is_jamchart` while
+ * every marker read `is_jamchart` alone, two rules that agreed only because
+ * elgoose leaves `is_jam` empty for every artist. Collapsing to one term makes
+ * the agreement structural instead of coincidental; `lib/queries/jam-definition.test.ts`
+ * pins it, and `checkDeadJamFlag` watches the assumption it rests on.
+ */
+
+/**
  * When a show has no jam-chart entries, that can mean two opposite things.
  *
  * elgoose's jam charts are curated by hand, days or weeks behind the setlist.

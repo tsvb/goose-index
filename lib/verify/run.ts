@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
 import type { AppDb } from "../../db/schema";
 import {
-  checkFloors, checkIntegrity, checkSpotShow, checkEarliestShow, summarize, type CheckResult,
+  checkFloors, checkIntegrity, checkSpotShow, checkEarliestShow, checkDeadJamFlag, summarize,
+  type CheckResult,
 } from "./checks";
 
 async function scalar(db: AppDb, q: ReturnType<typeof sql>): Promise<number> {
@@ -44,12 +45,14 @@ export async function runVerify(deps: { db: AppDb }): Promise<{ ok: boolean; res
     join shows s on s.show_id = p.show_id where s.show_date = '2022-06-24'`);
   const spotNotes = await text(db, sql`select notes as v from shows where show_date = '2022-06-24' limit 1`);
   const earliest = await text(db, sql`select min(show_date)::text as v from shows`);
+  const jamFlagged = await scalar(db, sql`select count(*)::int as n from performances where is_jam = true`);
 
   const results: CheckResult[] = [
     ...checkFloors(counts),
     ...checkIntegrity(orphans),
     checkSpotShow({ performanceCount: spotCount, notes: spotNotes }),
     checkEarliestShow(earliest),
+    checkDeadJamFlag(jamFlagged),
   ];
   return summarize(results);
 }

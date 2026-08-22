@@ -100,7 +100,7 @@ export default async function ShowPage({ params, searchParams }: Params) {
   const jamChartsPending = awaitingJamCharts({
     date,
     frontier,
-    hasEntries: setlist.some((e) => e.isJamchart || e.isJam),
+    hasEntries: setlist.some((e) => e.isJamchart),
     hasSetlist: setlist.length > 0,
   });
 
