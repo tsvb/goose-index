@@ -29,11 +29,43 @@ export type DayOfWeekJamsRow = {
   avgJams: number;
 };
 
+/**
+ * How far the jam charts have actually been read: the newest show carrying an
+ * entry, or today if none ever has.
+ *
+ * Every jam reading stops here rather than at today. The charts are filed by
+ * hand weeks behind the setlists, so the shows past this date aren't quiet
+ * ones — they're unread, and averaging them in scores a night against a chart
+ * nobody has written. Bounding the window is the difference between "no jams"
+ * and "no data", which is the whole point of the reading. See
+ * lib/queries/jam-charts.ts, which reads the same frontier for the show page.
+ *
+ * Built per call, not once at import: it binds today's date, and a warm
+ * serverless instance outlives midnight. Same reason `showSeq` in
+ * lib/queries/songs.ts is a function.
+ */
+const chartedThrough = () => sql`
+  charted as (
+    select coalesce(max(s.show_date), ${today()}) as through
+    from shows s
+    join performances p on p.show_id = s.show_id
+    where p.is_jamchart = true
+      and s.show_date <= ${today()}
+  )`;
+
 /** Average number of jam-tagged performances per show, by day of the week.
- * Shows with zero jams still count (LEFT JOIN → 0 contribution to the avg). */
+ * Shows with zero jams still count (LEFT JOIN → 0 contribution to the avg).
+ *
+ * But only shows we have a setlist for. A fifth of the show rows are dates
+ * elgoose knows about with no music logged against them — announced-and-never-
+ * filed, festival drop-ins, the long unlogged tail before 2019. Counted, each
+ * one is a silent zero: it drags the average down and, worse, inflates the
+ * `total_shows` the dial spends as evidence weight, so a spoke claims a
+ * thickness its setlists don't back. Absence of a setlist is not a quiet night. */
 export async function dayOfWeekJams(): Promise<DayOfWeekJamsRow[]> {
   const rows = allRows(await db.execute(sql`
-    with show_jams as (
+    with ${chartedThrough()},
+    show_jams as (
       select s.show_id,
              extract(dow from s.show_date)::int as dow,
              count(p.unique_id)::int as jam_count
@@ -41,7 +73,8 @@ export async function dayOfWeekJams(): Promise<DayOfWeekJamsRow[]> {
       left join performances p
         on p.show_id = s.show_id
        and (p.is_jam = true or p.is_jamchart = true)
-      where s.show_date <= ${today()}
+      where s.show_date <= (select through from charted)
+        and exists (select 1 from performances played where played.show_id = s.show_id)
       group by s.show_id, s.show_date
     )
     select dow,
@@ -205,10 +238,17 @@ export type DeepestVenueRow = {
 };
 
 /** Venues where the band digs deepest — highest jam ratio, min DEEPEST_MIN_SHOWS
- * shows so a single hot night can't top the list. */
+ * shows so a single hot night can't top the list.
+ *
+ * Both the ratio and that minimum count charted shows only. A room whose most
+ * recent night is still unread therefore drops a show, and can fall under the
+ * threshold until the charts catch up — right, on both counts: an unread show
+ * would otherwise dilute the ratio with jams nobody has looked for, and the
+ * minimum exists to demand a real sample, which an unread night is not. */
 export async function deepestVenues(): Promise<DeepestVenueRow[]> {
   const rows = allRows(await db.execute(sql`
-    with venue_perf as (
+    with ${chartedThrough()},
+    venue_perf as (
       select v.venue_id,
              v.name,
              v.slug,
@@ -218,7 +258,7 @@ export async function deepestVenues(): Promise<DeepestVenueRow[]> {
       from venues v
       join shows sh on sh.venue_id = v.venue_id
       join performances p on p.show_id = sh.show_id
-      where sh.show_date <= ${today()}
+      where sh.show_date <= (select through from charted)
       group by v.venue_id, v.name, v.slug
     )
     select venue_id, name, slug, total_shows, total_performances, total_jams,

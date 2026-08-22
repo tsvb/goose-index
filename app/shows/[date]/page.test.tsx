@@ -10,6 +10,8 @@ const h = vi.hoisted(() => ({
     next: Record<string, unknown> | null;
   },
   entryNumber: null as number | null,
+  frontier: null as string | null,
+  setlist: [] as Record<string, unknown>[],
 }));
 
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("notFound"); } }));
@@ -18,9 +20,15 @@ vi.mock("@/lib/sync/maybe-live", () => ({ maybeLiveSync: async () => {} }));
 vi.mock("@/lib/experience.server", () => ({ getExperience: async () => h.experience }));
 vi.mock("@/lib/queries/shows", () => ({
   getShowDetails: async () => h.details as unknown as ShowDetail[],
-  getSetlist: async () => [],
+  getSetlist: async () => h.setlist,
   getShowNeighbors: async () => h.neighbors as unknown as { prev: ShowNeighbor; next: ShowNeighbor },
   getShowEntryNumber: async () => h.entryNumber,
+}));
+// Only the db-touching lookup is stubbed; `awaitingJamCharts` stays real so the
+// page's pending/settled decision is the one shipped, not a restatement of it.
+vi.mock("@/lib/queries/jam-charts", async (importActual) => ({
+  ...(await importActual<typeof import("@/lib/queries/jam-charts")>()),
+  jamChartFrontier: async () => h.frontier,
 }));
 // Heavy children exercised by their own colocated tests; stubbed to keep this on the nav blocks.
 vi.mock("@/app/_components/setlist", () => ({ Setlist: () => null }));
@@ -52,6 +60,8 @@ beforeEach(() => {
   h.details = [show(1, 1), show(2, 2), show(3, 3)];
   h.neighbors = { prev: null, next: null };
   h.entryNumber = null;
+  h.frontier = null;
+  h.setlist = [];
 });
 
 describe("ShowPage prev/next navigation", () => {
@@ -287,5 +297,63 @@ describe("ShowPage 'Also this day' chips", () => {
     expect(html).toContain("text-spruce");
     expect(html).not.toMatch(/rounded border border-line/);
     expect(html).not.toContain("hover:text-gold");
+  });
+});
+
+describe("ShowPage jam-chart pending note", () => {
+  const entry = (isJamchart: boolean) => ({
+    uniqueId: "u1", song: "Arcadia", songSlug: "arcadia", setType: "Set", setNumber: "1",
+    position: 1, trackTime: null, transition: null, footnote: null,
+    isJamchart, jamchartNotes: null, isJam: false, isReprise: false,
+  });
+
+  it("says why a show newer than the newest filed chart shows no jams", async () => {
+    h.details = [show(1, 1, "2025-06-25")];
+    h.frontier = "2025-05-01";
+    h.setlist = [entry(false)];
+    const html = await render("2025-06-25");
+    expect(html).toContain("No jam-chart entries for this show");
+    // The claim travels with the evidence it rests on.
+    expect(html).toContain("May 1, 2025");
+  });
+
+  it("stays quiet on a show older than the frontier — that absence is settled", async () => {
+    h.details = [show(1, 1, "2025-04-01")];
+    h.frontier = "2025-05-01";
+    h.setlist = [entry(false)];
+    expect(await render("2025-04-01")).not.toContain("No jam-chart entries");
+  });
+
+  it("stays quiet once the show has a chart entry of its own", async () => {
+    h.details = [show(1, 1, "2025-06-25")];
+    h.frontier = "2025-05-01";
+    h.setlist = [entry(true)];
+    expect(await render("2025-06-25")).not.toContain("No jam-chart entries");
+  });
+
+  it("claims nothing when no chart has ever been filed", async () => {
+    h.details = [show(1, 1, "2025-06-25")];
+    h.frontier = null;
+    h.setlist = [entry(false)];
+    expect(await render("2025-06-25")).not.toContain("No jam-chart entries");
+  });
+
+  it("says nothing on an announced show that hasn't been played", async () => {
+    // Upcoming dates are show rows with no setlist, and every one of them is
+    // past the frontier — the note would otherwise land on the whole calendar.
+    h.details = [show(1, 1, "2099-01-01")];
+    h.frontier = "2025-05-01";
+    h.setlist = [];
+    expect(await render("2099-01-01")).not.toContain("No jam-chart entries");
+  });
+
+  it("carries the note in minimal too, in minimal's own plain voice", async () => {
+    h.experience = "minimal";
+    h.details = [show(1, 1, "2025-06-25")];
+    h.frontier = "2025-05-01";
+    h.setlist = [entry(false)];
+    const html = await render("2025-06-25");
+    expect(html).toContain("No jam-chart entries for this show");
+    expect(html).not.toContain("font-mono text-[0.62rem]");
   });
 });

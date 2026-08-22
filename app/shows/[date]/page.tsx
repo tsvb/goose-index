@@ -12,6 +12,7 @@ import { PenRule } from "@/app/_components/pen";
 import { liveCandidateDate } from "@/lib/live";
 import { maybeLiveSync } from "@/lib/sync/maybe-live";
 import { getShowDetails, getSetlist, getShowNeighbors, getShowEntryNumber, type ShowNeighbor } from "@/lib/queries/shows";
+import { jamChartFrontier, awaitingJamCharts } from "@/lib/queries/jam-charts";
 import { getExperience } from "@/lib/experience.server";
 import type { Experience } from "@/lib/experience";
 import { JsonLd } from "@/app/_components/json-ld";
@@ -87,11 +88,21 @@ export default async function ShowPage({ params, searchParams }: Params) {
   // enough to fetch unconditionally rather than serialize behind the
   // experience cookie. Null (upcoming / nothing logged) drops just the
   // entry-count center of the folio footer, not the footer itself.
-  const [setlist, neighbors, entryNumber] = await Promise.all([
+  // frontier rides the same round trip: a single max() over the jam-chart rows,
+  // used to tell "no jams" apart from "not filed yet" below the setlist.
+  const [setlist, neighbors, entryNumber, frontier] = await Promise.all([
     getSetlist(show.showId),
     getShowNeighbors(date, show.order),
     getShowEntryNumber(date, show.order),
+    jamChartFrontier(),
   ]);
+
+  const jamChartsPending = awaitingJamCharts({
+    date,
+    frontier,
+    hasEntries: setlist.some((e) => e.isJamchart || e.isJam),
+    hasSetlist: setlist.length > 0,
+  });
 
   const experience = await getExperience();
   const ld = showJsonLd(show, setlist);
@@ -183,6 +194,24 @@ export default async function ShowPage({ params, searchParams }: Params) {
         ))}
 
         <Setlist entries={setlist} experience={experience} showDate={date} venue={show.venue} containerId={show.nugsContainerId} />
+
+        {/* Nothing here is marked a jam — say which kind of nothing it is. The
+            charts are filed by hand well after the show, so on a night newer
+            than the newest filed chart, an unmarked setlist is a chart that
+            hasn't been written yet, not a night nobody stretched out. */}
+        {jamChartsPending && frontier && (experience === "minimal" ? (
+          <p className="mt-6 text-sm text-muted">
+            No jam-chart entries for this show. None have been filed for any show since{" "}
+            {formatShortDate(frontier)} — the charts are curated by hand and run behind the setlists.
+          </p>
+        ) : (
+          <p className="mt-6 font-mono text-[0.62rem] leading-relaxed text-faint">
+            No jam-chart entries for this show. None have been filed for any show since{" "}
+            <span className="text-muted">{formatShortDate(frontier)}</span> — the charts are curated by hand and run
+            behind the setlists.
+          </p>
+        ))}
+
         {experience === "minimal" && (
           <details className="mt-10 border-t border-line pt-4 text-sm">
             <summary className="cursor-pointer text-muted">Structured data (schema.org MusicEvent)</summary>
