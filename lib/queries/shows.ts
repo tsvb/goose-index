@@ -1,7 +1,7 @@
 import { db } from "@/db/client";
 import { shows, venues, tours, performances, songs } from "@/db/schema";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
-import { p95, isDustedOffGap } from "./songs";
+import { p95, isDustedOffGap, firstPlayFlags } from "./songs";
 import { normalizeDateQuery } from "./search-dates";
 import { escapeLike } from "@/lib/util";
 import { today } from "./today";
@@ -188,10 +188,13 @@ export async function getSetlist(showId: number): Promise<SetlistEntry[]> {
     const gaps: number[] = Array.isArray(raw) ? raw.map(Number) : [];
     bySong.set(Number(r.song_id), { thisGap: r.this_gap == null ? null : Number(r.this_gap), gaps });
   }
-  return rows.map((e) => {
+  // Rows are in play order, so the first appearance of a song is the return;
+  // a reprise later the same night is the same homecoming, not another one.
+  const firstPlay = firstPlayFlags(rows.map((e) => e.songId));
+  return rows.map((e, i) => {
     const info = bySong.get(e.songId);
     const gap = info?.thisGap ?? null;
-    const isDustedOff = isDustedOffGap(gap, info?.gaps ?? []);
+    const isDustedOff = firstPlay[i] && isDustedOffGap(gap, info?.gaps ?? []);
     return { ...e, gap, isDustedOff };
   });
 }

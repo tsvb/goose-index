@@ -27,6 +27,33 @@ export function isDustedOffGap(gap: number | null, songGaps: number[]): boolean 
   return gap >= p95(songGaps);
 }
 
+/**
+ * Which rows are a song's first play of its night.
+ *
+ * A song returns once. `gap` is per (song, show) — deliberately, so a reprise
+ * later the same night can't produce a negative gap — but the return badge is
+ * drawn per performance, so both halves of a sandwich inherited it. Vancouver
+ * 2026-08-18 is the case that surfaced it: "Time to Flee · first in 43 shows"
+ * printed twice, two rows apart, the second one refuted by the first. On the
+ * song page it was worse than a repeat — the sparkline counts returns by this
+ * flag, so one homecoming scored two.
+ *
+ * The gap itself still belongs to every performance that night; it is a fact
+ * about the show. Only the *return* is singular, so only it moves.
+ *
+ * Callers pass whichever id varies down their list: the song, when reading one
+ * show's setlist; the show, when reading one song's history. Both name the same
+ * (song, show) pair from the other end.
+ */
+export function firstPlayFlags(ids: number[]): boolean[] {
+  const seen = new Set<number>();
+  return ids.map((id) => {
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
 // show_seq: number every PLAYED show with performances by (date, order).
 // song_show: one row per (song, show) so same-show reprises don't create negative gaps.
 // gapped: per (song, show) gap = seq - lag(seq) - 1.
@@ -75,7 +102,10 @@ export async function getSongPerformances(songId: number): Promise<SongPerf[]> {
     order by s.show_date desc, coalesce(s.show_order, 1) desc, p.position asc
   `));
   const gaps = rows.map((r) => numOrNull(r.gap)).filter((g): g is number => g != null);
-  return rows.map((r) => {
+  // Rows run newest-first but position-ascending inside a night, so the first
+  // row of each show is that night's first play.
+  const firstPlay = firstPlayFlags(rows.map((r) => num(r.show_id)));
+  return rows.map((r, i) => {
     const tt = strOrNull(r.track_time);
     const gap = numOrNull(r.gap);
     return {
@@ -84,7 +114,7 @@ export async function getSongPerformances(songId: number): Promise<SongPerf[]> {
       setLabel: setLabel(strOrNull(r.set_type), strOrNull(r.set_number)), position: numOrNull(r.position),
       trackTime: tt, seconds: trackSeconds(tt),
       gap, isJamchart: Boolean(r.is_jamchart),
-      isDustedOff: isDustedOffGap(gap, gaps),
+      isDustedOff: firstPlay[i] && isDustedOffGap(gap, gaps),
     };
   });
 }
