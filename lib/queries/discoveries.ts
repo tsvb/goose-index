@@ -30,7 +30,14 @@ export type DayOfWeekJamsRow = {
 };
 
 /** Average number of jam-tagged performances per show, by day of the week.
- * Shows with zero jams still count (LEFT JOIN → 0 contribution to the avg). */
+ * Shows with zero jams still count (LEFT JOIN → 0 contribution to the avg).
+ *
+ * But only shows we have a setlist for. A fifth of the show rows are dates
+ * elgoose knows about with no music logged against them — announced-and-never-
+ * filed, festival drop-ins, the long unlogged tail before 2019. Counted, each
+ * one is a silent zero: it drags the average down and, worse, inflates the
+ * `total_shows` the dial spends as evidence weight, so a spoke claims a
+ * thickness its setlists don't back. Absence of a setlist is not a quiet night. */
 export async function dayOfWeekJams(): Promise<DayOfWeekJamsRow[]> {
   const rows = allRows(await db.execute(sql`
     with show_jams as (
@@ -42,6 +49,7 @@ export async function dayOfWeekJams(): Promise<DayOfWeekJamsRow[]> {
         on p.show_id = s.show_id
        and (p.is_jam = true or p.is_jamchart = true)
       where s.show_date <= ${today()}
+        and exists (select 1 from performances played where played.show_id = s.show_id)
       group by s.show_id, s.show_date
     )
     select dow,
