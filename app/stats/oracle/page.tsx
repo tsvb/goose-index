@@ -61,6 +61,7 @@ export default async function OraclePage() {
           <h1>{CUT_META.title}</h1>
           <MinimalCutRow active="oracle" />
           <h2 className="doc-h2">Jams per show by day of the week</h2>
+          {chartedThrough && <p className="doc-crumb">{chartedThrough.trim()}</p>}
           <table className="doc-table">
             <thead><tr><th>Day</th><th className="num">Avg jams</th><th className="num">Shows</th></tr></thead>
             <tbody>
@@ -101,6 +102,7 @@ export default async function OraclePage() {
             </tbody>
           </table>
           <h2 className="doc-h2">Deepest venues</h2>
+          {chartedThrough && <p className="doc-crumb">{chartedThrough.trim()}</p>}
           <table className="doc-table">
             <thead><tr><th>Venue</th><th className="num">Jam %</th><th className="num">Jams</th><th className="num">Shows</th></tr></thead>
             <tbody>

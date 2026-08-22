@@ -162,4 +162,14 @@ describe("OraclePage jam-chart window", () => {
     h.frontier = null;
     expect(await render()).not.toContain("Charted through");
   });
+
+  it("states the window in minimal too — the tables are bounded there as well", async () => {
+    // Minimal renders the jam figures as plain tables rather than through
+    // OracleSection, so it misses any blurb the other two get. Bounded numbers
+    // with no stated bound is the reading claiming to be current when it isn't.
+    h.experience = "minimal";
+    h.frontier = "2026-07-04";
+    const html = await render();
+    expect(html.match(/Charted through Jul 4, 2026\./g)?.length).toBe(2);
+  });
 });

@@ -39,8 +39,12 @@ export type DayOfWeekJamsRow = {
  * nobody has written. Bounding the window is the difference between "no jams"
  * and "no data", which is the whole point of the reading. See
  * lib/queries/jam-charts.ts, which reads the same frontier for the show page.
+ *
+ * Built per call, not once at import: it binds today's date, and a warm
+ * serverless instance outlives midnight. Same reason `showSeq` in
+ * lib/queries/songs.ts is a function.
  */
-const chartedThrough = sql`
+const chartedThrough = () => sql`
   charted as (
     select coalesce(max(s.show_date), ${today()}) as through
     from shows s
@@ -60,7 +64,7 @@ const chartedThrough = sql`
  * thickness its setlists don't back. Absence of a setlist is not a quiet night. */
 export async function dayOfWeekJams(): Promise<DayOfWeekJamsRow[]> {
   const rows = allRows(await db.execute(sql`
-    with ${chartedThrough},
+    with ${chartedThrough()},
     show_jams as (
       select s.show_id,
              extract(dow from s.show_date)::int as dow,
@@ -234,10 +238,16 @@ export type DeepestVenueRow = {
 };
 
 /** Venues where the band digs deepest — highest jam ratio, min DEEPEST_MIN_SHOWS
- * shows so a single hot night can't top the list. */
+ * shows so a single hot night can't top the list.
+ *
+ * Both the ratio and that minimum count charted shows only. A room whose most
+ * recent night is still unread therefore drops a show, and can fall under the
+ * threshold until the charts catch up — right, on both counts: an unread show
+ * would otherwise dilute the ratio with jams nobody has looked for, and the
+ * minimum exists to demand a real sample, which an unread night is not. */
 export async function deepestVenues(): Promise<DeepestVenueRow[]> {
   const rows = allRows(await db.execute(sql`
-    with ${chartedThrough},
+    with ${chartedThrough()},
     venue_perf as (
       select v.venue_id,
              v.name,

@@ -84,6 +84,15 @@ describe("awaitingJamCharts", () => {
     expect(awaitingJamCharts({ date: ANNOTATED, frontier: ANNOTATED, hasEntries: true })).toBe(false);
   });
 
+  it("is false on the frontier date itself even with nothing filed against this show", () => {
+    // The multi-show-day case: the matinee carries the chart that sets the
+    // frontier, the evening carries none. `date > frontier` is false, so the
+    // evening reads as settled and stays silent. Deliberate — see the note in
+    // jam-charts.ts. This pins the boundary as `>`, not `>=`; the earlier
+    // frontier test short-circuits on hasEntries and never reaches it.
+    expect(awaitingJamCharts({ date: ANNOTATED, frontier: ANNOTATED, hasEntries: false })).toBe(false);
+  });
+
   it("claims nothing when no show anywhere carries an entry", () => {
     // With an empty jam-chart corpus there is no frontier to read a show
     // against, so the page must stay silent rather than call everything pending.
@@ -97,5 +106,33 @@ describe("awaitingJamCharts", () => {
     expect(awaitingJamCharts({
       date: LATER, frontier: ANNOTATED, hasEntries: false, hasSetlist: false,
     })).toBe(false);
+  });
+});
+
+describe("jamChartFrontier with nothing ever filed", () => {
+  it("returns null rather than a date, so callers can stay silent", async () => {
+    // The whole "pending" reading rests on a frontier existing. A corpus with
+    // no chart anywhere has to say so, not fall back to a date that would make
+    // every show look either settled or late.
+    const empty = await makeTestDb();
+    try {
+      await upsertArtists(empty.db, [{ artistId: 1, name: "Goose" }]);
+      await upsertVenues(empty.db, [
+        { venueId: 1, name: "The Cap", slug: "cap", city: "Port Chester", state: "NY", country: "USA", zip: null, capacity: 1800 },
+      ]);
+      await upsertSongs(empty.db, [
+        { songId: 900, name: "Arcadia", slug: "arcadia", isOriginal: true, originalArtist: null },
+      ]);
+      await upsertShows(empty.db, [
+        { showId: 1, showDate: OLD_UNANNOTATED, artistId: 1, venueId: 1, tourId: null, title: null, permalink: "p1", showOrder: 1, notes: null, createdAt: null, updatedAt: null },
+      ]);
+      await upsertPerformances(empty.db, [perf("e-1", 1, 900, 1)]);
+
+      _testDb = empty.db;
+      expect(await jamChartFrontier()).toBeNull();
+    } finally {
+      _testDb = ctx.db;
+      await empty.close();
+    }
   });
 });

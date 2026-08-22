@@ -20,6 +20,14 @@ import { today } from "./today";
  * time the curators file a chart, and a hard-coded lag would be wrong within a
  * week. There is no lag constant here on purpose: this repo has no way to
  * measure how long elgoose actually takes, so it doesn't guess.
+ *
+ * Known limit: the frontier is a date, while charts are filed per show. On a
+ * two-show day whose matinee is charted and whose evening is not, the evening
+ * reads as settled and stays silent. Five dates in the corpus have ever had
+ * mixed siblings, and it only bites when such a date is the frontier itself —
+ * so it is left alone deliberately. Silence is the right way to be wrong here:
+ * the alternative tells a night with genuinely no jams that its charts are
+ * late.
  */
 
 function allRows(result: unknown): Record<string, unknown>[] {
