@@ -20,7 +20,7 @@ export function PerformanceTable({ perfs }: { perfs: SongPerf[] }) {
               <td className="num gapcell">{p.gap ?? "—"}</td>
               <td className="num">{p.trackTime ?? "—"}</td>
               <td>
-                {p.isDustedOff && <span className="song-bust">{RETURN_LABEL} · {p.gap ?? 0}</span>}
+                {p.isDustedOff && <span className="song-bust" title={`First play in ${p.gap ?? 0} shows`}>{RETURN_LABEL} · {p.gap ?? 0}</span>}
                 {p.isJamchart && <span className="song-jam">★ JAM</span>}
               </td>
             </tr>

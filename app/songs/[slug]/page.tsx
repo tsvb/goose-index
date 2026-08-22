@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Params, parent: ResolvingMeta
 
 /** Legend for the gap sparkline — must describe only what the chart actually renders. */
 function gapLegend(hasBusts: boolean, longestGap: number | null, timesPlayed: number): string {
-  if (hasBusts) return `The ember bars mark "Dusted Off" returns (gap in this song's longest 5%, ≥15 shows).`;
+  if (hasBusts) return `The ember bars mark "Dusted Off" returns — a gap in this song's longest 5% (≥15 shows), on the first play of the night it came back.`;
   if ((longestGap ?? 0) > 0) return `The ember bar marks the longest gap (${longestGap} shows). No "Dusted Off" returns yet — that takes a gap of ≥15 shows.`;
   return timesPlayed === 1 ? "Played once — no gaps between plays yet." : "No gaps yet — played at every show since its debut.";
 }
@@ -106,7 +106,7 @@ export default async function SongPage({ params }: Params) {
               <thead><tr><th>Date</th><th>Venue</th><th>Set</th><th className="num">Gap</th><th className="num">Time</th></tr></thead>
               <tbody>{perfs.map((p) => <tr key={p.uniqueId}><td><Link href={showHref(p.date, p.order)}>{p.date}</Link></td><td>{p.venue ?? "—"}</td><td>{p.setLabel}</td><td className="num">{p.gap ?? "—"}{p.isDustedOff ? " *" : ""}</td><td className="num">{p.trackTime ?? "—"}</td></tr>)}</tbody>
             </table>
-            <p className="doc-crumb">* a "Dusted Off" return — gap in this song&apos;s longest 5% (≥15 shows).</p>
+            <p className="doc-crumb">* a "Dusted Off" return — gap in this song&apos;s longest 5% (≥15 shows), on the first play of the night it came back.</p>
           </DocSection>
         </Doc>
       </Container>
