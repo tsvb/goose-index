@@ -1,16 +1,17 @@
 # Deployment
 
 Goose Index runs as a **Next.js app on [Vercel](https://vercel.com)** reading from a
-**managed Postgres database on [Neon](https://neon.tech)**. Both have free tiers that are
-ample for a low-traffic fan site. Total cost to launch: **$0** (the custom domain,
-`gooseindex.com`, is ~$12/yr).
+**managed Postgres database on [Neon](https://neon.tech)**. The custom domain
+(`gooseindex.com`) is ~$12/yr. Neon credits are billed for compute while the
+instance is awake — see **Connection details** below.
 
 ```
  elgoose.net ──(nightly GitHub Action: npm run sync)──▶  Neon Postgres  ◀──(reads)──  Vercel (Next.js)  ──▶  visitors
 ```
 
-The web app only ever **reads** from the database at request time. All **writes** happen out
-of band via the sync job, so page loads stay fast and never depend on the elgoose API being up.
+The web app only ever **reads**. Catalog queries are cached for an hour so Neon can
+scale to zero between visitors. All **writes** happen out of band via the sync job, so
+page loads never depend on the elgoose API being up.
 
 ## Connection details that matter
 

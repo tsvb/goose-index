@@ -12,6 +12,7 @@ import {
 describe("query cache helpers", () => {
   afterEach(() => {
     delete process.env.NEXT_RUNTIME;
+    delete process.env.VERCEL;
   });
 
   it("is off outside the Next.js runtime, so tests and scripts hit the database", () => {
@@ -20,6 +21,11 @@ describe("query cache helpers", () => {
 
   it("is on when Next sets NEXT_RUNTIME", () => {
     process.env.NEXT_RUNTIME = "nodejs";
+    expect(cacheEnabled()).toBe(true);
+  });
+
+  it("is on when Vercel sets VERCEL, even without NEXT_RUNTIME", () => {
+    process.env.VERCEL = "1";
     expect(cacheEnabled()).toBe(true);
   });
 

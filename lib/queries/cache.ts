@@ -21,11 +21,19 @@ export function showIdTag(showId: number): string {
 }
 
 /**
- * True only inside the Next.js app server. Vitest, `tsx` scripts, and
- * drizzle-kit leave NEXT_RUNTIME unset, so they hit the database directly.
+ * True inside the Next.js app server and on Vercel. Vitest, `tsx` scripts,
+ * and drizzle-kit leave both unset, so they hit the database directly.
+ *
+ * `VERCEL=1` is the belt: Next inlines `NEXT_RUNTIME` in the server bundle,
+ * but if that define is missing the cache would stay off in production and
+ * every page would keep opening Postgres. Vercel always sets `VERCEL`.
  */
 export function cacheEnabled(): boolean {
-  return process.env.NEXT_RUNTIME === "nodejs" || process.env.NEXT_RUNTIME === "edge";
+  return (
+    process.env.NEXT_RUNTIME === "nodejs" ||
+    process.env.NEXT_RUNTIME === "edge" ||
+    process.env.VERCEL === "1"
+  );
 }
 
 export type CachedQueryOpts = {
