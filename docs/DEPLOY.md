@@ -22,7 +22,42 @@ of band via the sync job, so page loads stay fast and never depend on the elgoos
 - The **direct** (non-pooled) string is only needed if a tool complains about pooling;
   migrations and sync work fine over the pooled string too.
 - Neon free-tier databases **auto-suspend when idle**, so the first request after a quiet
-  spell has a ~1s cold start. Fine for this site.
+spell has a ~1s cold start. Fine for this site. Credits are **compute-while-awake**: if
+something opens a connection more often than the suspend window (5 minutes by default),
+the instance never sleeps and the monthly allotment disappears. The site used to do that
+— every page is `force-dynamic` (the experience cookie), and a crawler hitting 800 show
+pages was 800 round-trips to Neon.
+
+What the app does about that:
+
+- Catalog reads go through `lib/queries/cache.ts` (Next.js Data Cache, one-hour TTL,
+  tag `catalog`). Hits never open a Postgres connection.
+- A live-show pull busts only that date's tags, so the rest of the catalog stays cached
+  while tonight's setlist updates.
+- `postgres` closes idle sockets after 20s (`db/client.ts`), so a warm Vercel isolate
+  cannot hold the compute up on its own.
+- `/sitemap.xml` is ISR (hourly). `robots.ts` disallows `/api/` so crawlers skip the
+  live-sync endpoint.
+
+After the nightly Action writes, it POSTs `/api/revalidate` if `REVALIDATE_SECRET` is
+set on both GitHub and Vercel; without the secret the cache expires on its own within
+an hour.
+
+### Console settings that still matter
+
+These are not in the repo. Check them when credits run hot:
+
+- **Scale to zero** stays on. `-1` / "never suspend" is the setting that bills 24/7.
+- **One compute, one branch.** Extra Neon branches each have their own compute. Don't
+  create a branch per pull request.
+- **Autoscaling min = 0.25 CU** (or the plan floor). Min CU is billed whenever the
+  compute is awake, cache or not.
+- **Vercel `DATABASE_URL` is the pooled string** (`-pooler` in the host). Preview
+  deployments share production Neon; visiting a preview URL (including Vercel's
+  screenshot bot) wakes it. Unset `DATABASE_URL` on Preview if those visits add up —
+  previews will 500, which is cheaper than a second compute.
+- **Local `.env` points at localhost**, not Neon. Every `npm run dev` against the
+  pooled production string is a connection Neon cannot distinguish from the site.
 
 ---
 
@@ -61,6 +96,7 @@ DATABASE_URL='<neon-pooled-url>' npm run verify        # expect: VERIFY OK
    |------|-------|
    | `DATABASE_URL` | the **pooled** Neon string from step 2 |
    | `ELGOOSE_USER_AGENT` | _(optional)_ `GooseIndex/1.0 (+https://github.com/tsvb/goose-index)` |
+   | `REVALIDATE_SECRET` | a random string; same value as the GitHub secret in step 5. Lets the nightly Action drop the query cache. The site works without it (cache lasts ≤1h). |
 4. **Deploy.** The Vercel project is named `gooseindex` (renamed from `goose-almanac`), and the
    live site is `https://www.gooseindex.com` (step 6). The old
    `goose-almanac-*.vercel.app` alias is pinned to a pre-rename deployment — don't use it.
@@ -82,6 +118,7 @@ string, since a bulk job is happiest off PgBouncer:
 
 ```bash
 gh secret set DATABASE_URL --repo tsvb/goose-index --body '<neon-UNPOOLED-url>'
+gh secret set REVALIDATE_SECRET --repo tsvb/goose-index --body '<same random string as Vercel>'
 ```
 
 The workflow also has a **Run workflow** button (manual trigger) on the repo's Actions tab.

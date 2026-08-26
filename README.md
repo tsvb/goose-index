@@ -131,8 +131,10 @@ render a single fixed look.
 elgoose.net ──(nightly Action: npm run sync)──▶ Neon Postgres ◀──(reads)── Vercel (Next.js) ──▶ visitors
 ```
 
-The web app only ever **reads** at request time. Every write happens out of band in the sync
-job, so page loads never depend on the elgoose API being up.
+The web app only ever **reads**. Catalog queries are cached for an hour so Neon can
+scale to zero between visitors; a live show busts just that night's cache. Every write
+happens out of band in the sync job, so page loads never depend on the elgoose API being
+up.
 
 - **Next.js (App Router) + TypeScript** — server-rendered. No client-side charting library; every
   chart is SVG against role tokens, so it reskins with the edition and, inside 3.0, with fog/slate.

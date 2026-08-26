@@ -1,6 +1,7 @@
 import { db } from "@/db/client";
 import { sql } from "drizzle-orm";
 import { today } from "./today";
+import { cachedQuery } from "./cache";
 
 function firstRow(result: unknown): Record<string, unknown> {
   const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
@@ -21,6 +22,7 @@ export type OverviewStats = {
 };
 
 export async function getOverviewStats(): Promise<OverviewStats> {
+  return cachedQuery("getOverviewStats", [], async () => {
   const r = firstRow(
     await db.execute(sql`
       select
@@ -44,4 +46,5 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     firstDate: (r.first_date as string) ?? null,
     lastPlayedDate: (r.last_played_date as string) ?? null,
   };
+  }, { varyByToday: true });
 }

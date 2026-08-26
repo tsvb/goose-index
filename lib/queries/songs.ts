@@ -4,6 +4,7 @@ import { setLabel } from "@/app/_components/setlist/shared";
 import { trackSeconds } from "@/lib/queries/format";
 import { escapeLike } from "@/lib/util";
 import { today, etYear } from "./today";
+import { cachedQuery } from "./cache";
 
 function allRows(result: unknown): Record<string, unknown>[] {
   const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
@@ -88,6 +89,7 @@ export type SongPerf = {
 };
 
 export async function getSongPerformances(songId: number): Promise<SongPerf[]> {
+  return cachedQuery("getSongPerformances", [songId], async () => {
   const rows = allRows(await db.execute(sql`
     with ${showSeq()}
     select p.unique_id, s.show_date::text as date, s.show_id, s.show_order as "order",
@@ -117,6 +119,7 @@ export async function getSongPerformances(songId: number): Promise<SongPerf[]> {
       isDustedOff: firstPlay[i] && isDustedOffGap(gap, gaps),
     };
   });
+  }, { varyByToday: true });
 }
 
 export type SongStat = {
@@ -179,6 +182,7 @@ export type SongIndexRow = {
 export async function listSongs(
   opts: { sort?: SongSort; facet?: SongFacet; q?: string; page?: number; perPage?: number } = {},
 ): Promise<{ rows: SongIndexRow[]; total: number }> {
+  return cachedQuery("listSongs", [opts], async () => {
   const sort = opts.sort ?? "played";
   const facet = opts.facet ?? "all";
   const perPage = Math.max(1, Math.floor(opts.perPage ?? 100));
@@ -285,6 +289,7 @@ export async function listSongs(
     };
   });
   return { rows: pageRows, total };
+  }, { varyByToday: true });
 }
 
 /**
@@ -309,6 +314,7 @@ export interface SongSearchRow {
 
 /** Name-substring search for the global search page. Never-played songs match too (timesPlayed 0). */
 export async function searchSongs(q: string, limit = 12): Promise<{ rows: SongSearchRow[]; total: number }> {
+  return cachedQuery("searchSongs", [q, limit], async () => {
   const like = `%${escapeLike(q.trim())}%`;
   const raw = allRows(await db.execute(sql`
     with ${showSeq()},
@@ -332,6 +338,7 @@ export async function searchSongs(q: string, limit = 12): Promise<{ rows: SongSe
     })),
     total: raw.length ? num(raw[0].full_count) : 0,
   };
+  }, { varyByToday: true });
 }
 
 // ── Stats cuts ────────────────────────────────────────────────────────────────
@@ -355,15 +362,18 @@ export async function currentGaps(limit = 100): Promise<SongIndexRow[]> {
 }
 
 export async function debutsByYear(): Promise<{ year: number; count: number }[]> {
+  return cachedQuery("debutsByYear", [], async () => {
   const byYear = allRows(await db.execute(sql`
     with ${showSeq()},
     debut as (select song_id, min(show_date) as d from song_show group by song_id)
     select extract(year from d)::int as year, count(*)::int as count from debut group by 1 order by 1
   `)).map((r) => ({ year: num(r.year), count: num(r.count) }));
   return zeroFillYears(byYear, etYear());
+  }, { varyByToday: true });
 }
 
 export async function recentDebuts(limit = 25): Promise<{ slug: string; name: string; date: string; venue: string | null }[]> {
+  return cachedQuery("recentDebuts", [limit], async () => {
   return allRows(await db.execute(sql`
     with first_play as (
       select p.song_id, min(s.show_date) as d
@@ -376,9 +386,11 @@ export async function recentDebuts(limit = 25): Promise<{ slug: string; name: st
     from first_play fp join songs so on so.song_id = fp.song_id
     order by fp.d desc, so.name asc limit ${limit}
   `)).map((r) => ({ slug: String(r.slug), name: String(r.name), date: String(r.date), venue: strOrNull(r.venue) }));
+  }, { varyByToday: true });
 }
 
 export async function setStats(): Promise<{ key: string; label: string; rows: { slug: string; name: string; count: number }[] }[]> {
+  return cachedQuery("setStats", [], async () => {
   const buckets: { key: string; label: string; cond: SQL }[] = [
     { key: "show-opener", label: "Show openers", cond: sql`p.position = 1 and (p.set_number = '1' or p.set_type = 'One Set')` },
     { key: "set2-opener", label: "Set 2 openers", cond: sql`p.position = 1 and p.set_number = '2'` },
@@ -396,6 +408,7 @@ export async function setStats(): Promise<{ key: string; label: string; rows: { 
     out.push({ key: b.key, label: b.label, rows });
   }
   return out;
+  }, { varyByToday: true });
 }
 
 export type StatsHubHighlights = {
@@ -415,6 +428,7 @@ export type StatsHubHighlights = {
  * topOpener mirrors setStats()'s show-opener bucket.
  */
 export async function statsHubHighlights(): Promise<StatsHubHighlights> {
+  return cachedQuery("statsHubHighlights", [], async () => {
   const [row] = allRows(await db.execute(sql`
     with ${showSeq()},
     agg as (
@@ -457,11 +471,13 @@ export async function statsHubHighlights(): Promise<StatsHubHighlights> {
     latestDebut: row?.de_slug ? { name: String(row.de_name), slug: String(row.de_slug), date: String(row.de_date) } : null,
     topOpener: op ? { name: String(op.name), slug: String(op.slug), count: num(op.count) } : null,
   };
+  }, { varyByToday: true });
 }
 
 // ── Song detail ───────────────────────────────────────────────────────────────
 
 export async function getSongBySlug(slug: string): Promise<SongStat | null> {
+  return cachedQuery("getSongBySlug", [slug], async () => {
   const [meta] = allRows(await db.execute(sql`
     select song_id, name, slug, is_original, original_artist from songs where slug = ${slug} order by song_id limit 1
   `));
@@ -543,6 +559,7 @@ export async function getSongBySlug(slug: string): Promise<SongStat | null> {
     longestSeconds: longestVersions[0]?.seconds ?? null,
     playsPerYear: ppy, setPlacement, longestVersions, topVenues,
   };
+  }, { varyByToday: true });
 }
 
 export type SongAlbum = {
@@ -562,6 +579,7 @@ export type SongAlbum = {
  * Must Go, and a fan reading about it should see both and be able to buy either.
  */
 export async function getSongAlbums(songId: number): Promise<SongAlbum[]> {
+  return cachedQuery("getSongAlbums", [songId], async () => {
   const rows = allRows(await db.execute(sql`
     select al.title, al.release_date::text as release_date, al.url, al.num_tracks, t.track_num
     from album_tracks t
@@ -576,4 +594,5 @@ export async function getSongAlbums(songId: number): Promise<SongAlbum[]> {
     url: strOrNull(r.url),
     numTracks: num(r.num_tracks),
   }));
+  });
 }

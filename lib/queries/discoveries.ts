@@ -2,6 +2,7 @@ import { db } from "@/db/client";
 import { sql } from "drizzle-orm";
 import { WEEKDAYS } from "@/lib/queries/format";
 import { today } from "./today";
+import { cachedQuery } from "./cache";
 
 function allRows(result: unknown): Record<string, unknown>[] {
   const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
@@ -63,6 +64,7 @@ const chartedThrough = () => sql`
  * `total_shows` the dial spends as evidence weight, so a spoke claims a
  * thickness its setlists don't back. Absence of a setlist is not a quiet night. */
 export async function dayOfWeekJams(): Promise<DayOfWeekJamsRow[]> {
+  return cachedQuery("dayOfWeekJams", [], async () => {
   const rows = allRows(await db.execute(sql`
     with ${chartedThrough()},
     show_jams as (
@@ -88,6 +90,7 @@ export async function dayOfWeekJams(): Promise<DayOfWeekJamsRow[]> {
     const d = num(r.dow);
     return { dow: d, dayName: WEEKDAYS[d] ?? "", totalShows: num(r.total_shows), avgJams: num(r.avg_jams) };
   });
+  }, { varyByToday: true });
 }
 
 export type TransitionRow = {
@@ -100,6 +103,7 @@ export type TransitionRow = {
 
 /** Top segued transitions (transition column contains ">"), across all sets. */
 export async function topTransitions(): Promise<TransitionRow[]> {
+  return cachedQuery("topTransitions", [], async () => {
   const rows = allRows(await db.execute(sql`
     with adj as (
       select p.show_id,
@@ -132,6 +136,7 @@ export async function topTransitions(): Promise<TransitionRow[]> {
     targetSlug: strOrNull(r.target_slug),
     count: num(r.ct),
   }));
+  });
 }
 
 export type CoachsNoteRow = {
@@ -145,6 +150,7 @@ export type CoachsNoteRow = {
 
 /** Most recent shows with populated coach's notes (from bandcamp releases). */
 export async function coachsNotes(): Promise<CoachsNoteRow[]> {
+  return cachedQuery("coachsNotes", [], async () => {
   const rows = allRows(await db.execute(sql`
     select s.show_id,
            s.show_date::text as show_date,
@@ -167,6 +173,7 @@ export async function coachsNotes(): Promise<CoachsNoteRow[]> {
     coachNotes: String(r.coach_notes),
     bandcampUrl: strOrNull(r.bandcamp_url),
   }));
+  });
 }
 
 export type ShelfRow = {
@@ -196,6 +203,7 @@ export type ShelfRow = {
  * safe for covers that open with a bracket — "(Marie's The Name) His Latest
  * Flame" — since `is_original` already excludes those. */
 export async function originalsOnTheShelf(): Promise<ShelfRow[]> {
+  return cachedQuery("originalsOnTheShelf", [], async () => {
   const rows = allRows(await db.execute(sql`
     select so.song_id,
            so.name,
@@ -225,6 +233,7 @@ export async function originalsOnTheShelf(): Promise<ShelfRow[]> {
     totalPlays: num(r.total_plays),
     daysSincePlayed: num(r.days_since_played),
   }));
+  }, { varyByToday: true });
 }
 
 export type DeepestVenueRow = {
@@ -246,6 +255,7 @@ export type DeepestVenueRow = {
  * would otherwise dilute the ratio with jams nobody has looked for, and the
  * minimum exists to demand a real sample, which an unread night is not. */
 export async function deepestVenues(): Promise<DeepestVenueRow[]> {
+  return cachedQuery("deepestVenues", [], async () => {
   const rows = allRows(await db.execute(sql`
     with ${chartedThrough()},
     venue_perf as (
@@ -278,4 +288,5 @@ export async function deepestVenues(): Promise<DeepestVenueRow[]> {
     totalJams: num(r.total_jams),
     jamPercentage: num(r.jam_pct),
   }));
+  }, { varyByToday: true });
 }

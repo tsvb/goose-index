@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { today } from "./today";
+import { cachedQuery } from "./cache";
 
 /**
  * A jam is `is_jamchart`. That is the whole definition, and it is the same one
@@ -49,6 +50,7 @@ function allRows(result: unknown): Record<string, unknown>[] {
 
 /** The newest show date carrying any jam-chart entry, or null if none does. */
 export async function jamChartFrontier(): Promise<string | null> {
+  return cachedQuery("jamChartFrontier", [], async () => {
   const rows = allRows(await db.execute(sql`
     select max(s.show_date)::text as frontier
     from shows s
@@ -58,6 +60,7 @@ export async function jamChartFrontier(): Promise<string | null> {
   `));
   const frontier = rows[0]?.frontier;
   return typeof frontier === "string" ? frontier : null;
+  }, { varyByToday: true });
 }
 
 /** Whether this show's silence is "not filed yet" rather than "nothing to file". */

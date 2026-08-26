@@ -59,3 +59,18 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NUGS_USER_AGENT: "GooseIndex/1.0 (+https://github.com/tsvb/goose-index; nightly nugs import)"
         run: npm run import-nugs
+
+      # Drop the site's one-hour query cache so tonight's write is visible
+      # immediately. No-op (and the job still succeeds) until REVALIDATE_SECRET
+      # is set on both GitHub and Vercel — the TTL covers the gap.
+      - name: Refresh the site's query cache
+        env:
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+        run: |
+          if [ -z "$REVALIDATE_SECRET" ]; then
+            echo "REVALIDATE_SECRET unset; catalog cache expires on its own (≤1h)"
+            exit 0
+          fi
+          curl -fsS -X POST \
+            -H "Authorization: Bearer $REVALIDATE_SECRET" \
+            https://www.gooseindex.com/api/revalidate

@@ -3,10 +3,12 @@ import { shows, venues, tours } from "@/db/schema";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { escapeLike } from "@/lib/util";
 import { today, etYear } from "./today";
+import { cachedQuery } from "./cache";
 
 export type YearRow = { year: number; shows: number; songs: number };
 
 export async function listYears(): Promise<YearRow[]> {
+  return cachedQuery("listYears", [], async () => {
   const rows = await db
     .select({
       year: sql<number>`extract(year from ${shows.showDate})::int`,
@@ -22,6 +24,7 @@ export async function listYears(): Promise<YearRow[]> {
     .groupBy(sql`extract(year from ${shows.showDate})`)
     .orderBy(sql`extract(year from ${shows.showDate}) desc`);
   return rows;
+  }, { varyByToday: true });
 }
 
 export type TourRow = {
@@ -34,7 +37,8 @@ export type TourRow = {
 };
 
 export async function listTours(): Promise<TourRow[]> {
-  return db
+  return cachedQuery("listTours", [], () =>
+  db
     .select({
       tourId: tours.tourId,
       name: tours.name,
@@ -47,10 +51,11 @@ export async function listTours(): Promise<TourRow[]> {
     .leftJoin(shows, eq(shows.tourId, tours.tourId))
     .groupBy(tours.tourId)
     .having(sql`count(${shows.showId}) > 0`)
-    .orderBy(sql`min(${shows.showDate}) desc nulls last`);
+    .orderBy(sql`min(${shows.showDate}) desc nulls last`));
 }
 
 export async function getTourMeta(tourId: number): Promise<TourRow | null> {
+  return cachedQuery("getTourMeta", [tourId], async () => {
   const [row] = await db
     .select({
       tourId: tours.tourId,
@@ -65,6 +70,7 @@ export async function getTourMeta(tourId: number): Promise<TourRow | null> {
     .where(eq(tours.tourId, tourId))
     .groupBy(tours.tourId);
   return row ?? null;
+  });
 }
 
 export type VenueRow = {
@@ -80,6 +86,7 @@ export type VenueRow = {
 };
 
 export async function listVenues(opts?: { sort?: "shows" | "name"; q?: string }): Promise<VenueRow[]> {
+  return cachedQuery("listVenues", [opts ?? null], () => {
   const order =
     opts?.sort === "name"
       ? [asc(venues.name)]
@@ -108,9 +115,11 @@ export async function listVenues(opts?: { sort?: "shows" | "name"; q?: string })
     .groupBy(venues.venueId)
     .having(sql`count(${shows.showId}) > 0`)
     .orderBy(...order);
+  });
 }
 
 export async function searchVenues(q: string, limit = 12): Promise<{ rows: VenueRow[]; total: number }> {
+  return cachedQuery("searchVenues", [q, limit], async () => {
   const like = `%${escapeLike(q.trim())}%`;
   const where = sql`(${venues.name} ilike ${like} or ${venues.city} ilike ${like})`;
   const rows = await db
@@ -140,9 +149,11 @@ export async function searchVenues(q: string, limit = 12): Promise<{ rows: Venue
     .where(sql`${where} and exists (select 1 from ${shows} where ${shows.venueId} = ${venues.venueId})`);
 
   return { rows, total };
+  });
 }
 
 export async function searchTours(q: string, limit = 8): Promise<{ rows: TourRow[]; total: number }> {
+  return cachedQuery("searchTours", [q, limit], async () => {
   const like = `%${escapeLike(q.trim())}%`;
   const where = sql`${tours.name} ilike ${like}`;
   const rows = await db
@@ -169,9 +180,11 @@ export async function searchTours(q: string, limit = 8): Promise<{ rows: TourRow
     .where(sql`${where} and exists (select 1 from ${shows} where ${shows.tourId} = ${tours.tourId})`);
 
   return { rows, total };
+  });
 }
 
 export async function getVenueMeta(venueId: number): Promise<VenueRow | null> {
+  return cachedQuery("getVenueMeta", [venueId], async () => {
   const [row] = await db
     .select({
       venueId: venues.venueId,
@@ -189,6 +202,7 @@ export async function getVenueMeta(venueId: number): Promise<VenueRow | null> {
     .where(eq(venues.venueId, venueId))
     .groupBy(venues.venueId);
   return row ?? null;
+  });
 }
 
 // ── Where Goose plays ─────────────────────────────────────────────────────────
@@ -221,6 +235,7 @@ export function normalizeCountry(raw: string | null): string {
 
 /** Shows and venues per US state, keyed by the USPS code the map draws with. */
 export async function showsByState(): Promise<StateShows[]> {
+  return cachedQuery("showsByState", [], async () => {
   const rows = allRows(await db.execute(sql`
     select v.state, count(distinct s.show_id)::int as shows, count(distinct v.venue_id)::int as venues
     from shows s
@@ -233,10 +248,12 @@ export async function showsByState(): Promise<StateShows[]> {
   return rows
     .map((r) => ({ state: String(r.state).toUpperCase().trim(), shows: num(r.shows), venues: num(r.venues) }))
     .filter((r) => /^[A-Z]{2}$/.test(r.state));
+  }, { varyByToday: true });
 }
 
 /** Shows and venues outside the US, folded onto one row per country. */
 export async function showsByCountry(): Promise<CountryShows[]> {
+  return cachedQuery("showsByCountry", [], async () => {
   const rows = allRows(await db.execute(sql`
     select v.country, count(distinct s.show_id)::int as shows, count(distinct v.venue_id)::int as venues
     from shows s
@@ -255,6 +272,7 @@ export async function showsByCountry(): Promise<CountryShows[]> {
     merged.set(country, at);
   }
   return [...merged.values()].sort((a, b) => b.shows - a.shows || a.country.localeCompare(b.country));
+  }, { varyByToday: true });
 }
 
 // ── The touring year ──────────────────────────────────────────────────────────
@@ -284,6 +302,7 @@ export type TourSpan = {
 export const NOT_A_TOUR = /^not part of a tour$/i;
 
 export async function tourTimeline(): Promise<{ tours: TourSpan[]; untouredShows: number }> {
+  return cachedQuery("tourTimeline", [], async () => {
   const rows = allRows(await db.execute(sql`
     select t.tour_id, t.name,
            min(s.show_date)::text as start,
@@ -317,6 +336,7 @@ export async function tourTimeline(): Promise<{ tours: TourSpan[]; untouredShows
     });
   }
   return { tours, untouredShows };
+  }, { varyByToday: true });
 }
 
 // ── The career ────────────────────────────────────────────────────────────────
@@ -346,6 +366,7 @@ export type CareerYear = {
  * and nothing else" is a fact about the archive worth seeing.
  */
 export async function careerYears(): Promise<CareerYear[]> {
+  return cachedQuery("careerYears", [], async () => {
   const rows = allRows(await db.execute(sql`
     with per_show as (
       select s.show_id, s.venue_id,
@@ -383,4 +404,5 @@ export async function careerYears(): Promise<CareerYear[]> {
     debuts: num(r.debuts),
     partial: num(r.year) === thisYear,
   }));
+  }, { varyByToday: true });
 }

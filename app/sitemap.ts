@@ -4,8 +4,9 @@ import { allPostSlugs } from "@/lib/blog/posts";
 import { CUTS } from "./stats/cuts";
 import { SITE_URL } from "@/lib/site";
 
-// Reads live DB data like every page; regenerate per request.
-export const dynamic = "force-dynamic";
+// The URL set only changes when the nightly sync writes new shows/songs.
+// ISR here so crawlers don't open five Neon connections on every fetch.
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [dates, slugs, years, tourIds, venueIds] = await Promise.all([

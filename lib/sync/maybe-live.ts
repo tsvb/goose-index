@@ -6,6 +6,7 @@ import { createElgooseClient } from "@/lib/elgoose/client";
 import type { ElgooseClient } from "@/lib/elgoose/types";
 import { liveCandidateDate } from "@/lib/live";
 import { runLiveSync, type LiveSyncSummary } from "./live";
+import { revalidateLiveShow } from "@/lib/queries/cache";
 
 export interface LiveStatus {
   live: boolean;
@@ -58,6 +59,9 @@ export async function maybeLiveSync(deps?: { db?: AppDb; now?: Date; client?: El
     const client = deps?.client ?? createElgooseClient(ua ? { userAgent: ua } : {});
     const summary = await runLiveSync({ client, db: d, date });
     await d.execute(sql`update live_sync_state set last_summary = ${JSON.stringify(summary)} where id = 1`);
+    const ids = (await d.select({ id: schema.shows.showId }).from(schema.shows)
+      .where(eq(schema.shows.showDate, date))).map((r) => r.id);
+    await revalidateLiveShow(date, ids);
     return { live: true, date, claimed: true, summary };
   } catch (e) {
     return { live: true, date, error: e instanceof Error ? e.message : String(e) };
