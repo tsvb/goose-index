@@ -2,7 +2,7 @@ import { db } from "@/db/client";
 import { sql, type SQL } from "drizzle-orm";
 import { setLabel } from "@/app/_components/setlist/shared";
 import { trackSeconds } from "@/lib/queries/format";
-import { escapeLike } from "@/lib/util";
+import { escapeLike, positiveInt, searchTerm } from "@/lib/util";
 import { today, etYear } from "./today";
 import { cachedQuery } from "./cache";
 
@@ -137,7 +137,11 @@ export type SongStat = {
 
 // ── Song Index ────────────────────────────────────────────────────────────────
 
-export type SongSort = "played" | "rare" | "overdue" | "rotation" | "recent" | "debut" | "az" | "album";
+/** The sorts the index offers. A runtime list, because `listSongs` has to check
+ *  a value that reached it from a URL — the type is derived from it so the two
+ *  cannot drift. */
+export const SONG_SORTS = ["played", "rare", "overdue", "rotation", "recent", "debut", "az", "album"] as const;
+export type SongSort = (typeof SONG_SORTS)[number];
 
 /**
  * The album a song sorts under, when it's on more than one.
@@ -169,7 +173,8 @@ const PRIMARY_ALBUM = sql`
  * /stats/current-gaps so the two pages can never disagree.
  */
 export const OVERDUE_MIN_PLAYS = 5;
-export type SongFacet = "all" | "originals" | "covers";
+export const SONG_FACETS = ["all", "originals", "covers"] as const;
+export type SongFacet = (typeof SONG_FACETS)[number];
 export type SongIndexRow = {
   songId: number; name: string; slug: string; isOriginal: boolean;
   timesPlayed: number; rotationPct: number; currentGap: number | null;
@@ -182,15 +187,21 @@ export type SongIndexRow = {
 export async function listSongs(
   opts: { sort?: SongSort; facet?: SongFacet; q?: string; page?: number; perPage?: number } = {},
 ): Promise<{ rows: SongIndexRow[]; total: number }> {
-  return cachedQuery("listSongs", [opts], async () => {
-  const sort = opts.sort ?? "played";
-  const facet = opts.facet ?? "all";
-  const perPage = Math.max(1, Math.floor(opts.perPage ?? 100));
-  const page = Math.max(1, Math.floor(opts.page ?? 1));
+  // Resolve every option to the value the query actually runs on before keying.
+  // `sort` and `facet` arrive straight from `searchParams` (app/songs/page.tsx
+  // asserts the type rather than checking it), and both fall through to a
+  // default here — so `?sort=anything` used to be its own cache entry holding
+  // the same rows as `?sort=played`, without bound.
+  const sort: SongSort = SONG_SORTS.includes(opts.sort as SongSort) ? (opts.sort as SongSort) : "played";
+  const facet: SongFacet = SONG_FACETS.includes(opts.facet as SongFacet) ? (opts.facet as SongFacet) : "all";
+  const perPage = positiveInt(opts.perPage, 100);
+  const page = positiveInt(opts.page, 1);
+  const term = searchTerm(opts.q ?? "");
+  return cachedQuery("listSongs", [sort, facet, term, page, perPage], async () => {
   const facetCond =
     facet === "originals" ? sql`and so.is_original` :
     facet === "covers" ? sql`and not so.is_original` : sql``;
-  const qCond = opts.q?.trim() ? sql`and so.name ilike ${"%" + escapeLike(opts.q.trim()) + "%"}` : sql``;
+  const qCond = term ? sql`and so.name ilike ${"%" + escapeLike(term) + "%"}` : sql``;
 
   // year span for the sparkline
   const [span] = allRows(await db.execute(sql`
@@ -314,8 +325,9 @@ export interface SongSearchRow {
 
 /** Name-substring search for the global search page. Never-played songs match too (timesPlayed 0). */
 export async function searchSongs(q: string, limit = 12): Promise<{ rows: SongSearchRow[]; total: number }> {
-  return cachedQuery("searchSongs", [q, limit], async () => {
-  const like = `%${escapeLike(q.trim())}%`;
+  const term = searchTerm(q);
+  return cachedQuery("searchSongs", [term, limit], async () => {
+  const like = `%${escapeLike(term)}%`;
   const raw = allRows(await db.execute(sql`
     with ${showSeq()},
     agg as (

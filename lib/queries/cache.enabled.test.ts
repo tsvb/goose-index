@@ -3,6 +3,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const unstableCalls: { keys: string[]; opts: { tags?: string[]; revalidate?: number } }[] = [];
 const tags: string[] = [];
 
+/** Lets a test make the cache plumbing itself fail, at either of the two moments
+ *  it can: before it ever calls the query, or after the query has returned (a
+ *  failed cache write). Default is a plain pass-through. */
+let plumbing: "ok" | "throws-before-query" | "throws-after-query" = "ok";
+
 vi.mock("next/cache", () => ({
   unstable_cache: (
     fn: () => Promise<unknown>,
@@ -10,7 +15,12 @@ vi.mock("next/cache", () => ({
     opts: { tags?: string[]; revalidate?: number },
   ) => {
     unstableCalls.push({ keys, opts });
-    return async () => fn();
+    return async () => {
+      if (plumbing === "throws-before-query") throw new Error("incrementalCache missing");
+      const value = await fn();
+      if (plumbing === "throws-after-query") throw new Error("cache write failed");
+      return value;
+    };
   },
   revalidateTag: (tag: string) => {
     tags.push(tag);
@@ -31,6 +41,7 @@ describe("cachedQuery when Next's cache is available", () => {
     delete process.env.VERCEL;
     unstableCalls.length = 0;
     tags.length = 0;
+    plumbing = "ok";
   });
 
   it("wraps the query in unstable_cache with the catalog tag and TTL", async () => {
@@ -48,6 +59,45 @@ describe("cachedQuery when Next's cache is available", () => {
     process.env.VERCEL = "1";
     await cachedQuery("t", [], async () => 1);
     expect(unstableCalls).toHaveLength(1);
+  });
+
+  it("surfaces a failed read instead of running it a second time", async () => {
+    process.env.NEXT_RUNTIME = "nodejs";
+    let calls = 0;
+    const boom = async () => {
+      calls++;
+      throw new Error("connection terminated");
+    };
+    await expect(cachedQuery("getShowDetails", ["2026-08-26"], boom)).rejects.toThrow(
+      "connection terminated",
+    );
+    // Retrying doubles the load on a database that has just said it is
+    // struggling, and the second error replaces the real one.
+    expect(calls).toBe(1);
+  });
+
+  it("returns the rows it already fetched when only the cache write fails", async () => {
+    process.env.NEXT_RUNTIME = "nodejs";
+    plumbing = "throws-after-query";
+    let calls = 0;
+    const result = await cachedQuery("getShowDetails", ["2026-08-26"], async () => {
+      calls++;
+      return { ok: true };
+    });
+    expect(result).toEqual({ ok: true });
+    expect(calls).toBe(1);
+  });
+
+  it("falls back to an uncached read when the cache never reaches the query", async () => {
+    process.env.NEXT_RUNTIME = "nodejs";
+    plumbing = "throws-before-query";
+    let calls = 0;
+    const result = await cachedQuery("getShowDetails", ["2026-08-26"], async () => {
+      calls++;
+      return { ok: true };
+    });
+    expect(result).toEqual({ ok: true });
+    expect(calls).toBe(1);
   });
 
   it("revalidateLiveShow busts the date and show-id tags", async () => {

@@ -57,17 +57,39 @@ export async function cachedQuery<T>(
   opts: CachedQueryOpts = {},
 ): Promise<T> {
   if (!cacheEnabled()) return fn();
+  // What the query itself did, recorded so the catch below can tell a failure in
+  // Next's cache plumbing (retryable) from a failure in the read (not). Without
+  // this the catch swallows a failed query and runs it again — a second round
+  // trip against a database that has just said it is struggling, and a second
+  // error that replaces the real one.
+  let succeeded: { value: T } | undefined;
+  let failed: { error: unknown } | undefined;
+  const run = async () => {
+    try {
+      const value = await fn();
+      succeeded = { value };
+      return value;
+    } catch (error) {
+      failed = { error };
+      throw error;
+    }
+  };
   try {
     const { unstable_cache } = await import("next/cache");
     const keyParts = [key, ...args.map((a) => JSON.stringify(a))];
     if (opts.varyByToday) keyParts.push(etToday());
-    return await unstable_cache(async () => fn(), keyParts, {
+    return await unstable_cache(run, keyParts, {
       revalidate: opts.revalidate ?? CATALOG_REVALIDATE_SECONDS,
       tags: opts.tags ?? [CATALOG_TAG],
     })();
   } catch {
-    // `unstable_cache` needs Next's request cache. If we're somehow in a
-    // Node runtime without it, miss rather than fail the page.
+    // The read failed. That is the page's answer; don't ask twice.
+    if (failed) throw failed.error;
+    // The read worked and only the cache write didn't — we already hold the rows.
+    if (succeeded) return succeeded.value;
+    // `unstable_cache` needs Next's request cache, and throws before it ever
+    // calls `run` when there isn't one. If we're somehow in a Node runtime
+    // without it, miss rather than fail the page.
     return fn();
   }
 }

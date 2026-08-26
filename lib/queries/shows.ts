@@ -3,7 +3,7 @@ import { shows, venues, tours, performances, songs } from "@/db/schema";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { p95, isDustedOffGap, firstPlayFlags } from "./songs";
 import { normalizeDateQuery } from "./search-dates";
-import { escapeLike } from "@/lib/util";
+import { escapeLike, positiveInt, searchTerm } from "@/lib/util";
 import { today } from "./today";
 import { CATALOG_TAG, cachedQuery, showDateTag, showIdTag } from "./cache";
 
@@ -287,30 +287,38 @@ export type ShowListFilter = {
 };
 
 export async function listShows(filter: ShowListFilter): Promise<{ rows: ShowSummary[]; total: number }> {
-  return cachedQuery("listShows", [filter], async () => {
-  const perPage = filter.perPage ?? 30;
-  const page = Math.max(1, filter.page ?? 1);
-  const conds = [];
-  if (filter.year) conds.push(sql`extract(year from ${shows.showDate}) = ${filter.year}`);
-  if (filter.tourId) conds.push(eq(shows.tourId, filter.tourId));
-  if (filter.venueId) conds.push(eq(shows.venueId, filter.venueId));
-  const where = conds.length ? and(...conds) : undefined;
+  // Resolve the filter before the key is built, and key on the resolved values.
+  // The query already collapsed `undefined`, `0` and a negative page onto page 1
+  // and `dir` onto "desc"; keying on the raw filter filed each spelling as its
+  // own hour-long entry for one answer, and `/shows?page=` is public.
+  const year = filter.year || null;
+  const tourId = filter.tourId || null;
+  const venueId = filter.venueId || null;
+  const dir = filter.dir === "asc" ? "asc" : "desc";
+  const perPage = positiveInt(filter.perPage, 30);
+  const page = positiveInt(filter.page, 1);
+  return cachedQuery("listShows", [year, tourId, venueId, dir, page, perPage], async () => {
+    const conds = [];
+    if (year) conds.push(sql`extract(year from ${shows.showDate}) = ${year}`);
+    if (tourId) conds.push(eq(shows.tourId, tourId));
+    if (venueId) conds.push(eq(shows.venueId, venueId));
+    const where = conds.length ? and(...conds) : undefined;
 
-  const rows = await baseShowQuery()
-    .where(where)
-    .orderBy(
-      filter.dir === "asc" ? asc(shows.showDate) : desc(shows.showDate),
-      filter.dir === "asc" ? asc(shows.showOrder) : desc(shows.showOrder),
-    )
-    .limit(perPage)
-    .offset((page - 1) * perPage);
+    const rows = await baseShowQuery()
+      .where(where)
+      .orderBy(
+        dir === "asc" ? asc(shows.showDate) : desc(shows.showDate),
+        dir === "asc" ? asc(shows.showOrder) : desc(shows.showOrder),
+      )
+      .limit(perPage)
+      .offset((page - 1) * perPage);
 
-  const [{ total }] = await db
-    .select({ total: sql<number>`count(*)::int` })
-    .from(shows)
-    .where(where);
+    const [{ total }] = await db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(shows)
+      .where(where);
 
-  return { rows, total };
+    return { rows, total };
   });
 }
 
@@ -322,45 +330,51 @@ export async function listShows(filter: ShowListFilter): Promise<{ rows: ShowSum
 export async function findLatestPastShow(
   filter: ShowListFilter,
 ): Promise<{ showId: number; date: string; isToday: boolean; page: number } | null> {
-  return cachedQuery("findLatestPastShow", [filter], async () => {
-  const perPage = filter.perPage ?? 30;
-  const conds = [];
-  if (filter.year) conds.push(sql`extract(year from ${shows.showDate}) = ${filter.year}`);
-  if (filter.tourId) conds.push(eq(shows.tourId, filter.tourId));
-  if (filter.venueId) conds.push(eq(shows.venueId, filter.venueId));
-  const filterWhere = conds.length ? and(...conds) : undefined;
-  const withFilter = (extra: ReturnType<typeof sql>) =>
-    filterWhere ? and(filterWhere, extra) : extra;
+  // Same resolve-then-key rule as listShows: the key reads the values the query
+  // runs on, not the spelling the caller happened to use.
+  const year = filter.year || null;
+  const tourId = filter.tourId || null;
+  const venueId = filter.venueId || null;
+  const dir = filter.dir === "asc" ? "asc" : "desc";
+  const perPage = positiveInt(filter.perPage, 30);
+  return cachedQuery("findLatestPastShow", [year, tourId, venueId, dir, perPage], async () => {
+    const conds = [];
+    if (year) conds.push(sql`extract(year from ${shows.showDate}) = ${year}`);
+    if (tourId) conds.push(eq(shows.tourId, tourId));
+    if (venueId) conds.push(eq(shows.venueId, venueId));
+    const filterWhere = conds.length ? and(...conds) : undefined;
+    const withFilter = (extra: ReturnType<typeof sql>) =>
+      filterWhere ? and(filterWhere, extra) : extra;
 
-  const [target] = await db
-    .select({
-      showId: shows.showId,
-      date: shows.showDate,
-      order: shows.showOrder,
-      isToday: sql<boolean>`${shows.showDate} = ${today()}`,
-    })
-    .from(shows)
-    .where(withFilter(sql`${shows.showDate} <= ${today()}`))
-    .orderBy(desc(shows.showDate), desc(shows.showOrder))
-    .limit(1);
-  if (!target) return null;
+    const [target] = await db
+      .select({
+        showId: shows.showId,
+        date: shows.showDate,
+        order: shows.showOrder,
+        isToday: sql<boolean>`${shows.showDate} = ${today()}`,
+      })
+      .from(shows)
+      .where(withFilter(sql`${shows.showDate} <= ${today()}`))
+      .orderBy(desc(shows.showDate), desc(shows.showOrder))
+      .limit(1);
+    if (!target) return null;
 
-  const ord = target.order ?? 1;
-  const cmp =
-    filter.dir === "asc"
-      ? sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) <= (${target.date}::date, ${ord})`
-      : sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) >= (${target.date}::date, ${ord})`;
-  const [{ rank }] = await db
-    .select({ rank: sql<number>`count(*)::int` })
-    .from(shows)
-    .where(withFilter(cmp));
+    const ord = target.order ?? 1;
+    const cmp =
+      dir === "asc"
+        ? sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) <= (${target.date}::date, ${ord})`
+        : sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) >= (${target.date}::date, ${ord})`;
+    const [{ rank }] = await db
+      .select({ rank: sql<number>`count(*)::int` })
+      .from(shows)
+      .where(withFilter(cmp));
 
-  return {
-    showId: target.showId,
-    date: target.date,
-    isToday: Boolean(target.isToday),
-    page: Math.max(1, Math.ceil(rank / perPage)),
-  };
+    return {
+      showId: target.showId,
+      date: target.date,
+      isToday: Boolean(target.isToday),
+      page: Math.max(1, Math.ceil(rank / perPage)),
+    };
   }, { varyByToday: true });
 }
 
@@ -372,27 +386,32 @@ export async function findLatestPastShow(
  * match count so the UI can say when `rows` is truncated.
  */
 export async function searchShows(q: string, limit = 24): Promise<{ rows: ShowSummary[]; total: number }> {
-  return cachedQuery("searchShows", [q, limit], async () => {
-  const like = `%${escapeLike(q.trim())}%`;
-  const date = normalizeDateQuery(q);
-  const where = date?.iso
-    ? eq(shows.showDate, date.iso)
-    : date?.monthDay
-      ? sql`to_char(${shows.showDate}, 'MM-DD') = ${date.monthDay}`
-      : sql`(${shows.showDate}::text ilike ${like} or ${venues.name} ilike ${like} or ${venues.city} ilike ${like})`;
+  // One canonical term for the key and the query. `normalizeDateQuery` already
+  // trims and lower-cases internally, and the fallback is `ilike`, so this
+  // changes no result — it just stops "Goose", "goose" and " goose " from
+  // filing three cache entries for one answer.
+  const term = searchTerm(q);
+  return cachedQuery("searchShows", [term, limit], async () => {
+    const like = `%${escapeLike(term)}%`;
+    const date = normalizeDateQuery(term);
+    const where = date?.iso
+      ? eq(shows.showDate, date.iso)
+      : date?.monthDay
+        ? sql`to_char(${shows.showDate}, 'MM-DD') = ${date.monthDay}`
+        : sql`(${shows.showDate}::text ilike ${like} or ${venues.name} ilike ${like} or ${venues.city} ilike ${like})`;
 
-  const rows = await baseShowQuery()
-    .where(where)
-    .orderBy(desc(shows.showDate), desc(shows.showOrder))
-    .limit(limit);
+    const rows = await baseShowQuery()
+      .where(where)
+      .orderBy(desc(shows.showDate), desc(shows.showOrder))
+      .limit(limit);
 
-  const [{ total }] = await db
-    .select({ total: sql<number>`count(*)::int` })
-    .from(shows)
-    .leftJoin(venues, eq(venues.venueId, shows.venueId))
-    .where(where);
+    const [{ total }] = await db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(shows)
+      .leftJoin(venues, eq(venues.venueId, shows.venueId))
+      .where(where);
 
-  return { rows, total };
+    return { rows, total };
   });
 }
 

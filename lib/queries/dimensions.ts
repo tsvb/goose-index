@@ -1,7 +1,7 @@
 import { db } from "@/db/client";
 import { shows, venues, tours } from "@/db/schema";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
-import { escapeLike } from "@/lib/util";
+import { escapeLike, searchTerm } from "@/lib/util";
 import { today, etYear } from "./today";
 import { cachedQuery } from "./cache";
 
@@ -86,14 +86,18 @@ export type VenueRow = {
 };
 
 export async function listVenues(opts?: { sort?: "shows" | "name"; q?: string }): Promise<VenueRow[]> {
-  return cachedQuery("listVenues", [opts ?? null], () => {
+  // Resolve to the two values the query reads. `sort` arrives from `searchParams`
+  // and anything that isn't "name" means "shows", so keying on the raw options
+  // let `?sort=anything` mint its own entry for the default listing.
+  const sort = opts?.sort === "name" ? "name" : "shows";
+  const term = searchTerm(opts?.q ?? "");
+  return cachedQuery("listVenues", [sort, term], () => {
   const order =
-    opts?.sort === "name"
+    sort === "name"
       ? [asc(venues.name)]
       : [sql`count(${shows.showId}) desc`, asc(venues.name)];
   // Filter matches name, city, or state so "red rocks", "chicago", and "CO" all work.
-  const q = opts?.q?.trim();
-  const like = q ? `%${escapeLike(q)}%` : null;
+  const like = term ? `%${escapeLike(term)}%` : null;
   const where = like
     ? sql`(${venues.name} ilike ${like} or ${venues.city} ilike ${like} or ${venues.state} ilike ${like})`
     : undefined;
@@ -119,8 +123,9 @@ export async function listVenues(opts?: { sort?: "shows" | "name"; q?: string })
 }
 
 export async function searchVenues(q: string, limit = 12): Promise<{ rows: VenueRow[]; total: number }> {
-  return cachedQuery("searchVenues", [q, limit], async () => {
-  const like = `%${escapeLike(q.trim())}%`;
+  const term = searchTerm(q);
+  return cachedQuery("searchVenues", [term, limit], async () => {
+  const like = `%${escapeLike(term)}%`;
   const where = sql`(${venues.name} ilike ${like} or ${venues.city} ilike ${like})`;
   const rows = await db
     .select({
@@ -153,8 +158,9 @@ export async function searchVenues(q: string, limit = 12): Promise<{ rows: Venue
 }
 
 export async function searchTours(q: string, limit = 8): Promise<{ rows: TourRow[]; total: number }> {
-  return cachedQuery("searchTours", [q, limit], async () => {
-  const like = `%${escapeLike(q.trim())}%`;
+  const term = searchTerm(q);
+  return cachedQuery("searchTours", [term, limit], async () => {
+  const like = `%${escapeLike(term)}%`;
   const where = sql`${tours.name} ilike ${like}`;
   const rows = await db
     .select({
