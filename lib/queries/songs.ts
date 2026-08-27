@@ -173,6 +173,17 @@ const PRIMARY_ALBUM = sql`
  * /stats/current-gaps so the two pages can never disagree.
  */
 export const OVERDUE_MIN_PLAYS = 5;
+
+/**
+ * A song played more than this isn't a rarity. Applied as a SQL ceiling by
+ * `rarities()` rather than as a TS filter over every song, so the cut caches a
+ * cut: asking for the whole catalog put all ~900 songs — each carrying a
+ * per-year sparkline array that grows every January — into one Data Cache
+ * entry, serialized in and out on every render and headed for Vercel's 2MB
+ * per-entry ceiling, past which the write is dropped in silence.
+ */
+export const RARITY_MAX_PLAYS = 3;
+
 export const SONG_FACETS = ["all", "originals", "covers"] as const;
 export type SongFacet = (typeof SONG_FACETS)[number];
 export type SongIndexRow = {
@@ -185,7 +196,12 @@ export type SongIndexRow = {
 };
 
 export async function listSongs(
-  opts: { sort?: SongSort; facet?: SongFacet; q?: string; page?: number; perPage?: number } = {},
+  opts: {
+    sort?: SongSort; facet?: SongFacet; q?: string; page?: number; perPage?: number;
+    /** Play-count ceiling, so a low-play cut is bounded in SQL rather than by
+     *  reading the catalog and filtering in TS. See RARITY_MAX_PLAYS. */
+    maxPlays?: number;
+  } = {},
 ): Promise<{ rows: SongIndexRow[]; total: number }> {
   // Resolve every option to the value the query actually runs on before keying.
   // `sort` and `facet` arrive straight from `searchParams` (app/songs/page.tsx
@@ -197,11 +213,13 @@ export async function listSongs(
   const perPage = positiveInt(opts.perPage, 100);
   const page = positiveInt(opts.page, 1);
   const term = searchTerm(opts.q ?? "");
-  return cachedQuery("listSongs", [sort, facet, term, page, perPage], async () => {
+  const maxPlays = positiveInt(opts.maxPlays, 0) || null;
+  return cachedQuery("listSongs", [sort, facet, term, page, perPage, maxPlays], async () => {
   const facetCond =
     facet === "originals" ? sql`and so.is_original` :
     facet === "covers" ? sql`and not so.is_original` : sql``;
   const qCond = term ? sql`and so.name ilike ${"%" + escapeLike(term) + "%"}` : sql``;
+  const ceilingCond = maxPlays ? sql`and coalesce(a.times_played, 0) <= ${maxPlays}` : sql``;
 
   // year span for the sparkline
   const [span] = allRows(await db.execute(sql`
@@ -249,7 +267,7 @@ export async function listSongs(
     from songs so
     left join agg a on a.song_id = so.song_id
     left join primary_album pa on pa.song_id = so.song_id
-    where coalesce(a.times_played, 0) > 0 ${facetCond} ${qCond} ${overdueCond}
+    where coalesce(a.times_played, 0) > 0 ${facetCond} ${qCond} ${overdueCond} ${ceilingCond}
     order by ${orderBy}
     limit ${perPage} offset ${(page - 1) * perPage}
   `));
@@ -262,7 +280,7 @@ export async function listSongs(
     select count(*)::int as total
     from songs so
     left join agg a on a.song_id = so.song_id
-    where coalesce(a.times_played, 0) > 0 ${facetCond} ${qCond} ${overdueCond}
+    where coalesce(a.times_played, 0) > 0 ${facetCond} ${qCond} ${overdueCond} ${ceilingCond}
   `));
   const total = num(cnt?.total);
 
@@ -362,9 +380,12 @@ export async function mostPlayed(limit = 100): Promise<SongIndexRow[]> {
 export async function rarities(limit = 100): Promise<SongIndexRow[]> {
   // Low-play songs, but a cover played only once is a one-off, not a rarity —
   // keep one-time originals (genuine rare gems) and any cover that recurred.
-  // The filter runs in TS, so scan the whole catalog rather than one page.
-  return (await listSongs({ sort: "rare", perPage: Number.MAX_SAFE_INTEGER })).rows
-    .filter((r) => r.timesPlayed <= 3 && (r.isOriginal || r.timesPlayed > 1))
+  // The ≤RARITY_MAX_PLAYS ceiling runs in SQL, so what gets cached is the cut
+  // itself rather than the whole catalog on its way to being filtered down to
+  // it. The cover rule stays in TS: it is this cut's rule, not the `rare` sort's,
+  // and /songs?sort=rare must keep listing every song.
+  return (await listSongs({ sort: "rare", maxPlays: RARITY_MAX_PLAYS, perPage: Number.MAX_SAFE_INTEGER })).rows
+    .filter((r) => r.isOriginal || r.timesPlayed > 1)
     .slice(0, limit);
 }
 

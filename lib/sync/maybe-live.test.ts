@@ -56,6 +56,34 @@ describe("maybeLiveSync", () => {
     expect(second).toEqual({ live: true, date: "2026-07-04", claimed: false });
   });
 
+  // Dropping the cache is a courtesy after the pull, not part of it. The rows are
+  // already written and the debounce window already claimed, so if this step
+  // throws — a socket the pool closed while elgoose was slow, say — reporting the
+  // sync as failed would be a lie that nothing retries for a minute.
+  it("still reports success when dropping the cache afterwards throws", async () => {
+    await seedShow();
+    vi.resetModules();
+    vi.doMock("@/lib/queries/cache", () => ({
+      revalidateLiveShow: async () => { throw new Error("cache exploded"); },
+    }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const { maybeLiveSync } = await import("./maybe-live");
+      const { sql } = await import("drizzle-orm");
+      await ctx.db.execute(sql`update live_sync_state set last_run_at = now() - interval '10 minutes'`);
+      const client = { async fetchMethod<T>(): Promise<T[]> { return [] as T[]; } };
+      const status = await maybeLiveSync({ db: ctx.db, now: SHOW_NIGHT, client });
+      expect(status.claimed).toBe(true);
+      expect(status.error).toBeUndefined();
+      expect(status.summary).toBeDefined();
+      expect(warn).toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+      vi.doUnmock("@/lib/queries/cache");
+      vi.resetModules();
+    }
+  });
+
   it("never throws even when the sync path fails", async () => {
     const { maybeLiveSync } = await import("./maybe-live");
     const brokenClient = {

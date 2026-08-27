@@ -274,7 +274,14 @@ export async function getShowNeighbors(
     .orderBy(asc(shows.showDate), asc(seqOrder))
     .limit(1);
   return { prev: prev ?? null, next: next ?? null };
-  }, { tags: [CATALOG_TAG, showDateTag(date)] });
+  // Catalog-tagged only, deliberately. Every row here describes an *adjacent*
+  // show, so `show:<date>` would name a tag that cannot fire when this answer
+  // changes: a pull on the 27th busts `show:2026-08-27`, never the `show:2026-08-26`
+  // entry that holds the 27th's venue. The neighbour dates aren't known until
+  // the query has run, so there is no tag to name here — better to claim no
+  // targeted freshness than to imply freshness the tag doesn't deliver. The
+  // hourly TTL and the nightly catalog bust are what keep this current.
+  });
 }
 
 export type ShowListFilter = {

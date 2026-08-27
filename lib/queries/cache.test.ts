@@ -48,8 +48,11 @@ describe("query cache helpers", () => {
     expect(await cachedQuery("t", [], async () => ++n)).toBe(2);
   });
 
-  it("revalidate helpers are no-ops outside Next", async () => {
-    await expect(revalidateLiveShow("2026-08-26", [1])).resolves.toBeUndefined();
-    await expect(revalidateCatalog()).resolves.toBeUndefined();
+  // Outside Next there is no cache to drop, and the honest answer to "did you
+  // drop it?" is no. /api/revalidate reports this straight through rather than
+  // telling the nightly Action a cache moved when none exists.
+  it("revalidate helpers report failure outside Next rather than claiming success", async () => {
+    await expect(revalidateLiveShow("2026-08-26", [1])).resolves.toBe(false);
+    await expect(revalidateCatalog()).resolves.toBe(false);
   });
 });

@@ -36,6 +36,23 @@ export function cacheEnabled(): boolean {
   );
 }
 
+/**
+ * Next's cache API, or null when we aren't running inside it.
+ *
+ * `unstable_cache` and `revalidateTag` exist only in the Next server. Vitest,
+ * `tsx` scripts and drizzle-kit import this module too, so every use has to
+ * tolerate their absence — here, once, rather than at each of the three call
+ * sites that used to carry their own copy of this try/catch.
+ */
+async function nextCache(): Promise<typeof import("next/cache") | null> {
+  if (!cacheEnabled()) return null;
+  try {
+    return await import("next/cache");
+  } catch {
+    return null;
+  }
+}
+
 export type CachedQueryOpts = {
   tags?: string[];
   revalidate?: number;
@@ -56,7 +73,8 @@ export async function cachedQuery<T>(
   fn: () => T | Promise<T>,
   opts: CachedQueryOpts = {},
 ): Promise<T> {
-  if (!cacheEnabled()) return fn();
+  const cache = await nextCache();
+  if (!cache) return fn();
   // What the query itself did, recorded so the catch below can tell a failure in
   // Next's cache plumbing (retryable) from a failure in the read (not). Without
   // this the catch swallows a failed query and runs it again — a second round
@@ -75,10 +93,9 @@ export async function cachedQuery<T>(
     }
   };
   try {
-    const { unstable_cache } = await import("next/cache");
     const keyParts = [key, ...args.map((a) => JSON.stringify(a))];
     if (opts.varyByToday) keyParts.push(etToday());
-    return await unstable_cache(run, keyParts, {
+    return await cache.unstable_cache(run, keyParts, {
       revalidate: opts.revalidate ?? CATALOG_REVALIDATE_SECONDS,
       tags: opts.tags ?? [CATALOG_TAG],
     })();
@@ -94,25 +111,34 @@ export async function cachedQuery<T>(
   }
 }
 
-/** Drop the cached rows for one date after a live-show pull. */
-export async function revalidateLiveShow(date: string, showIds: number[]): Promise<void> {
-  if (!cacheEnabled()) return;
+/**
+ * Drop a set of tags. Reports whether Next actually took them.
+ *
+ * Two reasons this returns a boolean instead of void. A caller that has to
+ * answer for the bust — /api/revalidate tells the nightly Action whether the
+ * cache moved — cannot answer honestly from a void. And a silent failure here
+ * is invisible by construction: a live setlist that is an hour stale looks
+ * exactly like one that is current, so the warning is the only signal there is.
+ */
+async function bustTags(tags: string[], what: string): Promise<boolean> {
+  const cache = await nextCache();
+  if (!cache) return false;
   try {
-    const { revalidateTag } = await import("next/cache");
-    revalidateTag(showDateTag(date));
-    for (const id of showIds) revalidateTag(showIdTag(id));
-  } catch {
-    // Same as cachedQuery: only the app server can bust tags.
+    for (const tag of tags) cache.revalidateTag(tag);
+    return true;
+  } catch (e) {
+    // `revalidateTag` throws outside a request, and during render. Say so.
+    console.warn(`[cache] could not drop ${what}: ${e instanceof Error ? e.message : String(e)}`);
+    return false;
   }
 }
 
+/** Drop the cached rows for one date after a live-show pull. */
+export function revalidateLiveShow(date: string, showIds: number[]): Promise<boolean> {
+  return bustTags([showDateTag(date), ...showIds.map(showIdTag)], `show ${date}`);
+}
+
 /** Drop every catalog entry. Called from POST /api/revalidate after the nightly sync. */
-export async function revalidateCatalog(): Promise<void> {
-  if (!cacheEnabled()) return;
-  try {
-    const { revalidateTag } = await import("next/cache");
-    revalidateTag(CATALOG_TAG);
-  } catch {
-    // Same as cachedQuery.
-  }
+export function revalidateCatalog(): Promise<boolean> {
+  return bustTags([CATALOG_TAG], "the catalog");
 }

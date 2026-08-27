@@ -110,7 +110,7 @@ describe("paging and sort options reduce to one key", () => {
     await listSongs({ q: "  ", page: 0 });
     const keys = calls.map((c) => JSON.stringify(c.args));
     expect(new Set(keys).size).toBe(1);
-    expect(argsOf("listSongs")).toEqual(["played", "all", "", 1, 100]);
+    expect(argsOf("listSongs")).toEqual(["played", "all", "", 1, 100, null]);
   });
 
   it("listSongs keeps the real sorts and facets apart", async () => {

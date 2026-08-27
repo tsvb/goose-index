@@ -7,6 +7,8 @@ const tags: string[] = [];
  *  it can: before it ever calls the query, or after the query has returned (a
  *  failed cache write). Default is a plain pass-through. */
 let plumbing: "ok" | "throws-before-query" | "throws-after-query" = "ok";
+/** Next refusing a tag bust — it throws outside a request, and during render. */
+let revalidateThrows = false;
 
 vi.mock("next/cache", () => ({
   unstable_cache: (
@@ -23,6 +25,7 @@ vi.mock("next/cache", () => ({
     };
   },
   revalidateTag: (tag: string) => {
+    if (revalidateThrows) throw new Error("static generation store missing");
     tags.push(tag);
   },
 }));
@@ -42,6 +45,7 @@ describe("cachedQuery when Next's cache is available", () => {
     unstableCalls.length = 0;
     tags.length = 0;
     plumbing = "ok";
+    revalidateThrows = false;
   });
 
   it("wraps the query in unstable_cache with the catalog tag and TTL", async () => {
@@ -102,13 +106,28 @@ describe("cachedQuery when Next's cache is available", () => {
 
   it("revalidateLiveShow busts the date and show-id tags", async () => {
     process.env.NEXT_RUNTIME = "nodejs";
-    await revalidateLiveShow("2026-08-26", [900, 901]);
+    await expect(revalidateLiveShow("2026-08-26", [900, 901])).resolves.toBe(true);
     expect(tags).toEqual(["show:2026-08-26", "show-id:900", "show-id:901"]);
   });
 
   it("revalidateCatalog busts the catalog tag", async () => {
     process.env.VERCEL = "1";
-    await revalidateCatalog();
+    await expect(revalidateCatalog()).resolves.toBe(true);
     expect(tags).toEqual([CATALOG_TAG]);
+  });
+
+  // A tag bust that quietly fails is invisible from the outside: an hour-stale
+  // setlist looks exactly like a current one. The return value is what
+  // /api/revalidate answers with, and the warning is the only other signal.
+  it("reports and logs a refused bust instead of swallowing it", async () => {
+    process.env.NEXT_RUNTIME = "nodejs";
+    revalidateThrows = true;
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await expect(revalidateCatalog()).resolves.toBe(false);
+    await expect(revalidateLiveShow("2026-08-26", [900])).resolves.toBe(false);
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(String(warn.mock.calls[0][0])).toContain("the catalog");
+    expect(String(warn.mock.calls[1][0])).toContain("show 2026-08-26");
+    warn.mockRestore();
   });
 });

@@ -59,9 +59,18 @@ export async function maybeLiveSync(deps?: { db?: AppDb; now?: Date; client?: El
     const client = deps?.client ?? createElgooseClient(ua ? { userAgent: ua } : {});
     const summary = await runLiveSync({ client, db: d, date });
     await d.execute(sql`update live_sync_state set last_summary = ${JSON.stringify(summary)} where id = 1`);
-    const ids = (await d.select({ id: schema.shows.showId }).from(schema.shows)
-      .where(eq(schema.shows.showDate, date))).map((r) => r.id);
-    await revalidateLiveShow(date, ids);
+    // The pull is done and recorded; dropping the cache is a courtesy on top of
+    // it. Inside the outer try, a dropped socket here (the pool closes idle
+    // connections after 20s and the elgoose fetch can outlast that) would report
+    // a sync that in fact succeeded as an error, with the debounce window
+    // already claimed so nothing retries for a minute.
+    try {
+      const ids = (await d.select({ id: schema.shows.showId }).from(schema.shows)
+        .where(eq(schema.shows.showDate, date))).map((r) => r.id);
+      await revalidateLiveShow(date, ids);
+    } catch (e) {
+      console.warn(`[live] ${date} synced, but its cache was not dropped: ${e instanceof Error ? e.message : String(e)}`);
+    }
     return { live: true, date, claimed: true, summary };
   } catch (e) {
     return { live: true, date, error: e instanceof Error ? e.message : String(e) };

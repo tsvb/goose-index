@@ -23,11 +23,11 @@ page loads never depend on the elgoose API being up.
 - The **direct** (non-pooled) string is only needed if a tool complains about pooling;
   migrations and sync work fine over the pooled string too.
 - Neon free-tier databases **auto-suspend when idle**, so the first request after a quiet
-spell has a ~1s cold start. Fine for this site. Credits are **compute-while-awake**: if
-something opens a connection more often than the suspend window (5 minutes by default),
-the instance never sleeps and the monthly allotment disappears. The site used to do that
-— every page is `force-dynamic` (the experience cookie), and a crawler hitting 800 show
-pages was 800 round-trips to Neon.
+  spell has a ~1s cold start. Fine for this site. Credits are **compute-while-awake**: if
+  something opens a connection more often than the suspend window (5 minutes by default),
+  the instance never sleeps and the monthly allotment disappears. The site used to do that
+  — every page is `force-dynamic` (the experience cookie), and a crawler hitting 800 show
+  pages was 800 round-trips to Neon.
 
 What the app does about that:
 
@@ -42,7 +42,10 @@ What the app does about that:
 
 After the nightly Action writes, it POSTs `/api/revalidate` if `REVALIDATE_SECRET` is
 set on both GitHub and Vercel; without the secret the cache expires on its own within
-an hour.
+an hour. The endpoint answers `{ revalidated: true }` only when the tag actually
+dropped — 501 when it's unconfigured, 500 when Next refused — and the Action turns a
+non-200 into a **warning, never a failed run**: the data work is already committed by
+then, and the cost of a missed bust is at most an hour of staleness.
 
 ### Console settings that still matter
 
@@ -57,8 +60,12 @@ These are not in the repo. Check them when credits run hot:
   deployments share production Neon; visiting a preview URL (including Vercel's
   screenshot bot) wakes it. Unset `DATABASE_URL` on Preview if those visits add up —
   previews will 500, which is cheaper than a second compute.
-- **Local `.env` points at localhost**, not Neon. Every `npm run dev` against the
-  pooled production string is a connection Neon cannot distinguish from the site.
+- **Know what your local `.env` points at before you connect.** It moves, so no doc —
+  this one included — can tell you where it points today. `npm run db:migrate`,
+  `npm run sync` and every `import-*` script print their target host before they touch
+  anything; trust that line. `npm run dev` prints nothing, so read `.env` yourself: a dev
+  server on the pooled production string is a connection Neon cannot tell apart from the
+  site's, held open for as long as you're working.
 
 ---
 

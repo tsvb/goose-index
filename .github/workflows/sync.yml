@@ -61,8 +61,15 @@ jobs:
         run: npm run import-nugs
 
       # Drop the site's one-hour query cache so tonight's write is visible
-      # immediately. No-op (and the job still succeeds) until REVALIDATE_SECRET
-      # is set on both GitHub and Vercel — the TTL covers the gap.
+      # immediately.
+      #
+      # This step never fails the run. By the time it happens the data work is
+      # done and committed, and the worst a missed bust costs is an hour of
+      # staleness — whereas a red nightly run for a cache that will expire on
+      # its own is an alert that trains you to ignore alerts. It goes amber
+      # instead, which is what "the sync worked, the courtesy call didn't" is.
+      # The window where the secret is set here but not yet on Vercel (deploy
+      # step 3 vs step 5 in docs/DEPLOY.md) lands here as a 501, not a failure.
       - name: Refresh the site's query cache
         env:
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
@@ -71,6 +78,13 @@ jobs:
             echo "REVALIDATE_SECRET unset; catalog cache expires on its own (≤1h)"
             exit 0
           fi
-          curl -fsS -X POST \
+          status=$(curl -sS -m 30 -o /dev/null -w '%{http_code}' -X POST \
             -H "Authorization: Bearer $REVALIDATE_SECRET" \
-            https://www.gooseindex.com/api/revalidate
+            https://www.gooseindex.com/api/revalidate || echo "000")
+          case "$status" in
+            200) echo "Catalog cache dropped." ;;
+            501) echo "::warning::/api/revalidate is disabled (REVALIDATE_SECRET unset on Vercel); cache expires on its own (≤1h)" ;;
+            401) echo "::warning::/api/revalidate rejected the secret; it differs from the one on Vercel. Cache expires on its own (≤1h)" ;;
+            000) echo "::warning::/api/revalidate unreachable; cache expires on its own (≤1h)" ;;
+            *)   echo "::warning::/api/revalidate returned $status; cache expires on its own (≤1h)" ;;
+          esac
