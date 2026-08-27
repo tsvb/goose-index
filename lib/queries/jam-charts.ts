@@ -51,15 +51,15 @@ function allRows(result: unknown): Record<string, unknown>[] {
 /** The newest show date carrying any jam-chart entry, or null if none does. */
 export async function jamChartFrontier(): Promise<string | null> {
   return cachedQuery("jamChartFrontier", [], async () => {
-  const rows = allRows(await db.execute(sql`
-    select max(s.show_date)::text as frontier
-    from shows s
-    join performances p on p.show_id = s.show_id
-    where p.is_jamchart = true
-      and s.show_date <= ${today()}
-  `));
-  const frontier = rows[0]?.frontier;
-  return typeof frontier === "string" ? frontier : null;
+    const rows = allRows(await db.execute(sql`
+      select max(s.show_date)::text as frontier
+      from shows s
+      join performances p on p.show_id = s.show_id
+      where p.is_jamchart = true
+        and s.show_date <= ${today()}
+    `));
+    const frontier = rows[0]?.frontier;
+    return typeof frontier === "string" ? frontier : null;
   }, { varyByToday: true });
 }
 

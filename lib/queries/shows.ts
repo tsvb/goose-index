@@ -248,39 +248,39 @@ export async function getShowNeighbors(
   order: number | null,
 ): Promise<{ prev: ShowNeighbor; next: ShowNeighbor }> {
   return cachedQuery("getShowNeighbors", [date, order], async () => {
-  const ord = order ?? 1;
-  const cols = {
-    date: shows.showDate,
-    order: shows.showOrder,
-    venue: venues.name,
-    city: venues.city,
-    state: venues.state,
-  };
-  // Walk the true chronological sequence (date, show_order) so multi-show
-  // dates step through show 1 → 2 → n before crossing to the next date.
-  const seqOrder = sql`coalesce(${shows.showOrder}, 1)`;
-  const [prev] = await db
-    .select(cols)
-    .from(shows)
-    .leftJoin(venues, eq(venues.venueId, shows.venueId))
-    .where(sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) < (${date}::date, ${ord})`)
-    .orderBy(desc(shows.showDate), desc(seqOrder))
-    .limit(1);
-  const [next] = await db
-    .select(cols)
-    .from(shows)
-    .leftJoin(venues, eq(venues.venueId, shows.venueId))
-    .where(sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) > (${date}::date, ${ord})`)
-    .orderBy(asc(shows.showDate), asc(seqOrder))
-    .limit(1);
-  return { prev: prev ?? null, next: next ?? null };
-  // Catalog-tagged only, deliberately. Every row here describes an *adjacent*
-  // show, so `show:<date>` would name a tag that cannot fire when this answer
-  // changes: a pull on the 27th busts `show:2026-08-27`, never the `show:2026-08-26`
-  // entry that holds the 27th's venue. The neighbour dates aren't known until
-  // the query has run, so there is no tag to name here — better to claim no
-  // targeted freshness than to imply freshness the tag doesn't deliver. The
-  // hourly TTL and the nightly catalog bust are what keep this current.
+    const ord = order ?? 1;
+    const cols = {
+      date: shows.showDate,
+      order: shows.showOrder,
+      venue: venues.name,
+      city: venues.city,
+      state: venues.state,
+    };
+    // Walk the true chronological sequence (date, show_order) so multi-show
+    // dates step through show 1 → 2 → n before crossing to the next date.
+    const seqOrder = sql`coalesce(${shows.showOrder}, 1)`;
+    const [prev] = await db
+      .select(cols)
+      .from(shows)
+      .leftJoin(venues, eq(venues.venueId, shows.venueId))
+      .where(sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) < (${date}::date, ${ord})`)
+      .orderBy(desc(shows.showDate), desc(seqOrder))
+      .limit(1);
+    const [next] = await db
+      .select(cols)
+      .from(shows)
+      .leftJoin(venues, eq(venues.venueId, shows.venueId))
+      .where(sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) > (${date}::date, ${ord})`)
+      .orderBy(asc(shows.showDate), asc(seqOrder))
+      .limit(1);
+    return { prev: prev ?? null, next: next ?? null };
+    // Catalog-tagged only, deliberately. Every row here describes an *adjacent*
+    // show, so `show:<date>` would name a tag that cannot fire when this answer
+    // changes: a pull on the 27th busts `show:2026-08-27`, never the `show:2026-08-26`
+    // entry that holds the 27th's venue. The neighbour dates aren't known until
+    // the query has run, so there is no tag to name here — better to claim no
+    // targeted freshness than to imply freshness the tag doesn't deliver. The
+    // hourly TTL and the nightly catalog bust are what keep this current.
   });
 }
 
