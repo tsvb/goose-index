@@ -175,6 +175,33 @@ describe("listSongs", () => {
   });
 });
 
+describe("listSongs maxPlays", () => {
+  // The rarities cut used to read the whole catalog and filter down to ≤3 plays
+  // in TS, which cached every song in one entry. The ceiling belongs in SQL, and
+  // has to bound `total` as well as the page — `overdue`'s floor already does.
+  it("bounds the page and the total, not just the ordering", async () => {
+    await seed();
+    await upsertSongs(ctx.db, [{ songId: 702, name: "Bowie", slug: "bowie", isOriginal: false, originalArtist: "David Bowie" }]);
+    await upsertPerformances(ctx.db, [{ uniqueId: "b0", showId: 1, songId: 702, setType: "Set", setNumber: "1", position: 3, trackTime: "6:00", transition: null, transitionId: null, isJamchart: false, jamchartNotes: null, isReprise: false, isJam: false, isVerified: true, footnote: null }]);
+    const { listSongs } = await import("./songs");
+
+    const uncapped = await listSongs({ sort: "rare" });
+    expect(uncapped.rows.map((r) => r.slug)).toContain("madhuvan"); // 5 plays
+
+    const capped = await listSongs({ sort: "rare", maxPlays: 3 });
+    expect([...capped.rows.map((r) => r.slug)].sort()).toEqual(["bowie", "hot-tea"]);
+    expect(capped.rows.every((r) => r.timesPlayed <= 3)).toBe(true);
+    expect(capped.total).toBe(2);
+    expect(capped.total).toBeLessThan(uncapped.total);
+  });
+
+  it("is absent by default, so the index still lists every song", async () => {
+    await seed();
+    const { listSongs } = await import("./songs");
+    expect(await listSongs({ sort: "rare" })).toEqual(await listSongs({ sort: "rare", maxPlays: 0 }));
+  });
+});
+
 describe("stats cuts", () => {
   it("rarities are low-play; currentGaps excludes one-timers", async () => {
     await seed();

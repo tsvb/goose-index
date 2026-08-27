@@ -12,6 +12,12 @@ function connect(connectionString: string) {
     // Serverless invocations are short-lived and numerous; keep each instance's
     // pool tiny and let Neon's pooler handle the real multiplexing.
     max: 1,
+    // A warm Vercel isolate reuses this module. Without an idle timeout the
+    // TCP session stays open and Neon never reaches the 5-minute suspend
+    // window — that's compute billed as "the database is always on".
+    idle_timeout: 20,
+    max_lifetime: 60 * 30,
+    connect_timeout: 10,
   });
   return { client, db: drizzle(client, { schema }) };
 }

@@ -94,6 +94,21 @@ describe("listVenues", () => {
     expect(await listVenues({ q: "r_d" })).toEqual([]); // would match "Red…" if _ stayed a wildcard
     expect((await listVenues({ q: "  rocks  " })).map((v) => v.venueId)).toEqual([1]);
   });
+
+  // These spellings now reduce to one cache key. That is only sound because the
+  // SQL already answered them identically — assert it, so the day someone makes
+  // the filter case-sensitive the shared key fails here rather than in the cache.
+  it("returns one answer for every spelling that shares a cache key", async () => {
+    const { listVenues } = await import("./dimensions");
+    const canonical = await listVenues({ q: "rocks" });
+    expect(canonical.map((v) => v.venueId)).toEqual([1]);
+    for (const q of ["ROCKS", "Rocks", "  rOcKs  "]) {
+      expect(await listVenues({ q })).toEqual(canonical);
+    }
+    // "shows" is the default, so naming it and omitting it are one listing.
+    expect(await listVenues({ sort: "shows" })).toEqual(await listVenues());
+    expect(await listVenues({ q: "" })).toEqual(await listVenues());
+  });
 });
 
 describe("searchVenues", () => {

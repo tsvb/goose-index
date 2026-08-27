@@ -29,8 +29,10 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-// Pages read live DB data and `current_date` (e.g. "On This Day"), so render
-// per-request rather than freezing at build time.
+// Pages read live DB data and `etToday()` (e.g. "On This Day"), and the
+// experience cookie is a Dynamic API, so HTML still renders per request.
+// Catalog queries are cached in lib/queries/cache.ts — that's what keeps
+// Neon from waking on every crawler hit.
 export const dynamic = "force-dynamic";
 
 

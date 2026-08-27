@@ -44,6 +44,46 @@ beforeAll(async () => {
   })));
 });
 
+// listShows resolves its filter before building a cache key, so every spelling
+// that resolves to the same query has to return the same rows. Assert that here
+// rather than trusting the cache to be right about it.
+describe("listShows: the filters that share a cache key share an answer", () => {
+  it("collapses an absent, zero, negative, or NaN page onto page 1", async () => {
+    const { listShows } = await import("./shows");
+    const first = await listShows({ perPage: 4 });
+    expect(first.rows).toHaveLength(4);
+    expect(first.total).toBe(9);
+    for (const page of [1, 0, -5, NaN]) {
+      expect(await listShows({ page, perPage: 4 })).toEqual(first);
+    }
+  });
+
+  it("collapses an absent or unrecognised dir onto desc", async () => {
+    const { listShows } = await import("./shows");
+    const desc = await listShows({ dir: "desc", perPage: 4 });
+    expect(await listShows({ perPage: 4 })).toEqual(desc);
+    // asc really is a different answer — the collapse must not be swallowing it.
+    expect((await listShows({ dir: "asc", perPage: 4 })).rows).not.toEqual(desc.rows);
+  });
+
+  it("collapses an absent or falsy year/tour filter onto no filter", async () => {
+    const { listShows } = await import("./shows");
+    const unfiltered = await listShows({ perPage: 50 });
+    expect(unfiltered.total).toBe(9);
+    expect(await listShows({ year: undefined, tourId: undefined, perPage: 50 })).toEqual(unfiltered);
+    expect(await listShows({ year: NaN, perPage: 50 })).toEqual(unfiltered);
+    // And a real filter still filters.
+    expect((await listShows({ tourId: TOUR_ID, perPage: 50 })).total).toBe(2);
+  });
+
+  it("pages without letting a fractional page shift the window", async () => {
+    const { listShows } = await import("./shows");
+    const page2 = await listShows({ page: 2, perPage: 4 });
+    expect(page2.rows).toHaveLength(4);
+    expect(await listShows({ page: 2.7, perPage: 4 })).toEqual(page2);
+  });
+});
+
 describe("findLatestPastShow", () => {
   it("finds the most recent past show across all shows, ignoring the future one", async () => {
     const { findLatestPastShow } = await import("./shows");

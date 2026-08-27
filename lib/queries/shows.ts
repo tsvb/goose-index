@@ -3,8 +3,9 @@ import { shows, venues, tours, performances, songs } from "@/db/schema";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { p95, isDustedOffGap, firstPlayFlags } from "./songs";
 import { normalizeDateQuery } from "./search-dates";
-import { escapeLike } from "@/lib/util";
+import { escapeLike, positiveInt, searchTerm } from "@/lib/util";
 import { today } from "./today";
+import { CATALOG_TAG, cachedQuery, showDateTag, showIdTag } from "./cache";
 
 function allRows(result: unknown): Record<string, unknown>[] {
   const rows = Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
@@ -54,30 +55,38 @@ function baseShowQuery() {
 }
 
 export async function getRecentShows(limit = 6): Promise<ShowSummary[]> {
-  return baseShowQuery()
-    .where(sql`${shows.showDate} <= ${today()}`)
-    .orderBy(desc(shows.showDate), desc(shows.showOrder))
-    .limit(limit);
+  return cachedQuery("getRecentShows", [limit], () =>
+    baseShowQuery()
+      .where(sql`${shows.showDate} <= ${today()}`)
+      .orderBy(desc(shows.showDate), desc(shows.showOrder))
+      .limit(limit),
+  { varyByToday: true });
 }
 
 export async function getUpcomingShows(limit = 5): Promise<ShowSummary[]> {
-  return baseShowQuery()
-    .where(sql`${shows.showDate} > ${today()}`)
-    .orderBy(asc(shows.showDate), asc(shows.showOrder))
-    .limit(limit);
+  return cachedQuery("getUpcomingShows", [limit], () =>
+    baseShowQuery()
+      .where(sql`${shows.showDate} > ${today()}`)
+      .orderBy(asc(shows.showDate), asc(shows.showOrder))
+      .limit(limit),
+  { varyByToday: true });
 }
 
 /** Past shows that happened on today's month + day, most recent first. */
 export async function getOnThisDay(): Promise<ShowSummary[]> {
-  return baseShowQuery()
-    .where(sql`to_char(${shows.showDate}, 'MM-DD') = to_char(${today()}, 'MM-DD') and ${shows.showDate} < ${today()}`)
-    .orderBy(desc(shows.showDate));
+  return cachedQuery("getOnThisDay", [], () =>
+    baseShowQuery()
+      .where(sql`to_char(${shows.showDate}, 'MM-DD') = to_char(${today()}, 'MM-DD') and ${shows.showDate} < ${today()}`)
+      .orderBy(desc(shows.showDate)),
+  { varyByToday: true });
 }
 
 export async function getShowsOnDate(date: string): Promise<ShowSummary[]> {
-  return baseShowQuery()
-    .where(eq(shows.showDate, date))
-    .orderBy(asc(shows.showOrder));
+  return cachedQuery("getShowsOnDate", [date], () =>
+    baseShowQuery()
+      .where(eq(shows.showDate, date))
+      .orderBy(asc(shows.showOrder)),
+  { tags: [CATALOG_TAG, showDateTag(date)] });
 }
 
 /**
@@ -87,9 +96,11 @@ export async function getShowsOnDate(date: string): Promise<ShowSummary[]> {
  * hoist tonight into its own treatment filter these ids out themselves.
  */
 export async function getTonightShows(): Promise<ShowSummary[]> {
-  return baseShowQuery()
-    .where(sql`${shows.showDate} = ${today()}`)
-    .orderBy(asc(shows.showOrder));
+  return cachedQuery("getTonightShows", [], () =>
+    baseShowQuery()
+      .where(sql`${shows.showDate} = ${today()}`)
+      .orderBy(asc(shows.showOrder)),
+  { varyByToday: true });
 }
 
 export type ShowDetail = ShowSummary & {
@@ -105,21 +116,23 @@ export type ShowDetail = ShowSummary & {
 };
 
 export async function getShowDetails(date: string): Promise<ShowDetail[]> {
-  return db
-    .select({
-      ...summaryColumns(),
-      venueId: shows.venueId,
-      permalink: shows.permalink,
-      notes: shows.notes,
-      bandcampUrl: shows.bandcampUrl,
-      nugsContainerId: shows.nugsContainerId,
-      nugsHasVideo: shows.nugsHasVideo,
-    })
-    .from(shows)
-    .leftJoin(venues, eq(venues.venueId, shows.venueId))
-    .leftJoin(tours, eq(tours.tourId, shows.tourId))
-    .where(eq(shows.showDate, date))
-    .orderBy(asc(shows.showOrder));
+  return cachedQuery("getShowDetails", [date], () =>
+    db
+      .select({
+        ...summaryColumns(),
+        venueId: shows.venueId,
+        permalink: shows.permalink,
+        notes: shows.notes,
+        bandcampUrl: shows.bandcampUrl,
+        nugsContainerId: shows.nugsContainerId,
+        nugsHasVideo: shows.nugsHasVideo,
+      })
+      .from(shows)
+      .leftJoin(venues, eq(venues.venueId, shows.venueId))
+      .leftJoin(tours, eq(tours.tourId, shows.tourId))
+      .where(eq(shows.showDate, date))
+      .orderBy(asc(shows.showOrder)),
+  { tags: [CATALOG_TAG, showDateTag(date)] });
 }
 
 export type SetlistEntry = {
@@ -143,60 +156,62 @@ export type SetlistEntry = {
 };
 
 export async function getSetlist(showId: number): Promise<SetlistEntry[]> {
-  const typeRank = sql<number>`case ${performances.setType}
-    when 'Soundcheck' then 0 when 'Set' then 1 when 'Encore' then 2 else 3 end`;
-  const rows = await db
-    .select({
-      uniqueId: performances.uniqueId,
-      songId: performances.songId,
-      song: songs.name,
-      slug: songs.slug,
-      setType: performances.setType,
-      setNumber: performances.setNumber,
-      position: performances.position,
-      trackTime: performances.trackTime,
-      transition: performances.transition,
-      isJamchart: performances.isJamchart,
-      jamchartNotes: performances.jamchartNotes,
-      isReprise: performances.isReprise,
-      isOriginal: songs.isOriginal,
-      originalArtist: songs.originalArtist,
-      footnote: performances.footnote,
-    })
-    .from(performances)
-    .innerJoin(songs, eq(songs.songId, performances.songId))
-    .where(eq(performances.showId, showId))
-    .orderBy(typeRank, asc(performances.setNumber), asc(performances.position));
+  return cachedQuery("getSetlist", [showId], async () => {
+    const typeRank = sql<number>`case ${performances.setType}
+      when 'Soundcheck' then 0 when 'Set' then 1 when 'Encore' then 2 else 3 end`;
+    const rows = await db
+      .select({
+        uniqueId: performances.uniqueId,
+        songId: performances.songId,
+        song: songs.name,
+        slug: songs.slug,
+        setType: performances.setType,
+        setNumber: performances.setNumber,
+        position: performances.position,
+        trackTime: performances.trackTime,
+        transition: performances.transition,
+        isJamchart: performances.isJamchart,
+        jamchartNotes: performances.jamchartNotes,
+        isReprise: performances.isReprise,
+        isOriginal: songs.isOriginal,
+        originalArtist: songs.originalArtist,
+        footnote: performances.footnote,
+      })
+      .from(performances)
+      .innerJoin(songs, eq(songs.songId, performances.songId))
+      .where(eq(performances.showId, showId))
+      .orderBy(typeRank, asc(performances.setNumber), asc(performances.position));
 
-  // compute per-song gap at THIS show + the full gap series (for TS-side p95, matching song page logic)
-  const gapRows = allRows(await db.execute(sql`
-    with show_seq as (
-      select s.show_id, row_number() over (order by s.show_date, coalesce(s.show_order,1)) as seq
-      from shows s where s.show_date <= ${today()} and exists (select 1 from performances p where p.show_id = s.show_id)
-    ),
-    song_show as (select distinct p.song_id, ss.seq, ss.show_id from performances p join show_seq ss on ss.show_id = p.show_id),
-    gapped as (select song_id, seq, show_id, seq - lag(seq) over (partition by song_id order by seq) - 1 as gap from song_show),
-    this_show as (select song_id, gap from gapped where show_id = ${showId})
-    select ts.song_id, ts.gap as this_gap,
-           array_agg(g.gap) filter (where g.gap is not null) as gaps
-    from this_show ts join gapped g on g.song_id = ts.song_id
-    group by ts.song_id, ts.gap
-  `));
-  const bySong = new Map<number, { thisGap: number | null; gaps: number[] }>();
-  for (const r of gapRows) {
-    const raw = r.gaps;
-    const gaps: number[] = Array.isArray(raw) ? raw.map(Number) : [];
-    bySong.set(Number(r.song_id), { thisGap: r.this_gap == null ? null : Number(r.this_gap), gaps });
-  }
-  // Rows are in play order, so the first appearance of a song is the return;
-  // a reprise later the same night is the same homecoming, not another one.
-  const firstPlay = firstPlayFlags(rows.map((e) => e.songId));
-  return rows.map((e, i) => {
-    const info = bySong.get(e.songId);
-    const gap = info?.thisGap ?? null;
-    const isDustedOff = firstPlay[i] && isDustedOffGap(gap, info?.gaps ?? []);
-    return { ...e, gap, isDustedOff };
-  });
+    // compute per-song gap at THIS show + the full gap series (for TS-side p95, matching song page logic)
+    const gapRows = allRows(await db.execute(sql`
+      with show_seq as (
+        select s.show_id, row_number() over (order by s.show_date, coalesce(s.show_order,1)) as seq
+        from shows s where s.show_date <= ${today()} and exists (select 1 from performances p where p.show_id = s.show_id)
+      ),
+      song_show as (select distinct p.song_id, ss.seq, ss.show_id from performances p join show_seq ss on ss.show_id = p.show_id),
+      gapped as (select song_id, seq, show_id, seq - lag(seq) over (partition by song_id order by seq) - 1 as gap from song_show),
+      this_show as (select song_id, gap from gapped where show_id = ${showId})
+      select ts.song_id, ts.gap as this_gap,
+             array_agg(g.gap) filter (where g.gap is not null) as gaps
+      from this_show ts join gapped g on g.song_id = ts.song_id
+      group by ts.song_id, ts.gap
+    `));
+    const bySong = new Map<number, { thisGap: number | null; gaps: number[] }>();
+    for (const r of gapRows) {
+      const raw = r.gaps;
+      const gaps: number[] = Array.isArray(raw) ? raw.map(Number) : [];
+      bySong.set(Number(r.song_id), { thisGap: r.this_gap == null ? null : Number(r.this_gap), gaps });
+    }
+    // Rows are in play order, so the first appearance of a song is the return;
+    // a reprise later the same night is the same homecoming, not another one.
+    const firstPlay = firstPlayFlags(rows.map((e) => e.songId));
+    return rows.map((e, i) => {
+      const info = bySong.get(e.songId);
+      const gap = info?.thisGap ?? null;
+      const isDustedOff = firstPlay[i] && isDustedOffGap(gap, info?.gaps ?? []);
+      return { ...e, gap, isDustedOff };
+    });
+  }, { tags: [CATALOG_TAG, showIdTag(showId)], varyByToday: true });
 }
 
 /**
@@ -212,16 +227,18 @@ export async function getSetlist(showId: number): Promise<SetlistEntry[]> {
  * null — the page drops the stamp/folio rather than print a wrong number.
  */
 export async function getShowEntryNumber(date: string, order: number | null): Promise<number | null> {
-  const ord = order ?? 1;
-  const [row] = allRows(await db.execute(sql`
-    select count(*)::int as n,
-           bool_or(s.show_date = ${date}::date and coalesce(s.show_order, 1) = ${ord}) as counted
-    from shows s
-    where (s.show_date, coalesce(s.show_order, 1)) <= (${date}::date, ${ord})
-      and s.show_date <= ${today()}
-      and exists (select 1 from performances p where p.show_id = s.show_id)
-  `));
-  return row?.counted ? Number(row.n) : null;
+  return cachedQuery("getShowEntryNumber", [date, order], async () => {
+    const ord = order ?? 1;
+    const [row] = allRows(await db.execute(sql`
+      select count(*)::int as n,
+             bool_or(s.show_date = ${date}::date and coalesce(s.show_order, 1) = ${ord}) as counted
+      from shows s
+      where (s.show_date, coalesce(s.show_order, 1)) <= (${date}::date, ${ord})
+        and s.show_date <= ${today()}
+        and exists (select 1 from performances p where p.show_id = s.show_id)
+    `));
+    return row?.counted ? Number(row.n) : null;
+  }, { tags: [CATALOG_TAG, showDateTag(date)], varyByToday: true });
 }
 
 export type ShowNeighbor = { date: string; order: number | null; venue: string | null; city: string | null; state: string | null } | null;
@@ -230,32 +247,41 @@ export async function getShowNeighbors(
   date: string,
   order: number | null,
 ): Promise<{ prev: ShowNeighbor; next: ShowNeighbor }> {
-  const ord = order ?? 1;
-  const cols = {
-    date: shows.showDate,
-    order: shows.showOrder,
-    venue: venues.name,
-    city: venues.city,
-    state: venues.state,
-  };
-  // Walk the true chronological sequence (date, show_order) so multi-show
-  // dates step through show 1 → 2 → n before crossing to the next date.
-  const seqOrder = sql`coalesce(${shows.showOrder}, 1)`;
-  const [prev] = await db
-    .select(cols)
-    .from(shows)
-    .leftJoin(venues, eq(venues.venueId, shows.venueId))
-    .where(sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) < (${date}::date, ${ord})`)
-    .orderBy(desc(shows.showDate), desc(seqOrder))
-    .limit(1);
-  const [next] = await db
-    .select(cols)
-    .from(shows)
-    .leftJoin(venues, eq(venues.venueId, shows.venueId))
-    .where(sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) > (${date}::date, ${ord})`)
-    .orderBy(asc(shows.showDate), asc(seqOrder))
-    .limit(1);
-  return { prev: prev ?? null, next: next ?? null };
+  return cachedQuery("getShowNeighbors", [date, order], async () => {
+    const ord = order ?? 1;
+    const cols = {
+      date: shows.showDate,
+      order: shows.showOrder,
+      venue: venues.name,
+      city: venues.city,
+      state: venues.state,
+    };
+    // Walk the true chronological sequence (date, show_order) so multi-show
+    // dates step through show 1 → 2 → n before crossing to the next date.
+    const seqOrder = sql`coalesce(${shows.showOrder}, 1)`;
+    const [prev] = await db
+      .select(cols)
+      .from(shows)
+      .leftJoin(venues, eq(venues.venueId, shows.venueId))
+      .where(sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) < (${date}::date, ${ord})`)
+      .orderBy(desc(shows.showDate), desc(seqOrder))
+      .limit(1);
+    const [next] = await db
+      .select(cols)
+      .from(shows)
+      .leftJoin(venues, eq(venues.venueId, shows.venueId))
+      .where(sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) > (${date}::date, ${ord})`)
+      .orderBy(asc(shows.showDate), asc(seqOrder))
+      .limit(1);
+    return { prev: prev ?? null, next: next ?? null };
+    // Catalog-tagged only, deliberately. Every row here describes an *adjacent*
+    // show, so `show:<date>` would name a tag that cannot fire when this answer
+    // changes: a pull on the 27th busts `show:2026-08-27`, never the `show:2026-08-26`
+    // entry that holds the 27th's venue. The neighbour dates aren't known until
+    // the query has run, so there is no tag to name here — better to claim no
+    // targeted freshness than to imply freshness the tag doesn't deliver. The
+    // hourly TTL and the nightly catalog bust are what keep this current.
+  });
 }
 
 export type ShowListFilter = {
@@ -268,29 +294,39 @@ export type ShowListFilter = {
 };
 
 export async function listShows(filter: ShowListFilter): Promise<{ rows: ShowSummary[]; total: number }> {
-  const perPage = filter.perPage ?? 30;
-  const page = Math.max(1, filter.page ?? 1);
-  const conds = [];
-  if (filter.year) conds.push(sql`extract(year from ${shows.showDate}) = ${filter.year}`);
-  if (filter.tourId) conds.push(eq(shows.tourId, filter.tourId));
-  if (filter.venueId) conds.push(eq(shows.venueId, filter.venueId));
-  const where = conds.length ? and(...conds) : undefined;
+  // Resolve the filter before the key is built, and key on the resolved values.
+  // The query already collapsed `undefined`, `0` and a negative page onto page 1
+  // and `dir` onto "desc"; keying on the raw filter filed each spelling as its
+  // own hour-long entry for one answer, and `/shows?page=` is public.
+  const year = filter.year || null;
+  const tourId = filter.tourId || null;
+  const venueId = filter.venueId || null;
+  const dir = filter.dir === "asc" ? "asc" : "desc";
+  const perPage = positiveInt(filter.perPage, 30);
+  const page = positiveInt(filter.page, 1);
+  return cachedQuery("listShows", [year, tourId, venueId, dir, page, perPage], async () => {
+    const conds = [];
+    if (year) conds.push(sql`extract(year from ${shows.showDate}) = ${year}`);
+    if (tourId) conds.push(eq(shows.tourId, tourId));
+    if (venueId) conds.push(eq(shows.venueId, venueId));
+    const where = conds.length ? and(...conds) : undefined;
 
-  const rows = await baseShowQuery()
-    .where(where)
-    .orderBy(
-      filter.dir === "asc" ? asc(shows.showDate) : desc(shows.showDate),
-      filter.dir === "asc" ? asc(shows.showOrder) : desc(shows.showOrder),
-    )
-    .limit(perPage)
-    .offset((page - 1) * perPage);
+    const rows = await baseShowQuery()
+      .where(where)
+      .orderBy(
+        dir === "asc" ? asc(shows.showDate) : desc(shows.showDate),
+        dir === "asc" ? asc(shows.showOrder) : desc(shows.showOrder),
+      )
+      .limit(perPage)
+      .offset((page - 1) * perPage);
 
-  const [{ total }] = await db
-    .select({ total: sql<number>`count(*)::int` })
-    .from(shows)
-    .where(where);
+    const [{ total }] = await db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(shows)
+      .where(where);
 
-  return { rows, total };
+    return { rows, total };
+  });
 }
 
 /**
@@ -301,44 +337,52 @@ export async function listShows(filter: ShowListFilter): Promise<{ rows: ShowSum
 export async function findLatestPastShow(
   filter: ShowListFilter,
 ): Promise<{ showId: number; date: string; isToday: boolean; page: number } | null> {
-  const perPage = filter.perPage ?? 30;
-  const conds = [];
-  if (filter.year) conds.push(sql`extract(year from ${shows.showDate}) = ${filter.year}`);
-  if (filter.tourId) conds.push(eq(shows.tourId, filter.tourId));
-  if (filter.venueId) conds.push(eq(shows.venueId, filter.venueId));
-  const filterWhere = conds.length ? and(...conds) : undefined;
-  const withFilter = (extra: ReturnType<typeof sql>) =>
-    filterWhere ? and(filterWhere, extra) : extra;
+  // Same resolve-then-key rule as listShows: the key reads the values the query
+  // runs on, not the spelling the caller happened to use.
+  const year = filter.year || null;
+  const tourId = filter.tourId || null;
+  const venueId = filter.venueId || null;
+  const dir = filter.dir === "asc" ? "asc" : "desc";
+  const perPage = positiveInt(filter.perPage, 30);
+  return cachedQuery("findLatestPastShow", [year, tourId, venueId, dir, perPage], async () => {
+    const conds = [];
+    if (year) conds.push(sql`extract(year from ${shows.showDate}) = ${year}`);
+    if (tourId) conds.push(eq(shows.tourId, tourId));
+    if (venueId) conds.push(eq(shows.venueId, venueId));
+    const filterWhere = conds.length ? and(...conds) : undefined;
+    const withFilter = (extra: ReturnType<typeof sql>) =>
+      filterWhere ? and(filterWhere, extra) : extra;
 
-  const [target] = await db
-    .select({
-      showId: shows.showId,
-      date: shows.showDate,
-      order: shows.showOrder,
-      isToday: sql<boolean>`${shows.showDate} = ${today()}`,
-    })
-    .from(shows)
-    .where(withFilter(sql`${shows.showDate} <= ${today()}`))
-    .orderBy(desc(shows.showDate), desc(shows.showOrder))
-    .limit(1);
-  if (!target) return null;
+    const [target] = await db
+      .select({
+        showId: shows.showId,
+        date: shows.showDate,
+        order: shows.showOrder,
+        isToday: sql<boolean>`${shows.showDate} = ${today()}`,
+      })
+      .from(shows)
+      .where(withFilter(sql`${shows.showDate} <= ${today()}`))
+      .orderBy(desc(shows.showDate), desc(shows.showOrder))
+      .limit(1);
+    if (!target) return null;
 
-  const ord = target.order ?? 1;
-  const cmp =
-    filter.dir === "asc"
-      ? sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) <= (${target.date}::date, ${ord})`
-      : sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) >= (${target.date}::date, ${ord})`;
-  const [{ rank }] = await db
-    .select({ rank: sql<number>`count(*)::int` })
-    .from(shows)
-    .where(withFilter(cmp));
+    const ord = target.order ?? 1;
+    const cmp =
+      dir === "asc"
+        ? sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) <= (${target.date}::date, ${ord})`
+        : sql`(${shows.showDate}, coalesce(${shows.showOrder}, 1)) >= (${target.date}::date, ${ord})`;
+    const [{ rank }] = await db
+      .select({ rank: sql<number>`count(*)::int` })
+      .from(shows)
+      .where(withFilter(cmp));
 
-  return {
-    showId: target.showId,
-    date: target.date,
-    isToday: Boolean(target.isToday),
-    page: Math.max(1, Math.ceil(rank / perPage)),
-  };
+    return {
+      showId: target.showId,
+      date: target.date,
+      isToday: Boolean(target.isToday),
+      page: Math.max(1, Math.ceil(rank / perPage)),
+    };
+  }, { varyByToday: true });
 }
 
 /**
@@ -349,26 +393,33 @@ export async function findLatestPastShow(
  * match count so the UI can say when `rows` is truncated.
  */
 export async function searchShows(q: string, limit = 24): Promise<{ rows: ShowSummary[]; total: number }> {
-  const like = `%${escapeLike(q.trim())}%`;
-  const date = normalizeDateQuery(q);
-  const where = date?.iso
-    ? eq(shows.showDate, date.iso)
-    : date?.monthDay
-      ? sql`to_char(${shows.showDate}, 'MM-DD') = ${date.monthDay}`
-      : sql`(${shows.showDate}::text ilike ${like} or ${venues.name} ilike ${like} or ${venues.city} ilike ${like})`;
+  // One canonical term for the key and the query. `normalizeDateQuery` already
+  // trims and lower-cases internally, and the fallback is `ilike`, so this
+  // changes no result — it just stops "Goose", "goose" and " goose " from
+  // filing three cache entries for one answer.
+  const term = searchTerm(q);
+  return cachedQuery("searchShows", [term, limit], async () => {
+    const like = `%${escapeLike(term)}%`;
+    const date = normalizeDateQuery(term);
+    const where = date?.iso
+      ? eq(shows.showDate, date.iso)
+      : date?.monthDay
+        ? sql`to_char(${shows.showDate}, 'MM-DD') = ${date.monthDay}`
+        : sql`(${shows.showDate}::text ilike ${like} or ${venues.name} ilike ${like} or ${venues.city} ilike ${like})`;
 
-  const rows = await baseShowQuery()
-    .where(where)
-    .orderBy(desc(shows.showDate), desc(shows.showOrder))
-    .limit(limit);
+    const rows = await baseShowQuery()
+      .where(where)
+      .orderBy(desc(shows.showDate), desc(shows.showOrder))
+      .limit(limit);
 
-  const [{ total }] = await db
-    .select({ total: sql<number>`count(*)::int` })
-    .from(shows)
-    .leftJoin(venues, eq(venues.venueId, shows.venueId))
-    .where(where);
+    const [{ total }] = await db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(shows)
+      .leftJoin(venues, eq(venues.venueId, shows.venueId))
+      .where(where);
 
-  return { rows, total };
+    return { rows, total };
+  });
 }
 
 /** How many shows currently resolve to a nugs container. The /listen-links page
@@ -376,11 +427,13 @@ export async function searchShows(q: string, limit = 24): Promise<{ rows: ShowSu
  *  nightly import can change. Resolved means "we matched a container", NOT
  *  "the rest aren't on nugs" — the site cannot know that. */
 export async function getNugsCoverage(): Promise<{ resolved: number; total: number }> {
-  const [row] = await db
-    .select({
-      resolved: sql<number>`count(*) filter (where ${shows.nugsContainerId} is not null)::int`,
-      total: sql<number>`count(*)::int`,
-    })
-    .from(shows);
-  return row ?? { resolved: 0, total: 0 };
+  return cachedQuery("getNugsCoverage", [], async () => {
+    const [row] = await db
+      .select({
+        resolved: sql<number>`count(*) filter (where ${shows.nugsContainerId} is not null)::int`,
+        total: sql<number>`count(*)::int`,
+      })
+      .from(shows);
+    return row ?? { resolved: 0, total: 0 };
+  });
 }

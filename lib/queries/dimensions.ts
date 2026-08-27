@@ -1,27 +1,30 @@
 import { db } from "@/db/client";
 import { shows, venues, tours } from "@/db/schema";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
-import { escapeLike } from "@/lib/util";
+import { escapeLike, searchTerm } from "@/lib/util";
 import { today, etYear } from "./today";
+import { cachedQuery } from "./cache";
 
 export type YearRow = { year: number; shows: number; songs: number };
 
 export async function listYears(): Promise<YearRow[]> {
-  const rows = await db
-    .select({
-      year: sql<number>`extract(year from ${shows.showDate})::int`,
-      shows: sql<number>`count(*)::int`,
-      // Sum the per-show performance counts. Written as raw `shows.show_id`:
-      // drizzle renders `${shows.showId}` unqualified ("show_id") in select
-      // fields, which would bind to the subquery's own table instead of the
-      // outer show and count every performance for every year.
-      songs: sql<number>`sum((select count(*) from performances p where p.show_id = shows.show_id))::int`,
-    })
-    .from(shows)
-    .where(sql`${shows.showDate} <= ${today()}`)
-    .groupBy(sql`extract(year from ${shows.showDate})`)
-    .orderBy(sql`extract(year from ${shows.showDate}) desc`);
-  return rows;
+  return cachedQuery("listYears", [], async () => {
+    const rows = await db
+      .select({
+        year: sql<number>`extract(year from ${shows.showDate})::int`,
+        shows: sql<number>`count(*)::int`,
+        // Sum the per-show performance counts. Written as raw `shows.show_id`:
+        // drizzle renders `${shows.showId}` unqualified ("show_id") in select
+        // fields, which would bind to the subquery's own table instead of the
+        // outer show and count every performance for every year.
+        songs: sql<number>`sum((select count(*) from performances p where p.show_id = shows.show_id))::int`,
+      })
+      .from(shows)
+      .where(sql`${shows.showDate} <= ${today()}`)
+      .groupBy(sql`extract(year from ${shows.showDate})`)
+      .orderBy(sql`extract(year from ${shows.showDate}) desc`);
+    return rows;
+  }, { varyByToday: true });
 }
 
 export type TourRow = {
@@ -34,7 +37,8 @@ export type TourRow = {
 };
 
 export async function listTours(): Promise<TourRow[]> {
-  return db
+  return cachedQuery("listTours", [], () =>
+  db
     .select({
       tourId: tours.tourId,
       name: tours.name,
@@ -47,24 +51,26 @@ export async function listTours(): Promise<TourRow[]> {
     .leftJoin(shows, eq(shows.tourId, tours.tourId))
     .groupBy(tours.tourId)
     .having(sql`count(${shows.showId}) > 0`)
-    .orderBy(sql`min(${shows.showDate}) desc nulls last`);
+    .orderBy(sql`min(${shows.showDate}) desc nulls last`));
 }
 
 export async function getTourMeta(tourId: number): Promise<TourRow | null> {
-  const [row] = await db
-    .select({
-      tourId: tours.tourId,
-      name: tours.name,
-      year: tours.year,
-      shows: sql<number>`count(${shows.showId})::int`,
-      start: sql<string>`min(${shows.showDate})::text`,
-      end: sql<string>`max(${shows.showDate})::text`,
-    })
-    .from(tours)
-    .leftJoin(shows, eq(shows.tourId, tours.tourId))
-    .where(eq(tours.tourId, tourId))
-    .groupBy(tours.tourId);
-  return row ?? null;
+  return cachedQuery("getTourMeta", [tourId], async () => {
+    const [row] = await db
+      .select({
+        tourId: tours.tourId,
+        name: tours.name,
+        year: tours.year,
+        shows: sql<number>`count(${shows.showId})::int`,
+        start: sql<string>`min(${shows.showDate})::text`,
+        end: sql<string>`max(${shows.showDate})::text`,
+      })
+      .from(tours)
+      .leftJoin(shows, eq(shows.tourId, tours.tourId))
+      .where(eq(tours.tourId, tourId))
+      .groupBy(tours.tourId);
+    return row ?? null;
+  });
 }
 
 export type VenueRow = {
@@ -80,115 +86,129 @@ export type VenueRow = {
 };
 
 export async function listVenues(opts?: { sort?: "shows" | "name"; q?: string }): Promise<VenueRow[]> {
-  const order =
-    opts?.sort === "name"
-      ? [asc(venues.name)]
-      : [sql`count(${shows.showId}) desc`, asc(venues.name)];
-  // Filter matches name, city, or state so "red rocks", "chicago", and "CO" all work.
-  const q = opts?.q?.trim();
-  const like = q ? `%${escapeLike(q)}%` : null;
-  const where = like
-    ? sql`(${venues.name} ilike ${like} or ${venues.city} ilike ${like} or ${venues.state} ilike ${like})`
-    : undefined;
-  return db
-    .select({
-      venueId: venues.venueId,
-      name: venues.name,
-      city: venues.city,
-      state: venues.state,
-      country: venues.country,
-      capacity: venues.capacity,
-      shows: sql<number>`count(${shows.showId})::int`,
-      first: sql<string>`min(${shows.showDate})::text`,
-      last: sql<string>`max(${shows.showDate})::text`,
-    })
-    .from(venues)
-    .leftJoin(shows, eq(shows.venueId, venues.venueId))
-    .where(where)
-    .groupBy(venues.venueId)
-    .having(sql`count(${shows.showId}) > 0`)
-    .orderBy(...order);
+  // Resolve to the two values the query reads. `sort` arrives from `searchParams`
+  // and anything that isn't "name" means "shows", so keying on the raw options
+  // let `?sort=anything` mint its own entry for the default listing.
+  const sort = opts?.sort === "name" ? "name" : "shows";
+  const term = searchTerm(opts?.q ?? "");
+  return cachedQuery("listVenues", [sort, term], () => {
+    const order =
+      sort === "name"
+        ? [asc(venues.name)]
+        : [sql`count(${shows.showId}) desc`, asc(venues.name)];
+    // Filter matches name, city, or state so "red rocks", "chicago", and "CO" all work.
+    const like = term ? `%${escapeLike(term)}%` : null;
+    const where = like
+      ? sql`(${venues.name} ilike ${like} or ${venues.city} ilike ${like} or ${venues.state} ilike ${like})`
+      : undefined;
+    return db
+      .select({
+        venueId: venues.venueId,
+        name: venues.name,
+        city: venues.city,
+        state: venues.state,
+        country: venues.country,
+        capacity: venues.capacity,
+        shows: sql<number>`count(${shows.showId})::int`,
+        first: sql<string>`min(${shows.showDate})::text`,
+        last: sql<string>`max(${shows.showDate})::text`,
+      })
+      .from(venues)
+      .leftJoin(shows, eq(shows.venueId, venues.venueId))
+      .where(where)
+      .groupBy(venues.venueId)
+      .having(sql`count(${shows.showId}) > 0`)
+      .orderBy(...order);
+  });
 }
 
 export async function searchVenues(q: string, limit = 12): Promise<{ rows: VenueRow[]; total: number }> {
-  const like = `%${escapeLike(q.trim())}%`;
-  const where = sql`(${venues.name} ilike ${like} or ${venues.city} ilike ${like})`;
-  const rows = await db
-    .select({
-      venueId: venues.venueId,
-      name: venues.name,
-      city: venues.city,
-      state: venues.state,
-      country: venues.country,
-      capacity: venues.capacity,
-      shows: sql<number>`count(${shows.showId})::int`,
-      first: sql<string>`min(${shows.showDate})::text`,
-      last: sql<string>`max(${shows.showDate})::text`,
-    })
-    .from(venues)
-    .leftJoin(shows, eq(shows.venueId, venues.venueId))
-    .where(where)
-    .groupBy(venues.venueId)
-    .having(sql`count(${shows.showId}) > 0`)
-    .orderBy(sql`count(${shows.showId}) desc`)
-    .limit(limit);
+  const term = searchTerm(q);
+  return cachedQuery("searchVenues", [term, limit], async () => {
+    const like = `%${escapeLike(term)}%`;
+    const where = sql`(${venues.name} ilike ${like} or ${venues.city} ilike ${like})`;
+    const rows = await db
+      .select({
+        venueId: venues.venueId,
+        name: venues.name,
+        city: venues.city,
+        state: venues.state,
+        country: venues.country,
+        capacity: venues.capacity,
+        shows: sql<number>`count(${shows.showId})::int`,
+        first: sql<string>`min(${shows.showDate})::text`,
+        last: sql<string>`max(${shows.showDate})::text`,
+      })
+      .from(venues)
+      .leftJoin(shows, eq(shows.venueId, venues.venueId))
+      .where(where)
+      .groupBy(venues.venueId)
+      .having(sql`count(${shows.showId}) > 0`)
+      .orderBy(sql`count(${shows.showId}) desc`)
+      .limit(limit);
 
-  // Full match count (same WHERE + the has-shows rule) so the UI can flag truncation.
-  const [{ total }] = await db
-    .select({ total: sql<number>`count(*)::int` })
-    .from(venues)
-    .where(sql`${where} and exists (select 1 from ${shows} where ${shows.venueId} = ${venues.venueId})`);
+    // Full match count (same WHERE + the has-shows rule) so the UI can flag truncation.
+    const [{ total }] = await db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(venues)
+      .where(sql`${where} and exists (select 1 from ${shows} where ${shows.venueId} = ${venues.venueId})`);
 
-  return { rows, total };
+    return { rows, total };
+  });
 }
 
 export async function searchTours(q: string, limit = 8): Promise<{ rows: TourRow[]; total: number }> {
-  const like = `%${escapeLike(q.trim())}%`;
-  const where = sql`${tours.name} ilike ${like}`;
-  const rows = await db
-    .select({
-      tourId: tours.tourId,
-      name: tours.name,
-      year: tours.year,
-      shows: sql<number>`count(${shows.showId})::int`,
-      start: sql<string>`min(${shows.showDate})::text`,
-      end: sql<string>`max(${shows.showDate})::text`,
-    })
-    .from(tours)
-    .leftJoin(shows, eq(shows.tourId, tours.tourId))
-    .where(where)
-    .groupBy(tours.tourId)
-    .having(sql`count(${shows.showId}) > 0`)
-    .orderBy(sql`min(${shows.showDate}) desc nulls last`)
-    .limit(limit);
+  const term = searchTerm(q);
+  return cachedQuery("searchTours", [term, limit], async () => {
+    const like = `%${escapeLike(term)}%`;
+    const where = sql`${tours.name} ilike ${like}`;
+    const rows = await db
+      .select({
+        tourId: tours.tourId,
+        name: tours.name,
+        year: tours.year,
+        shows: sql<number>`count(${shows.showId})::int`,
+        start: sql<string>`min(${shows.showDate})::text`,
+        end: sql<string>`max(${shows.showDate})::text`,
+      })
+      .from(tours)
+      .leftJoin(shows, eq(shows.tourId, tours.tourId))
+      .where(where)
+      .groupBy(tours.tourId)
+      .having(sql`count(${shows.showId}) > 0`)
+      .orderBy(sql`min(${shows.showDate}) desc nulls last`)
+      .limit(limit);
 
-  // Full match count (same WHERE + the has-shows rule) so the UI can flag truncation.
-  const [{ total }] = await db
-    .select({ total: sql<number>`count(*)::int` })
-    .from(tours)
-    .where(sql`${where} and exists (select 1 from ${shows} where ${shows.tourId} = ${tours.tourId})`);
+    // Full match count (same WHERE + the has-shows rule) so the UI can flag truncation.
+    const [{ total }] = await db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(tours)
+      .where(sql`${where} and exists (select 1 from ${shows} where ${shows.tourId} = ${tours.tourId})`);
 
-  return { rows, total };
+    return { rows, total };
+  });
 }
 
 export async function getVenueMeta(venueId: number): Promise<VenueRow | null> {
-  const [row] = await db
-    .select({
-      venueId: venues.venueId,
-      name: venues.name,
-      city: venues.city,
-      state: venues.state,
-      country: venues.country,
-      capacity: venues.capacity,
-      shows: sql<number>`count(${shows.showId})::int`,
-      first: sql<string>`min(${shows.showDate})::text`,
-      last: sql<string>`max(${shows.showDate})::text`,
-    })
-    .from(venues)
-    .leftJoin(shows, eq(shows.venueId, venues.venueId))
-    .where(eq(venues.venueId, venueId))
-    .groupBy(venues.venueId);
-  return row ?? null;
+  return cachedQuery("getVenueMeta", [venueId], async () => {
+    const [row] = await db
+      .select({
+        venueId: venues.venueId,
+        name: venues.name,
+        city: venues.city,
+        state: venues.state,
+        country: venues.country,
+        capacity: venues.capacity,
+        shows: sql<number>`count(${shows.showId})::int`,
+        first: sql<string>`min(${shows.showDate})::text`,
+        last: sql<string>`max(${shows.showDate})::text`,
+      })
+      .from(venues)
+      .leftJoin(shows, eq(shows.venueId, venues.venueId))
+      .where(eq(venues.venueId, venueId))
+      .groupBy(venues.venueId);
+    return row ?? null;
+  });
 }
 
 // ── Where Goose plays ─────────────────────────────────────────────────────────
@@ -221,40 +241,44 @@ export function normalizeCountry(raw: string | null): string {
 
 /** Shows and venues per US state, keyed by the USPS code the map draws with. */
 export async function showsByState(): Promise<StateShows[]> {
-  const rows = allRows(await db.execute(sql`
-    select v.state, count(distinct s.show_id)::int as shows, count(distinct v.venue_id)::int as venues
-    from shows s
-    join venues v on v.venue_id = s.venue_id
-    where s.show_date <= ${today()}
-      and v.state is not null
-      and (v.country is null or v.country ~* '^(usa|us|united states)')
-    group by v.state
-  `));
-  return rows
-    .map((r) => ({ state: String(r.state).toUpperCase().trim(), shows: num(r.shows), venues: num(r.venues) }))
-    .filter((r) => /^[A-Z]{2}$/.test(r.state));
+  return cachedQuery("showsByState", [], async () => {
+    const rows = allRows(await db.execute(sql`
+      select v.state, count(distinct s.show_id)::int as shows, count(distinct v.venue_id)::int as venues
+      from shows s
+      join venues v on v.venue_id = s.venue_id
+      where s.show_date <= ${today()}
+        and v.state is not null
+        and (v.country is null or v.country ~* '^(usa|us|united states)')
+      group by v.state
+    `));
+    return rows
+      .map((r) => ({ state: String(r.state).toUpperCase().trim(), shows: num(r.shows), venues: num(r.venues) }))
+      .filter((r) => /^[A-Z]{2}$/.test(r.state));
+  }, { varyByToday: true });
 }
 
 /** Shows and venues outside the US, folded onto one row per country. */
 export async function showsByCountry(): Promise<CountryShows[]> {
-  const rows = allRows(await db.execute(sql`
-    select v.country, count(distinct s.show_id)::int as shows, count(distinct v.venue_id)::int as venues
-    from shows s
-    join venues v on v.venue_id = s.venue_id
-    where s.show_date <= ${today()}
-      and v.country is not null
-      and v.country !~* '^(usa|us|united states)'
-    group by v.country
-  `));
-  const merged = new Map<string, CountryShows>();
-  for (const r of rows) {
-    const country = normalizeCountry(strOrNull(r.country));
-    const at = merged.get(country) ?? { country, shows: 0, venues: 0 };
-    at.shows += num(r.shows);
-    at.venues += num(r.venues);
-    merged.set(country, at);
-  }
-  return [...merged.values()].sort((a, b) => b.shows - a.shows || a.country.localeCompare(b.country));
+  return cachedQuery("showsByCountry", [], async () => {
+    const rows = allRows(await db.execute(sql`
+      select v.country, count(distinct s.show_id)::int as shows, count(distinct v.venue_id)::int as venues
+      from shows s
+      join venues v on v.venue_id = s.venue_id
+      where s.show_date <= ${today()}
+        and v.country is not null
+        and v.country !~* '^(usa|us|united states)'
+      group by v.country
+    `));
+    const merged = new Map<string, CountryShows>();
+    for (const r of rows) {
+      const country = normalizeCountry(strOrNull(r.country));
+      const at = merged.get(country) ?? { country, shows: 0, venues: 0 };
+      at.shows += num(r.shows);
+      at.venues += num(r.venues);
+      merged.set(country, at);
+    }
+    return [...merged.values()].sort((a, b) => b.shows - a.shows || a.country.localeCompare(b.country));
+  }, { varyByToday: true });
 }
 
 // ── The touring year ──────────────────────────────────────────────────────────
@@ -284,39 +308,41 @@ export type TourSpan = {
 export const NOT_A_TOUR = /^not part of a tour$/i;
 
 export async function tourTimeline(): Promise<{ tours: TourSpan[]; untouredShows: number }> {
-  const rows = allRows(await db.execute(sql`
-    select t.tour_id, t.name,
-           min(s.show_date)::text as start,
-           max(s.show_date)::text as "end",
-           count(s.show_id)::int as shows,
-           count(*) filter (where s.show_date > ${today()})::int as upcoming,
-           array_agg(s.show_date::text order by s.show_date) as dates
-    from tours t
-    join shows s on s.tour_id = t.tour_id
-    group by t.tour_id, t.name
-    order by min(s.show_date) asc
-  `));
+  return cachedQuery("tourTimeline", [], async () => {
+    const rows = allRows(await db.execute(sql`
+      select t.tour_id, t.name,
+             min(s.show_date)::text as start,
+             max(s.show_date)::text as "end",
+             count(s.show_id)::int as shows,
+             count(*) filter (where s.show_date > ${today()})::int as upcoming,
+             array_agg(s.show_date::text order by s.show_date) as dates
+      from tours t
+      join shows s on s.tour_id = t.tour_id
+      group by t.tour_id, t.name
+      order by min(s.show_date) asc
+    `));
 
-  const tours: TourSpan[] = [];
-  let untouredShows = 0;
-  for (const r of rows) {
-    const name = String(r.name);
-    const shows = num(r.shows);
-    if (NOT_A_TOUR.test(name)) {
-      untouredShows += shows;
-      continue;
+    const tours: TourSpan[] = [];
+    let untouredShows = 0;
+    for (const r of rows) {
+      const name = String(r.name);
+      const shows = num(r.shows);
+      if (NOT_A_TOUR.test(name)) {
+        untouredShows += shows;
+        continue;
+      }
+      tours.push({
+        tourId: num(r.tour_id),
+        name,
+        start: String(r.start),
+        end: String(r.end),
+        shows,
+        upcoming: num(r.upcoming),
+        dates: (r.dates as string[] | null) ?? [],
+      });
     }
-    tours.push({
-      tourId: num(r.tour_id),
-      name,
-      start: String(r.start),
-      end: String(r.end),
-      shows,
-      upcoming: num(r.upcoming),
-      dates: (r.dates as string[] | null) ?? [],
-    });
-  }
-  return { tours, untouredShows };
+    return { tours, untouredShows };
+  }, { varyByToday: true });
 }
 
 // ── The career ────────────────────────────────────────────────────────────────
@@ -346,41 +372,43 @@ export type CareerYear = {
  * and nothing else" is a fact about the archive worth seeing.
  */
 export async function careerYears(): Promise<CareerYear[]> {
-  const rows = allRows(await db.execute(sql`
-    with per_show as (
-      select s.show_id, s.venue_id,
-             extract(year from s.show_date)::int as year,
-             (select count(*) from performances p where p.show_id = s.show_id)::int as songs
-      from shows s
-      where s.show_date <= ${today()}
-    ),
-    debut as (
-      select p.song_id, extract(year from min(s.show_date))::int as year
-      from performances p
-      join shows s on s.show_id = p.show_id
-      where s.show_date <= ${today()}
-      group by p.song_id
-    )
-    select ps.year,
-           count(*)::int as shows,
-           count(*) filter (where ps.songs > 0)::int as documented,
-           coalesce(sum(ps.songs), 0)::int as performances,
-           (select count(distinct p.song_id)
-              from performances p join shows s2 on s2.show_id = p.show_id
-             where extract(year from s2.show_date)::int = ps.year)::int as unique_songs,
-           (select count(*) from debut d where d.year = ps.year)::int as debuts
-    from per_show ps
-    group by ps.year
-    order by ps.year asc
-  `));
-  const thisYear = etYear();
-  return rows.map((r) => ({
-    year: num(r.year),
-    shows: num(r.shows),
-    documented: num(r.documented),
-    performances: num(r.performances),
-    uniqueSongs: num(r.unique_songs),
-    debuts: num(r.debuts),
-    partial: num(r.year) === thisYear,
+  return cachedQuery("careerYears", [], async () => {
+    const rows = allRows(await db.execute(sql`
+      with per_show as (
+        select s.show_id, s.venue_id,
+               extract(year from s.show_date)::int as year,
+               (select count(*) from performances p where p.show_id = s.show_id)::int as songs
+        from shows s
+        where s.show_date <= ${today()}
+      ),
+      debut as (
+        select p.song_id, extract(year from min(s.show_date))::int as year
+        from performances p
+        join shows s on s.show_id = p.show_id
+        where s.show_date <= ${today()}
+        group by p.song_id
+      )
+      select ps.year,
+             count(*)::int as shows,
+             count(*) filter (where ps.songs > 0)::int as documented,
+             coalesce(sum(ps.songs), 0)::int as performances,
+             (select count(distinct p.song_id)
+                from performances p join shows s2 on s2.show_id = p.show_id
+               where extract(year from s2.show_date)::int = ps.year)::int as unique_songs,
+             (select count(*) from debut d where d.year = ps.year)::int as debuts
+      from per_show ps
+      group by ps.year
+      order by ps.year asc
+    `));
+    const thisYear = etYear();
+    return rows.map((r) => ({
+      year: num(r.year),
+      shows: num(r.shows),
+      documented: num(r.documented),
+      performances: num(r.performances),
+      uniqueSongs: num(r.unique_songs),
+      debuts: num(r.debuts),
+      partial: num(r.year) === thisYear,
   }));
+  }, { varyByToday: true });
 }

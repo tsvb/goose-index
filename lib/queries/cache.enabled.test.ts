@@ -1,0 +1,133 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+const unstableCalls: { keys: string[]; opts: { tags?: string[]; revalidate?: number } }[] = [];
+const tags: string[] = [];
+
+/** Lets a test make the cache plumbing itself fail, at either of the two moments
+ *  it can: before it ever calls the query, or after the query has returned (a
+ *  failed cache write). Default is a plain pass-through. */
+let plumbing: "ok" | "throws-before-query" | "throws-after-query" = "ok";
+/** Next refusing a tag bust — it throws outside a request, and during render. */
+let revalidateThrows = false;
+
+vi.mock("next/cache", () => ({
+  unstable_cache: (
+    fn: () => Promise<unknown>,
+    keys: string[],
+    opts: { tags?: string[]; revalidate?: number },
+  ) => {
+    unstableCalls.push({ keys, opts });
+    return async () => {
+      if (plumbing === "throws-before-query") throw new Error("incrementalCache missing");
+      const value = await fn();
+      if (plumbing === "throws-after-query") throw new Error("cache write failed");
+      return value;
+    };
+  },
+  revalidateTag: (tag: string) => {
+    if (revalidateThrows) throw new Error("static generation store missing");
+    tags.push(tag);
+  },
+}));
+
+import {
+  CATALOG_REVALIDATE_SECONDS,
+  CATALOG_TAG,
+  cachedQuery,
+  revalidateCatalog,
+  revalidateLiveShow,
+} from "./cache";
+
+describe("cachedQuery when Next's cache is available", () => {
+  afterEach(() => {
+    delete process.env.NEXT_RUNTIME;
+    delete process.env.VERCEL;
+    unstableCalls.length = 0;
+    tags.length = 0;
+    plumbing = "ok";
+    revalidateThrows = false;
+  });
+
+  it("wraps the query in unstable_cache with the catalog tag and TTL", async () => {
+    process.env.NEXT_RUNTIME = "nodejs";
+    const result = await cachedQuery("getShowDetails", ["2026-08-26"], async () => ({ ok: true }));
+    expect(result).toEqual({ ok: true });
+    expect(unstableCalls).toHaveLength(1);
+    expect(unstableCalls[0].keys[0]).toBe("getShowDetails");
+    expect(unstableCalls[0].keys).toContain(JSON.stringify("2026-08-26"));
+    expect(unstableCalls[0].opts.tags).toEqual([CATALOG_TAG]);
+    expect(unstableCalls[0].opts.revalidate).toBe(CATALOG_REVALIDATE_SECONDS);
+  });
+
+  it("is enabled on Vercel even without NEXT_RUNTIME", async () => {
+    process.env.VERCEL = "1";
+    await cachedQuery("t", [], async () => 1);
+    expect(unstableCalls).toHaveLength(1);
+  });
+
+  it("surfaces a failed read instead of running it a second time", async () => {
+    process.env.NEXT_RUNTIME = "nodejs";
+    let calls = 0;
+    const boom = async () => {
+      calls++;
+      throw new Error("connection terminated");
+    };
+    await expect(cachedQuery("getShowDetails", ["2026-08-26"], boom)).rejects.toThrow(
+      "connection terminated",
+    );
+    // Retrying doubles the load on a database that has just said it is
+    // struggling, and the second error replaces the real one.
+    expect(calls).toBe(1);
+  });
+
+  it("returns the rows it already fetched when only the cache write fails", async () => {
+    process.env.NEXT_RUNTIME = "nodejs";
+    plumbing = "throws-after-query";
+    let calls = 0;
+    const result = await cachedQuery("getShowDetails", ["2026-08-26"], async () => {
+      calls++;
+      return { ok: true };
+    });
+    expect(result).toEqual({ ok: true });
+    expect(calls).toBe(1);
+  });
+
+  it("falls back to an uncached read when the cache never reaches the query", async () => {
+    process.env.NEXT_RUNTIME = "nodejs";
+    plumbing = "throws-before-query";
+    let calls = 0;
+    const result = await cachedQuery("getShowDetails", ["2026-08-26"], async () => {
+      calls++;
+      return { ok: true };
+    });
+    expect(result).toEqual({ ok: true });
+    expect(calls).toBe(1);
+  });
+
+  it("revalidateLiveShow busts the date and show-id tags", async () => {
+    process.env.NEXT_RUNTIME = "nodejs";
+    await expect(revalidateLiveShow("2026-08-26", [900, 901])).resolves.toBe(true);
+    expect(tags).toEqual(["show:2026-08-26", "show-id:900", "show-id:901"]);
+  });
+
+  it("revalidateCatalog busts the catalog tag", async () => {
+    process.env.VERCEL = "1";
+    await expect(revalidateCatalog()).resolves.toBe(true);
+    expect(tags).toEqual([CATALOG_TAG]);
+  });
+
+  // A tag bust that quietly fails is invisible from the outside: an hour-stale
+  // setlist looks exactly like a current one. The return value is what
+  // /api/revalidate answers with, and the warning is the only other signal.
+  it("reports and logs a refused bust instead of swallowing it", async () => {
+    process.env.NEXT_RUNTIME = "nodejs";
+    revalidateThrows = true;
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await expect(revalidateCatalog()).resolves.toBe(false);
+    await expect(revalidateLiveShow("2026-08-26", [900])).resolves.toBe(false);
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(String(warn.mock.calls[0][0])).toContain("the catalog");
+    expect(String(warn.mock.calls[1][0])).toContain("show 2026-08-26");
+    warn.mockRestore();
+  });
+});
