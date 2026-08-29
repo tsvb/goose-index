@@ -16,6 +16,13 @@ describe("announceTarget", () => {
     expect(log.mock.calls.flat().join(" ")).toContain("PRODUCTION");
   });
 
+  it("recognises Supabase as production — direct and pooled hosts alike", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    expect(announceTarget("postgres://postgres:p@db.bltqcsvbdlyyxmvzxozc.supabase.co:5432/postgres").isProd).toBe(true);
+    expect(announceTarget("postgres://postgres.ref:p@aws-1-us-east-1.pooler.supabase.com:6543/postgres").isProd).toBe(true);
+    expect(log.mock.calls.flat().join(" ")).toContain("PRODUCTION");
+  });
+
   it("does not cry wolf about a local database", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const { isProd, host } = announceTarget("postgres://postgres:postgres@localhost:5432/goose");

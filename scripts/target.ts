@@ -1,7 +1,7 @@
 /**
  * Say out loud which database a script is about to write to.
  *
- * The `DATABASE_URL` in `.env` points at Neon — production. A handoff doc
+ * The `DATABASE_URL` in `.env` has pointed at production before. A handoff doc
  * asserted the opposite ("local is a different database; local runs do not touch
  * prod"), which is the kind of belief that loses a database: someone trusts it,
  * runs a destructive script "locally", and finds out afterwards.
@@ -19,7 +19,9 @@ export function announceTarget(
   } catch {
     /* a malformed URL will fail loudly at connect time; don't add noise here */
   }
-  const isProd = /neon\.tech$/i.test(host);
+  // Supabase is production now; Neon stays in the pattern so a stale string
+  // lying around in an env file still gets called what it is.
+  const isProd = /neon\.tech$|supabase\.(co|com)$/i.test(host);
 
   // A warning that cries wolf gets ignored, so a read-only script says so rather
   // than shouting about writes it will never make.

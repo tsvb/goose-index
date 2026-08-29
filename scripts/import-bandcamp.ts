@@ -19,9 +19,10 @@ import { db, closeDb } from "@/db/client";
 import { shows } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { announceTarget } from "./target";
+import { databaseUrl } from "../db/url";
 
 // db/client pulls in dotenv, so the env is loaded by the time this runs.
-announceTarget(process.env.DATABASE_URL ?? "");
+announceTarget(databaseUrl() ?? "");
 
 type Album = {
   album_id: number;

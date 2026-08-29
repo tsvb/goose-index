@@ -2,7 +2,8 @@
 
 ## Check which database `.env` points at — before every write
 
-`DATABASE_URL` in `.env` moves. It has pointed at **Neon — the production database** —
+`DATABASE_URL` in `.env` moves. It has pointed at **the production database** (Neon
+until 2026-08-29, **Supabase** since) —
 and, as of 2026-08-17, at **localhost** (a Homebrew `postgresql@16`; this machine has no
 docker, so `npm run db:up`'s compose file does not run here). Do not assume either
 direction. Assuming "it's local" when it is Neon is the belief that loses a database;
@@ -26,7 +27,8 @@ brew services run postgresql@16
 ## The site's clock
 
 Nothing asks Postgres what day it is. `current_date` follows the database server's
-timezone — UTC on Neon, the laptop's zone on a local Postgres — so "today" used to mean
+timezone — UTC on the managed database (Supabase now, Neon before it), the laptop's
+zone on a local Postgres — so "today" used to mean
 different days in dev and prod, and in production it rolled over at **8pm ET**. That is how
 the shows page came to offer a "tonight's show" jump on a night with no show: from 8pm the
 database already called it tomorrow.

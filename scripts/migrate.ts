@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { shouldSkipMigrations } from "./migrate-gate";
 import { announceTarget } from "./target";
+import { databaseUrl } from "../db/url";
 
 // The production build migrates; a preview build must not, because previews
 // share the production database. See migrate-gate.ts.
@@ -12,12 +13,13 @@ if (shouldSkipMigrations(process.env)) {
   process.exit(0);
 }
 
-const url = process.env.DATABASE_URL;
+const url = databaseUrl();
 if (!url) throw new Error("DATABASE_URL is not set");
 announceTarget(url);
 
-// Required against Neon's pooled endpoint: PgBouncer in transaction mode does
-// not support prepared statements. Harmless on a direct or local connection.
+// Required against a transaction-mode pooler (Supabase's Supavisor, Neon's
+// PgBouncer): prepared statements are not supported there. Harmless on a
+// direct or local connection.
 const sql = postgres(url, { max: 1, prepare: false });
 await migrate(drizzle(sql), { migrationsFolder: "./drizzle" });
 await sql.end();

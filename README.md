@@ -128,11 +128,11 @@ render a single fixed look.
 ## Architecture
 
 ```
-elgoose.net ──(nightly Action: npm run sync)──▶ Neon Postgres ◀──(reads)── Vercel (Next.js) ──▶ visitors
+elgoose.net ──(nightly Action: npm run sync)──▶ Supabase Postgres ◀──(reads)── Vercel (Next.js) ──▶ visitors
 ```
 
-The web app only ever **reads**. Catalog queries are cached for an hour so Neon can
-scale to zero between visitors; a live show busts just that night's cache. Every write
+The web app only ever **reads**. Catalog queries are cached for an hour, so most
+page loads never touch the database; a live show busts just that night's cache. Every write
 happens out of band in the sync job, so page loads never depend on the elgoose API being
 up.
 
@@ -170,7 +170,7 @@ the site works without them. Full detail in [`docs/SETUP.md`](docs/SETUP.md).
 
 <br>
 
-Vercel (Next.js) reading from Neon (managed Postgres). Full runbook in [`docs/DEPLOY.md`](docs/DEPLOY.md).
+Vercel (Next.js) reading from Supabase (managed Postgres). Full runbook in [`docs/DEPLOY.md`](docs/DEPLOY.md).
 Two things worth knowing up front:
 
 - **Production builds migrate before they build.** `vercel-build` runs `db:migrate && next build`,

@@ -4,6 +4,7 @@ import { runNugsImport } from "../lib/nugs-catalog/run";
 import { db, closeDb } from "../db/client";
 import type { AppDb } from "../db/schema";
 import { announceTarget } from "./target";
+import { databaseUrl } from "../db/url";
 
 /**
  * Imports nugs's Goose catalog into `nugs_containers` and resolves one container
@@ -16,7 +17,7 @@ import { announceTarget } from "./target";
  *   npm run import-nugs
  */
 const dryRun = process.argv.includes("--dry-run");
-announceTarget(process.env.DATABASE_URL ?? "", { readOnly: dryRun });
+announceTarget(databaseUrl() ?? "", { readOnly: dryRun });
 
 async function main() {
   const ua = process.env.NUGS_USER_AGENT;
