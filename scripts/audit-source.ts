@@ -3,6 +3,7 @@ import { db, closeDb } from "../db/client";
 import type { AppDb } from "../db/schema";
 import { auditAgainstSource, type SourceShow } from "../lib/verify/source";
 import { announceTarget } from "./target";
+import { databaseUrl } from "../db/url";
 
 /**
  * Check the cache against elgoose, the source of truth.
@@ -28,7 +29,7 @@ async function fetchShows(): Promise<SourceShow[]> {
   return data;
 }
 
-announceTarget(process.env.DATABASE_URL ?? "", { readOnly: true });
+announceTarget(databaseUrl() ?? "", { readOnly: true });
 
 const results = await auditAgainstSource({ db: db as unknown as AppDb, fetchShows });
 for (const r of results) console.log(`${r.pass ? "PASS" : "FAIL"}  ${r.name} — ${r.detail}`);

@@ -13,6 +13,7 @@ import path from "node:path";
 import { db, closeDb } from "@/db/client";
 import { albums } from "@/db/schema";
 import { announceTarget } from "./target";
+import { databaseUrl } from "../db/url";
 
 const outPath = process.argv[2];
 if (!outPath) {
@@ -20,7 +21,7 @@ if (!outPath) {
   process.exit(1);
 }
 
-announceTarget(process.env.DATABASE_URL ?? "", { readOnly: true });
+announceTarget(databaseUrl() ?? "", { readOnly: true });
 
 const rows = await db.select({ albumId: albums.albumId }).from(albums);
 
