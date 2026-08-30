@@ -3,10 +3,9 @@ import Link from "next/link";
 import { Container } from "./_components/container";
 import { SearchBox } from "./_components/search-box";
 import { SectionRule, Ledger, LedgerEntry, TonightEntry, ContentsRow, Figure } from "./_components/forms";
-import { TickRuler } from "./_components/instrument";
 import { getOverviewStats } from "@/lib/queries/stats";
 import { getRecentShows, getUpcomingShows, getOnThisDay, getTonightShows } from "@/lib/queries/shows";
-import { compact, yearOf, dateParts, locationLine, showHref } from "@/lib/queries/format";
+import { compact, dateParts, locationLine, showHref } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
 import { Doc, MetaTable, ShowTable, DocSection } from "./_components/doc";
@@ -73,8 +72,6 @@ export default async function Home() {
     );
   }
 
-  const sinceYear = stats.firstDate ? yearOf(stats.firstDate) : null;
-  const currentYear = new Date().getFullYear();
   const todayDp = onThisDay.length ? dateParts(onThisDay[0].date) : null;
   const todayLabel = todayDp ? `${todayDp.month.slice(0, 3).toLowerCase()} ${todayDp.day}` : "";
 
@@ -95,26 +92,10 @@ export default async function Home() {
             <SearchBox size="full" />
           </div>
           <div className="mt-10 flex flex-wrap items-end gap-x-10 gap-y-6">
-            <Figure value={compact(stats.showsPlayed)} label="shows played" />
-            <Figure value={compact(stats.performances)} label="songs played" />
-            <Figure value={compact(stats.songs)} label="unique songs" />
-            <Figure value={compact(stats.venues)} label="venues" />
-            {sinceYear != null && (
-              <span className="min-w-56 flex-1">
-                <TickRuler
-                  min={sinceYear}
-                  max={currentYear}
-                  majors={[
-                    { at: sinceYear, label: String(sinceYear) },
-                    { at: currentYear, label: String(currentYear) },
-                  ]}
-                  reading={{ at: currentYear, label: "now" }}
-                />
-                <span className="text-[0.68rem] lowercase text-faint">
-                  the record, {sinceYear} → now
-                </span>
-              </span>
-            )}
+            <Figure value={compact(stats.showsPlayed)} label="shows played" href="/shows" />
+            <Figure value={compact(stats.performances)} label="songs played" href="/songs" />
+            <Figure value={compact(stats.songs)} label="unique songs" href="/songs" />
+            <Figure value={compact(stats.venues)} label="venues" href="/venues" />
           </div>
         </Container>
       </section>

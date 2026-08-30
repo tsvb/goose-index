@@ -137,13 +137,23 @@ export function ContentsRow({ href, label, sub }: { href: string; label: string;
 }
 
 /** A figure: the number, then its name. */
-export function Figure({ value, label }: { value: string; label: string }) {
-  return (
-    <span className="flex flex-col">
+export function Figure({ value, label, href }: { value: string; label: string; href?: string }) {
+  const body = (
+    <>
       <span className="text-[1.6rem] font-semibold leading-tight text-ink [font-variant-numeric:tabular-nums]">
         {value}
       </span>
-      <span className="text-[0.68rem] lowercase text-faint">{label}</span>
-    </span>
+      <span className={`text-[0.68rem] lowercase text-faint ${href ? "underline-offset-4 group-hover:underline" : ""}`}>
+        {label}
+      </span>
+    </>
   );
+  if (href) {
+    return (
+      <Link href={href} className="group flex flex-col">
+        {body}
+      </Link>
+    );
+  }
+  return <span className="flex flex-col">{body}</span>;
 }
