@@ -100,15 +100,21 @@ describe("Home hero + browse funnels", () => {
   });
 });
 
-describe("Home year ruler", () => {
-  it("renders the record's span when firstDate exists", async () => {
+describe("Home hero figures", () => {
+  it("each figure links to the page it counts", async () => {
     const html = await render();
-    expect(html).toContain("the record, 2016 → now");
-    expect(html).toContain('stroke="var(--hand)"');
+    expect(html).toContain("shows played");
+    expect(html).toContain("unique songs");
+    // The tiles are anchors: shows → /shows, both song figures → /songs,
+    // venues → /venues. Contents rows link there too, so assert the pairing
+    // of label and href inside one anchor.
+    expect(html).toMatch(/<a[^>]*href="\/shows"[^>]*>(?:(?!<\/a>).)*shows played/s);
+    expect(html).toMatch(/<a[^>]*href="\/songs"[^>]*>(?:(?!<\/a>).)*songs played/s);
+    expect(html).toMatch(/<a[^>]*href="\/songs"[^>]*>(?:(?!<\/a>).)*unique songs/s);
+    expect(html).toMatch(/<a[^>]*href="\/venues"[^>]*>(?:(?!<\/a>).)*venues/s);
   });
 
-  it("renders no ruler without a firstDate", async () => {
-    h.firstDate = null;
+  it("the year ruler is gone — it stated a span the tiles already imply", async () => {
     const html = await render();
     expect(html).not.toContain("the record,");
   });
