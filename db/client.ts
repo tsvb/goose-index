@@ -11,9 +11,15 @@ function connect(connectionString: string) {
     // disabling them is required there and is harmless against a plain local
     // Postgres.
     prepare: false,
-    // Serverless invocations are short-lived and numerous; keep each instance's
-    // pool tiny and let the platform's pooler handle the real multiplexing.
-    max: 1,
+    // NOT max: 1. postgres.js pipelines queued queries onto one connection
+    // (up to max_pipeline: 100), and Supavisor in transaction mode can
+    // deadlock on a pipelined batch — porsager/postgres#970. A page's
+    // Promise.all of five reads over a single connection is exactly that
+    // batch: on Neon's PgBouncer it worked, on Supabase the first sitemap
+    // build hung 60s ×3 and killed the deploy. The driver default (10) gives
+    // concurrent queries their own pooled connections instead; idle_timeout
+    // below returns them within seconds of a burst.
+    max: 10,
     // A warm Vercel isolate reuses this module. Without an idle timeout the
     // TCP session stays open and never lets the database go idle — on a
     // compute-billed platform that's "the database is always on".
