@@ -71,9 +71,12 @@ then, and the cost of a missed bust is at most an hour of staleness.
   restrict — so deny-by-default RLS closes the REST surface at zero cost. The
   Supabase advisor flags "RLS enabled, no policy" as INFO; that's the intended state.
   **A future migration that creates a table must also enable RLS on it.**
-- **Preview deployments share the production database.** Visiting a preview URL reads
-  prod (fine — reads are cheap and cached), and that's why previews never migrate
-  (see "Schema changes" below).
+- **Preview deployments read the production database.** `DATABASE_URL` on Vercel is
+  scoped to Preview *and* Production — the build prerenders `/sitemap.xml`, which
+  needs a connection string, so a preview without one fails to build at all (that is
+  how the Vercel check on every PR was red for a day after the Supabase move). Safe
+  because previews only read, and the migrate gate (below) means a preview build can
+  never touch the schema.
 - **Know what your local `.env` points at before you connect.** It moves, so no doc —
   this one included — can tell you where it points today. `npm run db:migrate`,
   `npm run sync` and every `import-*` script print their target host before they touch
