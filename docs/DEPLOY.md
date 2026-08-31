@@ -33,9 +33,11 @@ job, so page loads never depend on the elgoose API being up.
   add-on, so IPv4-only environments — GitHub runners included — can't use it;
   stick to the pooler hosts.
 - **Where the code finds the string:** `db/url.ts`. `DATABASE_URL` is canonical and
-  always wins; `POSTGRES_URL` (what the Vercel ↔ Supabase integration injects) is
-  the fallback, so a Vercel deployment wired through the integration needs no
-  hand-set variable.
+  wins whenever it holds a value; `POSTGRES_URL` (what the Vercel ↔ Supabase
+  integration injects) is the fallback, so a Vercel deployment wired through the
+  integration needs no hand-set variable. A `DATABASE_URL` set to the empty string
+  counts as unset and falls through — otherwise it would shadow an injected
+  `POSTGRES_URL` and fail the build naming the one variable that was present.
 - **Free-tier projects pause after ~7 days without activity.** The nightly sync
   counts as activity, so in practice the project stays up; if it ever does pause,
   restore it from the Supabase dashboard. Unlike Neon there is no

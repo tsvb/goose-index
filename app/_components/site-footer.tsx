@@ -4,22 +4,33 @@ import { PenRule } from "./pen";
 import { getExperience } from "@/lib/experience.server";
 import { BANDCAMP_HOME } from "@/lib/bandcamp";
 
+const LABEL = "font-mono text-[0.68rem] font-semibold lowercase tracking-[0.06em] text-faint";
+
 export function FooterFancy() {
   return (
-    <footer className="mt-24">
-      <Container>
-        <PenRule seed="footer" />
-      </Container>
-      <Container className="grid gap-10 py-10 sm:grid-cols-[1.4fr_1fr_1fr]">
+    // The footer is the one region set outside the page's measure. Three
+    // signals put it there, none of them a background fill: the pen rule runs
+    // full-bleed (the masthead's is container-inset), every column is headed
+    // by the same mono micro-label as the two closing strips, and the whole
+    // block sits a notch below content type at 0.8rem.
+    //
+    // A tinted band would say it faster, and can't: fog's palette is tuned to
+    // the AA floor against --paper — spruce (links) clears 4.67:1 and faint
+    // 4.59:1 — so even a 4% ink tint drops both under 4.5:1. Structure and
+    // scale do the separating instead. See globals-contrast.test.ts.
+    <footer className="mt-28">
+      <h2 className="sr-only">Site footer</h2>
+      <PenRule seed="footer" />
+      <Container className="grid gap-8 py-9 text-[0.8rem] sm:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <span className="text-[0.95rem] font-semibold lowercase text-ink">goose index</span>
-          <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
+          <span className={LABEL}>goose index</span>
+          <p className="mt-2.5 max-w-[34ch] leading-relaxed text-muted">
             A complete index of every Goose show — setlists, segues, jams, venues, and the story of
             each night.
           </p>
         </div>
-        <nav aria-label="Footer" className="flex flex-col gap-2 text-sm text-muted">
-          <span className="text-[0.68rem] font-semibold lowercase text-faint">browse</span>
+        <nav aria-label="Footer" className="flex flex-col gap-1.5 text-muted">
+          <span className={`${LABEL} mb-1`}>browse</span>
           <Link href="/shows" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">all shows</Link>
           <Link href="/songs" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">songs</Link>
           <Link href="/stats" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">stats</Link>
@@ -27,8 +38,8 @@ export function FooterFancy() {
           <Link href="/venues" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">venues</Link>
           <Link href="/tours" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">tours</Link>
         </nav>
-        <div className="flex flex-col gap-2 text-sm text-muted">
-          <span className="text-[0.68rem] font-semibold lowercase text-faint">source</span>
+        <div className="flex flex-col gap-1.5 text-muted">
+          <span className={`${LABEL} mb-1`}>source</span>
           <p className="leading-relaxed">
             Setlist data courtesy of{" "}
             <a href="https://elgoose.net" className="link" target="_blank" rel="noreferrer">
@@ -38,14 +49,14 @@ export function FooterFancy() {
           </p>
           {/* We take the band's music and their words and make a site out of them.
               The least we can do is point at the shop where buying it pays them. */}
-          <p className="mt-2 leading-relaxed">
+          <p className="leading-relaxed">
             Support the band directly on{" "}
             <a href={BANDCAMP_HOME} className="link" target="_blank" rel="noreferrer">
               Bandcamp
             </a>
             .
           </p>
-          <p className="mt-2 leading-relaxed">
+          <p className="leading-relaxed">
             <Link href="/listen-links" className="link">How the listen links work</Link>.
           </p>
         </div>
