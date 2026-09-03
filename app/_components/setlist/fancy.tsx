@@ -23,9 +23,15 @@ export function SetlistFancy({
 
   return (
     <div className="space-y-10">
-      {groups.map((g) => {
+      {groups.map((g, gi) => {
         const secs = g.entries.map((e) => trackSeconds(e.trackTime)).filter((s): s is number => s != null);
         const total = secs.length >= Math.ceil(g.entries.length / 2) ? secs.reduce((a, b) => a + b, 0) : null;
+        // The tape key prints once, under the first tape that actually draws
+        // (a set with too few logged times draws no tape, so it can't carry it).
+        const firstTape = groups.findIndex((x) => {
+          const t = x.entries.map((e) => trackSeconds(e.trackTime)).filter((s) => s != null);
+          return t.length >= Math.ceil(x.entries.length / 2);
+        });
         // Footnote numbering restarts per set; jamchart notes share the endnote list.
         const fnIndex = new Map(g.entries.filter((e) => e.footnote).map((e, i) => [e.uniqueId, i + 1]));
         const hasNotes = fnIndex.size > 0 || g.entries.some((e) => e.isJamchart && e.jamchartNotes);
@@ -42,7 +48,7 @@ export function SetlistFancy({
               </span>
             </div>
 
-            <SetTape entries={g.entries} />
+            <SetTape entries={g.entries} explain={gi === firstTape} />
 
             <ol>
               {g.entries.map((e, i) => {

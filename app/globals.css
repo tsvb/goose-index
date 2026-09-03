@@ -703,7 +703,7 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 
 /* show-header link (Listen / Watch) — tasteful secondary */
 .nugs-show {
-  display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
   font-size: 0.76rem; color: var(--nugs-link); border: 1px solid var(--nugs-line); border-radius: 8px;
   padding: 4px 10px; background: var(--nugs-wash);
   transition: border-color 0.15s, color 0.15s;

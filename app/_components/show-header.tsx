@@ -71,7 +71,9 @@ function ShowNugs({
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5">
+    // Buttons wrap as whole units on a phone: the group wraps, the label
+    // inside a button never does (.nugs-show is nowrap).
+    <span className="inline-flex flex-wrap items-center gap-1.5">
       <NugsLink href={nugsShowHref({ date, venue })} fallback={audioFallback} className="nugs-show" title="Play this show on nugs">▷ Listen on nugs</NugsLink>
       <NugsLink href={nugsShowHref({ date, venue, media: "video" })} fallback={videoFallback} className="nugs-show watch" title="Watch this show on nugs">▷ Watch</NugsLink>
       {containerId != null && (

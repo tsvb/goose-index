@@ -119,7 +119,6 @@ export default async function VenuesPage({
   return (
     <Container>
       <PageHead
-        kicker="where goose plays"
         title="venues"
         meta={`${venues.length} venues${q ? ` · matching “${q}”` : ""}`}
       />

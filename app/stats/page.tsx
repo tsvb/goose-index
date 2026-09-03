@@ -63,7 +63,7 @@ export default async function StatsHub() {
   }
   return (
     <Container>
-      <PageHead kicker="by the numbers" title="stats" meta={`${CUTS.length} cuts of the catalog`} />
+      <PageHead title="stats" meta={`${CUTS.length} cuts of the catalog`} />
 
       <Ledger seed="stats-hub">
         {CUTS.map((c) => {

@@ -25,7 +25,11 @@ const UNKNOWN_WEIGHT = 0.012;
 /** Minute grid, so a segment can be read as a length and not just a bar. */
 const TICK_SECONDS = 300;
 
-export function SetTape({ entries }: { entries: SetlistEntry[] }) {
+/** `explain` prints the one-time reading key (what width, splices and ember
+ * mean). The show page passes it for the first tape only — the key is the
+ * same for every set, and three copies read as boilerplate. The per-set
+ * "n songs have no logged time" note is evidence about *this* tape and stays. */
+export function SetTape({ entries, explain = false }: { entries: SetlistEntry[]; explain?: boolean }) {
   const timed = entries.map((e) => trackSeconds(e.trackTime));
   const known = timed.filter((s): s is number => s != null);
   // With too little timing data the proportions say more about what's missing
@@ -96,16 +100,22 @@ export function SetTape({ entries }: { entries: SetlistEntry[] }) {
         </span>
       </div>
 
-      <figcaption className="mt-2 font-mono text-[0.6rem] leading-relaxed text-faint">
-        The set as tape — each song is as wide as it is long, segued songs run on unbroken tape (split by a splice, not
-        a gap), and <span className="text-ember">jams</span> burn.
-        {unknownCount > 0 && (
-          <>
-            {" "}
-            {unknownCount} {unknownCount === 1 ? "song has" : "songs have"} no logged time, shown hatched.
-          </>
-        )}
-      </figcaption>
+      {(explain || unknownCount > 0) && (
+        <figcaption className="mt-2 font-mono text-[0.6rem] leading-relaxed text-faint">
+          {explain && (
+            <>
+              The set as tape — each song is as wide as it is long, segued songs run on unbroken tape (split by a
+              splice, not a gap), and <span className="text-ember">jams</span> burn.
+            </>
+          )}
+          {unknownCount > 0 && (
+            <>
+              {explain ? " " : ""}
+              {unknownCount} {unknownCount === 1 ? "song has" : "songs have"} no logged time, shown hatched.
+            </>
+          )}
+        </figcaption>
+      )}
     </figure>
   );
 }

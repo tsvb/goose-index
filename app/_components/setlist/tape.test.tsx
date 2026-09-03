@@ -117,3 +117,17 @@ describe("SetTape", () => {
     expect(renderToStaticMarkup(<SetTape entries={[]} />)).toBe("");
   });
 });
+
+describe("SetTape caption", () => {
+  const timed = [entry({ song: "A", trackTime: "10:00" }), entry({ song: "B", trackTime: "12:00" })];
+  it("prints the reading key only when asked — the show page asks once", () => {
+    expect(renderToStaticMarkup(<SetTape entries={timed} />)).not.toContain("The set as tape");
+    expect(renderToStaticMarkup(<SetTape entries={timed} explain />)).toContain("The set as tape");
+  });
+  it("still notes this tape's unlogged times without the key", () => {
+    const mixed = [...timed, entry({ song: "C", trackTime: null })];
+    const html = renderToStaticMarkup(<SetTape entries={mixed} />);
+    expect(html).toContain("1 song has no logged time");
+    expect(html).not.toContain("The set as tape");
+  });
+});

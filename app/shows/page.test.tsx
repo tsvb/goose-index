@@ -42,9 +42,9 @@ beforeEach(() => {
 });
 
 describe("ShowsBrowsePage head", () => {
-  it("renders the lowercase kicker, the 'every show' title, and the count line as meta", async () => {
+  it("renders the 'every show' title with no eyebrow above it, and the count line as meta", async () => {
     const html = await render();
-    expect(html).toMatch(/<p[^>]*>shows<\/p>/); // kicker dropped the "goose index · " prefix
+    expect(html).not.toMatch(/<p[^>]*>shows<\/p>/); // the title names the page; an eyebrow was template chrome
     expect(html.match(/<h1[^>]*>/g)?.length).toBe(1);
     expect(html).toMatch(/<h1[^>]*>every show<\/h1>/);
   });

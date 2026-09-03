@@ -61,7 +61,6 @@ export default async function BlogPage() {
   return (
     <Container>
       <PageHead
-        kicker="notes from the desk"
         title="blog"
         meta={
           <>

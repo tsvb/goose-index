@@ -95,7 +95,7 @@ export default async function Home() {
           <div className="mt-6 max-w-xl">
             <SearchBox size="full" />
           </div>
-          <div className="mt-10 flex flex-wrap items-end gap-x-10 gap-y-6">
+          <div className="mt-10 grid grid-cols-2 gap-x-10 gap-y-6 sm:flex sm:flex-wrap sm:items-end">
             <Figure value={compact(stats.showsPlayed)} label="shows played" href="/shows" />
             <Figure value={compact(stats.performances)} label="songs played" href="/songs" />
             <Figure value={compact(stats.songs)} label="unique songs" href="/songs" />

@@ -50,7 +50,7 @@ export default async function ToursPage() {
 
   return (
     <Container>
-      <PageHead kicker="runs & eras" title="tours" meta={`${tours.length} tours`} />
+      <PageHead title="tours" meta={`${tours.length} tours`} />
 
       <section className="mb-10">
         <SectionRule title="the touring year" seed="tours-timeline" />
