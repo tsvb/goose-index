@@ -29,6 +29,10 @@ export type ShowSummary = {
 // Correlated subqueries keep these single-row-per-show (no GROUP BY gymnastics).
 const songCountSql = sql<number>`(select count(*)::int from performances p where p.show_id = ${shows.showId})`;
 const hasNotesSql = sql<boolean>`(${shows.notes} is not null and ${shows.notes} <> '')`;
+// elgoose files tourless shows under a pseudo-tour named "Not Part of a Tour".
+// That is the absence of a tour, not a tour — a show summary carries null so
+// no page renders the upstream placeholder as if it were a run.
+const tourNameSql = sql<string | null>`nullif(${tours.name}, 'Not Part of a Tour')`;
 
 function summaryColumns() {
   return {
@@ -39,7 +43,7 @@ function summaryColumns() {
     city: venues.city,
     state: venues.state,
     country: venues.country,
-    tour: tours.name,
+    tour: tourNameSql,
     tourId: shows.tourId,
     songCount: songCountSql,
     hasNotes: hasNotesSql,

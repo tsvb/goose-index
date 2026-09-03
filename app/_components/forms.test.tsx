@@ -88,7 +88,7 @@ describe("LedgerEntry", () => {
   it("no setlist reads as a nil, not a zero", () => {
     const html = renderToStaticMarkup(<LedgerEntry show={{ ...show, songCount: 0, hasNotes: false }} />);
     expect(html).not.toContain("0 songs");
-    expect(html).toContain("—");
+    expect(html).toContain("no setlist yet");
   });
   it("stays a flat row — no card classes", () => {
     const html = renderToStaticMarkup(<LedgerEntry show={show} />);

@@ -105,11 +105,18 @@
 
 /* ---- Type tokens — overridable per experience. The `@theme inline` map below
    inlines `var(--type-*)` into the font utilities, so redefining these on a
-   `[data-experience]` selector actually re-fonts the page (like the colors). ---- */
+   `[data-experience]` selector actually re-fonts the page (like the colors).
+   The system stack is the floor every edition starts from; 3.0 alone loads
+   real faces (app/layout.tsx sets the --font-*-face variables). ---- */
 :root {
   --type-display: -apple-system, system-ui, sans-serif;
   --type-body: -apple-system, system-ui, sans-serif;
   --type-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+:root[data-experience="fancy"] {
+  --type-display: var(--font-display-face), Georgia, "Times New Roman", serif;
+  --type-body: var(--font-body-face), -apple-system, system-ui, sans-serif;
+  --type-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 /* ---- Map tokens into Tailwind's theme (inline = resolves at runtime) ---- */
@@ -208,8 +215,8 @@
 
 /* ---- Blog post body (lib/blog + post-body.tsx) ---- */
 /* Everything is drawn from theme tokens, so a post reskins with the edition
-   and theme like the rest of the site: Caslon letterpress on the almanac
-   themes, Plex on XL II, Georgia in the 1.0 document. Colour keeps its one
+   like the rest of the site: Newsreader and Plex on 3.0, the system stack on
+   2.0, Georgia in the 1.0 document. Colour keeps its one
    meaning — steel marks structure, spruce stays on links via .link, ember
    appears nowhere because prose has no heat. */
 .post-prose {
