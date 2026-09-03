@@ -633,6 +633,8 @@ table.song-table .gapcell { color: var(--steel); }
 table.song-table .overdue { color: var(--ember, #ff8a3d); font-weight: 700; }
 table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; left: 0; z-index: 2; background: var(--bg); border-right: 1px solid var(--line); min-width: 120px; }
 .song-pin-name { display: block; overflow: hidden; text-overflow: ellipsis; }
+.song-venue-name { display: block; }
+.song-venue-city { display: block; font-size: 0.72rem; line-height: 1.2; color: var(--faint); }
 .song-pin-stat { display: none; }
 /* Phones: cap the pinned column so the scroll viewport keeps a data window
    (long titles otherwise eat it), and surface the row's key stat inside the

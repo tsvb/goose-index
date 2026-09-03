@@ -39,4 +39,12 @@ describe("YearPage", () => {
     expect(html).toContain('href="/shows/2024-08-30"');
     expect(html).not.toContain("surface-card");
   });
+
+  it("rules the ledger into months, in calendar order, with a count each", async () => {
+    const html = await render();
+    expect(html).toContain("june");
+    expect(html).toContain("august");
+    expect(html.indexOf("june")).toBeLessThan(html.indexOf("august"));
+    expect(html.match(/· 1 show</g)).toHaveLength(2);
+  });
 });

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
+import { FolioNav } from "@/app/_components/page-chrome";
 import { Doc, Breadcrumb, MetaTable, DocSection } from "@/app/_components/doc";
 import { SectionRule } from "@/app/_components/forms";
 import { NilState, chromeLink } from "@/app/_components/page-chrome";
@@ -34,7 +35,11 @@ function chromeTag(song: Pick<SongStat, "isOriginal" | "originalArtist">) {
 }
 
 export const dynamic = "force-dynamic";
-type Params = { params: Promise<{ slug: string }> };
+type Params = { params: Promise<{ slug: string }>; searchParams?: Promise<{ page?: string }> };
+
+/** The performance table pages at the same size as /shows. The charts above
+ * it still read every performance — only the table is sliced. */
+const PERFS_PER_PAGE = 50;
 
 export async function generateMetadata({ params }: Params, parent: ResolvingMetadata): Promise<Metadata> {
   const { slug } = await params;
@@ -67,8 +72,10 @@ function facts(song: SongStat) {
   ];
 }
 
-export default async function SongPage({ params }: Params) {
+export default async function SongPage({ params, searchParams }: Params) {
   const { slug } = await params;
+  const sp = (await searchParams) ?? {};
+  const requestedPage = Math.max(1, sp.page ? parseInt(sp.page, 10) || 1 : 1);
   const song = await getSongBySlug(slug);
   if (!song) notFound();
   const experience = await getExperience();
@@ -85,6 +92,10 @@ export default async function SongPage({ params }: Params) {
   const albums = await getSongAlbums(song.songId);
 
   const perfs = await getSongPerformances(song.songId);
+  const totalPages = Math.max(1, Math.ceil(perfs.length / PERFS_PER_PAGE));
+  const page = Math.min(requestedPage, totalPages);
+  const pagePerfs = perfs.slice((page - 1) * PERFS_PER_PAGE, page * PERFS_PER_PAGE);
+  const pageHref = (n: number) => (n === 1 ? `/songs/${slug}` : `/songs/${slug}?page=${n}`);
 
   if (experience === "minimal") {
     return (
@@ -149,7 +160,18 @@ export default async function SongPage({ params }: Params) {
           </div>
           <div>
             <SectionRule title={<>every performance <span className="font-mono text-xs text-faint">· {perfs.length}</span></>} seed="song-every-performance" />
-            <PerformanceTable perfs={perfs} />
+            <PerformanceTable perfs={pagePerfs} />
+            {totalPages > 1 && (
+              <div className="mt-4">
+                <FolioNav
+                  prevHref={page > 1 ? pageHref(page - 1) : undefined}
+                  nextHref={page < totalPages ? pageHref(page + 1) : undefined}
+                  prevLabel="newer"
+                  nextLabel="older"
+                  center={`page ${page} of ${totalPages}`}
+                />
+              </div>
+            )}
           </div>
         </div>
       </Container>
