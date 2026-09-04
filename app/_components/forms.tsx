@@ -54,7 +54,9 @@ export function Ledger({ children, seed }: { children: React.ReactNode; seed: st
 }
 
 /** One show, one line. The whole row is the link; hover underlines the
- * display slot. Meta reads nil ("—") over zero, per copy rule 1. */
+ * display slot. A missing location reads nil ("—") over zero, per copy rule 1;
+ * a missing setlist says so in words, because a run of dashes down the latest
+ * shows reads as a broken sync rather than data that hasn't landed yet. */
 export function LedgerEntry({ show, context }: { show: ShowSummary; context?: "venue" | "tour" }) {
   const dp = dateParts(show.date);
   const loc = locationLine(show.city, show.state, show.country);
@@ -89,7 +91,7 @@ export function LedgerEntry({ show, context }: { show: ShowSummary; context?: "v
           <span className="mb-0.5 hidden max-w-[14rem] truncate sm:block">{show.tour}</span>
         )}
         <span className="block">
-          {show.songCount > 0 ? `${show.songCount} songs` : "—"}
+          {show.songCount > 0 ? `${show.songCount} songs` : "no setlist yet"}
           {show.hasNotes && <span className="ml-2 text-spruce">notes</span>}
         </span>
       </span>

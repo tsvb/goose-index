@@ -105,11 +105,18 @@
 
 /* ---- Type tokens — overridable per experience. The `@theme inline` map below
    inlines `var(--type-*)` into the font utilities, so redefining these on a
-   `[data-experience]` selector actually re-fonts the page (like the colors). ---- */
+   `[data-experience]` selector actually re-fonts the page (like the colors).
+   The system stack is the floor every edition starts from; 3.0 alone loads
+   real faces (app/layout.tsx sets the --font-*-face variables). ---- */
 :root {
   --type-display: -apple-system, system-ui, sans-serif;
   --type-body: -apple-system, system-ui, sans-serif;
   --type-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+:root[data-experience="fancy"] {
+  --type-display: var(--font-display-face), Georgia, "Times New Roman", serif;
+  --type-body: var(--font-body-face), -apple-system, system-ui, sans-serif;
+  --type-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 /* ---- Map tokens into Tailwind's theme (inline = resolves at runtime) ---- */
@@ -208,8 +215,8 @@
 
 /* ---- Blog post body (lib/blog + post-body.tsx) ---- */
 /* Everything is drawn from theme tokens, so a post reskins with the edition
-   and theme like the rest of the site: Caslon letterpress on the almanac
-   themes, Plex on XL II, Georgia in the 1.0 document. Colour keeps its one
+   like the rest of the site: Newsreader and Plex on 3.0, the system stack on
+   2.0, Georgia in the 1.0 document. Colour keeps its one
    meaning — steel marks structure, spruce stays on links via .link, ember
    appears nowhere because prose has no heat. */
 .post-prose {
@@ -626,6 +633,8 @@ table.song-table .gapcell { color: var(--steel); }
 table.song-table .overdue { color: var(--ember, #ff8a3d); font-weight: 700; }
 table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; left: 0; z-index: 2; background: var(--bg); border-right: 1px solid var(--line); min-width: 120px; }
 .song-pin-name { display: block; overflow: hidden; text-overflow: ellipsis; }
+.song-venue-name { display: block; }
+.song-venue-city { display: block; font-size: 0.72rem; line-height: 1.2; color: var(--faint); }
 .song-pin-stat { display: none; }
 /* Phones: cap the pinned column so the scroll viewport keeps a data window
    (long titles otherwise eat it), and surface the row's key stat inside the
@@ -694,7 +703,7 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 
 /* show-header link (Listen / Watch) — tasteful secondary */
 .nugs-show {
-  display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
   font-size: 0.76rem; color: var(--nugs-link); border: 1px solid var(--nugs-line); border-radius: 8px;
   padding: 4px 10px; background: var(--nugs-wash);
   transition: border-color 0.15s, color 0.15s;

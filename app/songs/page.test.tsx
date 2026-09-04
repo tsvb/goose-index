@@ -37,9 +37,9 @@ beforeEach(() => {
 });
 
 describe("SongsPage head", () => {
-  it("renders the lowercase kicker, the 'songs' title, and the count line as meta", async () => {
+  it("renders the 'songs' title with no eyebrow above it, and the count line as meta", async () => {
     const html = await render();
-    expect(html).toMatch(/<p[^>]*>the catalog<\/p>/); // kicker dropped the "goose index · " prefix
+    expect(html).not.toContain("the catalog<"); // the title names the page; an eyebrow was template chrome
     expect(html.match(/<h1[^>]*>/g)?.length).toBe(1);
     expect(html).toMatch(/<h1[^>]*>songs<\/h1>/);
     expect(html).toContain("1 song · sort the whole catalog any way you like");

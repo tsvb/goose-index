@@ -77,6 +77,21 @@ describe("VenuesPage grouping", () => {
   });
 });
 
+describe("VenuesPage collapsed groups", () => {
+  it("renders each group as a closed <details> when unfiltered", async () => {
+    const html = await render();
+    expect(html.match(/<details/g)).toHaveLength(4);
+    expect(html).not.toMatch(/<details[^>]*\sopen/);
+    // Every venue is still in the document for find-in-page and crawlers.
+    expect(html).toContain('href="/venues/1"');
+  });
+
+  it("opens every group when a filter is active", async () => {
+    const html = await render({ q: "rocks" });
+    expect(html.match(/<details[^>]*\sopen/g)).toHaveLength(4);
+  });
+});
+
 describe("VenuesPage filter box", () => {
   it("fancy renders a GET form to /venues seeded with the current q", async () => {
     const html = await render({ q: "red" });

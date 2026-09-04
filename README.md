@@ -117,7 +117,7 @@ per visitor:
 
 | Edition | What you get |
 |---|---|
-| **3.0** | Charts, pen & instrument. The default. |
+| **3.0** | Charts, hand-drawn, light and dark. The default. |
 | **2.0** | Same charts, glossy skin — striped ledger rows, classic blue links, gel buttons; its own period-literal palette, independent of the fog/slate values above. |
 | **1.0** | Plain document, no charts. |
 

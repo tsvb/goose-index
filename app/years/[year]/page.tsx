@@ -4,10 +4,24 @@ import type { Metadata, ResolvingMetadata } from "next";
 import { Container } from "@/app/_components/container";
 import { FolioNav, chromeLink } from "@/app/_components/page-chrome";
 import { clsx } from "@/app/_components/clsx";
-import { Ledger, LedgerEntry } from "@/app/_components/forms";
+import { Ledger, LedgerEntry, SectionRule } from "@/app/_components/forms";
 import { listShows } from "@/lib/queries/shows";
 import { listYears } from "@/lib/queries/dimensions";
-import { compact } from "@/lib/queries/format";
+import { compact, dateParts } from "@/lib/queries/format";
+import type { ShowSummary } from "@/lib/queries/shows";
+
+/** A year reads as a calendar: one ruled section per month, in order, so
+ * a seventy-show year is twelve short ledgers rather than one long one. */
+function byMonth(rows: ShowSummary[]): { key: string; label: string; rows: ShowSummary[] }[] {
+  const groups: { key: string; label: string; rows: ShowSummary[] }[] = [];
+  for (const show of rows) {
+    const key = show.date.slice(0, 7);
+    let g = groups[groups.length - 1];
+    if (!g || g.key !== key) groups.push((g = { key, label: dateParts(show.date).month.toLowerCase(), rows: [] }));
+    g.rows.push(show);
+  }
+  return groups;
+}
 import { getExperience } from "@/lib/experience.server";
 import { Doc, Breadcrumb, ShowTable } from "@/app/_components/doc";
 import { entityMetadata } from "@/lib/site";
@@ -95,12 +109,27 @@ export default async function YearPage({ params }: Params) {
         />
       </div>
 
-      {/* Show list */}
-      <Ledger seed={`year-${year}`}>
-        {rows.map((show) => (
-          <LedgerEntry key={show.showId} show={show} />
+      {/* Show list, one section per month */}
+      <div className="space-y-8">
+        {byMonth(rows).map((m) => (
+          <section key={m.key}>
+            <SectionRule
+              title={
+                <>
+                  {m.label}{" "}
+                  <span className="text-faint">· {m.rows.length} {m.rows.length === 1 ? "show" : "shows"}</span>
+                </>
+              }
+              seed={`year-${m.key}`}
+            />
+            <Ledger seed={`year-${m.key}`}>
+              {m.rows.map((show) => (
+                <LedgerEntry key={show.showId} show={show} />
+              ))}
+            </Ledger>
+          </section>
         ))}
-      </Ledger>
+      </div>
     </Container>
   );
 }

@@ -122,6 +122,35 @@ describe("SongPage for a played song", () => {
   });
 });
 
+describe("SongPage performance pagination", () => {
+  const perf = (i: number) => ({
+    uniqueId: `p${i}`, date: `2024-01-${String((i % 28) + 1).padStart(2, "0")}`, showId: i, order: 1,
+    venue: "V", city: "C", state: "S", setLabel: "Set I", position: 1, trackTime: null, seconds: null,
+    gap: 1, isJamchart: false, isDustedOff: false,
+  });
+  it("shows no pager when the table fits one page", async () => {
+    h.song = song({ timesPlayed: 3 });
+    h.perfs = [perf(1), perf(2), perf(3)];
+    const html = await render();
+    expect(html).not.toContain("page 1 of");
+  });
+  it("pages at 50 and links newer/older", async () => {
+    h.song = song({ timesPlayed: 120 });
+    h.perfs = Array.from({ length: 120 }, (_, i) => perf(i));
+    const el = await SongPage({ params: Promise.resolve({ slug: "creatures" }), searchParams: Promise.resolve({ page: "2" }) });
+    const html = renderToStaticMarkup(el);
+    expect(html).toContain("page 2 of 3");
+    expect(html).toContain('href="/songs/creatures"'); // newer → page 1 is the bare URL
+    expect(html).toContain('href="/songs/creatures?page=3"');
+  });
+  it("clamps an out-of-range page instead of rendering an empty table", async () => {
+    h.song = song({ timesPlayed: 60 });
+    h.perfs = Array.from({ length: 60 }, (_, i) => perf(i));
+    const el = await SongPage({ params: Promise.resolve({ slug: "creatures" }), searchParams: Promise.resolve({ page: "9" }) });
+    expect(renderToStaticMarkup(el)).toContain("page 2 of 2");
+  });
+});
+
 describe("SongPage furniture — breadcrumb, tag, section rules", () => {
   beforeEach(() => {
     h.song = song({

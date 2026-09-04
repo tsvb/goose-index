@@ -5,13 +5,14 @@ export type Experience = "fancy" | "functional" | "minimal";
 // in the ga_experience cookie, so renaming them would reset every visitor.
 //
 // Blurbs say what you actually get, and only what this edition alone gets:
-//   3.0  charts + pen & instrument           (the pen/instrument system is fancy-only)
+//   3.0  charts, hand-drawn, light and dark  (the drawn forms and the fog/slate
+//                                             switch both exist only here)
 //   2.0  the same charts, Web 2.0 skin       (only `minimal` branches to tables)
 //   1.0  a plain document, no charts at all
 // "Machine-readable" was dropped from 1.0: JSON-LD ships from the root layout on
 // every edition, so it was never a thing 1.0 alone offered.
 export const EXPERIENCES: { key: Experience; label: string; blurb: string }[] = [
-  { key: "fancy", label: "3.0", blurb: "Charts, pen & instrument" },
+  { key: "fancy", label: "3.0", blurb: "Charts, hand-drawn, light and dark" },
   { key: "functional", label: "2.0", blurb: "Same charts, glossy skin" },
   { key: "minimal", label: "1.0", blurb: "Plain document, no charts" },
 ];

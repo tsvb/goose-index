@@ -74,24 +74,28 @@ export default async function Home() {
 
   const todayDp = onThisDay.length ? dateParts(onThisDay[0].date) : null;
   const todayLabel = todayDp ? `${todayDp.month.slice(0, 3).toLowerCase()} ${todayDp.day}` : "";
+  // The span is computed, never typed: the sync can push the first date.
+  const firstYear = stats.firstDate ? stats.firstDate.slice(0, 4) : null;
 
   return (
     <>
       {/* ---- The record ---- */}
       <section>
         <Container className="pt-12 pb-10 sm:pt-16">
-          <h1 className="max-w-3xl text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
-            <span className="text-steel">Goose</span> Index(ed)
+          {/* Plain name, plain sentence. The figures below give the counts, so
+              the sentence gives the scope — no "-ish" above an exact number,
+              no one-word colour accent. */}
+          <h1 className="max-w-3xl font-display text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+            Goose Index
           </h1>
           <p className="mt-3 max-w-xl text-[0.95rem] leading-relaxed text-muted">
-            {compact(stats.showsPlayed)} (-ish) shows since someone was keeping tabs. setlists,
-            segues, “jams” ’n stuff, venues (lots), tours, and stories about things that
-            happened along the way.
+            Every Goose show{firstYear ? ` since ${firstYear}` : ""}: setlists, segues, jams,
+            venues, tours, and notes on the nights. Setlist data from elgoose.net.
           </p>
           <div className="mt-6 max-w-xl">
             <SearchBox size="full" />
           </div>
-          <div className="mt-10 flex flex-wrap items-end gap-x-10 gap-y-6">
+          <div className="mt-10 grid grid-cols-2 gap-x-10 gap-y-6 sm:flex sm:flex-wrap sm:items-end">
             <Figure value={compact(stats.showsPlayed)} label="shows played" href="/shows" />
             <Figure value={compact(stats.performances)} label="songs played" href="/songs" />
             <Figure value={compact(stats.songs)} label="unique songs" href="/songs" />

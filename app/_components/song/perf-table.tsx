@@ -5,17 +5,21 @@ import { ScrollTable } from "./scroll-table";
 
 export function PerformanceTable({ perfs }: { perfs: SongPerf[] }) {
   return (
-    <ScrollTable swipeHint="Date pinned · swipe → for venue, set, gap, time">
+    <ScrollTable swipeHint="Date pinned · swipe → for set, gap, time">
       <table className="song-table">
         <thead>
-          <tr><th className="song-pin">Date</th><th>Venue</th><th>City</th><th>Set</th><th className="num">Gap</th><th className="num">Time</th><th>Notes</th></tr>
+          <tr><th className="song-pin">Date</th><th>Venue</th><th>Set</th><th className="num">Gap</th><th className="num">Time</th><th>Notes</th></tr>
         </thead>
         <tbody>
           {perfs.map((p) => (
             <tr key={p.uniqueId}>
               <td className="song-pin"><Link href={showHref(p.date, p.order)}>{p.date}</Link></td>
-              <td>{p.venue ?? "—"}</td>
-              <td className="dim">{p.city ?? ""}</td>
+              {/* Venue and city share a cell — one column fewer, so the
+                  where survives on a phone without scrolling. */}
+              <td>
+                <span className="song-venue-name">{p.venue ?? "—"}</span>
+                {p.city && <span className="song-venue-city">{p.city}</span>}
+              </td>
               <td>{p.setLabel}</td>
               <td className="num gapcell">{p.gap ?? "—"}</td>
               <td className="num">{p.trackTime ?? "—"}</td>

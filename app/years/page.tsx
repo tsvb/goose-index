@@ -36,7 +36,6 @@ export default async function YearsPage() {
   return (
     <Container>
       <PageHead
-        kicker="year by year"
         title="years"
         meta={`${years.length} ${years.length === 1 ? "year" : "years"} on the record`}
       />

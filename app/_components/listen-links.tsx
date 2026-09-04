@@ -223,7 +223,7 @@ export function ListenLinksContent({
 
   return (
     <Container className="max-w-3xl pb-10 sm:pb-14">
-      <PageHead kicker="listen links" title="How the listen links work" />
+      <PageHead title="How the listen links work" />
       <div className="space-y-10 leading-relaxed text-muted [&_code]:text-[0.85em] [&_code]:break-all [&_strong]:text-ink [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mt-1.5">
         {sections.map((s) => (
           <section key={s.title}>

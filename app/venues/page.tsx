@@ -7,6 +7,7 @@ import { listVenues, showsByState, showsByCountry, normalizeCountry, type VenueR
 import { VenueMap, VenueMapTable } from "@/app/_components/venue-map";
 import { PageHead, FilterLink, FilterRow, NilState, chromeLink } from "@/app/_components/page-chrome";
 import { SectionRule, Ledger } from "@/app/_components/forms";
+import { OpenOnHash } from "@/app/_components/open-on-hash";
 import { locationLine, compact } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
@@ -118,7 +119,6 @@ export default async function VenuesPage({
   return (
     <Container>
       <PageHead
-        kicker="where goose plays"
         title="venues"
         meta={`${venues.length} venues${q ? ` · matching “${q}”` : ""}`}
       />
@@ -189,19 +189,25 @@ export default async function VenuesPage({
         )}
       </div>
 
+      {/* Unfiltered, the ledger is every venue (hundreds) under every state,
+          so each group is a closed <details>: the summary carries the count,
+          the jump row or a #g-xx URL opens the one you asked for. A filter
+          leaves few enough rows that they all open. */}
       <div className="mt-8">
         {venues.length === 0 ? (
           <NilState href="/venues" linkLabel="clear the filter">
             No venues match{q ? ` “${q}”` : ""}.
           </NilState>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-3">
+            <OpenOnHash />
             {groups.map((g) => (
-              <section key={g.id} id={g.id} className="scroll-mt-24">
-                <div className={`sticky ${stickyTop} z-10 bg-paper py-2`}>
+              <details key={g.id} id={g.id} open={Boolean(q)} className="group scroll-mt-24">
+                <summary className={`sticky ${stickyTop} z-10 cursor-pointer list-none bg-paper py-2 [&::-webkit-details-marker]:hidden`}>
                   <SectionRule
                     title={
                       <>
+                        <span aria-hidden className="mr-1.5 inline-block text-faint transition-transform group-open:rotate-90">▸</span>
                         {g.label}{" "}
                         <span className="text-faint">
                           · {g.rows.length} {g.rows.length === 1 ? "venue" : "venues"}
@@ -210,7 +216,7 @@ export default async function VenuesPage({
                     }
                     seed={`venues-${g.id}`}
                   />
-                </div>
+                </summary>
                 <Ledger seed={`venues-${g.id}`}>
                   {g.rows.map((v) => {
                     const sub = locationLine(v.city, g.kind === "state" ? null : v.state, null);
@@ -238,7 +244,7 @@ export default async function VenuesPage({
                     );
                   })}
                 </Ledger>
-              </section>
+              </details>
             ))}
           </div>
         )}
