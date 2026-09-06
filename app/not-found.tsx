@@ -18,7 +18,7 @@ export default async function NotFound() {
           <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Not found" }]} />
           <h1>This page isn&rsquo;t in the index</h1>
           <p>
-            Maybe the show was cancelled, or this night never made it into the
+            Maybe the show was canceled, or this night never made it into the
             record. Either way, the setlist doesn&rsquo;t lie.
           </p>
           <p>
@@ -35,7 +35,7 @@ export default async function NotFound() {
     <Container className="py-16 text-center sm:py-24">
       <PageHead kicker="404 · off the setlist" title="This page isn’t in the index.">
         <p className="mx-auto mt-5 max-w-sm text-lg leading-relaxed text-muted">
-          Maybe the show was cancelled, or this night never made it into the
+          Maybe the show was canceled, or this night never made it into the
           record. Either way, the setlist doesn’t lie.
         </p>
         <PenRule seed="404" className="mx-auto mt-8 max-w-xs" />

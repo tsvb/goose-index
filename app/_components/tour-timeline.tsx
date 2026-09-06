@@ -30,7 +30,7 @@ const dayOfYear = (iso: string) => {
 const yearDays = (year: number) => (new Date(Date.UTC(year, 1, 29)).getUTCDate() === 29 ? 366 : 365);
 
 /** The row already says the year and the axis already says "tour", so a bar
- * labelled "Summer Tour 2026" spends its width repeating its own coordinates.
+ * labeled "Summer Tour 2026" spends its width repeating its own coordinates.
  * Strip both and "Summer" fits — which is the difference between a label you can
  * read and one that clips to "Summ…". Falls back to the full name if stripping
  * would leave nothing (e.g. "Goosemas III"). */
@@ -45,7 +45,7 @@ export function shortName(name: string): string {
 
 /**
  * A break of a fortnight is not a travel day. Two weeks with no show means the
- * band went home, and a tour that resumes afterwards is a second leg.
+ * band went home, and a tour that resumes afterward is a second leg.
  */
 export const LEG_BREAK_DAYS = 14;
 
@@ -161,7 +161,7 @@ export function TourTimeline({
                     // Marks (the connector, the bar, its ticks) read the busiest run in
                     // hand; the tour-name label is text, so it stays in ember — hand is
                     // a mark-only color, never text (see the pen & instrument roles).
-                    const markColour = future ? "var(--faint)" : hot ? "var(--hand)" : "var(--steel)";
+                    const markColor = future ? "var(--faint)" : hot ? "var(--hand)" : "var(--steel)";
                     // The label sits on its own bar's tinted wash (22%/30% color-mix over
                     // --bg-deep), not on plain paper — a computed background the standing
                     // contrast gate (app/globals-contrast.test.ts) can't see, since it only
@@ -182,7 +182,7 @@ export function TourTimeline({
                     // the fog/slate mix recipe. The --tour-label-color custom property
                     // carries this value as the default (fog/slate); the class lets the
                     // functional rule out-specificity it without an inline !important.
-                    const nameColour = future
+                    const nameColor = future
                       ? "var(--faint)"
                       : hot
                         ? "color-mix(in srgb, var(--ember) 70%, var(--ink) 30%)"
@@ -204,7 +204,7 @@ export function TourTimeline({
                               width: `${pct(legs[legs.length - 1].start) - pct(legs[0].end)}%`,
                               top: top + LANE.h / 2,
                               height: 1,
-                              borderTop: `1px dotted ${markColour}`,
+                              borderTop: `1px dotted ${markColor}`,
                               opacity: 0.45,
                             }}
                           />
@@ -254,7 +254,7 @@ export function TourTimeline({
                               {i === 0 && (
                                 <span
                                   className="tour-timeline-label pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
-                                  style={{ "--tour-label-color": nameColour } as CSSProperties}
+                                  style={{ "--tour-label-color": nameColor } as CSSProperties}
                                 >
                                   {shortName(t.name)}
                                 </span>

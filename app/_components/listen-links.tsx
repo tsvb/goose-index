@@ -17,7 +17,7 @@ export type ListenExample = {
 export type NugsCoverage = { resolved: number; total: number };
 
 /** Every URL on the page comes from the same helpers the buttons call —
- *  documentation that cannot drift from the behaviour it documents. */
+ *  documentation that cannot drift from the behavior it documents. */
 function buildUrls(example: ListenExample) {
   return {
     listen: nugsShowHref({ date: example.date, venue: example.venue }),

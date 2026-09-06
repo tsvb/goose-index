@@ -72,9 +72,9 @@ The bespoke part. Two inline shorthands link into the index:
 
 | Write | Get |
 |---|---|
-| `[[show:2021-07-03]]` | link to `/shows/2021-07-03`, labelled "Jul 3, 2021" |
+| `[[show:2021-07-03]]` | link to `/shows/2021-07-03`, labeled "Jul 3, 2021" |
 | `[[show:2021-07-03\|that Goosemas]]` | same link, your label |
-| `[[song:hot-tea]]` | link to `/songs/hot-tea`, labelled "Hot Tea" (title-cased slug) |
+| `[[song:hot-tea]]` | link to `/songs/hot-tea`, labeled "Hot Tea" (title-cased slug) |
 | `[[song:hot-tea\|the encore]]` | same link, your label |
 
 The parser validates the *shape* (date, slug) at build time; it does not check

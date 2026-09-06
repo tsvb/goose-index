@@ -45,7 +45,7 @@ describe("TickRuler", () => {
 });
 
 describe("Gauge", () => {
-  it("always writes the value next to the pointer — colour never carries alone", () => {
+  it("always writes the value next to the pointer — color never carries alone", () => {
     const html = renderToStaticMarkup(<Gauge min={0} max={100} value={74} unit="shows" />);
     expect(html).toContain("74");
     expect(html).toContain("shows");

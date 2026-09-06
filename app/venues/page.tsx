@@ -26,7 +26,7 @@ const KIND_ORDER = { state: 0, country: 1, other: 2 } as const;
 
 /** US venues group under their state, everywhere else under the country, unlocated last.
  *
- * The country name is normalised first: elgoose's field is free text, so "UK" and
+ * The country name is normalized first: elgoose's field is free text, so "UK" and
  * "United Kingdom" arrive as different strings and the ledger listed the same
  * country twice. Both this and the map now fold names through one rule. */
 function groupVenues(rows: VenueRow[]): VenueGroup[] {

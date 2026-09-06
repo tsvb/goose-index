@@ -4,7 +4,7 @@ import { buildShowsHref, resolveDir, resolvePer, SHOWS_DEFAULT_DIR, type ShowsQu
 const base: ShowsQuery = { dir: "desc", per: 50, page: 1 };
 
 describe("resolveDir", () => {
-  it("defaults to desc (newest first) and honours both explicit directions", () => {
+  it("defaults to desc (newest first) and honors both explicit directions", () => {
     expect(SHOWS_DEFAULT_DIR).toBe("desc");
     expect(resolveDir(undefined)).toBe("desc");
     expect(resolveDir("nonsense")).toBe("desc");

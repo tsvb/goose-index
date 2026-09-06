@@ -35,7 +35,7 @@ export function venueMatches(a: string | null | undefined, b: string | null | un
  *  more often than two shows share a date.
  *
  *  Ambiguity resolves to null on purpose: an unmatched show falls back to the
- *  artist+date search, which is the behaviour that shipped before this feature.
+ *  artist+date search, which is the behavior that shipped before this feature.
  *  Guessing would send someone to the wrong night, which is worse than a search. */
 export function resolveContainer(
   show: { date: string; venue: string | null },

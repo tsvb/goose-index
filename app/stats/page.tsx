@@ -264,7 +264,7 @@ function RaritiesList({ rows }: { rows: SongIndexRow[] }) {
 
 /** A gap is a closing ring: how much of the whole record has gone by since
  * the song was last played. Ember, because overdue is heat everywhere on the
- * site; the written count sits beside it so colour is never the only carrier. */
+ * site; the written count sits beside it so color is never the only carrier. */
 function GapRing({ fraction }: { fraction: number }) {
   const c = 8;
   const r = 6;

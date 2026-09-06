@@ -68,7 +68,7 @@ describe("parseContainers", () => {
     ]))).toEqual([]);
   });
 
-  it("returns empty for a shape it doesn't recognise instead of throwing", () => {
+  it("returns empty for a shape it doesn't recognize instead of throwing", () => {
     expect(parseContainers({})).toEqual([]);
     expect(parseContainers(null)).toEqual([]);
     expect(parseContainers({ Response: {} })).toEqual([]);

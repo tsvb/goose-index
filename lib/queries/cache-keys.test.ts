@@ -100,7 +100,7 @@ describe("paging and sort options reduce to one key", () => {
     expect(new Set(calls.map((c) => JSON.stringify(c.args))).size).toBe(1);
   });
 
-  it("listSongs collapses an unrecognised sort or facet onto the default", async () => {
+  it("listSongs collapses an unrecognized sort or facet onto the default", async () => {
     const { listSongs } = await import("./songs");
     await listSongs();
     await listSongs({ sort: "played", facet: "all" });

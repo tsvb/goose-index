@@ -9,14 +9,14 @@ afterEach(() => vi.restoreAllMocks());
 // a database. No script should depend on a doc, or on memory, to know where its
 // writes land.
 describe("announceTarget", () => {
-  it("recognises Neon as production", () => {
+  it("recognizes Neon as production", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const { isProd } = announceTarget("postgres://u:p@ep-rough-morning.us-east-1.aws.neon.tech/neondb");
     expect(isProd).toBe(true);
     expect(log.mock.calls.flat().join(" ")).toContain("PRODUCTION");
   });
 
-  it("recognises Supabase as production — direct and pooled hosts alike", () => {
+  it("recognizes Supabase as production — direct and pooled hosts alike", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     expect(announceTarget("postgres://postgres:p@db.bltqcsvbdlyyxmvzxozc.supabase.co:5432/postgres").isProd).toBe(true);
     expect(announceTarget("postgres://postgres.ref:p@aws-1-us-east-1.pooler.supabase.com:6543/postgres").isProd).toBe(true);

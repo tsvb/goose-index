@@ -85,7 +85,7 @@ export function VenueDepth({ data }: { data: DeepestVenueRow[] }) {
   }
 
   // Full scale is a round number just above the hottest room, so every needle is
-  // read against the same dial rather than each being self-normalised.
+  // read against the same dial rather than each being self-normalized.
   const hottest = Math.max(...data.map((d) => d.jamPercentage));
   const fullScale = Math.max(10, Math.ceil(hottest / 10) * 10);
 

@@ -7,7 +7,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("SettingsMenu trigger", () => {
-  it("renders a labelled icon trigger in fancy", () => {
+  it("renders a labeled icon trigger in fancy", () => {
     const html = renderToStaticMarkup(<SettingsMenu current="fancy" />);
     expect(html).toContain('aria-label="Settings"');
     expect(html).toContain("<svg");

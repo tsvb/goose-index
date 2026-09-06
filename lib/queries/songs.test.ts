@@ -11,7 +11,7 @@ let _testDb: Awaited<ReturnType<typeof makeTestDb>>["db"] | null = null;
 vi.mock("@/db/client", () => ({
   db: new Proxy({} as Record<string | symbol, unknown>, {
     get(_t, prop) {
-      if (!_testDb) throw new Error("Test db not initialised");
+      if (!_testDb) throw new Error("Test db not initialized");
       const real = _testDb as unknown as Record<string | symbol, unknown>;
       const val = real[prop];
       return typeof val === "function" ? val.bind(real) : val;

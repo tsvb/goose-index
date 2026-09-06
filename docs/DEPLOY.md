@@ -133,7 +133,7 @@ it** — it wins over `POSTGRES_URL` by design.
 
 `<Analytics />` (`@vercel/analytics`) renders from `app/layout.tsx`, so it covers all three
 editions, including 1.0. It is cookieless and needs no consent banner. Vercel serves the
-script from a **randomised path** (e.g. `/ae9a…/script.js`) to survive ad-blockers, so don't
+script from a **randomized path** (e.g. `/ae9a…/script.js`) to survive ad-blockers, so don't
 expect to find the strings `insights` or `analytics` in the page source — check for
 `window.va` instead.
 

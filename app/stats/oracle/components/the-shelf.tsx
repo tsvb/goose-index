@@ -17,7 +17,7 @@ const MIN_SWEEP = 0.06;
 export type SpoolReading = {
   /** How much tape this song has ever had: 0 = a rarity, 1 = a staple. */
   wound: number;
-  /** How far the countdown ring has travelled: 0 = just played, 1 = shelved longest. */
+  /** How far the countdown ring has traveled: 0 = just played, 1 = shelved longest. */
   gap: number;
   red: boolean;
 };
@@ -37,7 +37,7 @@ export type SpoolReading = {
  * as one number those two cases are indistinguishable, and the interesting one
  * disappears.
  *
- * Both are log-scaled and normalised across the set. Gaps (88–1367 days) and
+ * Both are log-scaled and normalized across the set. Gaps (88–1367 days) and
  * play counts (6–110) are heavily skewed and read multiplicatively: three years
  * shelved versus four is barely a distinction where one month versus three is a
  * large one, and 100 plays versus 110 is nothing where 6 versus 20 is
@@ -94,10 +94,10 @@ function Prongs() {
 
 /** The tape is material, not signal.
  *
- * Drawing the pack in the accent colour made a full spool the loudest object on
+ * Drawing the pack in the accent color made a full spool the loudest object on
  * the page — a fat bright donut has far more ink than a thin ring — so the
  * songs played three months ago shouted over the one shelved for four years.
- * Colour now carries exactly one meaning: how long it's been. The pack is
+ * Color now carries exactly one meaning: how long it's been. The pack is
  * graphite (which is also what tape actually looks like; it was never cyan),
  * and every drop of accent is spent on the ring, whose sweep is the gap. */
 function Spool({ wound, gap, red }: SpoolReading) {
@@ -123,7 +123,7 @@ function Spool({ wound, gap, red }: SpoolReading) {
 
       {/* The shell window: the cavity the tape is wound in. */}
       <circle cx={HUB.c} cy={HUB.c} r={HUB.rim} fill="var(--bg-deep)" stroke="var(--line-soft)" strokeWidth={1} />
-      {/* The wound pack — graphite. Thickness is the song's size; colour says nothing. */}
+      {/* The wound pack — graphite. Thickness is the song's size; color says nothing. */}
       <circle data-role="pack" cx={HUB.c} cy={HUB.c} r={mid} fill="none" stroke="var(--line)" strokeWidth={thickness} />
       {thickness > 6 && (
         <>

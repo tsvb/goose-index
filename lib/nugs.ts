@@ -48,7 +48,7 @@ export function nugsWebHref(o: { containerId: number; media?: NugsMedia }): stri
 
 /** Where a click goes when AppleNugs doesn't open. With a resolved containerID
  *  this is the show's exact page; without one it stays the old artist+date search,
- *  so an unmatched show degrades to the previous behaviour rather than a dead end.
+ *  so an unmatched show degrades to the previous behavior rather than a dead end.
  *  play.nugs.net requires a login — this lands the visitor at the show, it does
  *  not assert they can play it. */
 export function nugsWebFallback(o: {

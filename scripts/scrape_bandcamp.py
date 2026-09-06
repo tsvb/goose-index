@@ -25,7 +25,7 @@ Outputs (into --out, default ./data):
 How it behaves
 --------------
 * Serial + polite. Default 1.5s between requests, exponential backoff on 429/5xx,
-  honours Retry-After.
+  honors Retry-After.
 * Caches every raw HTML page under <out>/cache/. Re-runs are free and resumable;
   kill it and restart any time. Use --refresh to force re-fetch.
 * Only touches /music and /album/* — both allowed by Bandcamp's robots.txt.
@@ -195,7 +195,7 @@ def parse_title(title: str) -> dict:
 # Section headers inside the `about` blob.
 COACH_HDR_RE = re.compile(r"^\s*(?:coach(?:[\u2019']s|es|'s)?\s*)?notes\s*:\s*(.*)$", re.I)
 SHOW_HDR_RE = re.compile(r"^\s*show\s*notes\s*:\s*(.*)$", re.I)
-# Set headers are wildly inconsistent across the catalogue:
+# Set headers are wildly inconsistent across the catalog:
 #   'Set 1:'  'Set:'  'Set One:'  'Set I:'  'Encore:'  'E:'
 _SET_WORDS = r"one|two|three|four|1|2|3|4|i{1,3}|iv"
 SET_HDR_RE = re.compile(rf"^\s*(set(?:\s*(?:{_SET_WORDS}))?|encore\s*\d*|enc|e)\s*:\s*(.+)$", re.I)
@@ -483,7 +483,7 @@ def link_setlist_to_tracks(album: Album) -> tuple[list[str], list[tuple]]:
     Returns (warnings, aliases). An "alias" is a song that aligned positionally
     but whose Bandcamp track title differs from the setlist name — e.g.
     'Same Old Shenanigans' listed as track 'SOS'. Those are worth collecting:
-    they're exactly what you need to canonicalise song names across shows.
+    they're exactly what you need to canonicalize song names across shows.
     """
     warnings: list[str] = []
     aliases: list[tuple] = []
