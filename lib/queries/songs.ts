@@ -440,10 +440,16 @@ const inSet = () => sql`
     from performances p join shows s on s.show_id = p.show_id
     where s.show_date <= ${today()}
   )`;
-/** The show's first song: the opener of set one, or of the only set. */
-const SHOW_OPENER = sql`p.pos_in_set = 1 and (p.set_number = '1' or p.set_type = 'One Set')`;
-const SET2_OPENER = sql`p.pos_in_set = 1 and p.set_number = '2'`;
 const ENCORE = sql`p.set_type = 'Encore' or p.set_number ilike 'e%'`;
+/**
+ * The show's first song: the opener of set one, or of the only set — and never
+ * an encore. elgoose labels a one-set show's encore `One Set|e`, so "the only
+ * set" on its own also ranks the first encore song first within its set, and
+ * production counted those as openers. The encore test is the encore bucket's
+ * own, so the two can't drift.
+ */
+const SHOW_OPENER = sql`p.pos_in_set = 1 and not (${ENCORE}) and (p.set_number = '1' or p.set_type = 'One Set')`;
+const SET2_OPENER = sql`p.pos_in_set = 1 and p.set_number = '2'`;
 
 export async function setStats(): Promise<{ key: string; label: string; rows: { slug: string; name: string; count: number }[] }[]> {
   return cachedQuery("setStats", [], async () => {

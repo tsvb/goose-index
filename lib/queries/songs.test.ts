@@ -252,6 +252,28 @@ describe("stats cuts", () => {
     expect((await statsHubHighlights()).topOpener).toEqual({ name: "Madhuvan", slug: "madhuvan", count: 5 });
   });
 
+  it("a one-set show's encore is not a show opener — elgoose labels it One Set|e", async () => {
+    await seed();
+    await upsertSongs(ctx.db, [
+      { songId: 720, name: "Arcadia", slug: "arcadia", isOriginal: true, originalArtist: null },
+    ]);
+    const mk = (uniqueId: string, songId: number, setNumber: string, position: number) => ({
+      uniqueId, showId: 4, songId, setType: "One Set", setNumber, position, trackTime: "7:00",
+      transition: null, transitionId: null, isJamchart: false, jamchartNotes: null,
+      isReprise: false, isJam: false, isVerified: true, footnote: null,
+    });
+    // Show 4 becomes a one-set show: its only set is `One Set|1`, its encore `One Set|e`.
+    // The encore row ranks first within its own set, which is not the same as opening the show.
+    await upsertPerformances(ctx.db, [mk("m3", 701, "1", 1), mk("enc0", 720, "e", 2)]);
+    const { setStats, statsHubHighlights } = await import("./songs");
+    const buckets = await setStats();
+    const opener = buckets.find((b) => b.key === "show-opener")!;
+    expect(opener.rows[0]).toMatchObject({ slug: "madhuvan", count: 5 });
+    expect(opener.rows.map((r) => r.slug)).not.toContain("arcadia");
+    expect(buckets.find((b) => b.key === "encore")!.rows).toContainEqual({ slug: "arcadia", name: "Arcadia", count: 1 });
+    expect((await statsHubHighlights()).topOpener).toEqual({ name: "Madhuvan", slug: "madhuvan", count: 5 });
+  });
+
   it("rarities keeps one-time originals and recurring covers, drops one-time covers", async () => {
     await seed();
     await upsertSongs(ctx.db, [
