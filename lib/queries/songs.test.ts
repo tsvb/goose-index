@@ -221,6 +221,37 @@ describe("stats cuts", () => {
     expect(opener!.rows[0].slug).toBe("madhuvan"); // position 1 every show
   });
 
+  it("set 2 openers are the first song of set two, not position 1 — elgoose numbers positions across the show", async () => {
+    await seed();
+    await upsertSongs(ctx.db, [
+      { songId: 708, name: "Second Set Opener", slug: "second-set-opener", isOriginal: true, originalArtist: null },
+      { songId: 709, name: "Second Set Second", slug: "second-set-second", isOriginal: true, originalArtist: null },
+    ]);
+    // Set one holds positions 1–2 in every seeded show, so set two starts at 3.
+    const mk = (uniqueId: string, showId: number, songId: number, position: number) => ({
+      uniqueId, showId, songId, setType: "Set", setNumber: "2", position, trackTime: "7:00",
+      transition: null, transitionId: null, isJamchart: false, jamchartNotes: null,
+      isReprise: false, isJam: false, isVerified: true, footnote: null,
+    });
+    await upsertPerformances(ctx.db, [
+      mk("s2a", 1, 708, 3), mk("s2b", 1, 709, 4),
+      mk("s2c", 2, 708, 3), mk("s2d", 2, 709, 4),
+      mk("s2e", 3, 709, 3), // a show where the other song opens set two
+    ]);
+    const { setStats, statsHubHighlights } = await import("./songs");
+    const buckets = await setStats();
+    const set2 = buckets.find((b) => b.key === "set2-opener")!;
+    expect(set2.rows).toEqual([
+      { slug: "second-set-opener", name: "Second Set Opener", count: 2 },
+      { slug: "second-set-second", name: "Second Set Second", count: 1 },
+    ]);
+    // Set one's opener is untouched by set two, and the hub headline still agrees with it.
+    const opener = buckets.find((b) => b.key === "show-opener")!;
+    expect(opener.rows[0]).toMatchObject({ slug: "madhuvan", count: 5 });
+    expect(opener.rows.map((r) => r.slug)).not.toContain("second-set-opener");
+    expect((await statsHubHighlights()).topOpener).toEqual({ name: "Madhuvan", slug: "madhuvan", count: 5 });
+  });
+
   it("rarities keeps one-time originals and recurring covers, drops one-time covers", async () => {
     await seed();
     await upsertSongs(ctx.db, [

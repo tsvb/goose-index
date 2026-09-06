@@ -422,20 +422,43 @@ export async function recentDebuts(limit = 25): Promise<{ slug: string; name: st
   }, { varyByToday: true });
 }
 
+/**
+ * Every played performance with its rank inside its own set.
+ *
+ * elgoose numbers `position` across the whole show, not per set: the first
+ * song of set two sits at position 7 or so, never 1. "Set 2 openers" was
+ * written as `position = 1 and set_number = '2'`, which no row can satisfy,
+ * and the bucket sat empty in production. The opener of a set is the row
+ * ranked first within (show, set_type, set_number); for set one that is the
+ * same row `position = 1` always found, so the show-opener numbers don't move.
+ * Built per call because it binds today's date (see `showSeq`).
+ */
+const inSet = () => sql`
+  in_set as (
+    select p.song_id, p.set_type, p.set_number,
+           row_number() over (partition by p.show_id, p.set_type, p.set_number order by p.position) as pos_in_set
+    from performances p join shows s on s.show_id = p.show_id
+    where s.show_date <= ${today()}
+  )`;
+/** The show's first song: the opener of set one, or of the only set. */
+const SHOW_OPENER = sql`p.pos_in_set = 1 and (p.set_number = '1' or p.set_type = 'One Set')`;
+const SET2_OPENER = sql`p.pos_in_set = 1 and p.set_number = '2'`;
+const ENCORE = sql`p.set_type = 'Encore' or p.set_number ilike 'e%'`;
+
 export async function setStats(): Promise<{ key: string; label: string; rows: { slug: string; name: string; count: number }[] }[]> {
   return cachedQuery("setStats", [], async () => {
     const buckets: { key: string; label: string; cond: SQL }[] = [
-      { key: "show-opener", label: "Show openers", cond: sql`p.position = 1 and (p.set_number = '1' or p.set_type = 'One Set')` },
-      { key: "set2-opener", label: "Set 2 openers", cond: sql`p.position = 1 and p.set_number = '2'` },
-      { key: "encore", label: "Encores", cond: sql`p.set_type = 'Encore' or p.set_number ilike 'e%'` },
+      { key: "show-opener", label: "Show openers", cond: SHOW_OPENER },
+      { key: "set2-opener", label: "Set 2 openers", cond: SET2_OPENER },
+      { key: "encore", label: "Encores", cond: ENCORE },
     ];
     const out = [];
     for (const b of buckets) {
       const rows = allRows(await db.execute(sql`
+        with ${inSet()}
         select so.slug, so.name, count(*)::int as count
-        from performances p join songs so on so.song_id = p.song_id
-        join shows s on s.show_id = p.show_id
-        where s.show_date <= ${today()} and (${b.cond})
+        from in_set p join songs so on so.song_id = p.song_id
+        where ${b.cond}
         group by so.slug, so.name order by count desc, so.name asc limit 15
       `)).map((r) => ({ slug: String(r.slug), name: String(r.name), count: num(r.count) }));
       out.push({ key: b.key, label: b.label, rows });
@@ -490,11 +513,10 @@ export async function statsHubHighlights(): Promise<StatsHubHighlights> {
         order by debut_date desc, name asc limit 1) de on true
     `));
     const [op] = allRows(await db.execute(sql`
+      with ${inSet()}
       select so.name, so.slug, count(*)::int as count
-      from performances p join songs so on so.song_id = p.song_id
-      join shows s on s.show_id = p.show_id
-      where s.show_date <= ${today()}
-        and p.position = 1 and (p.set_number = '1' or p.set_type = 'One Set')
+      from in_set p join songs so on so.song_id = p.song_id
+      where ${SHOW_OPENER}
       group by so.slug, so.name order by count(*) desc, so.name asc limit 1
     `));
     return {
