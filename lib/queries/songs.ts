@@ -440,6 +440,7 @@ const inSet = () => sql`
     from performances p join shows s on s.show_id = p.show_id
     where s.show_date <= ${today()}
   )`;
+/** An encore row however elgoose labels it: `Set|e`, `Set|e2`, or a one-set show's `One Set|e`. */
 const ENCORE = sql`p.set_type = 'Encore' or p.set_number ilike 'e%'`;
 /**
  * The show's first song: the opener of set one, or of the only set — and never
@@ -605,16 +606,18 @@ export async function getSongBySlug(slug: string): Promise<SongStat | null> {
       etYear(),
     );
 
-    // set placement percentages
+    // set placement percentages. `set1` and `encore` share one encore test: a
+    // one-set show's encore is `One Set|e`, and `set_type = 'One Set'` on its own
+    // put that row in both bars.
     const place = allRows(await db.execute(sql`
       select
-        count(*) filter (where set_type <> 'Encore' and (set_number = '1' or set_type = 'One Set'))::int as set1,
-        count(*) filter (where set_number = '2')::int as set2,
-        count(*) filter (where set_type = 'Encore' or set_number ilike 'e%')::int as encore,
-        count(*) filter (where position = 1)::int as opener,
-        count(*) filter (where is_jamchart)::int as jammed,
+        count(*) filter (where not (${ENCORE}) and (p.set_number = '1' or p.set_type = 'One Set'))::int as set1,
+        count(*) filter (where p.set_number = '2')::int as set2,
+        count(*) filter (where ${ENCORE})::int as encore,
+        count(*) filter (where p.position = 1)::int as opener,
+        count(*) filter (where p.is_jamchart)::int as jammed,
         count(*)::int as total
-      from performances where song_id = ${songId}
+      from performances p where p.song_id = ${songId}
     `))[0];
     const tot = num(place?.total) || 1;
     const pct = (v: unknown) => Math.round((num(v) / tot) * 100);
