@@ -11,7 +11,7 @@ const TODAY = "2026-07-13";
 
 describe("shortName", () => {
   it("drops what the row and the axis already say", () => {
-    // The row is labelled 2026 and the chart is a chart of tours; a bar that
+    // The row is labeled 2026 and the chart is a chart of tours; a bar that
     // says "Summer Tour 2026" spends its width repeating its own coordinates.
     expect(shortName("Summer Tour 2026")).toBe("Summer");
     expect(shortName("Europe/UK Tour 2026")).toBe("Europe/UK");
@@ -245,7 +245,7 @@ describe("TourTimeline legs", () => {
     expect([...html.matchAll(/>Summer</g)]).toHaveLength(1);
   });
 
-  it("delivers the label color via --tour-label-color, not a bare inline color: — a revert to style={{ color: nameColour }} would beat the CSS rules in globals.css (base + functional override) and silently reintroduce the 2.0 AA failure while every other test here stays green", () => {
+  it("delivers the label color via --tour-label-color, not a bare inline color: — a revert to style={{ color: nameColor }} would beat the CSS rules in globals.css (base + functional override) and silently reintroduce the 2.0 AA failure while every other test here stays green", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
         today="2026-07-13"

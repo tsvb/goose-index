@@ -129,12 +129,12 @@ export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
           const to = point(i, radiusFor(d));
           const hot = d.dow === hottest.dow;
           const above = d.avgJams >= mean;
-          const colour = hot ? "var(--hand)" : above ? "var(--steel)" : "var(--faint)";
+          const color = hot ? "var(--hand)" : above ? "var(--steel)" : "var(--faint)";
           const width = widthFor(d);
           return (
             <g key={d.dow}>
-              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={colour} strokeWidth={width} />
-              <circle cx={to.x} cy={to.y} r={Math.max(2, width / 2)} fill={colour} />
+              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={color} strokeWidth={width} />
+              <circle cx={to.x} cy={to.y} r={Math.max(2, width / 2)} fill={color} />
             </g>
           );
         })}
@@ -165,7 +165,7 @@ export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
           );
         })}
 
-        {/* The reading at the centre of the instrument. */}
+        {/* The reading at the center of the instrument. */}
         <text x={FACE.c} y={FACE.c - 5} textAnchor="middle" className="font-mono" fontSize={17}
           fill="var(--ink)" style={{ fontVariantNumeric: "tabular-nums" }}>
           {mean.toFixed(2)}

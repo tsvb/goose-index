@@ -70,7 +70,7 @@ PLAN 3 COMPLETE at 08cf95c, conditional items assigned to plan 4 doc: /blog owne
 P4 Task 1: complete (commits acab33b + fast-follow 21fed03, review approved; suite 96 files / 698 tests)
   fast-follow was a plan gap (brief under-specified _shell header) — StatsShell now opens via the PageHead pattern; existing stats tests held without changes (h1/switcher pins survived the swap)
 P4 Task 2: complete (commits b7e18a7 + fix 970716e; review needs-fixes → all four reviewer-prescribed one-liners landed, verified by report+greps, no formal re-review; suite 98 files / 704 tests)
-  adjudicated sound: tour-timeline markColour/nameColour split (hand marks, ember hot text)
+  adjudicated sound: tour-timeline markColor/nameColor split (hand marks, ember hot text)
   process lesson logged: self-review greps must sweep Tailwind `text-gold|bg-gold` utilities, not just `var(--gold` inline styles
 P4 Task 3: complete (commits c0c164a + test fix f0449a3, review approved; suite 101 files / 713 tests)
   shelf pack-guard regex now covers gold|steel|ember|hand; hand stayed mark-only throughout (hot-day text = ember)

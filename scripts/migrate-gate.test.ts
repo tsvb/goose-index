@@ -19,7 +19,7 @@ describe("shouldSkipMigrations", () => {
   });
 
   // Fail closed: on Vercel with an env we can't identify, don't touch the schema.
-  it("skips on Vercel when VERCEL_ENV is absent or unrecognised", () => {
+  it("skips on Vercel when VERCEL_ENV is absent or unrecognized", () => {
     expect(shouldSkipMigrations({ VERCEL: "1" })).toBe(true);
     expect(shouldSkipMigrations({ VERCEL: "1", VERCEL_ENV: "" })).toBe(true);
     expect(shouldSkipMigrations({ VERCEL: "1", VERCEL_ENV: "staging" })).toBe(true);

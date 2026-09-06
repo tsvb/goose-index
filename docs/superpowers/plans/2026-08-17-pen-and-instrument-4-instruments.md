@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Plans 1–3 Global Constraints all bind (AA gate, motion budget, lowercase chrome vs authored/data casing incl. the new casing-boundary rule, deterministic pen, `renderToStaticMarkup` tests, worktree + port 3100, minimal branches untouched, pinned copy verbatim).
-- README "How the charts work" rules are law: form follows the number; **colour means exactly one thing per section**; a claim never travels without its evidence. A change that breaks one is a bug even if it renders.
+- README "How the charts work" rules are law: form follows the number; **color means exactly one thing per section**; a claim never travels without its evidence. A change that breaks one is a bug even if it renders.
 - The mark/text amber split above is a Global Constraint: `text-hand` may not style running text anywhere; amber text = `text-ember`.
 - Chart forms, geometry constants, evidence figcaptions, a11y structures (`role="group"`, aria-labels, text-parity tables) are preserved; only tokens/classes and the named chrome move.
 - `rounded-[2px]` on the tour-timeline track/bars and the tape strip is a deliberate instrument-housing choice — KEEP it (record this; plan 5 must not "clean" it).
@@ -44,7 +44,7 @@
 **Files:** the five `app/stats/oracle/components/*.tsx`, their tests (dow-dial, the-shelf have tests; transitions/venue-depth/coachs-notes don't — add one smoke test EACH: key role-token presence + evidence text present).
 
 - [ ] dow-dial: hottest spoke ember→hand; above-mean gold→steel; below-mean faint stays. Narrative caveat text untouched.
-- [ ] the-shelf: pack stays graphite `var(--line)` (rule: colour = time-since-play only); ring non-red gold→**steel**; red (>365d) ember stays ember. Figcaption words re-checked against colors.
+- [ ] the-shelf: pack stays graphite `var(--line)` (rule: color = time-since-play only); ring non-red gold→**steel**; red (>365d) ember stays ember. Figcaption words re-checked against colors.
 - [ ] transitions-list: splice stroke gold→steel.
 - [ ] venue-depth: needle normal gold→steel; red-zone needle/arc/ticks ember stays.
 - [ ] coachs-notes: it is a liner-note OBJECT (like the tape), not UI chrome — its borders/spine stay; `text-gold` "Listen ↗" → `chromeLink`; any gold accents → steel.

@@ -5,7 +5,7 @@
 **Supersedes:** the web-fallback decision in
 [`2026-06-28-nugs-listen-watch-design.md`](2026-06-28-nugs-listen-watch-design.md)
 **Followed by:** [`2026-08-18-listen-links-page-design.md`](2026-08-18-listen-links-page-design.md),
-which documents the behaviour this spec defines and should be built after it.
+which documents the behavior this spec defines and should be built after it.
 
 ## Problem
 
@@ -93,7 +93,7 @@ failed to match it"* from *"nugs doesn't have this night"* — a distinction the
   space. That is strictly better on both counts; the app is the side worth bringing up, as a
   follow-up in `tsvb/applenugs`, not something to "fix" by copying the weaker rule here.
 - **Ambiguity leaves the show unmatched.** An unmatched show falls back to the current search
-  behaviour, so an unresolved tie degrades to today's status quo rather than confidently
+  behavior, so an unresolved tie degrades to today's status quo rather than confidently
   linking the wrong night.
 
 ### Sync
@@ -161,7 +161,7 @@ existing rows survive a failed run, and `fetched_at` makes staleness visible rat
 - **Track-level web links** — the web player has no per-track route. The `▷` row buttons keep
   starting the *app* at a song; a web link reaches the show only. The explainer page must
   describe this asymmetry.
-- Any change to the `applenugs://` scheme, `NugsLink`'s timing behaviour, or the app itself.
+- Any change to the `applenugs://` scheme, `NugsLink`'s timing behavior, or the app itself.
 - The explainer page — that is the companion spec.
 
 ## Open questions

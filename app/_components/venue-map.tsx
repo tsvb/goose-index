@@ -15,7 +15,7 @@ import { clsx } from "./clsx";
  * Shading is log-scaled: the range is 1–135 shows and it is brutally skewed
  * (Connecticut alone has more than the bottom thirty states combined), so a
  * linear ramp would paint the whole country the same faint wash and light up one
- * state. Colour means exactly one thing here — how many shows — and the states
+ * state. Color means exactly one thing here — how many shows — and the states
  * with none are drawn, not omitted: an unplayed state is a fact, and leaving it
  * off the map would quietly turn absence into empty space.
  */

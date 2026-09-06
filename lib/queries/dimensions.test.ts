@@ -8,7 +8,7 @@ let _testDb: Awaited<ReturnType<typeof makeTestDb>>["db"] | null = null;
 vi.mock("@/db/client", () => ({
   db: new Proxy({} as Record<string | symbol, unknown>, {
     get(_t, prop) {
-      if (!_testDb) throw new Error("Test db not initialised");
+      if (!_testDb) throw new Error("Test db not initialized");
       const real = _testDb as unknown as Record<string | symbol, unknown>;
       const val = real[prop];
       return typeof val === "function" ? val.bind(real) : val;
@@ -31,7 +31,7 @@ beforeAll(async () => {
   await upsertTours(ctx.db, [
     { tourId: 1, name: "Summer Tour 2024", year: 2024 },
     { tourId: 2, name: "Fall Tour 2024", year: 2024 },
-    { tourId: 3, name: "Cancelled Tour 2024", year: 2024 }, // no shows
+    { tourId: 3, name: "Canceled Tour 2024", year: 2024 }, // no shows
   ]);
   const mkShow = (showId: number, showDate: string, venueId: number, tourId: number | null) => ({
     showId, showDate, artistId: 1, venueId, tourId,
@@ -146,7 +146,7 @@ describe("searchTours", () => {
     const r = await searchTours("tour");
     expect(r.rows.map((t) => t.name)).toEqual(["Fall Tour 2024", "Summer Tour 2024"]);
     expect(r.rows.map((t) => t.shows)).toEqual([1, 2]);
-    expect(r.total).toBe(2); // Cancelled Tour matches the text but has no shows
+    expect(r.total).toBe(2); // Canceled Tour matches the text but has no shows
   });
 
   it("total counts matches beyond the limit", async () => {

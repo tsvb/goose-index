@@ -181,7 +181,7 @@ export function parseInlines(src: string): Inline[] {
 
 /* ---------------- ref labels ---------------- */
 
-/** "2021-07-03" → "Jul 3, 2021" — a show ref reads as its date unless labelled. */
+/** "2021-07-03" → "Jul 3, 2021" — a show ref reads as its date unless labeled. */
 export function showRefLabel(date: string): string {
   return formatShortDate(date);
 }

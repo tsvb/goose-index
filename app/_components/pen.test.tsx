@@ -26,7 +26,7 @@ describe("PenRule", () => {
   it("different seeds draw different strokes", () => {
     expect(renderToStaticMarkup(<PenRule seed="s1" />)).not.toBe(renderToStaticMarkup(<PenRule seed="s2" />));
   });
-  it("is decorative and pencil-coloured", () => {
+  it("is decorative and pencil-colored", () => {
     const html = renderToStaticMarkup(<PenRule seed="s1" />);
     expect(html).toContain('aria-hidden="true"');
     expect(html).toContain("text-pencil");

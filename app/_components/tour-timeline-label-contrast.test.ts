@@ -12,7 +12,7 @@ import path from "node:path";
 // ternaries (so neither the token hexes nor the component's mix recipe can
 // drift out from under this test), composites the label's actual wash per
 // CSS Color 4 `color-mix(in srgb, …)` semantics, and holds the result to the
-// site's 4.5:1 text floor. See the nameColour comment in tour-timeline.tsx
+// site's 4.5:1 text floor. See the nameColor comment in tour-timeline.tsx
 // for the measured numbers this pins.
 
 const CSS_PATH = path.join(__dirname, "..", "globals.css");
@@ -91,17 +91,17 @@ function extractWashPercents(source: string): { hand: number; steel: number } {
   return { hand: Number(m[1]), steel: Number(m[2]) };
 }
 
-// The label color is drawn by a second ternary, nameColour:
-//   const nameColour = future ? "var(--faint)" : hot
+// The label color is drawn by a second ternary, nameColor:
+//   const nameColor = future ? "var(--faint)" : hot
 //     ? "color-mix(in srgb, var(--ember) N%, var(--ink) N%)"
 //     : "color-mix(in srgb, var(--steel) N%, var(--ink) N%)"
 function extractLabelMixPercents(source: string): { ember: number; steel: number } {
   const re =
-    /const nameColour = future\s*\?\s*"var\(--faint\)"\s*:\s*hot\s*\?\s*"color-mix\(in srgb, ?var\(--ember\) \d+%, ?var\(--ink\) (\d+)%\)"\s*:\s*"color-mix\(in srgb, ?var\(--steel\) \d+%, ?var\(--ink\) (\d+)%\)"/;
+    /const nameColor = future\s*\?\s*"var\(--faint\)"\s*:\s*hot\s*\?\s*"color-mix\(in srgb, ?var\(--ember\) \d+%, ?var\(--ink\) (\d+)%\)"\s*:\s*"color-mix\(in srgb, ?var\(--steel\) \d+%, ?var\(--ink\) (\d+)%\)"/;
   const m = re.exec(source);
   if (!m) {
     throw new Error(
-      `tour-timeline-label-contrast: could not find the "const nameColour" ternary (color-mix(in srgb, var(--ember|--steel) N%, var(--ink) N%)) in ${COMPONENT_PATH} — its shape changed; update this regex to match tour-timeline.tsx's actual nameColour ternary.`,
+      `tour-timeline-label-contrast: could not find the "const nameColor" ternary (color-mix(in srgb, var(--ember|--steel) N%, var(--ink) N%)) in ${COMPONENT_PATH} — its shape changed; update this regex to match tour-timeline.tsx's actual nameColor ternary.`,
     );
   }
   return { ember: Number(m[1]), steel: Number(m[2]) };
@@ -199,7 +199,7 @@ describe("TourTimeline tour-name label — computed contrast on its own wash", (
 // Functional doesn't share the fog/slate mix recipe above — its gel-blue
 // --steel and darkened --ember pull too far from --ink for the identical
 // 70/30 mix to clear 4.5:1 on its own wash, so globals.css overrides the
-// label to plain --ink for this experience instead (see the nameColour
+// label to plain --ink for this experience instead (see the nameColor
 // comment in tour-timeline.tsx and the [data-experience="functional"]
 // .tour-timeline-label rule in globals.css). This block pins both halves of
 // that fix: the mix recipe genuinely fails here (so the override is

@@ -84,7 +84,7 @@ export default async function Home() {
         <Container className="pt-12 pb-10 sm:pt-16">
           {/* Plain name, plain sentence. The figures below give the counts, so
               the sentence gives the scope — no "-ish" above an exact number,
-              no one-word colour accent. */}
+              no one-word color accent. */}
           <h1 className="max-w-3xl font-display text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
             Goose Index
           </h1>

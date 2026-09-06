@@ -89,7 +89,7 @@ handoff, not that the show is on nugs.
 - `app/_components/listen-links.tsx` — takes `{ experience, example }` and renders. No fetching,
   so `renderToStaticMarkup` drives it in all three experiences with no database.
 - `app/_components/site-footer.tsx` — the link in all three footers. Fancy puts it in the
-  **Source** column (it explains site behaviour; it is not a browse destination), functional
+  **Source** column (it explains site behavior; it is not a browse destination), functional
   appends it to its single line, minimal gets a sentence.
 - `app/sitemap.ts` — add `/listen-links` to the static route list.
 

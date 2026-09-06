@@ -36,7 +36,7 @@ describe("TheShelf spools", () => {
 
   it("spends accent only on the ring — never on the tape", () => {
     const html = renderToStaticMarkup(<TheShelf data={data} />);
-    // Colour means exactly one thing here: how long it has been. If the pack
+    // Color means exactly one thing here: how long it has been. If the pack
     // ever takes accent again, a fat spool starts out-shouting an urgent one.
     const packsWithAccent = html.match(/data-role="pack"[^>]*var\(--(gold|steel|ember|hand)\)/g);
     expect(packsWithAccent).toBeNull();

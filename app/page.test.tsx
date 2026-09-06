@@ -67,7 +67,7 @@ describe("Home section headings", () => {
 describe("Home layout — the card grid is gone", () => {
   it("renders no card-grid markup anywhere on the page", async () => {
     h.onThisDay = [show(7, "2016-07-11", "Nectar's", 1)];
-    h.tonight = [show(99, "2026-07-11", "Tonight Amphitheatre")];
+    h.tonight = [show(99, "2026-07-11", "Tonight Amphitheater")];
     const html = await render();
     expect(html).not.toMatch(/rounded-lg|surface-card|hover:-translate-y/);
   });
@@ -128,29 +128,29 @@ describe("Home Tonight banner", () => {
   });
 
   it("hoists tonight's show into a ledger entry linking to the show page", async () => {
-    h.tonight = [show(99, "2026-07-11", "Tonight Amphitheatre")];
+    h.tonight = [show(99, "2026-07-11", "Tonight Amphitheater")];
     const html = await render();
     expect(html).toContain("tonight");
     expect(html).toContain("text-ember"); // the word is AA text, not the mark-only hand
     expect(html).toContain("bg-hand"); // the dot is the mark
-    expect(html).toContain("Tonight Amphitheatre");
+    expect(html).toContain("Tonight Amphitheater");
     expect(html).toContain('href="/shows/2026-07-11"');
     expect(html).toContain("the setlist will appear live");
   });
 
   it("excludes tonight's show from latest shows", async () => {
-    const tonightShow = show(99, "2026-07-11", "Tonight Amphitheatre");
+    const tonightShow = show(99, "2026-07-11", "Tonight Amphitheater");
     h.tonight = [tonightShow];
     h.recent = [tonightShow, ...h.recent]; // getRecentShows still includes today
     const html = await render();
     // Once in the tonight ledger, not again as a "no setlist" entry under Latest shows.
-    expect(html.split("Tonight Amphitheatre").length - 1).toBe(1);
+    expect(html.split("Tonight Amphitheater").length - 1).toBe(1);
     expect(html).toContain("Red Rocks"); // the rest of the recents survive
   });
 
   it("minimal experience gets a Tonight MetaTable row instead of a banner", async () => {
     h.experience = "minimal";
-    h.tonight = [show(99, "2026-07-11", "Tonight Amphitheatre")];
+    h.tonight = [show(99, "2026-07-11", "Tonight Amphitheater")];
     const html = await render();
     expect(html).not.toContain("live-flag");
     expect(html).toContain("Tonight");

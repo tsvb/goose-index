@@ -97,7 +97,7 @@ Replace the existing `nugsWebFallback` with:
 ```ts
 /** Where a click goes when AppleNugs doesn't open. With a resolved containerID
  *  this is the show's exact page; without one it stays the old artist+date search,
- *  so an unmatched show degrades to the previous behaviour rather than a dead end.
+ *  so an unmatched show degrades to the previous behavior rather than a dead end.
  *  play.nugs.net requires a login — this lands the visitor at the show, it does
  *  not assert they can play it. */
 export function nugsWebFallback(o: {
@@ -301,7 +301,7 @@ describe("parseContainers", () => {
     ]))).toEqual([]);
   });
 
-  it("returns empty for a shape it doesn't recognise instead of throwing", () => {
+  it("returns empty for a shape it doesn't recognize instead of throwing", () => {
     expect(parseContainers({})).toEqual([]);
     expect(parseContainers(null)).toEqual([]);
     expect(parseContainers({ Response: {} })).toEqual([]);
@@ -506,7 +506,7 @@ export function venueMatches(a: string | null | undefined, b: string | null | un
  *  more often than two shows share a date.
  *
  *  Ambiguity resolves to null on purpose: an unmatched show falls back to the
- *  artist+date search, which is the behaviour that shipped before this feature.
+ *  artist+date search, which is the behavior that shipped before this feature.
  *  Guessing would send someone to the wrong night, which is worse than a search. */
 export function resolveContainer(
   show: { date: string; venue: string | null },
@@ -1191,7 +1191,7 @@ function ShowNugs({
 ```
 
 `nugsHasVideo` is deliberately **not** passed to this component. The Watch button renders for every
-show today, and hiding it where nugs holds no video would be a behaviour change this spec doesn't
+show today, and hiding it where nugs holds no video would be a behavior change this spec doesn't
 ask for. The column is still stored and exposed on `ShowDetail` — the explainer page will need it
 to state coverage — but nothing here reads it, so nothing here takes it.
 
@@ -1342,7 +1342,7 @@ Run: `python3 -c "import yaml,sys; yaml.safe_load(open('.github/workflows/sync.y
 Expected: `ok`.
 
 Also confirm by eye that the new step sits inside the same `steps:` list, at the same indentation
-as its neighbours, and that `timeout-minutes: 10` on the job still leaves room — the import is
+as its neighbors, and that `timeout-minutes: 10` on the job still leaves room — the import is
 about seven HTTP requests plus roughly 500 row updates. If the nightly run starts timing out,
 raise the timeout rather than trimming the import.
 
@@ -1357,7 +1357,7 @@ git commit -m "ci: import the nugs catalog on the nightly run"
 
 The workflow has `workflow_dispatch`, so it can be run from the Actions tab. **This writes to
 production** — it is the maintainer's call, not something to trigger unprompted. Ask before running
-it, and afterwards confirm the step's summary line shows a sane `fetched`/`matched` pair.
+it, and afterward confirm the step's summary line shows a sane `fetched`/`matched` pair.
 
 ## Not in this plan
 

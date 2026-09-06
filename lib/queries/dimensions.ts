@@ -364,7 +364,7 @@ export type CareerYear = {
 /**
  * A year, as more than a row.
  *
- * The catalogue's early years are badly documented — 2017 has 107 shows logged
+ * The catalog's early years are badly documented — 2017 has 107 shows logged
  * and setlists for 37 of them — and the page has been printing "107 shows · 343
  * songs played" side by side, which invites you to read 343 songs across 107
  * shows. They describe different sets of shows. So coverage is returned, not

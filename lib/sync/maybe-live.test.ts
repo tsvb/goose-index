@@ -60,7 +60,7 @@ describe("maybeLiveSync", () => {
   // already written and the debounce window already claimed, so if this step
   // throws — a socket the pool closed while elgoose was slow, say — reporting the
   // sync as failed would be a lie that nothing retries for a minute.
-  it("still reports success when dropping the cache afterwards throws", async () => {
+  it("still reports success when dropping the cache afterward throws", async () => {
     await seedShow();
     vi.resetModules();
     vi.doMock("@/lib/queries/cache", () => ({

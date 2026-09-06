@@ -16,7 +16,7 @@ function transition(sourceName: string, targetName: string, count: number): Tran
 describe("TransitionsList", () => {
   const data = [transition("Wysteria", "Tumble", 12), transition("Slow Ready", "31", 3)];
 
-  it("draws the splice in steel, the scale's own colour — never gold", () => {
+  it("draws the splice in steel, the scale's own color — never gold", () => {
     const html = renderToStaticMarkup(<TransitionsList data={data} />);
     expect(html).toContain('stroke="var(--steel)"');
     expect(html).toContain('fill="var(--steel)"');

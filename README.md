@@ -68,7 +68,7 @@ tape. The shape of a night is visible without reading twenty-four track times.
 </table>
 
 *Screenshots above are from 2026-07-13, before the pen & instrument redesign — the forms they
-show (rings, dials, meters, tape) are still how these charts draw; the colours and chrome
+show (rings, dials, meters, tape) are still how these charts draw; the colors and chrome
 around them are not. Current look: [gooseindex.com/stats](https://www.gooseindex.com/stats).*
 
 **The catalog profile** — the stats hub opens with every played song ranked by plays, as one
@@ -82,14 +82,14 @@ Three rules hold across all of them. **A change that breaks one is a bug, even i
 
 1. **Each question gets the form its number is.** Duration → length. Cycle → dial. Sequence →
    setlist notation. Level → meter. Gap → a closing ring.
-2. **Colour means exactly one thing per section.** On The Shelf it means *how long since the
+2. **Color means exactly one thing per section.** On The Shelf it means *how long since the
    last play* — which is why the tape is graphite and only the ring is lit. Ink follows
    significance: the song that most deserves your attention carries the most of it.
 3. **A claim never travels without its evidence.** Skewed data is log-scaled (gaps span
    88–1367 days). Where the data is too thin to be honest about, the chart draws nothing
    rather than something misleading.
 
-Five roles carry that colour, and each keeps to one job everywhere on the site:
+Five roles carry that color, and each keeps to one job everywhere on the site:
 
 | Role | Carries |
 |---|---|

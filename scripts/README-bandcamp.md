@@ -103,7 +103,7 @@ canonical song table, and map through it. It's a one-time cleanup that pays off 
 - Only `/music` and `/album/*` are touched. Both are permitted by Bandcamp's `robots.txt`,
   which disallows `/api/` — so this parses HTML rather than using the mobile API endpoints
   a lot of scrapers reach for.
-- Serial, 1.5s between requests, exponential backoff on 429/5xx, honours `Retry-After`.
+- Serial, 1.5s between requests, exponential backoff on 429/5xx, honors `Retry-After`.
 - **Put a real contact address in `USER_AGENT`** before a full run. It's the difference between
   a bot and an identifiable fan indexing shows.
 - Audio stream URLs are excluded by default (`--include-audio-urls` if you want them). They're

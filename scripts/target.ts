@@ -4,7 +4,7 @@
  * The `DATABASE_URL` in `.env` has pointed at production before. A handoff doc
  * asserted the opposite ("local is a different database; local runs do not touch
  * prod"), which is the kind of belief that loses a database: someone trusts it,
- * runs a destructive script "locally", and finds out afterwards.
+ * runs a destructive script "locally", and finds out afterward.
  *
  * So no script relies on a doc, or on the reader's memory, to know where its
  * writes land. It prints the host first.
