@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { DayOfWeekDial } from "./dow-dial";
+import { DayOfWeekDial, weekReading } from "./dow-dial";
 import type { DayOfWeekJamsRow } from "@/lib/queries/discoveries";
 
 function day(dow: number, dayName: string, avgJams: number, totalShows: number): DayOfWeekJamsRow {
@@ -87,5 +87,24 @@ describe("DayOfWeekDial", () => {
 
   it("says nothing rather than dividing by zero", () => {
     expect(renderToStaticMarkup(<DayOfWeekDial data={[]} />)).toContain("No shows to read yet");
+  });
+});
+
+// The hub prints the dial's reading as one sentence; both read from here.
+describe("weekReading", () => {
+  it("returns the mean over played days, the hottest night, and the best-evidenced one", () => {
+    const r = weekReading([
+      day(1, "Monday", 1.64, 25),
+      day(5, "Friday", 0.89, 213),
+      day(6, "Saturday", 0.8, 221),
+      day(0, "Sunday", 0, 0), // never played: must not drag the mean down
+    ])!;
+    expect(r.mean).toBeCloseTo((1.64 + 0.89 + 0.8) / 3);
+    expect(r.hottest.dayName).toBe("Monday");
+    expect(r.bestEvidenced.dayName).toBe("Saturday");
+  });
+
+  it("is null when no day has a show behind it", () => {
+    expect(weekReading([day(0, "Sunday", 0, 0)])).toBeNull();
   });
 });

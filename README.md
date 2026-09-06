@@ -71,6 +71,13 @@ tape. The shape of a night is visible without reading twenty-four track times.
 show (rings, dials, meters, tape) are still how these charts draw; the colours and chrome
 around them are not. Current look: [gooseindex.com/stats](https://www.gooseindex.com/stats).*
 
+**The catalog profile** — the stats hub opens with every played song ranked by plays, as one
+stepped shape: a steep head of staples, a long flat tail. The cuts are bracketed onto it
+(Most Played is the head, the rarity ceiling marks the tail), and the one yellow reading is
+the rank where the running total of plays crosses half — how few songs carry half the nights.
+Each cut beneath it then shows its first lines in the number's own form: a count as a length,
+a gap as a closing ring, debuts as columns by year.
+
 Three rules hold across all of them. **A change that breaks one is a bug, even if it renders.**
 
 1. **Each question gets the form its number is.** Duration → length. Cycle → dial. Sequence →

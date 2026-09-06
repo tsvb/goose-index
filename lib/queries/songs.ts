@@ -507,6 +507,30 @@ export async function statsHubHighlights(): Promise<StatsHubHighlights> {
   }, { varyByToday: true });
 }
 
+/**
+ * The whole played catalog as one series: every song's play count, ranked
+ * high to low. It is the shape the /stats hub draws and that the six cuts are
+ * cut from. Plays count distinct (song, show) pairs over played shows with a
+ * setlist — the same `song_show` the cuts count from — so the head of this
+ * series is exactly Most Played, and `shows` is the record the gaps are read
+ * against (a current gap of N means N of these shows have gone by).
+ */
+export type CatalogProfile = { plays: number[]; shows: number };
+
+export async function catalogProfile(): Promise<CatalogProfile> {
+  return cachedQuery("catalogProfile", [], async () => {
+    const rows = allRows(await db.execute(sql`
+      with ${showSeq()}
+      select count(*)::int as plays from song_show group by song_id order by plays desc
+    `));
+    const [seq] = allRows(await db.execute(sql`
+      with ${showSeq()}
+      select count(*)::int as shows from show_seq
+    `));
+    return { plays: rows.map((r) => num(r.plays)), shows: num(seq?.shows) };
+  }, { varyByToday: true });
+}
+
 // ── Song detail ───────────────────────────────────────────────────────────────
 
 export async function getSongBySlug(slug: string): Promise<SongStat | null> {

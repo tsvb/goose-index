@@ -1,18 +1,30 @@
 import { Container } from "@/app/_components/container";
-import { SkeletonPage, SkeletonHeader, SkeletonBar } from "@/app/_components/skeleton";
+import { SkeletonPage, SkeletonBar } from "@/app/_components/skeleton";
+import { CUTS } from "./cuts";
 
-/** Ledger skeleton for the stats hub — a ghost of its row list. */
+/** Skeleton for the stats hub — a ghost of its title, the profile, and the
+ * two-column contents beneath it. */
 export default function StatsLoading() {
   return (
     <SkeletonPage label="Loading stats">
-      <SkeletonHeader />
-      <Container className="py-8">
-        {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} className="flex items-baseline justify-between gap-4 py-2.5">
-            <SkeletonBar className="h-4 w-32" />
-            <SkeletonBar className="h-3 w-24" />
-          </div>
-        ))}
+      <Container>
+        <div className="pt-10 pb-6 sm:pt-14">
+          <SkeletonBar className="h-9 w-24" />
+          <SkeletonBar className="mt-3 h-3 w-80 max-w-full" />
+        </div>
+        <SkeletonBar className="h-36 w-full sm:h-44" />
+        <SkeletonBar className="mt-4 h-3 w-64 max-w-full" />
+        <div className="mt-12 grid gap-x-12 gap-y-10 md:grid-cols-2">
+          {CUTS.map((c) => (
+            <div key={c.slug}>
+              <SkeletonBar className="h-3 w-28" />
+              <SkeletonBar className="mt-3 h-3 w-56 max-w-full" />
+              <SkeletonBar className="mt-4 h-3 w-full max-w-sm" />
+              <SkeletonBar className="mt-2 h-3 w-full max-w-xs" />
+              <SkeletonBar className="mt-2 h-3 w-full max-w-[14rem]" />
+            </div>
+          ))}
+        </div>
       </Container>
     </SkeletonPage>
   );

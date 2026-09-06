@@ -325,3 +325,17 @@ describe("statsHubHighlights", () => {
     expect(hl.topOpener).toEqual({ name: opener.rows[0].name, slug: opener.rows[0].slug, count: opener.rows[0].count });
   });
 });
+
+describe("catalogProfile", () => {
+  it("is every played song's plays, ranked high to low, over the record the cuts read", async () => {
+    await seed();
+    const { catalogProfile, mostPlayed } = await import("./songs");
+    const { plays, shows } = await catalogProfile();
+    const cut = await mostPlayed(1000);
+    expect(plays.length).toBe(cut.length); // one entry per played song
+    expect(plays).toEqual(cut.map((r) => r.timesPlayed)); // same counts, same order
+    for (let i = 1; i < plays.length; i++) expect(plays[i]).toBeLessThanOrEqual(plays[i - 1]);
+    expect(shows).toBeGreaterThanOrEqual(Math.max(...plays)); // no song outplays the record
+    expect(shows).toBe(5); // the seeded shows, each with a setlist
+  });
+});
