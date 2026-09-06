@@ -30,18 +30,39 @@ function point(i: number, radius: number) {
   return { x: FACE.c + Math.cos(angle) * radius, y: FACE.c + Math.sin(angle) * radius };
 }
 
+export type WeekReading = {
+  /** Mean jams per show over the weekdays actually played. */
+  mean: number;
+  /** The night furthest above that mean. */
+  hottest: DayOfWeekJamsRow;
+  /** The night with the most shows behind it — what the hottest night is read against. */
+  bestEvidenced: DayOfWeekJamsRow;
+};
+
+/** The three numbers every reading of the week rests on. Shared with the
+ * /stats hub, so its one-line reading and this dial can never disagree.
+ *
+ * The mean is taken over the days actually played, so a weekday the band has
+ * never played can't drag the baseline down. Ties go to the earlier day in
+ * the order given (the dial passes Mon → Sun). */
+export function weekReading(data: DayOfWeekJamsRow[]): WeekReading | null {
+  const played = data.filter((d) => d.totalShows > 0);
+  if (played.length === 0) return null;
+  const mean = played.reduce((sum, d) => sum + d.avgJams, 0) / played.length;
+  const hottest = played.reduce((a, b) => (b.avgJams > a.avgJams ? b : a), played[0]);
+  const bestEvidenced = played.reduce((a, b) => (b.totalShows > a.totalShows ? b : a), played[0]);
+  return { mean, hottest, bestEvidenced };
+}
+
 export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
   const days = orderMonSun(data);
-  const played = days.filter((d) => d.totalShows > 0);
-  if (played.length === 0) {
+  const reading = weekReading(days);
+  if (!reading) {
     return <p className="font-mono text-sm text-faint">No shows to read yet.</p>;
   }
-
-  // Mean over the days actually played, so a weekday the band has never played
-  // can't drag the baseline down.
-  const mean = played.reduce((sum, d) => sum + d.avgJams, 0) / played.length;
+  const { mean, hottest, bestEvidenced } = reading;
+  const played = days.filter((d) => d.totalShows > 0);
   const widest = Math.max(...played.map((d) => Math.abs(d.avgJams - mean)), 0.0001);
-  const hottest = played.reduce((a, b) => (b.avgJams > a.avgJams ? b : a), played[0]);
 
   // Length is the deviation; thickness is how many shows stand behind it.
   //
@@ -50,7 +71,6 @@ export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
   // talks someone into a claim the data can't support. Log-scaled: the counts
   // span an order of magnitude (25–221), and a linear scale would render every
   // weeknight equally thin next to the weekend.
-  const bestEvidenced = played.reduce((a, b) => (b.totalShows > a.totalShows ? b : a), played[0]);
   const mostShows = bestEvidenced.totalShows;
   const fewestShows = Math.min(...played.map((d) => d.totalShows));
   const evidenceSpread = Math.log(mostShows) - Math.log(fewestShows);
