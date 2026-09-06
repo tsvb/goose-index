@@ -277,6 +277,41 @@ describe("stats cuts", () => {
   });
 });
 
+// elgoose labels a one-set show `One Set|1` and its encore `One Set|e`. This turns
+// show 4 into that shape: Madhuvan still opens at position 1, and Arcadia encores.
+async function oneSetShow4() {
+  await upsertSongs(ctx.db, [{ songId: 720, name: "Arcadia", slug: "arcadia", isOriginal: true, originalArtist: null }]);
+  const mk = (uniqueId: string, songId: number, setNumber: string, position: number) => ({
+    uniqueId, showId: 4, songId, setType: "One Set", setNumber, position, trackTime: "7:00",
+    transition: null, transitionId: null, isJamchart: false, jamchartNotes: null,
+    isReprise: false, isJam: false, isVerified: true, footnote: null,
+  });
+  await upsertPerformances(ctx.db, [mk("m3", 701, "1", 1), mk("enc0", 720, "e", 2)]);
+}
+
+describe("one-set shows", () => {
+  it("the encore is not a show opener — it ranks first in its own set, which is not the show", async () => {
+    await seed();
+    await oneSetShow4();
+    const { setStats, statsHubHighlights } = await import("./songs");
+    const buckets = await setStats();
+    const opener = buckets.find((b) => b.key === "show-opener")!;
+    expect(opener.rows[0]).toMatchObject({ slug: "madhuvan", count: 5 });
+    expect(opener.rows.map((r) => r.slug)).not.toContain("arcadia");
+    expect(buckets.find((b) => b.key === "encore")!.rows).toContainEqual({ slug: "arcadia", name: "Arcadia", count: 1 });
+    expect((await statsHubHighlights()).topOpener).toEqual({ name: "Madhuvan", slug: "madhuvan", count: 5 });
+  });
+
+  it("the encore fills the song page's encore bar only, never set 1 as well", async () => {
+    await seed();
+    await oneSetShow4();
+    const { getSongBySlug } = await import("./songs");
+    expect((await getSongBySlug("arcadia"))!.setPlacement).toEqual({ set1: 0, set2: 0, encore: 100, opener: 0, jammed: 0 });
+    // Madhuvan opened the one set and set one of the other four shows: all set 1, all openers.
+    expect((await getSongBySlug("madhuvan"))!.setPlacement).toEqual({ set1: 100, set2: 0, encore: 0, opener: 100, jammed: 0 });
+  });
+});
+
 describe("searchSongs", () => {
   const mk = (uniqueId: string, showId: number, songId: number) => ({
     uniqueId, showId, songId, setType: "Set", setNumber: "1", position: 5, trackTime: "6:00",
