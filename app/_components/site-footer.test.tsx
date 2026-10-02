@@ -54,3 +54,15 @@ describe("SiteFooter listen-links entry", () => {
     }
   });
 });
+
+describe("SiteFooter author credit", () => {
+  it("every edition links the author's site, quietly", () => {
+    for (const F of [FooterMinimal, FooterFunctional, FooterFancy]) {
+      const html = renderToStaticMarkup(<F />);
+      expect(html).toContain('href="https://timvanbenschoten.com"');
+      expect(html).toContain('rel="author"');
+      expect(html.toLowerCase()).toContain("tim vanbenschoten");
+      expect(html).not.toMatch(/timvanbenschoten\.com"[^>]*target=/);
+    }
+  });
+});

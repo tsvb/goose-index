@@ -6,6 +6,11 @@ import { BANDCAMP_HOME } from "@/lib/bandcamp";
 
 const LABEL = "font-mono text-[0.68rem] font-semibold lowercase tracking-[0.06em] text-faint";
 
+// Who made the site, kept quiet: it inherits the surrounding text color and
+// shows an underline only on hover, so it reads as part of the copyright line.
+const AUTHOR_URL = "https://timvanbenschoten.com";
+const AUTHOR_LINK = "underline-offset-4 transition hover:text-ink hover:underline";
+
 export function FooterFancy() {
   return (
     // The footer is the one region set outside the page's measure. Three
@@ -69,7 +74,10 @@ export function FooterFancy() {
       </div>
       <div className="border-t border-line-soft">
         <Container className="flex flex-col items-center justify-between gap-2 py-5 text-xs text-faint sm:flex-row">
-          <span className="font-mono">© {new Date().getFullYear()} Goose Index</span>
+          <span className="font-mono">
+            © {new Date().getFullYear()} Goose Index ·{" "}
+            <a href={AUTHOR_URL} rel="author" className={AUTHOR_LINK}>tim vanbenschoten</a>
+          </span>
           <span className="font-mono">Not affiliated with Goose. Built by fans.</span>
         </Container>
       </div>
@@ -82,7 +90,7 @@ export function FooterFunctional() {
     <footer className="mt-16 w2-appbar">
       <div style={{ textShadow: "0 -1px 0 rgba(0,0,0,.2)" }}>
         <Container className="flex flex-col items-center justify-between gap-2 py-4 text-xs text-white sm:flex-row">
-          <span>© {new Date().getFullYear()} Goose Index · data from elgoose.net · <a href={BANDCAMP_HOME} target="_blank" rel="noreferrer" className="underline">support Goose on Bandcamp</a> · <Link href="/listen-links" className="underline">how the listen links work</Link></span>
+          <span>© {new Date().getFullYear()} Goose Index · <a href={AUTHOR_URL} rel="author" className="hover:underline">tim vanbenschoten</a> · data from elgoose.net · <a href={BANDCAMP_HOME} target="_blank" rel="noreferrer" className="underline">support Goose on Bandcamp</a> · <Link href="/listen-links" className="underline">how the listen links work</Link></span>
           <span>You&rsquo;re on the 2.0 edition — the gear up top switches to 3.0 (themed) or 1.0 (plain).</span>
           <span>Not affiliated with Goose. Built by fans.</span>
         </Container>
@@ -104,7 +112,8 @@ export function FooterMinimal() {
         </p>
         <p className="mt-2">
           This is the 1.0 (plain) edition — the Settings link in the header switches to the
-          3.0 (themed) or 2.0 (glossy) editions.
+          3.0 (themed) or 2.0 (glossy) editions. Made by{" "}
+          <a href={AUTHOR_URL} rel="author">Tim VanBenschoten</a>.
         </p>
       </Container>
     </footer>
