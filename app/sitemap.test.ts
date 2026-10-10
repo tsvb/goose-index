@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 
 vi.mock("@/lib/queries/sitemap", () => ({
   allShowDates: async () => [{ key: "2021-07-03", lastmod: "2021-07-05" }],
-  allSongSlugs: async () => [{ key: "hot-tea", lastmod: "2022-01-01" }, { key: "never-played", lastmod: undefined }],
+  allSongSlugs: async () => [{ key: "hot-tea", lastmod: "2022-01-01" }],
   allYears: async () => [{ key: 2021, lastmod: "2021-07-05" }, { key: 2022, lastmod: "2022-01-01" }],
   allTourIds: async () => [{ key: 5, lastmod: "2022-01-01" }],
   allVenueIds: async () => [{ key: 9, lastmod: "2021-07-05" }],
@@ -59,7 +59,7 @@ describe("sitemap", () => {
   });
 
   it("omits lastmod where nothing dates the page, rather than guessing", async () => {
-    for (const path of ["/songs/never-played", "/on-this-day", "/listen-links"]) {
+    for (const path of ["/on-this-day", "/listen-links"]) {
       const e = await entry(path);
       expect(e).toBeDefined();
       expect(e).not.toHaveProperty("lastModified");

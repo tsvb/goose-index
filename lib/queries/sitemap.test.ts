@@ -34,6 +34,8 @@ async function seed() {
   await upsertSongs(ctx.db, [
     { songId: 800, name: "Hot Tea", slug: "hot-tea", isOriginal: true, originalArtist: null },
     { songId: 801, name: "No Slug Yet", slug: null, isOriginal: true, originalArtist: null },
+    // In elgoose's catalog, never played by Goose — must stay out of the sitemap.
+    { songId: 802, name: "Never Played", slug: "never-played", isOriginal: false, originalArtist: "Someone" },
   ]);
   // Four shows across three dates and two years — a two-show day must yield
   // ONE sitemap date, and shows 1/2/4 share tour 5 (one /tours/5 entry).
@@ -60,7 +62,7 @@ describe("sitemap queries", () => {
     expect(keys(await allShowDates())).toEqual(["2021-07-03", "2021-07-04", "2022-01-01", "2099-12-31"]);
   });
 
-  it("allSongSlugs returns only songs that have slugs", async () => {
+  it("allSongSlugs returns only played songs that have slugs", async () => {
     const { allSongSlugs } = await import("./sitemap");
     expect(keys(await allSongSlugs())).toEqual(["hot-tea"]);
   });
