@@ -244,3 +244,17 @@ describe("SongPage metadata description grammar", () => {
     expect(m.description).not.toContain("?");
   });
 });
+
+describe("SongPage metadata robots", () => {
+  it("keeps a never-played song out of the index, but lets crawlers follow its links", async () => {
+    h.song = song({ timesPlayed: 0 });
+    const m = await meta();
+    expect(m.robots).toEqual({ index: false, follow: true });
+  });
+
+  it("leaves a played song indexable", async () => {
+    h.song = song({ timesPlayed: 1, debutDate: "2023-05-01" });
+    const m = await meta();
+    expect(m.robots).toBeUndefined();
+  });
+});
