@@ -72,17 +72,20 @@ export async function allShowDates(): Promise<Dated<string>[]> {
   { varyByToday: true });
 }
 
-/** Slugs for every song that has one (slugs are backfilled by the nightly sync).
- *  A song's page moves when it's played, so its stamp is the shows it was
- *  played at; a never-played song has none and gets no <lastmod>. */
+/** Slugs for every song Goose has played (slugs are backfilled by the nightly
+ *  sync). A song's page moves when it's played, so its stamp is the shows it
+ *  was played at. Songs from elgoose's catalog that Goose has never played are
+ *  left out: their page only says so, and listing ~200 of them asks Google to
+ *  crawl pages it will likely decline to index. The pages themselves still
+ *  render for anyone who follows a link. */
 export async function allSongSlugs(): Promise<Dated<string>[]> {
   return cachedQuery("sitemapSongSlugs", [], async () =>
     dated(
       await db
         .select({ key: sql<string>`${songs.slug}`, ...stampColumns() })
         .from(songs)
-        .leftJoin(performances, sql`${performances.songId} = ${songs.songId}`)
-        .leftJoin(shows, sql`${shows.showId} = ${performances.showId}`)
+        .innerJoin(performances, sql`${performances.songId} = ${songs.songId}`)
+        .innerJoin(shows, sql`${shows.showId} = ${performances.showId}`)
         .where(isNotNull(songs.slug))
         .groupBy(songs.slug)
         .orderBy(asc(songs.slug)),
