@@ -55,8 +55,17 @@ export async function generateMetadata({ params, searchParams }: Params, parent:
       : { title: "Show not found" };
   }
   const where = show.venue ? `${show.venue}, ${locationLine(show.city, show.state, show.country)}` : "";
-  const title = `${formatShortDate(date)} · ${show.venue ?? "Goose"}`;
-  const description = `Goose setlist for ${formatLongDate(date)}${where ? ` at ${where}` : ""}.`;
+  // "setlist" is what people search for, so it leads the title — but only once
+  // there is one. An upcoming show (or one not logged yet) is titled as a date
+  // and a room, not a setlist the page can't show. Same cached query the page
+  // body reads, so this costs no extra round trip.
+  const hasSetlist = (await getSetlist(show.showId)).length > 0;
+  const title = [hasSetlist ? "Goose setlist" : "Goose", formatShortDate(date), show.venue]
+    .filter(Boolean)
+    .join(" · ");
+  const description = hasSetlist
+    ? `Goose setlist for ${formatLongDate(date)}${where ? ` at ${where}` : ""}.`
+    : `Goose${where ? ` at ${where}` : ""} on ${formatLongDate(date)}. No setlist logged yet.`;
   // Multi-show dates: canonical includes ?n= only when the resolved show is
   // not the default (order 1), so ?n=1 collapses to /shows/<date>.
   const path = show.order && show.order > 1 ? `/shows/${date}?n=${show.order}` : `/shows/${date}`;

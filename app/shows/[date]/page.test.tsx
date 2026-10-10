@@ -198,6 +198,33 @@ describe("ShowPage no-show date recovery", () => {
   });
 });
 
+describe("ShowPage title and description", () => {
+  const meta = (date = "2025-06-25") =>
+    generateMetadata({ params: Promise.resolve({ date }), searchParams: Promise.resolve({}) }, {} as never);
+
+  it("leads with 'Goose setlist' once a setlist is logged", async () => {
+    h.setlist = [{ song: "Arcadia" }];
+    const m = await meta();
+    expect(m.title).toBe("Goose setlist · Jun 25, 2025 · Venue A");
+    expect(m.description).toBe("Goose setlist for Wednesday, June 25, 2025 at Venue A, Port Chester, NY.");
+  });
+
+  it("doesn't promise a setlist the page can't show", async () => {
+    h.setlist = [];
+    const m = await meta();
+    expect(m.title).toBe("Goose · Jun 25, 2025 · Venue A");
+    expect(m.title).not.toContain("setlist");
+    expect(m.description).toBe("Goose at Venue A, Port Chester, NY on Wednesday, June 25, 2025. No setlist logged yet.");
+  });
+
+  it("drops the venue segment when there's no venue", async () => {
+    h.setlist = [{ song: "Arcadia" }];
+    h.details = [{ ...show(1, 1), venue: null }];
+    const m = await meta();
+    expect(m.title).toBe("Goose setlist · Jun 25, 2025");
+  });
+});
+
 describe("ShowPage canonical URL (multi-show dates)", () => {
   const parent = { openGraph: { images: [] } } as never;
 
