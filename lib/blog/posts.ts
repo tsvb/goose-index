@@ -63,8 +63,3 @@ export function getPost(slug: string, dir: string = CONTENT_DIR): Post | null {
   if (!fs.existsSync(file)) return null;
   return loadFile(dir, `${slug}.md`);
 }
-
-/** Slugs for the sitemap and feed, cheap and in the same order as listPosts. */
-export function allPostSlugs(dir: string = CONTENT_DIR): string[] {
-  return listPosts(dir).map((p) => p.slug);
-}

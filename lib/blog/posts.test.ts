@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { listPosts, getPost, allPostSlugs } from "./posts";
+import { listPosts, getPost } from "./posts";
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), "__fixtures__", "posts");
 
@@ -60,11 +60,5 @@ describe("getPost", () => {
     expect(getPost("..%2F..%2F.env", FIXTURES)).toBeNull();
     expect(getPost("older-post/", FIXTURES)).toBeNull();
     expect(getPost("", FIXTURES)).toBeNull();
-  });
-});
-
-describe("allPostSlugs", () => {
-  it("mirrors listPosts order", () => {
-    expect(allPostSlugs(FIXTURES)).toEqual(["newer-post", "older-post"]);
   });
 });
