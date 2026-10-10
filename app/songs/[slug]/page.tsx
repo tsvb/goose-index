@@ -48,7 +48,16 @@ export async function generateMetadata({ params }: Params, parent: ResolvingMeta
   const description = song.timesPlayed === 0
     ? `${song.name} is in the Goose songbook, but never yet played live.`
     : `Goose has played ${song.name} ${song.timesPlayed} time${song.timesPlayed === 1 ? "" : "s"}${song.debutDate ? ` since ${song.debutDate}` : ""}.`;
-  return { title: song.name, description, ...entityMetadata({ title: song.name, description, path: `/songs/${slug}`, parent: await parent }) };
+  return {
+    title: song.name,
+    description,
+    ...entityMetadata({ title: song.name, description, path: `/songs/${slug}`, parent: await parent }),
+    // A never-played song's page says only that, so keep it out of the index
+    // (the sitemap leaves it out too — lib/queries/sitemap.ts). follow stays on:
+    // its links to /songs and /stats/debuts are real. It re-indexes itself the
+    // night the sync logs a first play.
+    ...(song.timesPlayed === 0 ? { robots: { index: false, follow: true } } : {}),
+  };
 }
 
 /** Legend for the gap sparkline — must describe only what the chart actually renders. */
