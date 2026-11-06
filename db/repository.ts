@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, eq, inArray } from "drizzle-orm";
 import { chunk } from "../lib/util";
 import * as schema from "./schema";
 import type { AppDb } from "./schema";
@@ -85,4 +85,45 @@ export async function upsertPerformances(db: AppDb, rows: PerformanceRow[]) {
       },
     });
   }
+}
+
+/**
+ * Remove the Goose shows elgoose no longer lists, with their performances.
+ *
+ * Upserts never delete, so a show elgoose withdraws or merges (a cancelled date,
+ * a duplicate listing) would otherwise stay on the site forever, and the nightly
+ * source audit would stay red over it.
+ *
+ * Deleting is the dangerous half of a sync, so it refuses to act on a fetch that
+ * looks wrong: an empty list, or one that would remove more than `maxRemove`
+ * shows at once. Either throws, which fails the run loudly before anything is
+ * deleted. A genuine mass withdrawal is a thing to look at by hand, not to apply.
+ */
+export async function pruneDroppedShows(
+  db: AppDb,
+  sourceShowIds: number[],
+  opts: { artistId: number; maxRemove: number },
+): Promise<{ removed: { showId: number; showDate: string }[] }> {
+  if (sourceShowIds.length === 0) {
+    throw new Error("prune: elgoose returned no shows; refusing to delete anything");
+  }
+  const keep = new Set(sourceShowIds);
+  const held = await db
+    .select({ showId: schema.shows.showId, showDate: schema.shows.showDate })
+    .from(schema.shows)
+    .where(eq(schema.shows.artistId, opts.artistId));
+  const dropped = held.filter((s) => !keep.has(s.showId)).map((s) => ({ showId: s.showId, showDate: String(s.showDate) }));
+  if (dropped.length === 0) return { removed: [] };
+  if (dropped.length > opts.maxRemove) {
+    const sample = dropped.slice(0, 5).map((s) => `${s.showId} (${s.showDate})`).join(", ");
+    throw new Error(
+      `prune: ${dropped.length} shows are gone from elgoose (more than ${opts.maxRemove}); refusing to delete them. e.g. ${sample}`,
+    );
+  }
+  const ids = dropped.map((s) => s.showId);
+  await db.transaction(async (tx) => {
+    await tx.delete(schema.performances).where(inArray(schema.performances.showId, ids));
+    await tx.delete(schema.shows).where(inArray(schema.shows.showId, ids));
+  });
+  return { removed: dropped };
 }
