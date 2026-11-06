@@ -51,6 +51,14 @@ describe("auditAgainstSource", () => {
     expect(pass(results, "no stale shows")).toBe(false);
   });
 
+  it("names the stale shows, so a red run says which ones", async () => {
+    const results = await auditAgainstSource({
+      db: fakeDb([{ show_id: 99, d: "2020-01-01", tour_id: null, tour_name: null }]),
+      fetchShows: async () => [src({ show_id: 1 })],
+    });
+    expect(results.find((r) => r.name.includes("no stale shows"))!.detail).toContain("99 (2020-01-01)");
+  });
+
   it("catches a date that moved", async () => {
     const results = await auditAgainstSource({
       db: fakeDb([{ show_id: 1, d: "2026-06-14", tour_id: 44, tour_name: "Summer Tour 2026" }]),

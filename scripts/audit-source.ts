@@ -20,8 +20,13 @@ const BASE = process.env.ELGOOSE_BASE ?? "https://elgoose.net/api/v2";
 const UA =
   process.env.ELGOOSE_USER_AGENT ?? "GooseIndex/1.0 (+https://github.com/tsvb/goose-index; source audit)";
 
+// Same ceiling as the nightly sync (lib/sync/run.ts). elgoose's shows.json
+// covers ~100 artists, not just Goose, so a lower cap here silently drops
+// shows the sync holds and the audit reports them as "gone from elgoose".
+const LIMIT = 100000;
+
 async function fetchShows(): Promise<SourceShow[]> {
-  const res = await fetch(`${BASE}/shows.json?limit=5000`, { headers: { "User-Agent": UA } });
+  const res = await fetch(`${BASE}/shows.json?limit=${LIMIT}`, { headers: { "User-Agent": UA } });
   if (!res.ok) throw new Error(`elgoose returned HTTP ${res.status}`);
   const body = (await res.json()) as { data?: SourceShow[] };
   const data = body.data ?? [];
