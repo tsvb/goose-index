@@ -4,15 +4,21 @@ import type {
 } from "../elgoose/types";
 import { mapSong, mapVenue, mapShow, mapTour, mapPerformance, mapSongFromSetlist } from "../elgoose/mappers";
 import {
-  upsertArtists, upsertVenues, upsertTours, upsertSongs, upsertShows, upsertPerformances,
+  upsertArtists, upsertVenues, upsertTours, upsertSongs, upsertShows, upsertPerformances, pruneDroppedShows,
 } from "../../db/repository";
 import { ensureSongSlugs } from "../../db/slugs";
 
 export interface SyncSummary {
   venues: number; tours: number; songs: number; shows: number; performances: number;
+  /** Shows elgoose no longer lists, deleted this run (with their performances). */
+  removed: { showId: number; showDate: string }[];
 }
 
 const GOOSE = 1;
+
+/** Most shows one run may delete. elgoose withdraws a show now and then; more
+ * than this at once looks like a bad fetch, so the run fails instead. */
+const MAX_PRUNE = 5;
 
 export async function runSync(deps: { client: ElgooseClient; db: AppDb }): Promise<SyncSummary> {
   const { client, db } = deps;
@@ -64,8 +70,13 @@ export async function runSync(deps: { client: ElgooseClient; db: AppDb }): Promi
   await upsertShows(db, shows);
   await upsertPerformances(db, performances);
 
+  // Last, once everything elgoose still lists is written: drop what it doesn't.
+  const { removed } = await pruneDroppedShows(db, rawShows.map((s) => s.show_id), {
+    artistId: GOOSE, maxRemove: MAX_PRUNE,
+  });
+
   return {
     venues: venues.length, tours: tours.length, songs: songs.length,
-    shows: shows.length, performances: performances.length,
+    shows: shows.length, performances: performances.length, removed,
   };
 }
