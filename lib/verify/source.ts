@@ -66,14 +66,18 @@ export async function auditAgainstSource(deps: {
   }
   // A show we hold that elgoose no longer has is drift too: shows do get merged
   // or withdrawn, and a stale row would keep appearing on the site forever.
-  const stale = [...ours.keys()].filter((id) => !source.some((s) => Number(s.show_id) === id)).length;
+  const sourceIds = new Set(source.map((s) => Number(s.show_id)));
+  const staleIds = [...ours.keys()].filter((id) => !sourceIds.has(id));
+  const stale = staleIds.length;
+  // Name them: a bare count leaves a red run with nothing to act on.
+  const staleExamples = staleIds.slice(0, 5).map((id) => `${id} (${ours.get(id)?.d})`).join(", ");
 
   const detail = (n: number, what: string) =>
     n === 0 ? `all ${source.length} shows agree` : `${n} ${what}${examples.length ? ` — e.g. ${examples[0]}` : ""}`;
 
   return [
     { name: "source: shows present", pass: missing === 0, detail: detail(missing, "shows missing from our cache") },
-    { name: "source: no stale shows", pass: stale === 0, detail: stale === 0 ? "no shows we hold have left elgoose" : `${stale} shows we hold are gone from elgoose` },
+    { name: "source: no stale shows", pass: stale === 0, detail: stale === 0 ? "no shows we hold have left elgoose" : `${stale} shows we hold are gone from elgoose — e.g. ${staleExamples}` },
     { name: "source: show dates", pass: dateDrift === 0, detail: detail(dateDrift, "dates disagree") },
     { name: "source: tour assignment", pass: tourDrift === 0, detail: detail(tourDrift, "shows are on the wrong tour") },
     { name: "source: tour names", pass: nameDrift === 0, detail: nameDrift === 0 ? "tour names match" : `${nameDrift} tour names disagree` },
