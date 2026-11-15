@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { shouldSkipMigrations } from "./migrate-gate";
 import { announceTarget } from "./target";
-import { databaseUrl } from "../db/url";
+import { databaseUrl, sslFor } from "../db/url";
 
 // The production build migrates; a preview build must not, because previews
 // share the production database. See migrate-gate.ts.
@@ -20,7 +20,7 @@ announceTarget(url);
 // Required against a transaction-mode pooler (Supabase's Supavisor, Neon's
 // PgBouncer): prepared statements are not supported there. Harmless on a
 // direct or local connection.
-const sql = postgres(url, { max: 1, prepare: false });
+const sql = postgres(url, { max: 1, prepare: false, ...(sslFor(url) ? { ssl: sslFor(url) } : {}) });
 await migrate(drizzle(sql), { migrationsFolder: "./drizzle" });
 await sql.end();
 console.log("migrations applied");

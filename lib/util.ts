@@ -52,8 +52,16 @@ export function escapeLike(term: string): string {
  * misses every time.
  */
 export function searchTerm(q: string): string {
-  return q.trim().toLowerCase();
+  return q.trim().toLowerCase().slice(0, SEARCH_TERM_MAX);
 }
+
+/**
+ * Longest search term a query will run on. Nothing in the catalog has a name
+ * near this long, so a longer `?q=` can only be a miss — and without a ceiling
+ * each one is a multi-kilobyte `ilike` pattern scanned across four tables and
+ * then kept as its own cache entry for an hour.
+ */
+export const SEARCH_TERM_MAX = 100;
 
 /**
  * A positive integer for paging, or `fallback` when the input isn't one.

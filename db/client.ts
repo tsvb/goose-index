@@ -2,7 +2,7 @@ import "dotenv/config";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
-import { databaseUrl } from "./url";
+import { databaseUrl, sslFor } from "./url";
 
 function connect(connectionString: string) {
   const client = postgres(connectionString, {
@@ -26,8 +26,16 @@ function connect(connectionString: string) {
     idle_timeout: 20,
     max_lifetime: 60 * 30,
     connect_timeout: 10,
+    ...tls(connectionString),
   });
   return { client, db: drizzle(client, { schema }) };
+}
+
+// Only set `ssl` when we have an opinion: passing `ssl: undefined` would stop
+// the driver from reading `sslmode` out of the connection string.
+function tls(connectionString: string): { ssl?: "require" } {
+  const ssl = sslFor(connectionString);
+  return ssl ? { ssl } : {};
 }
 
 type Connection = ReturnType<typeof connect>;

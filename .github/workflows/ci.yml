@@ -8,6 +8,11 @@ on:
     branches: [main]
   pull_request:
 
+# The job only reads the repository. Without this the token inherits the
+# repository default, which can be read/write.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
-import { databaseUrl } from "./url";
+import { databaseUrl, sslFor } from "./url";
 
 // Five preview builds failed in a row on 2026-08-29 with "DATABASE_URL is not
 // set". The Vercel ↔ Supabase integration writes POSTGRES_URL to Production
@@ -64,5 +64,29 @@ describe("databaseUrl", () => {
     process.env.DATABASE_URL = "";
     process.env.POSTGRES_URL = "";
     expect(databaseUrl()).toBeUndefined();
+  });
+});
+
+// postgres.js connects in plaintext unless the connection string carries
+// `sslmode`, and a Supabase pooler accepts plaintext unless "Enforce SSL" is on.
+describe("sslFor", () => {
+  it("requires TLS for a remote host whose string does not ask for it", () => {
+    expect(sslFor("postgres://u:p@aws-1-us-east-1.pooler.supabase.com:6543/postgres")).toBe("require");
+    expect(sslFor("postgres://u:p@ep-x.neon.tech/neondb")).toBe("require");
+  });
+
+  it("leaves local databases plain — they have no certificate", () => {
+    expect(sslFor("postgres://goose:goose@localhost:5432/goose_almanac")).toBeUndefined();
+    expect(sslFor("postgres://u:p@127.0.0.1:5432/db")).toBeUndefined();
+    expect(sslFor("postgres://u:p@[::1]:5432/db")).toBeUndefined();
+  });
+
+  it("defers to an explicit sslmode in the string", () => {
+    expect(sslFor("postgres://u:p@db.example.com/db?sslmode=verify-full")).toBeUndefined();
+    expect(sslFor("postgres://u:p@db.example.com/db?sslmode=require")).toBeUndefined();
+  });
+
+  it("has no opinion on a string it cannot parse", () => {
+    expect(sslFor("not a url")).toBeUndefined();
   });
 });

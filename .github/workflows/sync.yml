@@ -11,6 +11,11 @@ on:
   workflow_dispatch: {} # manual "Run workflow" button on the Actions tab
 
 # Never let two syncs overlap.
+# The job only reads the repository. Without this the token inherits the
+# repository default, which can be read/write.
+permissions:
+  contents: read
+
 concurrency:
   group: sync
   cancel-in-progress: false

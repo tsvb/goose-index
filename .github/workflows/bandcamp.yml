@@ -26,6 +26,11 @@ on:
         type: boolean
         default: false
 
+# The job only reads the repository. Without this the token inherits the
+# repository default, which can be read/write.
+permissions:
+  contents: read
+
 concurrency:
   group: bandcamp
   cancel-in-progress: false
