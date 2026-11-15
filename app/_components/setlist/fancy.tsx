@@ -131,27 +131,28 @@ export function SetlistFancy({
               })}
             </ol>
 
-            {/* The notes sit on the setlist's own grid — same left pad, same
-                marker column, same gap as a row — so a note's text starts under
-                the song names instead of hanging out to their left. They are
-                set smaller and all in the muted ink, with no rule above: an
-                annotation to the list, not a second list competing with it. */}
+            {/* The notes are set off from the setlist twice over: a hairline
+                above them, and an indent. The block starts where the song names
+                start (ml-12 = a row's pad + marker column + gap), so the rule
+                and the note numbers hang under the song titles and the note
+                text sits one step further in. Smaller and all in the muted ink:
+                an annotation to the list, not a second list competing with it. */}
             {hasNotes && (
-              <ul className="mt-3 space-y-1 pl-4">
+              <ul className="ml-12 mt-3 space-y-1 border-t border-line-soft pt-3">
                 {g.entries.flatMap((e) => {
                   const items: ReactNode[] = [];
                   if (fnIndex.has(e.uniqueId)) {
                     items.push(
-                      <li key={`fn-${e.uniqueId}`} id={`fn-${e.uniqueId}`} className="flex items-baseline gap-3 text-[0.78rem] leading-relaxed text-muted">
-                        <span className="w-5 shrink-0 text-right font-mono text-[0.65rem] text-spruce">{fnIndex.get(e.uniqueId)}</span>
+                      <li key={`fn-${e.uniqueId}`} id={`fn-${e.uniqueId}`} className="flex items-baseline gap-2.5 text-[0.78rem] leading-relaxed text-muted">
+                        <span className="w-3.5 shrink-0 font-mono text-[0.65rem] text-spruce">{fnIndex.get(e.uniqueId)}</span>
                         <span>{e.song} — {e.footnote}</span>
                       </li>,
                     );
                   }
                   if (e.isJamchart && e.jamchartNotes) {
                     items.push(
-                      <li key={`jam-${e.uniqueId}`} className="flex items-baseline gap-3 text-[0.78rem] leading-relaxed text-muted">
-                        <span className="flex w-5 shrink-0 justify-end">
+                      <li key={`jam-${e.uniqueId}`} className="flex items-baseline gap-2.5 text-[0.78rem] leading-relaxed text-muted">
+                        <span className="flex w-3.5 shrink-0">
                           <Flame className="h-3 w-3 translate-y-px text-ember" strokeWidth={1.7} />
                         </span>
                         <span>{e.song} — {e.jamchartNotes}</span>
