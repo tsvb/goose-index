@@ -19,6 +19,17 @@ export interface LiveStatus {
 /** Minimum seconds between elgoose pulls, no matter how many visitors. */
 const DEBOUNCE_SECONDS = 60;
 
+/**
+ * An error's message plus its cause's. drizzle reports a failed statement as
+ * "Failed query: …" and keeps the database's reason (a refused connection, a
+ * violated constraint) on `cause` — the half a log reader actually needs.
+ */
+function describeError(e: unknown): string {
+  if (!(e instanceof Error)) return String(e);
+  const cause = e.cause instanceof Error ? e.cause.message : null;
+  return cause ? `${e.message} — ${cause}` : e.message;
+}
+
 function claimRows(result: unknown): unknown[] {
   return Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? []);
 }
@@ -73,6 +84,6 @@ export async function maybeLiveSync(deps?: { db?: AppDb; now?: Date; client?: El
     }
     return { live: true, date, claimed: true, summary };
   } catch (e) {
-    return { live: true, date, error: e instanceof Error ? e.message : String(e) };
+    return { live: true, date, error: describeError(e) };
   }
 }

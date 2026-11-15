@@ -5,7 +5,8 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL(".", import.meta.url)) },
   },
-  esbuild: { jsx: "automatic" },
+  // tsconfig says `jsx: "preserve"` for Next; tests need it compiled.
+  oxc: { jsx: { runtime: "automatic" } },
   test: {
     environment: "node",
     include: ["**/*.test.ts", "**/*.test.tsx"],
