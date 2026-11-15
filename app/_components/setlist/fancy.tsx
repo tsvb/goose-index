@@ -4,7 +4,7 @@ import { Flame } from "../marks";
 import { clsx } from "../clsx";
 import { trackSeconds, formatDuration } from "@/lib/queries/format";
 import type { SetlistEntry } from "@/lib/queries/shows";
-import { groupSets, isSegue } from "./shared";
+import { groupSets, isSegue, footnoteRepeatsArtist } from "./shared";
 import { SetTape } from "./tape";
 import { NugsLink } from "../nugs-link";
 import { nugsTrackHref, nugsWebFallback } from "@/lib/nugs";
@@ -33,7 +33,11 @@ export function SetlistFancy({
           return t.length >= Math.ceil(x.entries.length / 2);
         });
         // Footnote numbering restarts per set; jamchart notes share the endnote list.
-        const fnIndex = new Map(g.entries.filter((e) => e.footnote).map((e, i) => [e.uniqueId, i + 1]));
+        // A note that only repeats the cover artist printed on the row is not
+        // numbered or listed (see footnoteRepeatsArtist).
+        const fnIndex = new Map(
+          g.entries.filter((e) => e.footnote && !footnoteRepeatsArtist(e)).map((e, i) => [e.uniqueId, i + 1]),
+        );
         const hasNotes = fnIndex.size > 0 || g.entries.some((e) => e.isJamchart && e.jamchartNotes);
 
         return (
@@ -100,7 +104,7 @@ export function SetlistFancy({
                       {!e.isOriginal && e.originalArtist && (
                         <span className="ml-2 align-baseline text-xs italic text-faint">{e.originalArtist}</span>
                       )}
-                      {e.footnote && (
+                      {fnIndex.has(e.uniqueId) && (
                         <sup className="ml-0.5">
                           <a
                             href={`#fn-${e.uniqueId}`}
@@ -127,27 +131,30 @@ export function SetlistFancy({
               })}
             </ol>
 
+            {/* The notes sit on the setlist's own grid — same left pad, same
+                marker column, same gap as a row — so a note's text starts under
+                the song names instead of hanging out to their left. They are
+                set smaller and all in the muted ink, with no rule above: an
+                annotation to the list, not a second list competing with it. */}
             {hasNotes && (
-              <ul className="mt-4 space-y-2 border-t border-line-soft pt-3">
+              <ul className="mt-3 space-y-1 pl-4">
                 {g.entries.flatMap((e) => {
                   const items: ReactNode[] = [];
-                  if (e.footnote) {
+                  if (fnIndex.has(e.uniqueId)) {
                     items.push(
-                      <li key={`fn-${e.uniqueId}`} id={`fn-${e.uniqueId}`} className="flex gap-2.5 text-[0.82rem] leading-relaxed text-muted">
-                        <span className="mt-0.5 w-3.5 shrink-0 text-right font-mono text-[0.7rem] text-spruce">{fnIndex.get(e.uniqueId)}</span>
-                        <span>
-                          <span className="text-ink">{e.song}</span> — {e.footnote}
-                        </span>
+                      <li key={`fn-${e.uniqueId}`} id={`fn-${e.uniqueId}`} className="flex items-baseline gap-3 text-[0.78rem] leading-relaxed text-muted">
+                        <span className="w-5 shrink-0 text-right font-mono text-[0.65rem] text-spruce">{fnIndex.get(e.uniqueId)}</span>
+                        <span>{e.song} — {e.footnote}</span>
                       </li>,
                     );
                   }
                   if (e.isJamchart && e.jamchartNotes) {
                     items.push(
-                      <li key={`jam-${e.uniqueId}`} className="flex gap-2.5 text-[0.82rem] leading-relaxed text-muted">
-                        <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ember" strokeWidth={1.7} />
-                        <span>
-                          <span className="text-ink">{e.song}</span> — {e.jamchartNotes}
+                      <li key={`jam-${e.uniqueId}`} className="flex items-baseline gap-3 text-[0.78rem] leading-relaxed text-muted">
+                        <span className="flex w-5 shrink-0 justify-end">
+                          <Flame className="h-3 w-3 translate-y-px text-ember" strokeWidth={1.7} />
                         </span>
+                        <span>{e.song} — {e.jamchartNotes}</span>
                       </li>,
                     );
                   }

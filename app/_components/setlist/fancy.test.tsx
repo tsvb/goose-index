@@ -41,6 +41,43 @@ describe("SetlistFancy", () => {
     expect(html.match(/>1<\/a><\/sup>/g)).toHaveLength(2);
     expect(html).not.toContain("cursor-help");
   });
+  // elgoose footnotes a cover with its artist; the row already prints it.
+  it("does not number or list a footnote that only repeats the cover artist", () => {
+    const html = renderToStaticMarkup(
+      <SetlistFancy entries={[
+        entry({ uniqueId: "a", song: "Look Out Cleveland", isOriginal: false, originalArtist: "The Band", footnote: "The Band." }),
+        entry({ uniqueId: "b", song: "Pancakes", position: 2, footnote: "With Dragonfly jam." }),
+      ]} showDate="2026-11-14" venue={null} />,
+    );
+    expect(html).not.toContain('href="#fn-a"');
+    expect(html).not.toContain('id="fn-a"');
+    // the artist is still on the row, once
+    expect(html.match(/The Band/g)).toHaveLength(1);
+    // the real note keeps its number — and it is 1, not 2
+    expect(html).toContain("With Dragonfly jam.");
+    expect(html).toContain('href="#fn-b"');
+    expect(html.match(/>1<\/a><\/sup>/g)).toHaveLength(1);
+  });
+  it("keeps a cover's footnote when it says more than the artist", () => {
+    const html = renderToStaticMarkup(
+      <SetlistFancy entries={[
+        entry({ uniqueId: "a", song: "Eminence Front", isOriginal: false, originalArtist: "The Who", footnote: "The Who. First time played." }),
+      ]} showDate="2026-11-14" venue={null} />,
+    );
+    expect(html).toContain("First time played.");
+    expect(html).toContain('id="fn-a"');
+  });
+  // A note's text has to start under the song names: same pad, marker column
+  // and gap as a setlist row (pl-4, w-5, gap-3).
+  it("sets the notes on the setlist's grid", () => {
+    const html = renderToStaticMarkup(
+      <SetlistFancy entries={[entry({ uniqueId: "a", song: "Pancakes", footnote: "With Dragonfly jam." })]} showDate="2026-11-14" venue={null} />,
+    );
+    const note = html.slice(html.indexOf('id="fn-a"'));
+    expect(html).toMatch(/<ul class="[^"]*\bpl-4\b/);
+    expect(note).toMatch(/^id="fn-a" class="[^"]*\bgap-3\b/);
+    expect(note).toMatch(/<span class="w-5 /);
+  });
   it("renders set labels as h2 — no h1→h3 skip under the show page's h1", () => {
     const html = renderToStaticMarkup(
       <SetlistFancy entries={[entry({ song: "Madhuvan" })]} showDate="2024-04-20" venue={null} />,
