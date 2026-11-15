@@ -132,13 +132,14 @@ export function SetlistFancy({
             </ol>
 
             {/* The notes are set off from the setlist twice over: a hairline
-                above them, and an indent. The block starts where the song names
-                start (ml-12 = a row's pad + marker column + gap), so the rule
-                and the note numbers hang under the song titles and the note
-                text sits one step further in. Smaller and all in the muted ink:
-                an annotation to the list, not a second list competing with it. */}
+                above them, the full width of the set like the rule under its
+                heading, and an indent. The notes start where the song names
+                start (pl-12 = a row's pad + marker column + gap), so the note
+                numbers hang under the song titles and the note text sits one
+                step further in. Smaller and all in the muted ink: an annotation
+                to the list, not a second list competing with it. */}
             {hasNotes && (
-              <ul className="ml-12 mt-3 space-y-1 border-t border-line-soft pt-3">
+              <ul className="mt-3 space-y-1 border-t border-line-soft pl-12 pt-3">
                 {g.entries.flatMap((e) => {
                   const items: ReactNode[] = [];
                   if (fnIndex.has(e.uniqueId)) {

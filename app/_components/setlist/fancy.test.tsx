@@ -67,15 +67,16 @@ describe("SetlistFancy", () => {
     expect(html).toContain("First time played.");
     expect(html).toContain('id="fn-a"');
   });
-  // The notes block starts where the song names start (ml-12 = a row's pl-4 +
-  // w-5 marker + gap-3) and carries a rule above it, so it reads as set off
-  // from the setlist and indented under it.
+  // The notes start where the song names start (pl-12 = a row's pl-4 + w-5
+  // marker + gap-3) under a rule. The indent is padding, not margin, so the
+  // rule itself runs the full width of the set.
   it("indents the notes under the song names, below a rule", () => {
     const html = renderToStaticMarkup(
       <SetlistFancy entries={[entry({ uniqueId: "a", song: "Pancakes", footnote: "With Dragonfly jam." })]} showDate="2026-11-14" venue={null} />,
     );
     const list = /<ul class="([^"]*)"/.exec(html)?.[1] ?? "";
-    expect(list).toMatch(/\bml-12\b/);
+    expect(list).toMatch(/\bpl-12\b/);
+    expect(list).not.toMatch(/\bml-/);
     expect(list).toMatch(/\bborder-t\b/);
   });
   it("renders set labels as h2 — no h1→h3 skip under the show page's h1", () => {
