@@ -1,7 +1,7 @@
 # Setup
 
 ## Prerequisites
-- **Node 22+**
+- **Node 24**
 - **Docker** (for local Postgres) — or a native Postgres 16
 
 ## First run

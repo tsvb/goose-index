@@ -161,7 +161,9 @@ describe("runNugsImport", () => {
           container(20, "2024-05-01", "Bimbos 365 Club"),
         ]),
         db: ctx.db,
-      })).rejects.toThrow(/constraint/i);
+        // drizzle wraps a failed statement ("Failed query: …"); the database's
+        // own reason — the constraint — is the wrapped error's cause.
+      })).rejects.toMatchObject({ cause: { message: expect.stringMatching(/constraint/i) } });
     } finally {
       await ctx.db.execute(sql`alter table shows drop constraint ck_test_block_show2_container`);
     }

@@ -154,7 +154,7 @@ up.
 
 <br>
 
-Needs Node 22+ and Docker (or a native Postgres 16).
+Needs Node 24 and Docker (or a native Postgres 16).
 
 ```bash
 npm install
