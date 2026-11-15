@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toBool, emptyToNull, chunk, escapeLike, searchTerm, positiveInt } from "./util";
+import { toBool, emptyToNull, chunk, escapeLike, searchTerm, SEARCH_TERM_MAX, positiveInt } from "./util";
 
 describe("toBool", () => {
   it("treats 1, '1', true as true and 0, '0', '' as false", () => {
@@ -48,6 +48,14 @@ describe("searchTerm", () => {
     expect(searchTerm("  goose  ")).toBe("goose");
     expect(searchTerm("GOOSE")).toBe("goose");
     expect(searchTerm("\tGoose\n")).toBe("goose");
+  });
+
+  // Without a ceiling, each oversized `?q=` is a huge ILIKE pattern scanned
+  // across four tables and then an hour-long cache entry of its own.
+  it("caps the term, so an oversized query cannot mint unbounded work", () => {
+    expect(searchTerm("a".repeat(5000))).toHaveLength(SEARCH_TERM_MAX);
+    expect(searchTerm("a".repeat(5000))).toBe(searchTerm("a".repeat(6000)));
+    expect(searchTerm("red rocks amphitheatre")).toBe("red rocks amphitheatre");
   });
 
   it("leaves an empty term empty, so callers can drop the filter", () => {

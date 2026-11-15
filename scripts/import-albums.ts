@@ -5,7 +5,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
 import { classify, buildTitleIndex, normalizeTitle } from "./album-match";
 import { announceTarget } from "./target";
-import { databaseUrl } from "../db/url";
+import { databaseUrl, sslFor } from "../db/url";
 
 /**
  * Loads the discography from the Bandcamp scrape into `albums` / `album_tracks`.
@@ -35,7 +35,7 @@ const dryRun = process.argv.includes("--dry-run");
 const url = databaseUrl();
 if (!url) throw new Error("DATABASE_URL is not set");
 announceTarget(url);
-const client = postgres(url, { max: 1, prepare: false });
+const client = postgres(url, { max: 1, prepare: false, ...(sslFor(url) ? { ssl: sslFor(url) } : {}) });
 const db = drizzle(client);
 
 const releases: Release[] = readFileSync(file, "utf8")
