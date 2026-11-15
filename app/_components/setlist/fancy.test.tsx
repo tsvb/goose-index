@@ -41,6 +41,44 @@ describe("SetlistFancy", () => {
     expect(html.match(/>1<\/a><\/sup>/g)).toHaveLength(2);
     expect(html).not.toContain("cursor-help");
   });
+  // elgoose footnotes a cover with its artist; the row already prints it.
+  it("does not number or list a footnote that only repeats the cover artist", () => {
+    const html = renderToStaticMarkup(
+      <SetlistFancy entries={[
+        entry({ uniqueId: "a", song: "Look Out Cleveland", isOriginal: false, originalArtist: "The Band", footnote: "The Band." }),
+        entry({ uniqueId: "b", song: "Pancakes", position: 2, footnote: "With Dragonfly jam." }),
+      ]} showDate="2026-11-14" venue={null} />,
+    );
+    expect(html).not.toContain('href="#fn-a"');
+    expect(html).not.toContain('id="fn-a"');
+    // the artist is still on the row, once
+    expect(html.match(/The Band/g)).toHaveLength(1);
+    // the real note keeps its number — and it is 1, not 2
+    expect(html).toContain("With Dragonfly jam.");
+    expect(html).toContain('href="#fn-b"');
+    expect(html.match(/>1<\/a><\/sup>/g)).toHaveLength(1);
+  });
+  it("keeps a cover's footnote when it says more than the artist", () => {
+    const html = renderToStaticMarkup(
+      <SetlistFancy entries={[
+        entry({ uniqueId: "a", song: "Eminence Front", isOriginal: false, originalArtist: "The Who", footnote: "The Who. First time played." }),
+      ]} showDate="2026-11-14" venue={null} />,
+    );
+    expect(html).toContain("First time played.");
+    expect(html).toContain('id="fn-a"');
+  });
+  // The notes start where the song names start (pl-12 = a row's pl-4 + w-5
+  // marker + gap-3) under a rule. The indent is padding, not margin, so the
+  // rule itself runs the full width of the set.
+  it("indents the notes under the song names, below a rule", () => {
+    const html = renderToStaticMarkup(
+      <SetlistFancy entries={[entry({ uniqueId: "a", song: "Pancakes", footnote: "With Dragonfly jam." })]} showDate="2026-11-14" venue={null} />,
+    );
+    const list = /<ul class="([^"]*)"/.exec(html)?.[1] ?? "";
+    expect(list).toMatch(/\bpl-12\b/);
+    expect(list).not.toMatch(/\bml-/);
+    expect(list).toMatch(/\bborder-t\b/);
+  });
   it("renders set labels as h2 — no h1→h3 skip under the show page's h1", () => {
     const html = renderToStaticMarkup(
       <SetlistFancy entries={[entry({ song: "Madhuvan" })]} showDate="2024-04-20" venue={null} />,

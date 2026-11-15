@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Newsreader, IBM_Plex_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { SiteHeader } from "./_components/site-header";
 import { SiteFooter } from "./_components/site-footer";
@@ -42,21 +42,34 @@ export const dynamic = "force-dynamic";
 // with an optical-size axis (the .font-display hook turns it on); Plex Sans
 // is the instrument half — body text, and the labels, dates and figures that
 // carry `.font-mono`, which switches on its tabular figures.
-const display = Newsreader({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  axes: ["opsz"],
+//
+// The files live in app/fonts (latin subset, SIL Open Font License — the
+// licenses sit beside them). They used to come from `next/font/google`, which
+// downloads them from Google during every build: when that download failed, the
+// build failed with a webpack error in the CSS step and nothing in the diff to
+// explain it. A build should not depend on a third party being reachable.
+const display = localFont({
+  src: [
+    { path: "./fonts/newsreader-latin-opsz-normal.woff2", weight: "200 800", style: "normal" },
+    { path: "./fonts/newsreader-latin-opsz-italic.woff2", weight: "200 800", style: "italic" },
+  ],
   variable: "--font-display-face",
   display: "swap",
+  adjustFontFallback: "Times New Roman",
 });
-const body = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+const body = localFont({
+  src: [
+    { path: "./fonts/ibm-plex-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-400-italic.woff2", weight: "400", style: "italic" },
+    { path: "./fonts/ibm-plex-sans-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-500-italic.woff2", weight: "500", style: "italic" },
+    { path: "./fonts/ibm-plex-sans-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-600-italic.woff2", weight: "600", style: "italic" },
+  ],
   variable: "--font-body-face",
   display: "swap",
+  adjustFontFallback: "Arial",
 });
-
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const experience = await getExperience();
