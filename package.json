@@ -30,24 +30,24 @@
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
-    "@vercel/speed-insights": "^2.0.0",
+    "@vercel/speed-insights": "^2.1.0",
     "drizzle-orm": "^0.45.4",
     "next": "^15.5.29",
     "postgres": "^3.4.5",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.2.0",
+    "@electric-sql/pglite": "^0.5.16",
     "@tailwindcss/postcss": "^4.3.1",
     "@types/node": "^24.19.2",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "dotenv": "^16.4.0",
     "drizzle-kit": "^0.31.11",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.1",
-    "tsx": "^4.19.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.0",
     "vitest": "^5.1.0"
   }
