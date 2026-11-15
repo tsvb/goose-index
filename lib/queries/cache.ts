@@ -1,4 +1,14 @@
 import { etToday } from "@/lib/today";
+import { createLimiter } from "./limit";
+
+/**
+ * How many catalog reads may be in flight on one server instance. Two under the
+ * pool's 10 (db/client.ts), which leaves room for the live-show sync's own
+ * writes — they don't come through here. See createLimiter for why going over
+ * the pool is a hang and not just a wait.
+ */
+const READ_CONCURRENCY = 8;
+const limitRead = createLimiter(READ_CONCURRENCY);
 
 /**
  * Next.js Data Cache tag for every catalog read. The nightly sync (and the
@@ -74,7 +84,7 @@ export async function cachedQuery<T>(
   opts: CachedQueryOpts = {},
 ): Promise<T> {
   const cache = await nextCache();
-  if (!cache) return fn();
+  if (!cache) return limitRead(fn);
   // What the query itself did, recorded so the catch below can tell a failure in
   // Next's cache plumbing (retryable) from a failure in the read (not). Without
   // this the catch swallows a failed query and runs it again — a second round
@@ -84,7 +94,7 @@ export async function cachedQuery<T>(
   let failed: { error: unknown } | undefined;
   const run = async () => {
     try {
-      const value = await fn();
+      const value = await limitRead(fn);
       succeeded = { value };
       return value;
     } catch (error) {
@@ -107,7 +117,7 @@ export async function cachedQuery<T>(
     // `unstable_cache` needs Next's request cache, and throws before it ever
     // calls `run` when there isn't one. If we're somehow in a Node runtime
     // without it, miss rather than fail the page.
-    return fn();
+    return limitRead(fn);
   }
 }
 
