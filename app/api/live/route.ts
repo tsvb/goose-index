@@ -3,7 +3,9 @@ import { maybeLiveSync } from "@/lib/sync/maybe-live";
 
 // Status + trigger endpoint for the live-show sync: GET during a show window
 // refreshes tonight's setlist (debounced server-side) and reports what
-// happened. Outside a window it cheaply reports { live: false }. Safe to
+// happened. Outside a window it cheaply reports { live: false }. An open show
+// page calls it before each re-render (LiveRefresh), so the render shows the
+// pull that just finished rather than the one before it. Safe to
 // expose unauthenticated — it can only pull public elgoose data for tonight,
 // at most once per debounce window.
 export const dynamic = "force-dynamic";
