@@ -128,8 +128,9 @@ export default async function ShowPage({ params, searchParams }: Params) {
   const nextLabel = "Later show this day";
 
   // This show is (or could be) on stage right now: refresh the setlist from
-  // elgoose after the response is sent (debounced server-side), and let the
-  // client re-pull the page while it stays open.
+  // elgoose after the response is sent (debounced server-side). While the page
+  // stays open, LiveRefresh drives the loop from the client: pull via
+  // /api/live, then re-render.
   const isLive = liveCandidateDate(new Date()) === date;
   if (isLive) after(() => maybeLiveSync());
 

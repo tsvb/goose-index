@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { LiveRefresh, bindLiveRefresh } from "./live-refresh";
+import { LiveRefresh, bindLiveRefresh, createLiveTick } from "./live-refresh";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: () => {} }),
@@ -95,6 +95,73 @@ describe("bindLiveRefresh — visibility-aware polling", () => {
     fire("visibilitychange");
     vi.advanceTimersByTime(300_000);
     expect(refresh).not.toHaveBeenCalled();
+  });
+});
+
+describe("bindLiveRefresh — catch-up refresh", () => {
+  // The page is rendered before its own load starts a pull, so a reader who
+  // arrives mid-show would otherwise wait a whole interval for that pull.
+  it("refreshes once early, then keeps the interval", () => {
+    const { doc } = stubDocument();
+    const refresh = vi.fn();
+    bindLiveRefresh(doc, refresh, 75_000, 8_000);
+    vi.advanceTimersByTime(8_000);
+    expect(refresh).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(67_000);
+    expect(refresh).toHaveBeenCalledTimes(2);
+  });
+
+  it("drops the catch-up when the tab hides or the component unmounts", () => {
+    const hidden = stubDocument();
+    const a = vi.fn();
+    bindLiveRefresh(hidden.doc, a, 75_000, 8_000);
+    hidden.doc.hidden = true;
+    hidden.fire("visibilitychange");
+    vi.advanceTimersByTime(60_000);
+    expect(a).not.toHaveBeenCalled();
+
+    const unmounted = stubDocument();
+    const b = vi.fn();
+    bindLiveRefresh(unmounted.doc, b, 75_000, 8_000)();
+    vi.advanceTimersByTime(60_000);
+    expect(b).not.toHaveBeenCalled();
+  });
+});
+
+describe("createLiveTick — sync, then render", () => {
+  // Rendering first shows the previous pull; every song then lands one
+  // interval late. The render has to wait for the pull it is meant to show.
+  it("re-renders only after the sync has finished", async () => {
+    const order: string[] = [];
+    let finish!: () => void;
+    const sync = () => new Promise<void>((r) => { finish = () => { order.push("synced"); r(); }; });
+    const tick = createLiveTick(sync, () => order.push("rendered"));
+    const done = tick();
+    expect(order).toEqual([]);
+    finish();
+    await done;
+    expect(order).toEqual(["synced", "rendered"]);
+  });
+
+  it("still re-renders when the sync fails", async () => {
+    const refresh = vi.fn();
+    await createLiveTick(() => Promise.reject(new Error("offline")), refresh)();
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops a tick that fires while one is in flight", async () => {
+    let finish!: () => void;
+    const sync = vi.fn(() => new Promise<void>((r) => { finish = r; }));
+    const refresh = vi.fn();
+    const tick = createLiveTick(sync, refresh);
+    const first = tick();
+    await tick();
+    expect(sync).toHaveBeenCalledTimes(1);
+    finish();
+    await first;
+    expect(refresh).toHaveBeenCalledTimes(1);
+    await Promise.all([tick(), Promise.resolve().then(() => finish())]);
+    expect(sync).toHaveBeenCalledTimes(2);
   });
 });
 
