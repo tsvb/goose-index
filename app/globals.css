@@ -107,16 +107,22 @@
    inlines `var(--type-*)` into the font utilities, so redefining these on a
    `[data-experience]` selector actually re-fonts the page (like the colors).
    The system stack is the floor every edition starts from; 3.0 alone loads
-   real faces (app/layout.tsx sets the --font-*-face variables). ---- */
+   real faces (app/layout.tsx sets the --font-*-face variables).
+   `--type-code` is the one token that is always a real monospace: it sets code
+   in blog posts, where columns have to line up. ---- */
 :root {
   --type-display: -apple-system, system-ui, sans-serif;
   --type-body: -apple-system, system-ui, sans-serif;
   --type-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --type-code: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 :root[data-experience="fancy"] {
   --type-display: var(--font-display-face), Georgia, "Times New Roman", serif;
   --type-body: var(--font-body-face), -apple-system, system-ui, sans-serif;
-  --type-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Labels, dates and figures wear the body sans, not a monospace (2.0 already
+     does the same with Helvetica). `.font-mono` still turns on tabular figures,
+     so number columns keep lining up. */
+  --type-mono: var(--type-body);
 }
 
 /* ---- Map tokens into Tailwind's theme (inline = resolves at runtime) ---- */
@@ -259,7 +265,7 @@
   margin-bottom: 0;
 }
 .post-prose code {
-  font-family: var(--type-mono);
+  font-family: var(--type-code);
   font-size: 0.86em;
   background: var(--surface-2);
   border: 1px solid var(--line-soft);
@@ -324,6 +330,7 @@
    out-rank it (two classes beat .post-prose th on specificity). */
 .post-prose td.num {
   font-family: var(--type-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 0.86em;
 }
 .post-prose .ctr {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Newsreader, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Newsreader, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "./_components/site-header";
 import { SiteFooter } from "./_components/site-footer";
@@ -40,7 +40,8 @@ export const dynamic = "force-dynamic";
 // under [data-experience="fancy"], so 2.0 keeps Verdana/Tahoma and 1.0 keeps
 // Georgia — each edition wears its own period. Newsreader is a variable serif
 // with an optical-size axis (the .font-display hook turns it on); Plex Sans
-// and Plex Mono are the instrument half, and Plex Mono's figures are tabular.
+// is the instrument half — body text, and the labels, dates and figures that
+// carry `.font-mono`, which switches on its tabular figures.
 const display = Newsreader({
   subsets: ["latin"],
   style: ["normal", "italic"],
@@ -55,12 +56,6 @@ const body = IBM_Plex_Sans({
   variable: "--font-body-face",
   display: "swap",
 });
-const mono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-mono-face",
-  display: "swap",
-});
 
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -69,7 +64,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang="en"
       data-experience={experience}
-      className={`${display.variable} ${body.variable} ${mono.variable}`}
+      className={`${display.variable} ${body.variable}`}
       suppressHydrationWarning
     >
       <head>
