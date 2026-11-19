@@ -14,7 +14,7 @@
 ## The problem
 
 Pen & Instrument (2026-08-16) made 3.0 an index instead of a dashboard, and that skeleton
-works. Its skin is the problem: a fog/slate pair, graphite wobble and three webfaces that belong
+works. Its skin is the problem: a fog/slate pair, graphite wobble and two webfaces that belong
 to no one else in Tim's world. Yeti, Tim's nugs.net player, now has a finished design language
 (night shelves, snow type, sale-yellow stickers, one foil accent kept for time) that grew up
 around the same music. The site should wear it.
@@ -77,17 +77,20 @@ A role is a job, not a hue.
 | `--faint` | idle | Tertiary text, small numerals; chart ticks and scales that must be read. | 5.8 (4.8 on card) |
 | `--hand` | sale | **The reading, now**, marks only: the live dot, needles, the half-plays line, a chart's answer. It is Yeti's play state, so "now" maps exactly. Never running text, as today. | 13.9 |
 | `--ember` | sale | **Heat**, as text-safe yellow: jam tape, the meters' red zone, the hottest night, "live"/"tonight" words. | 13.9 |
-| `--foil` *(new)* | foil | **Elapsed time**: gap rings, overdue counts (`.overdue`). Plus Yeti's chrome uses: keyboard focus and the search caret. Never a fill. | 8.7 |
+| `--foil` *(new; 2.0/1.0 alias it to their `--ember`, see Scoping)* | foil | **Elapsed time**: gap rings, overdue counts (`.overdue`). Plus Yeti's chrome uses: keyboard focus and the search caret. Never a fill. | 8.7 |
 | `--spruce` | snow | Links, told apart by a slush underline (snow on hover), as Yeti draws them. Footnote marks pair with them. | 15.7 |
 | `--line` | frost | Dividers, row rules, ring tracks. 1.6:1, so it never draws something you must read. | 1.6 |
 | `--line-soft` | shelf | Bar fields, empty tape. | 1.2 |
 
-**Where `--ember` went:** it used to bundle heat with overdue. Overdue is time, so it moves to
-foil; heat stays `--ember`. Each surface that used ember for overdue (the Shelf ring, Most Overdue,
-`.overdue` in the song tables) moves to `--foil`; each that used it for heat stays.
+**Where `--ember` went:** it used to bundle heat with overdue. Overdue is time, so in 3.0 it
+moves to foil; heat stays `--ember`. The surfaces that used ember for elapsed time are the Shelf's
+ring, days and halo (`the-shelf.tsx`), Most Overdue's rings and counts (`stats/page.tsx`), the
+song page's gap sparkline marks (`song/charts.tsx`) and `.overdue` in the song tables. They read
+`--foil` instead. Every heat use (tape, flame, dial, meters, career peak, busiest tour) stays.
 
-**Graphite in charts** (the Shelf's tape, spool hubs) was `--line` at ink 28%. On night, frost is
-too dim for a reading, so chart graphite takes idle. Charts never draw a value in frost.
+**Graphite in charts** (the Shelf's tape and spool hubs) was `--line`, ink at 28%. On night,
+frost is too dim to read a value from, so chart graphite gets its own token, `--graphite`: idle
+in 3.0. Charts never draw a value in frost.
 
 **nugs tokens.** Listen is the page's one snow primary with night ink (Yeti's "Buy on nugs.net"
 button, outbound arrow because it leaves the site); Watch and Open on nugs.net are frost rings with
@@ -97,12 +100,28 @@ snow text; the per-track ▷ is a slush glyph that turns snow on hover. Bandcamp
 
 ### Scoping (2.0 and 1.0 must not move)
 
-- Yeti's values live on `:root[data-experience="fancy"]`, not bare `:root`. Today bare `:root`
-  is fog, and 2.0/1.0 inherit any token they don't redeclare from it, plus, on a dark OS, the slate
-  media block's `--nugs-*` values (2.0's hover states read them). Implementation pins exactly
-  what each of 2.0 and 1.0 resolves today, in both OS schemes, and keeps it: the fog values stay
-  on bare `:root`, and the slate leftovers 2.0/1.0 actually read move into a
-  `prefers-color-scheme: dark` block scoped to `:not([data-experience="fancy"])`.
+- **The charts are shared.** Only 1.0 branches to tables; 2.0 renders the same chart components
+  and copy as 3.0 and re-skins them through the same role tokens. So **every change to a shared
+  component is either scoped to fancy or goes through a token whose 2.0/1.0 value is pinned to
+  what that surface resolves to today.** The new tokens are declared in all three editions:
+
+  | Token | 3.0 | 2.0 and 1.0 (today's value, unchanged) |
+  |---|---|---|
+  | `--foil` | `#FF8FC4` | `var(--ember)`: what the overdue surfaces draw today |
+  | `--gap-near` (the Shelf ring under a year) | `var(--foil)` | `var(--steel)` |
+  | `--graphite` (chart tape and hubs) | idle `#8590B0` | `var(--line)` |
+
+  So the Shelf's `signal = red ? ember : steel` becomes `red ? --foil : --gap-near`: one color in
+  3.0, today's two in 2.0.
+- **Captions that name a color are branched per edition**, not reworded for everyone: the pages
+  already read the edition (`getExperience()`), and they pass the caption variant down. 2.0 keeps
+  today's words exactly; 3.0 gets words that describe what it draws (see "Copy that changes").
+- Yeti's values live on `:root[data-experience="fancy"]`, not bare `:root`. Bare `:root` keeps
+  today's fog values, which 2.0 and 1.0 inherit for the tokens they don't redeclare.
+- The 3.0 `prefers-color-scheme: dark` block and both `[data-theme]` blocks are deleted
+  outright. Checked on `95210b9`: every 2.0 and 1.0 baseline is byte-identical between a light
+  and a dark OS, and the hovered `.nugs-show` / `.nugs-track` colors match, because each edition's
+  own later rules win. Nothing in 2.0 or 1.0 reads the slate values.
 - The global base layer (`::selection`, `:focus-visible`, heading weight) reads tokens, so it
   re-skins per edition by itself; the foil focus ring is declared under the fancy selector only.
 - Verified against baselines of `main` taken in both OS schemes (see Verification).
@@ -232,13 +251,12 @@ Pen & Instrument's forms survive; their finish changes.
 
 ### Copy that changes because the colors did
 
-Rule 6 applies to chart captions that name a color. Each is recomputed or reworded to say what
-the chart now does, never left naming a color that's gone:
-- The Shelf: "Past a year the ring runs into the red" → the ring is foil and gains its halo past
-  a year (exact words in the plan, Tim to read).
-- The tape: "jams burn" stays true (the jam color is heat); the `<span class="text-ember">`
-  keeps pointing at the jam color.
-- Song page: "The ember bar marks the longest gap" → names the yellow bar.
+Rule 6 applies to chart captions that name a color. In 3.0 each says what the chart now
+draws; 2.0 keeps today's words (see Scoping):
+- The Shelf: "Past a year the ring runs into the red" → in 3.0, the ring is foil throughout and
+  gains its halo past a year (exact words in the plan, Tim to read).
+- Song page (`songs/[slug]/page.tsx`): "The ember bar(s) mark…" → in 3.0, the pink bar(s).
+- The tape: "jams burn" stays true (the jam color is heat); its span keeps `--ember`.
 - The edition blurb "Charts, hand-drawn, light and dark" (`lib/experience.ts`) stops being true
   twice. Proposed: "Charts, dark, rounded type". It must also say only what 3.0 alone has.
 - README: "Three editions", the role table and the screenshot note (see Docs).
@@ -305,8 +323,10 @@ settings) → page forms → charts' colors → icons/OG → app name → docs.
   inside the existing settings popover.
 - `show-header.tsx`: date tile + nameplate + actions; the empty pack when there's no setlist.
 - Home (`app/page.tsx`): the two-column layout and tonight's pack.
-- Charts: re-point overdue/gap uses of `--ember` to `--foil` (`the-shelf.tsx`, the Most
-  Overdue cut, `.overdue`), chart graphite to `--faint`, and drop the color words from captions.
+- Charts: re-point the elapsed-time uses of `--ember` to `--foil` and `--gap-near`
+  (`the-shelf.tsx`, `stats/page.tsx`'s Most Overdue, `song/charts.tsx`, `.overdue`), chart
+  graphite from `--line` to `--graphite`, and branch the color-naming captions per edition.
+  2.0 resolves every one of these to today's color.
 - `lib/theme.ts` (+ test) deleted; `lib/experience.ts` loses `allowsTheme`; `settings-panel.tsx`
   and `settings-menu.tsx` lose the appearance row.
 - Untouched: `lib/queries/`, `lib/sync/`, `db/`, `drizzle/`, JSON-LD, sitemaps, RSS, the blog
@@ -319,7 +339,8 @@ reason in the PR):
 - `globals-contrast.test.ts`: reads the fancy block; Yeti thresholds (ink 7.0, muted/faint/
   pencil/steel/spruce/ember/foil 4.5 against night *and* card stock, hand 3.0); the fog and slate
   cases and the "two slate blocks in sync" case go with the switch; the source-order test is
-  rewritten for the new scoping (2.0/1.0 blocks must still win their tokens).
+  replaced by one asserting that `--foil`, `--gap-near` and `--graphite` are declared in the
+  functional and minimal blocks as the aliases above (so 2.0 can't silently pick up 3.0's pink).
 - `tour-timeline-label-contrast.test.ts`: re-derived for night.
 - `pen.test.tsx` → tests for the rule/caption replacements; `instrument.test.tsx`,
   `page-chrome.test.tsx`, `settings-panel.test.tsx`, `settings-menu.test.tsx`,
