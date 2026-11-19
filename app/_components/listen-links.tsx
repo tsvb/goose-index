@@ -33,7 +33,7 @@ function ButtonsBody() {
   return (
     <ul>
       <li><strong>◈ Bandcamp</strong> — buys the night from the band, when they have released it. Buying there pays them, which is why it comes first.</li>
-      <li><strong>▷ Listen on nugs</strong> and <strong>▷ Watch</strong> — hand the show to AppleNugs, a Mac app for nugs.net, at that night. Watch opens its video side.</li>
+      <li><strong>▷ Listen on nugs</strong> and <strong>▷ Watch</strong> — hand the show to Yeti (formerly AppleNugs), a Mac app for nugs.net, at that night. Watch opens its video side.</li>
       <li><strong>▷ on a setlist row</strong> — the same handoff, started at that song.</li>
       <li><strong>↗ Open on nugs.net</strong> — the show&rsquo;s own page in the nugs web player. It appears only when we know that exact page.</li>
     </ul>
@@ -44,7 +44,7 @@ function ClickBody() {
   return (
     <p>
       The Listen, Watch and row buttons hand your browser an <code>applenugs://</code> link.
-      If AppleNugs is installed, it opens and finds the show on nugs by artist, date and venue.
+      If Yeti is installed (the current download still carries its old name, AppleNugs), it opens and finds the show on nugs by artist, date and venue.
       If nothing claims the link after about a second and you are still on the page, you are
       sent to nugs.net instead — straight to the show&rsquo;s page when we know it, or to a
       search for it when we don&rsquo;t. Watch does the same for the video side, when the show
@@ -57,8 +57,8 @@ function NeedsBody() {
   return (
     <ul>
       <li>A <a href="https://nugs.net" target="_blank" rel="noopener noreferrer">nugs.net</a> subscription. These buttons open what a subscription already includes, and nugs.net asks you to sign in.</li>
-      <li><a href="https://github.com/tsvb/applenugs/releases/latest" target="_blank" rel="noopener noreferrer">AppleNugs for macOS</a> — signed, notarized, updates itself.</li>
-      <li>On iPhone, AppleNugs is personal-install only — you build it yourself. There is no App Store version and no TestFlight, so on a phone these buttons land on the nugs website.</li>
+      <li><a href="https://github.com/tsvb/yeti/releases/latest" target="_blank" rel="noopener noreferrer">Yeti for macOS</a> — signed, notarized, updates itself. The current release, v1.5, installs as AppleNugs.</li>
+      <li>On iPhone, Yeti is personal-install only — you build it yourself. There is no App Store version and no TestFlight, so on a phone these buttons land on the nugs website.</li>
     </ul>
   );
 }
@@ -118,7 +118,7 @@ function TryItBody({ example, urls }: { example: ListenExample; urls: ReturnType
 /** The applenugs:// grammar, one row per part. A real <table> in every edition —
  *  this is reference material, not decoration. */
 const PARAMS: { part: string; required: string; notes: string }[] = [
-  { part: "applenugs://", required: "yes", notes: "The scheme AppleNugs registers. Not nugs:// — that belongs to the official app." },
+  { part: "applenugs://", required: "yes", notes: "The scheme the app registers, under either name. Not nugs:// — that belongs to the official app." },
   { part: "show/<YYYY-MM-DD>", required: "yes", notes: "The performance date — the one identifier this site and nugs share natively." },
   { part: "artist=<name>", required: "yes", notes: "Band name, e.g. Goose. Keeps the app's handler generic instead of hardcoding one artist." },
   { part: "venue=<venue>", required: "no", notes: "Tie-break for two-show days (audio; video resolution is date-only). Without it the app opens the first show on the date; a venue matching nothing falls back to search." },
@@ -165,7 +165,7 @@ function DevReferenceBody() {
       </p>
       <p>
         The app, and the full contract, live at{" "}
-        <a href="https://github.com/tsvb/applenugs" target="_blank" rel="noopener noreferrer">github.com/tsvb/applenugs</a>.
+        <a href="https://github.com/tsvb/yeti" target="_blank" rel="noopener noreferrer">github.com/tsvb/yeti</a>.
       </p>
     </>
   );
