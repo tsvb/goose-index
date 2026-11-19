@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
-// The Feather mark (app/_components/marks.tsx) on the almanac dark ground.
+// The Feather mark (app/_components/marks.tsx) in snow on Yeti's night, the
+// 3.0 edition's ground (the default edition, so the site's face).
 // iOS applies its own corner mask, so the background stays solid and square.
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
@@ -15,7 +16,7 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#15110c",
+          backgroundColor: "#0F1424",
         }}
       >
         <svg
@@ -23,7 +24,7 @@ export default function AppleIcon() {
           height="112"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#edab44"
+          stroke="#E9EEF7"
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
