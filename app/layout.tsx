@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -27,6 +27,13 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image" },
 };
+
+// The browser's own chrome matches 3.0's night. 2.0 and 1.0 have never set a
+// theme color, and still don't.
+export async function generateViewport(): Promise<Viewport> {
+  const experience = await getExperience();
+  return experience === "fancy" ? { themeColor: "#0F1424" } : {};
+}
 
 // Pages read live DB data and `etToday()` (e.g. "On This Day"), and the
 // experience cookie is a Dynamic API, so HTML still renders per request.

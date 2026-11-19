@@ -4,7 +4,6 @@ import { NavLink } from "./nav-links";
 import { SearchBox } from "./search-box";
 import { MobileNav } from "./mobile-nav";
 import { SettingsMenu } from "./settings-menu";
-import { PenRule } from "./pen";
 import { getExperience } from "@/lib/experience.server";
 import { type Experience } from "@/lib/experience";
 
@@ -20,22 +19,22 @@ const NAV = [
 
 export function HeaderFancy({ experience }: { experience: Experience }) {
   return (
-    // --header-h is the full header box: h-14 plus the 6px PenRule below
-    // it — MobileNav offsets its sheet from it, and without the rule's
-    // height the sheet overlaps it.
-    <header className="sticky top-0 z-40 bg-paper [--header-h:calc(3.5rem_+_6px)]">
-      <Container className="flex h-14 items-center justify-between gap-4">
-        <Link href="/" className="shrink-0 text-[0.95rem] font-semibold lowercase tracking-tight text-ink hover:text-steel">
+    // Yeti's glass bar: night at 82% over a blur, one frost rule beneath.
+    // --header-h is the full header box (h-14 plus the 1px rule) — MobileNav
+    // offsets its sheet from it, and venues' sticky letter bar sits under it.
+    <header className="yeti-bar sticky top-0 z-40 border-b border-line bg-[rgba(15,20,36,0.82)] backdrop-blur-[18px] [--header-h:calc(3.5rem_+_1px)]">
+      <Container className="flex h-14 items-center justify-between gap-3">
+        <Link href="/" className="shrink-0 text-[1.1rem] font-black lowercase tracking-tight text-ink">
           goose index
         </Link>
-        <nav aria-label="Primary" className="hidden items-center gap-3 text-[0.85rem] lowercase text-muted md:flex lg:gap-5">
+        <nav aria-label="Primary" className="hidden items-center gap-0.5 text-[0.85rem] font-bold lowercase text-muted md:flex lg:gap-1 lg:text-[0.9rem]">
           {NAV.map((n) => (
             <NavLink
               key={n.href}
               href={n.href}
-              className="whitespace-nowrap py-1 underline-offset-4 transition"
-              activeClassName="text-steel underline"
-              inactiveClassName="hover:text-ink hover:underline"
+              className="whitespace-nowrap rounded-full px-2 py-1.5 transition lg:px-3"
+              activeClassName="bg-[rgba(233,238,247,0.10)] text-ink"
+              inactiveClassName="hover:text-ink"
             >
               {n.label.toLowerCase()}
             </NavLink>
@@ -46,9 +45,6 @@ export function HeaderFancy({ experience }: { experience: Experience }) {
           <SettingsMenu current={experience} />
           <MobileNav />
         </div>
-      </Container>
-      <Container>
-        <PenRule seed="masthead" />
       </Container>
     </header>
   );

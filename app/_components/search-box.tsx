@@ -61,7 +61,7 @@ function SearchBoxForm({ size, seed, className }: { size: Size; seed: string; cl
           onFocus={selectAll}
           placeholder="try a song, a date (2022-06-24), a venue, or a city…"
           aria-label="Search the index"
-          className="w-full rounded-none border-0 border-b border-line bg-transparent py-3 pl-12 pr-4 text-ink placeholder:text-faint outline-none transition focus:border-steel"
+          className="search-field w-full rounded-none border-0 border-b border-line bg-transparent py-3 pl-12 pr-4 text-ink placeholder:text-faint outline-none transition focus:border-steel"
         />
       </form>
     );
@@ -76,7 +76,7 @@ function SearchBoxForm({ size, seed, className }: { size: Size; seed: string; cl
         onFocus={selectAll}
         placeholder="search…"
         aria-label="Search the index"
-        className="w-36 rounded-none border-0 border-b border-line bg-transparent py-1.5 pl-8 pr-3 text-sm text-ink placeholder:text-faint outline-none transition focus:w-52 focus:border-steel"
+        className="search-field w-36 rounded-none border-0 border-b border-line bg-transparent py-1.5 pl-8 pr-3 text-sm text-ink placeholder:text-faint outline-none transition focus:w-52 focus:border-steel"
       />
     </form>
   );

@@ -79,7 +79,7 @@ export function MobileNav() {
             onClick={() => setOpen(false)}
             className="fixed inset-0 top-[var(--header-h,4rem)] z-30 cursor-default bg-bg-deep/50"
           />
-          <div className="fixed inset-x-0 top-[var(--header-h,4rem)] z-40 max-h-[calc(100dvh-var(--header-h,4rem))] overflow-y-auto overscroll-contain border-b border-line bg-paper">
+          <div className="mobile-sheet fixed inset-x-0 top-[var(--header-h,4rem)] z-40 max-h-[calc(100dvh-var(--header-h,4rem))] overflow-y-auto overscroll-contain border-b border-line bg-paper">
             <div className="space-y-5 px-5 py-6">
               <form onSubmit={submit} className="group relative">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint group-focus-within:text-steel" />
@@ -88,7 +88,7 @@ export function MobileNav() {
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="search songs, shows, venues…"
                   aria-label="Search the index"
-                  className="w-full rounded-none border-0 border-b border-line bg-transparent py-3 pl-10 pr-4 text-ink placeholder:text-faint outline-none focus:border-steel"
+                  className="search-field w-full rounded-none border-0 border-b border-line bg-transparent py-3 pl-10 pr-4 text-ink placeholder:text-faint outline-none focus:border-steel"
                 />
               </form>
               <nav className="flex flex-col">
