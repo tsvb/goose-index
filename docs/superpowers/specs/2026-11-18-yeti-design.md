@@ -1,7 +1,8 @@
 # Yeti — the 3.0 edition in the player's look
 
 - **Date:** 2026-11-18
-- **Status:** calls made by Tim on the mockups; **awaiting his approval of this spec** before the plan
+- **Status:** approved by Tim 2026-11-19 (with the font call below); implemented on `redesign/yeti`.
+  Where the build diverged from the first draft, this file was updated to match what shipped.
 - **Branch:** `redesign/yeti` (from `origin/main` at `95210b9`)
 - **Mockups:** `.superpowers/brainstorm/yeti/` (gitignored). `index.html` is the review page;
   `home.html`, `show.html`, `song.html` and `stats.html` (`#a` / `#b`, `#nunito`) re-skin the
@@ -93,7 +94,7 @@ frost is too dim to read a value from, so chart graphite gets its own token, `--
 in 3.0. Charts never draw a value in frost.
 
 **nugs tokens.** Listen is the page's one snow primary with night ink (Yeti's "Buy on nugs.net"
-button, outbound arrow because it leaves the site); Watch and Open on nugs.net are frost rings with
+button; its label stays "▷ Listen on nugs", since that text is shared with 2.0); Watch and Open on nugs.net are frost rings with
 snow text; the per-track ▷ is a slush glyph that turns snow on hover. Bandcamp is a frost ring.
 `--nugs-link`/`-strong`, `--nugs-watch`/`-strong` → snow; `--nugs-track` → slush; the
 `--nugs-*-line` tokens → frost, slush on hover. The cool blue/violet "player" palette retires in 3.0.
@@ -103,7 +104,9 @@ snow text; the per-track ▷ is a slush glyph that turns snow on hover. Bandcamp
 - **The charts are shared.** Only 1.0 branches to tables; 2.0 renders the same chart components
   and copy as 3.0 and re-skins them through the same role tokens. So **every change to a shared
   component is either scoped to fancy or goes through a token whose 2.0/1.0 value is pinned to
-  what that surface resolves to today.** The new tokens are declared in all three editions:
+  what that surface resolves to today.** The new tokens are aliased on the bare `:root` floor
+  (which 2.0 and 1.0 inherit; a custom property referencing another resolves on the element, so
+  each edition's own `--ember`/`--steel`/`--line` flow through) and overridden in 3.0's block:
 
   | Token | 3.0 | 2.0 and 1.0 (today's value, unchanged) |
   |---|---|---|
@@ -172,7 +175,7 @@ Pen & Instrument's forms survive; their finish changes.
 | Prev/next | The **folio line**, slush 700, unchanged in content. |
 | A stat | A **figure** in Yeti's totals style: heavy snow numeral, slush label beside or under it. No boxes (the song page's eight boxed facts become figures on frost rules). |
 | A chart | An **instrument**, re-tinted: slush subject, sale-yellow reading, foil where time elapses, idle ticks, frost tracks. Captions are slush, upright. |
-| Section heads | Heavy rounded, lowercase, no rule underneath (the ledger's first frost rule does that job). |
+| Section heads | Heavy rounded, lowercase, over one straight frost rule (the pen's rule, straightened). |
 | Setlist | Rows on frost rules: idle position number, title snow 600, duration slush; the segue rail stays (slush); › stays notation. Tape: rounded 6px strip on shelf, slush songs, sale-yellow jams. |
 | Facts on a performance | **Plain tags** (Yeti's `PlainTag`): debut, bust-out, cover, original. Snow type on translucent night, frost-white outline, square. |
 | States | **Label stickers** (Yeti's `LabelSticker`): **Tonight**, **Live**. Sale stock, night ink, 4° off true. |
@@ -189,10 +192,12 @@ Pen & Instrument's forms survive; their finish changes.
 
 - **Tonight's show (Home):** card stock with the punched hang slot, a bubble, the **Tonight**
   label sticker on the bubble's corner, and the nameplate printed on the card (venue heavy,
-  city · tour in slush, then "the setlist will appear live" or the newest song). Before songs
-  land, the bubble is **empty** (never animated, never a glyph). Once the show is live, the
-  bubble holds the date tile, the sticker reads **Live**, and the newest song carries the row
-  sticker. Shown in the leading column when Home is wide (≥ 900px), first under the masthead on
+  city · tour in slush, then "the setlist will appear live", today's copy, unchanged; the show
+  number only on a multi-show night). Before songs land, the bubble is **empty** (never
+  animated, never a glyph); once the setlist has entries it holds the date tile. The sticker
+  always reads **Tonight**: the live window is a date, so the site can't claim "Live". On the
+  show page, while that window is open, the newest logged song carries the row sticker (labeled
+  "newest song logged") and a faint sale wash. Shown in the leading column when Home is wide (≥ 900px), first under the masthead on
   a phone.
 - **A show page with no setlist yet** (upcoming or tonight): the empty pack replaces "No setlist
   has been recorded for this show yet."
@@ -233,7 +238,8 @@ Pen & Instrument's forms survive; their finish changes.
   and rows; footnotes; the legend in lowercase (no caps); folio footer. Live: the newest song gets
   the row sticker.
 - **/songs:** the sortable table on frost rules, lowercase headers, `.overdue` in foil.
-- **/songs/[slug]:** title heavy with a plain "original"/"cover" tag; the figures row; the
+- **/songs/[slug]:** title heavy (its "original"/"cover" label stays small slush type: the song
+  header is shared with 2.0); the figures row; the
   charts re-tinted (plays per year slush; gaps & returns slush with the longest gap in sale);
   the performance table with jam marks in ember.
 - **/stats:** catalog profile (slush shape, sale half-line, idle scale); the cut previews
@@ -318,9 +324,13 @@ settings) → page forms → charts' colors → icons/OG → app name → docs.
   a fancy-only branch where the layout itself differs (Home, the show header). In 3.0,
   `PenRule` draws a straight frost hairline and `PenNote` sets upright slush; `PenCircle` and
   `PenArrow` are hidden. 2.0 keeps its wobble, untouched.
-- New `app/_components/yeti.tsx`: `Pack` (card + bubble, `empty`), `DateTile`, `LabelSticker`,
-  `PlainTag`, `RowSticker`, `Segmented`. Server components, no client JS except `Segmented`
-  inside the existing settings popover.
+- New `app/_components/yeti.tsx`: `Pack` (card + bubble, empty unless given art), `DateTile`,
+  `LabelSticker`, `PlainTag`, `RowSticker`; all server components. The segmented edition picker
+  is drawn inline in `settings-panel.tsx`'s 3.0 branch (the popover is already a client
+  component). `tonight-pack.tsx` composes the pack for Home.
+- The header's glass is a `::before` layer (`.yeti-bar`), not a `backdrop-filter` on the
+  header: a filter there makes the header the containing block for the mobile sheet's fixed
+  scrim.
 - `show-header.tsx`: date tile + nameplate + actions; the empty pack when there's no setlist.
 - Home (`app/page.tsx`): the two-column layout and tonight's pack.
 - Charts: re-point the elapsed-time uses of `--ember` to `--foil` and `--gap-near`
@@ -339,14 +349,19 @@ reason in the PR):
 - `globals-contrast.test.ts`: reads the fancy block; Yeti thresholds (ink 7.0, muted/faint/
   pencil/steel/spruce/ember/foil 4.5 against night *and* card stock, hand 3.0); the fog and slate
   cases and the "two slate blocks in sync" case go with the switch; the source-order test is
-  replaced by one asserting that `--foil`, `--gap-near` and `--graphite` are declared in the
-  functional and minimal blocks as the aliases above (so 2.0 can't silently pick up 3.0's pink).
+  replaced by one asserting that `--foil`, `--gap-near` and `--graphite` alias
+  `--ember`/`--steel`/`--line` on the bare `:root` and that neither the functional nor the
+  minimal block redeclares them (so 2.0 can't silently pick up 3.0's pink).
 - `tour-timeline-label-contrast.test.ts`: re-derived for night.
-- `pen.test.tsx` → tests for the rule/caption replacements; `instrument.test.tsx`,
-  `page-chrome.test.tsx`, `settings-panel.test.tsx`, `settings-menu.test.tsx`,
-  `show-header.test.tsx`, `site-header.test.tsx`: pin the new markup.
+- `pen.test.tsx`, `instrument.test.tsx` and `page-chrome.test.tsx` are unchanged: those
+  components' markup is shared with 2.0 and still renders as before, and 3.0's look for them is
+  CSS. `app/yeti-hooks.test.ts` pins that CSS to the markup instead: every class a
+  `[data-experience="fancy"]` rule selects must be emitted by some component.
+  `settings-panel.test.tsx`, `show-header.test.tsx`, `site-header.test.tsx`,
+  `site-footer.test.tsx`, `setlist/fancy.test.tsx` and `page.test.tsx` pin the new 3.0 markup.
 - `lib/theme.test.ts` is deleted with `lib/theme.ts` (the module no longer exists; its job, the
-  pin allowlist, is gone). A new test asserts a stale `data-theme` changes nothing.
+  pin allowlist, is gone). The contrast gate asserts no `[data-theme]` selector or
+  `prefers-color-scheme` block survives, so a stale `data-theme` or `ga-theme` changes nothing.
 - `lib/experience.test.ts`: `allowsTheme` cases go; the blurb case pins the new wording.
 - `listen-links.test.tsx`: the new name lines and `tsvb/yeti` links; `applenugs://` still emitted.
 - The `--hand`-on-text greps stay as they are.
