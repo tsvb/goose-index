@@ -49,7 +49,7 @@ describe("ShowHeader", () => {
     expect(html).toContain(">Summer Tour 2026<"); // not "summer tour 2026"
     // The kicker <p> itself carries no blanket lowercase class anymore — only
     // the weekday token folds, done explicitly in JS (see above).
-    expect(html).toContain('<p class="text-[0.7rem] text-faint">');
+    expect(html).toContain('<p class="text-[0.9rem] text-muted">');
   });
   it("ignores a stray entryNumber — the prop moved to the page's folio", () => {
     // ShowHeader's type no longer declares entryNumber; cast past it to prove
@@ -117,7 +117,7 @@ describe("ShowHeader nugs.net control", () => {
     // Tie each fallback to ITS anchor — a bare toContain would pass even if the
     // two fallbacks were swapped, since both URLs appear somewhere on the page.
     expect(html).toMatch(/<a[^>]*class="nugs-show watch"[^>]*data-fallback="https:\/\/play\.nugs\.net\/watch\/release\/46887"/);
-    expect(html).toMatch(/<a[^>]*class="nugs-show"[^>]*data-fallback="https:\/\/play\.nugs\.net\/release\/46887"/);
+    expect(html).toMatch(/<a[^>]*class="nugs-show nugs-primary"[^>]*data-fallback="https:\/\/play\.nugs\.net\/release\/46887"/);
   });
 
   it("without a container the fallbacks stay the artist+date search", () => {
@@ -136,7 +136,7 @@ describe("ShowHeader nugs.net control", () => {
     const html = renderToStaticMarkup(
       <ShowHeader show={audioOnly} date="2024-04-20" setlist={setlist} experience="fancy" />);
     expect(html).toMatch(/<a[^>]*class="nugs-show watch"[^>]*data-fallback="https:\/\/play\.nugs\.net\/#\/search\?searchTerm=Goose%202024-04-20"/);
-    expect(html).toMatch(/<a[^>]*class="nugs-show"[^>]*data-fallback="https:\/\/play\.nugs\.net\/release\/46887"/);
+    expect(html).toMatch(/<a[^>]*class="nugs-show nugs-primary"[^>]*data-fallback="https:\/\/play\.nugs\.net\/release\/46887"/);
   });
 
   it("the Watch fallback degrades to search when has_video is unknown (null)", () => {
@@ -144,5 +144,27 @@ describe("ShowHeader nugs.net control", () => {
     const html = renderToStaticMarkup(
       <ShowHeader show={unknownVideo} date="2024-04-20" setlist={setlist} experience="fancy" />);
     expect(html).toMatch(/<a[^>]*class="nugs-show watch"[^>]*data-fallback="https:\/\/play\.nugs\.net\/#\/search\?searchTerm=Goose%202024-04-20"/);
+  });
+});
+
+describe("ShowHeader in 3.0 (Yeti)", () => {
+  const base = {
+    showId: 1, date: "2026-06-26", order: 1, venue: "Red Hat Amphitheater", venueId: 9, city: "Raleigh", state: "NC",
+    country: "USA", tour: "Summer Tour 2026", tourId: 7, notes: null, permalink: null, bandcampUrl: null,
+    nugsContainerId: null, nugsHasVideo: null,
+  } as unknown as ShowDetail;
+  it("prints the date on a flat tile (no bubble) when the setlist is logged", () => {
+    const one = [{ uniqueId: "x", song: "Hot Tea", setNumber: "1", position: 1, trackTime: "8:00" }] as unknown as SetlistEntry[];
+    const html = renderToStaticMarkup(<ShowHeader show={base} date="2026-06-26" setlist={one} experience="fancy" />);
+    expect(html).toContain('class="yeti-tile');
+    expect(html).toContain('<span class="yeti-tile-d">26</span>');
+    expect(html).not.toContain("yeti-bubble");
+  });
+  it("shows Yeti's empty pack while nothing is logged, and no listen buttons", () => {
+    const html = renderToStaticMarkup(<ShowHeader show={base} date="2026-06-26" setlist={[]} experience="fancy" />);
+    expect(html).toContain("yeti-card");
+    expect(html).toContain("yeti-bubble yeti-bubble-empty");
+    expect(html).toContain("Setlist not yet in the ledger");
+    expect(html).not.toContain("nugs-show");
   });
 });

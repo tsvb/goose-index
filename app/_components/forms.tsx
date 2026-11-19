@@ -20,9 +20,9 @@ export function SectionRule({
   seed: string;
 }) {
   return (
-    <div className="mb-1">
+    <div className="section-rule mb-1">
       <div className="flex items-baseline justify-between gap-4">
-        <h2 className="text-[0.8rem] font-semibold lowercase text-ink">{title}</h2>
+        <h2 className="section-rule-title text-[0.8rem] font-semibold lowercase text-ink">{title}</h2>
         {href && (
           <Link href={href} className={clsx("shrink-0 text-[0.75rem] lowercase", chromeLink)}>
             {linkLabel}
@@ -68,20 +68,20 @@ export function LedgerEntry({ show, context }: { show: ShowSummary; context?: "v
     <Link
       href={showHref(show.date, show.order)}
       className={clsx(
-        "group grid items-baseline gap-x-4 py-2.5",
+        "ledger-entry group grid items-baseline gap-x-4 py-2.5",
         onVenue ? "grid-cols-[1fr_auto]" : "grid-cols-[5.6rem_1fr_auto]",
       )}
     >
       {!onVenue && (
         <span className="shrink-0">
-          <span className="block font-mono text-[0.8rem] text-steel">{`${month} ${dp.day}`}</span>
+          <span className="ledger-date block font-mono text-[0.8rem] text-steel">{`${month} ${dp.day}`}</span>
           <span className="block font-mono text-[0.62rem] lowercase text-faint">
             {dp.weekday.slice(0, 3).toLowerCase()} · {dp.year}
           </span>
         </span>
       )}
       <span className="min-w-0">
-        <span className="block truncate text-[0.95rem] text-ink underline-offset-4 group-hover:underline">
+        <span className="ledger-title block truncate text-[0.95rem] text-ink underline-offset-4 group-hover:underline">
           {display}
         </span>
         <span className="block truncate text-[0.8rem] text-muted">{sub || "—"}</span>
@@ -105,7 +105,7 @@ export function TonightEntry({ show }: { show: ShowSummary }) {
   return (
     <Link
       href={showHref(show.date, show.order)}
-      className="group grid grid-cols-[5.6rem_1fr_auto] items-baseline gap-x-4 py-2.5"
+      className="ledger-entry tonight-entry group grid grid-cols-[5.6rem_1fr_auto] items-baseline gap-x-4 py-2.5"
     >
       <span className="flex items-center gap-1.5 font-mono text-[0.8rem] lowercase text-ember">
         tonight
@@ -116,7 +116,7 @@ export function TonightEntry({ show }: { show: ShowSummary }) {
         {show.order != null && <span className="text-faint">· {show.order}</span>}
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-[0.95rem] text-ink underline-offset-4 group-hover:underline">
+        <span className="ledger-title block truncate text-[0.95rem] text-ink underline-offset-4 group-hover:underline">
           {show.venue ?? "Unknown venue"}
         </span>
         <span className="block truncate text-[0.8rem] text-muted">{loc || "—"}</span>
@@ -131,8 +131,8 @@ export function TonightEntry({ show }: { show: ShowSummary }) {
 /** One line of the contents: where a reader can go, and how much is there. */
 export function ContentsRow({ href, label, sub }: { href: string; label: string; sub: string }) {
   return (
-    <Link href={href} className="group flex items-baseline justify-between gap-4 py-2">
-      <span className="lowercase text-ink underline-offset-4 group-hover:underline">{label}</span>
+    <Link href={href} className="contents-row group flex items-baseline justify-between gap-4 py-2">
+      <span className="contents-label lowercase text-ink underline-offset-4 group-hover:underline">{label}</span>
       <span className="text-right text-[0.8rem] text-muted">{sub}</span>
     </Link>
   );
@@ -142,10 +142,10 @@ export function ContentsRow({ href, label, sub }: { href: string; label: string;
 export function Figure({ value, label, href }: { value: string; label: string; href?: string }) {
   const body = (
     <>
-      <span className="text-[1.6rem] font-semibold leading-tight text-ink [font-variant-numeric:tabular-nums]">
+      <span className="figure-value text-[1.6rem] font-semibold leading-tight text-ink [font-variant-numeric:tabular-nums]">
         {value}
       </span>
-      <span className={`text-[0.68rem] lowercase text-faint ${href ? "underline-offset-4 group-hover:underline" : ""}`}>
+      <span className={`figure-label text-[0.68rem] lowercase text-faint ${href ? "underline-offset-4 group-hover:underline" : ""}`}>
         {label}
       </span>
     </>

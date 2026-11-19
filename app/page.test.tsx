@@ -127,12 +127,15 @@ describe("Home Tonight banner", () => {
     expect(html).not.toContain("the setlist will appear live");
   });
 
-  it("hoists tonight's show into a ledger entry linking to the show page", async () => {
+  it("hoists tonight's show into 3.0's blister pack, linking to the show page", async () => {
     h.tonight = [show(99, "2026-07-11", "Tonight Amphitheater")];
     const html = await render();
     expect(html).toContain("tonight");
-    expect(html).toContain("text-ember"); // the word is AA text, not the mark-only hand
-    expect(html).toContain("bg-hand"); // the dot is the mark
+    // The one pack on the site: card stock and an empty bubble (no songs
+    // logged yet), with the Tonight state on a sticker.
+    expect(html).toContain("tonight-pack");
+    expect(html).toContain("yeti-bubble yeti-bubble-empty");
+    expect(html).toContain('<span class="yeti-label">Tonight</span>');
     expect(html).toContain("Tonight Amphitheater");
     expect(html).toContain('href="/shows/2026-07-11"');
     expect(html).toContain("the setlist will appear live");

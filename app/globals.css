@@ -860,3 +860,270 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
   font-weight: 800;
   border-color: var(--frost);
 }
+
+/* ---- 3.0 (Yeti) — material ----
+   Lifted from the Yeti app's token sheet (docs/design/yeti-theme/
+   yeti-theme.html in tsvb/yeti): the card stock and its hang slot, the
+   bubble's plastic (seven shadows, a highlight, two glints), sticker stock,
+   the plain tag and the row sticker. Only 3.0 renders these classes. */
+.yeti-card {
+  position: relative;
+  background: var(--card-stock);
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 1px var(--frost), 0 18px 30px -22px rgba(0, 0, 0, 0.8);
+  padding: 40px 20px 20px;
+}
+/* the punched hang slot: shows the night behind */
+.yeti-card::before {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 46px;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--night);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(233, 238, 247, 0.08);
+}
+.yeti-bubble-wrap { position: relative; }
+.yeti-bubble {
+  position: relative;
+  aspect-ratio: 1;
+  max-width: 100%;
+  border-radius: 30px;
+  padding: 14px;
+  background: linear-gradient(155deg, rgba(225, 233, 250, 0.17), rgba(225, 233, 250, 0.04) 42%, rgba(225, 233, 250, 0.09));
+  box-shadow:
+    inset 0 0 0 1.5px rgba(233, 238, 247, 0.34),
+    inset 0 2px 0 rgba(255, 255, 255, 0.32),
+    inset -12px -16px 26px rgba(4, 7, 16, 0.5),
+    inset 10px 12px 20px rgba(233, 238, 247, 0.1),
+    0 0 0 7px rgba(233, 238, 247, 0.035),
+    0 0 0 8px rgba(233, 238, 247, 0.15),
+    0 22px 28px -16px rgba(0, 0, 0, 0.75);
+}
+.yeti-bubble::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 7%;
+  left: 7%;
+  width: 46%;
+  height: 20%;
+  border-radius: 50%;
+  transform: rotate(-20deg);
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+.yeti-bubble::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(118deg, transparent 58%, rgba(255, 255, 255, 0.16) 61%, transparent 64%, transparent 70%, rgba(255, 255, 255, 0.07) 72%, transparent 75%);
+}
+.yeti-bubble > .yeti-tile { width: 100%; height: 100%; border-radius: 18px; }
+.yeti-bubble-sticker { position: absolute; z-index: 3; top: 16px; right: -4px; }
+.yeti-nameplate { margin-top: 22px; }
+
+/* MonogramTile: the date printed on card stock in slush */
+.yeti-tile {
+  display: grid;
+  place-content: center;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  background: var(--card-stock);
+  box-shadow: inset 0 0 0 1px var(--frost);
+  color: var(--slush);
+  text-align: center;
+  line-height: 1;
+}
+.yeti-tile-m { font-weight: 900; font-size: 15px; letter-spacing: 0.02em; }
+.yeti-tile-d { font-weight: 900; font-size: 3.6rem; letter-spacing: -0.03em; margin: 4px 0 6px; }
+.yeti-tile-y { font-weight: 800; font-size: 14px; }
+
+/* stickers: sale stock, night ink */
+.yeti-label {
+  display: inline-flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 7px;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  transform: rotate(-4deg);
+  background: radial-gradient(circle at 34% 30%, var(--sticker-hi), var(--sale) 55%, var(--sticker-edge));
+  color: var(--sticker-ink);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 3px 6px -3px rgba(0, 0, 0, 0.5);
+}
+.yeti-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 7px;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 900;
+  font-style: normal;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: 2px;
+  background: rgba(15, 20, 36, 0.74);
+  color: var(--snow);
+  box-shadow: inset 0 0 0 1px rgba(233, 238, 247, 0.3);
+}
+.yeti-rs {
+  --d: 20px;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--d);
+  height: var(--d);
+  border-radius: 50%;
+  transform: rotate(-9deg);
+  vertical-align: middle;
+  background: radial-gradient(circle at 34% 30%, var(--sticker-hi), var(--sale) 55%, var(--sticker-edge));
+}
+.yeti-rs-stair { display: flex; align-items: flex-end; gap: calc(var(--d) * 0.07); height: calc(var(--d) * 0.46); }
+.yeti-rs-stair i { width: calc(var(--d) * 0.1); border-radius: 1px; background: var(--sticker-ink); }
+.yeti-rs-stair i:nth-child(1) { height: 100%; }
+.yeti-rs-stair i:nth-child(2) { height: 75%; }
+.yeti-rs-stair i:nth-child(3) { height: 50%; }
+.yeti-rs-stair i:nth-child(4) { height: 25%; }
+
+/* ---- 3.0 (Yeti) — the index's forms, re-made of Yeti's materials ----
+   The forms are Pen & Instrument's (ledger, contents, figure, folio); their
+   finish is Yeti's nice list: heavy names, slush meta, frost rules. */
+
+/* The pen retires in 3.0: its wobble becomes one straight frost hairline
+   (2.0 keeps the wobble), and its notes stand upright. */
+[data-experience="fancy"] .pen-rule {
+  height: 1px;
+  background: var(--line);
+  opacity: 1;
+}
+[data-experience="fancy"] .pen-rule path { display: none; }
+/* No italics in 3.0: captions, caveats and cover credits are upright slush. */
+[data-experience="fancy"] .italic { font-style: normal; }
+/* Yeti's floor is 12px: the old micro-labels grow to meet it. */
+[data-experience="fancy"] .text-\[0\.58rem\],
+[data-experience="fancy"] .text-\[0\.6rem\],
+[data-experience="fancy"] .text-\[0\.62rem\],
+[data-experience="fancy"] .text-\[0\.65rem\] { font-size: 0.75rem; }
+[data-experience="fancy"] .text-\[0\.68rem\],
+[data-experience="fancy"] .text-\[0\.7rem\] { font-size: 0.8rem; }
+/* No eyebrows: letter-spaced caps fold to the lowercase chrome voice. */
+[data-experience="fancy"] .uppercase { text-transform: lowercase; letter-spacing: normal; }
+
+/* Section heads: the barker's heavy type, lowercase. */
+[data-experience="fancy"] .section-rule-title {
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -0.005em;
+}
+[data-experience="fancy"] .section-rule .pen-rule { margin-top: 0.5rem; }
+
+/* Ledger entries: Yeti's nice-list row. */
+[data-experience="fancy"] .ledger-entry { padding-block: 0.75rem; }
+[data-experience="fancy"] .ledger-date { color: var(--ink); font-weight: 800; font-size: 0.95rem; }
+[data-experience="fancy"] .ledger-title { font-weight: 800; font-size: 1rem; }
+
+/* Contents and figures. */
+[data-experience="fancy"] .contents-row { padding-block: 0.65rem; border-top: 1px solid var(--line); }
+[data-experience="fancy"] .contents-row:last-child { border-bottom: 1px solid var(--line); }
+[data-experience="fancy"] .contents-label { font-weight: 800; }
+[data-experience="fancy"] .figure-value { font-size: 1.9rem; font-weight: 900; letter-spacing: -0.01em; }
+[data-experience="fancy"] .figure-label { color: var(--muted); font-size: 0.85rem; }
+
+/* Page heads. */
+[data-experience="fancy"] .page-head-title {
+  font-size: 2.4rem;
+  font-weight: 900;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+}
+@media (min-width: 640px) {
+  [data-experience="fancy"] .page-head-title { font-size: 3.2rem; }
+}
+
+/* Filters: the selected-tab pill when active, slush text otherwise. */
+[data-experience="fancy"] .filter-link {
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  margin-inline: -0.35rem;
+}
+[data-experience="fancy"] .filter-link[aria-current="page"] {
+  background: rgba(233, 238, 247, 0.1);
+  color: var(--ink);
+}
+[data-experience="fancy"] .folio-nav { font-weight: 700; font-size: 0.85rem; }
+/* the contents list's first row sits on the section head's rule */
+[data-experience="fancy"] .section-rule + .contents-row { border-top: 0; }
+
+/* Listen, Watch, Open, Bandcamp: one snow primary (Listen) with night ink,
+   as the app's "Buy on nugs.net"; the rest are frost rings with snow type.
+   The per-track ▷ is a bare slush glyph. */
+[data-experience="fancy"] .nugs-show {
+  height: 34px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 17px;
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--frost);
+  color: var(--snow);
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+[data-experience="fancy"] .nugs-show:hover { box-shadow: inset 0 0 0 1px var(--slush); color: var(--snow); }
+[data-experience="fancy"] .nugs-show.nugs-primary { background: var(--snow); color: var(--night); box-shadow: none; }
+[data-experience="fancy"] .nugs-show.nugs-primary:hover { background: #ffffff; color: var(--night); }
+[data-experience="fancy"] .nugs-track { border: 0; color: var(--slush); }
+[data-experience="fancy"] .nugs-track:hover { color: var(--snow); }
+
+/* The song page's facts: Yeti's totals on frost rules, not eight boxes. */
+[data-experience="fancy"] .song-ribbon {
+  gap: 14px 22px;
+  background: none;
+  border: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+@media (min-width: 900px) {
+  [data-experience="fancy"] .song-ribbon { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+}
+[data-experience="fancy"] .song-fact { background: none; padding: 10px 0 0; border-top: 1px solid var(--line); }
+[data-experience="fancy"] .song-fact-v { font-weight: 900; font-size: 1.35rem; }
+[data-experience="fancy"] .song-fact-k { text-transform: lowercase; letter-spacing: 0; font-size: 0.8rem; color: var(--muted); }
+[data-experience="fancy"] .song-scroll { border-radius: 12px; overflow: hidden; }
+[data-experience="fancy"] table.song-table th {
+  text-transform: lowercase;
+  letter-spacing: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+[data-experience="fancy"] .song-group-title { text-transform: lowercase; letter-spacing: 0; font-size: 0.8rem; font-weight: 800; }
+[data-experience="fancy"] .song-cover { text-transform: lowercase; letter-spacing: 0; font-size: 0.75rem; }
+/* bust-outs are a fact: a plain tag, not a pill */
+[data-experience="fancy"] .song-bust {
+  display: inline-flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 900;
+  background: rgba(15, 20, 36, 0.74);
+  color: var(--snow);
+  box-shadow: inset 0 0 0 1px rgba(233, 238, 247, 0.3);
+}
+[data-experience="fancy"] .live-flag { font-weight: 700; font-size: 0.8rem; }

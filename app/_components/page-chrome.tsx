@@ -29,9 +29,9 @@ export function PageHead({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="pt-10 pb-6 sm:pt-14">
+    <div className="page-head pt-10 pb-6 sm:pt-14">
       {kicker && <p className="text-[0.7rem] lowercase text-faint">{kicker}</p>}
-      <h1 className="mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+      <h1 className="page-head-title mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
         {title}
       </h1>
       {meta && <p className="mt-2 font-mono text-[0.75rem] text-faint">{meta}</p>}
@@ -59,7 +59,7 @@ export function FilterLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={clsx(
-        "font-mono text-xs underline underline-offset-4 transition",
+        "filter-link font-mono text-xs underline underline-offset-4 transition",
         !preserveCase && "lowercase",
         active ? "font-semibold text-steel" : "text-muted hover:text-ink",
       )}
@@ -95,7 +95,7 @@ export function FolioNav({
   center?: React.ReactNode;
 }) {
   return (
-    <nav className="flex items-baseline justify-between gap-4 font-mono text-xs">
+    <nav className="folio-nav flex items-baseline justify-between gap-4 font-mono text-xs">
       {prevHref ? (
         <Link href={prevHref} className="text-muted underline underline-offset-4 hover:text-ink">
           ← {prevLabel}

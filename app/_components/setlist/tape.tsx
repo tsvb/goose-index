@@ -46,7 +46,7 @@ export function SetTape({ entries, explain = false }: { entries: SetlistEntry[];
     <figure className="set-tape mb-4 mt-1">
       {/* .set-tape-strip is a stable styling hook — bare in globals.css today
           (no theme reskins it), but don't rename without checking that first. */}
-      <div className="set-tape-strip flex h-9 w-full overflow-hidden rounded-[2px] border border-line bg-bg-deep" aria-hidden="true">
+      <div className="set-tape-strip flex h-9 w-full overflow-hidden rounded-[6px] border border-line bg-[var(--shelf)]" aria-hidden="true">
         {entries.map((e, i) => {
           const secs = timed[i];
           const prev = entries[i - 1];

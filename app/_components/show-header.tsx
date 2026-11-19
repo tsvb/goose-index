@@ -9,6 +9,7 @@ import type { Experience } from "@/lib/experience";
 import { NugsLink } from "./nugs-link";
 import { nugsShowHref, nugsWebFallback, nugsWebHref } from "@/lib/nugs";
 import { bandcampHref } from "@/lib/bandcamp";
+import { DateTile, Pack } from "./yeti";
 
 /** The band's own release of this night, when they've put one out — 445 of the
  * shows have one. nugs is a subscription; Bandcamp is where buying the music
@@ -74,7 +75,7 @@ function ShowNugs({
     // Buttons wrap as whole units on a phone: the group wraps, the label
     // inside a button never does (.nugs-show is nowrap).
     <span className="inline-flex flex-wrap items-center gap-1.5">
-      <NugsLink href={nugsShowHref({ date, venue })} fallback={audioFallback} className="nugs-show" title="Play this show on nugs">▷ Listen on nugs</NugsLink>
+      <NugsLink href={nugsShowHref({ date, venue })} fallback={audioFallback} className="nugs-show nugs-primary" title="Play this show on nugs">▷ Listen on nugs</NugsLink>
       <NugsLink href={nugsShowHref({ date, venue, media: "video" })} fallback={videoFallback} className="nugs-show watch" title="Watch this show on nugs">▷ Watch</NugsLink>
       {containerId != null && (
         <a
@@ -170,62 +171,70 @@ export function ShowHeader({
     );
   }
 
+  // 3.0 (Yeti): the show's square is a flat date tile (Yeti's MonogramTile,
+  // its no-art answer; the site has no show imagery), beside the nameplate.
+  // Yeti's rule is "the pack is only for what's playing", so a show page gets
+  // no bubble, except the empty pack while nothing is logged yet.
+  const empty = setlist.length === 0;
+  const elgoose = show.permalink ? (
+    <a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className={chromeLink}>View on elgoose ↗</a>
+  ) : null;
   return (
-    <header className="border-b border-line">
-      {/* PageHead-style markup, written inline: the kicker carries a real
-          tour link (PageHead's own kicker is plain text only) and the venue
-          line + stat/listen row are bespoke, so they sit alongside it rather
-          than inside PageHead's meta slot. */}
-      <Container className="py-10 sm:py-14">
-        {/* Casing boundary: the tour link is authored data (a tour name like
-            "Summer Tour 2026") and keeps its case; only the chrome words
-            around it — the "goose" fallback and the weekday — fold, and they
-            fold explicitly rather than via a blanket `lowercase` class, which
-            used to case-fold the tour name too. */}
-        <p className="text-[0.7rem] text-faint">
-          {show.tourId && show.tour ? (
-            <Link href={`/tours/${show.tourId}`} className={chromeLink}>{show.tour}</Link>
-          ) : ("goose")}
-          {"  ·  "}
-          {dp.weekday.toLowerCase()}
-        </p>
-        <h1 className="mt-1 font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-5xl">
-          {dp.month} {dp.day}, {dp.year}
-        </h1>
-        <p className="mt-4 flex flex-wrap items-baseline gap-x-2 text-xl">
-          <span className="text-muted">at</span>
-          {show.venueId ? (
-            <Link href={`/venues/${show.venueId}`} className={`font-display text-2xl decoration-spruce/30 ${chromeLink}`}>{show.venue}</Link>
+    <header className="show-head border-b border-line">
+      <Container className="py-8 sm:py-10">
+        <div className="grid items-end gap-6 sm:grid-cols-[168px_minmax(0,1fr)] sm:gap-8">
+          {empty ? (
+            <Pack className="w-[168px]" />
           ) : (
-            <span className="font-display text-2xl text-ink">{show.venue ?? "Unknown venue"}</span>
+            <DateTile iso={date} className="w-[132px] sm:w-[168px]" />
           )}
-        </p>
-        {loc && (
-          <span className="mt-2 flex items-center gap-1.5 text-muted">
-            <MapPin className="h-4 w-4 text-faint" /> {loc}
-          </span>
-        )}
-        <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs text-faint">
-          {setlist.length === 0 ? (
-            // Nothing logged yet — "0 songs · 0 sets" and dead Listen buttons
-            // would read like a broken page, not a pending one.
-            <>
-              <span>Setlist not yet in the ledger — check back soon</span>
-              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className={chromeLink}>View on elgoose ↗</a></>)}
-            </>
-          ) : (
-            <>
-              <span><span className="text-ink">{setlist.length}</span> songs</span>
-              <span className="text-line">·</span>
-              <span><span className="text-ink">{setCount}</span> {setCount === 1 ? "set" : "sets"}</span>
-              {encores > 0 && (<><span className="text-line">·</span><span><span className="text-ink">{encores}</span> {encores === 1 ? "encore" : "encores"}</span></>)}
-              {durationLogged && (<><span className="text-line">·</span><span><span className="text-ink">{durationLogged}</span> logged</span></>)}
-              {show.permalink && (<><span className="text-line">·</span><a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className={chromeLink}>View on elgoose ↗</a></>)}
-              <span className="text-line">·</span>
-              <ShowBandcamp url={show.bandcampUrl} />
-              <ShowNugs date={date} venue={show.venue} containerId={show.nugsContainerId} hasVideo={show.nugsHasVideo} />
-            </>
-          )}
+          <div className="min-w-0">
+            {/* Casing boundary: the tour link is authored data and keeps its
+                case; only the chrome words around it fold. */}
+            <p className="text-[0.9rem] text-muted">
+              {show.tourId && show.tour ? (
+                <Link href={`/tours/${show.tourId}`} className={chromeLink}>{show.tour}</Link>
+              ) : ("goose")}
+              {" · "}
+              {dp.weekday.toLowerCase()}
+            </p>
+            <h1 className="mt-1 text-[2.3rem] font-black leading-[1.04] tracking-[-0.015em] text-ink sm:text-[2.9rem]">
+              {dp.month} {dp.day}, {dp.year}
+            </h1>
+            <p className="mt-2 text-[1.1rem] text-muted">
+              at{" "}
+              {show.venueId ? (
+                <Link href={`/venues/${show.venueId}`} className={`font-extrabold ${chromeLink}`}>{show.venue}</Link>
+              ) : (
+                <span className="font-extrabold text-ink">{show.venue ?? "Unknown venue"}</span>
+              )}
+              {loc && <span> · {loc}</span>}
+            </p>
+            <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[0.9rem] text-muted">
+              {empty ? (
+                // Nothing logged yet — "0 songs · 0 sets" and dead Listen buttons
+                // would read like a broken page, not a pending one.
+                <>
+                  <span>Setlist not yet in the ledger — check back soon</span>
+                  {elgoose}
+                </>
+              ) : (
+                <>
+                  <span><b className="font-extrabold text-ink">{setlist.length}</b> songs</span>
+                  <span><b className="font-extrabold text-ink">{setCount}</b> {setCount === 1 ? "set" : "sets"}</span>
+                  {encores > 0 && <span><b className="font-extrabold text-ink">{encores}</b> {encores === 1 ? "encore" : "encores"}</span>}
+                  {durationLogged && <span><b className="font-extrabold text-ink">{durationLogged}</b> logged</span>}
+                  {elgoose}
+                </>
+              )}
+            </div>
+            {!empty && (
+              <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                <ShowBandcamp url={show.bandcampUrl} />
+                <ShowNugs date={date} venue={show.venue} containerId={show.nugsContainerId} hasVideo={show.nugsHasVideo} />
+              </div>
+            )}
+          </div>
         </div>
       </Container>
     </header>
