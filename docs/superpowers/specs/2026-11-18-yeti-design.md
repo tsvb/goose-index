@@ -2,7 +2,7 @@
 
 - **Date:** 2026-11-18
 - **Status:** calls made by Tim on the mockups; **awaiting his approval of this spec** before the plan
-- **Branch:** `redesign/yeti` (from `origin/main` at `7f01c16`)
+- **Branch:** `redesign/yeti` (from `origin/main` at `95210b9`)
 - **Mockups:** `.superpowers/brainstorm/yeti/` (gitignored). `index.html` is the review page;
   `home.html`, `show.html`, `song.html` and `stats.html` (`#a` / `#b`, `#nunito`) re-skin the
   real 3.0 markup captured from a local build, so every chart keeps its exact form. Published
@@ -118,26 +118,30 @@ greps it).
 ## Type
 
 - **Stack:** `ui-rounded, "SF Pro Rounded", var(--font-nunito), system-ui, -apple-system, sans-serif`
-  for display, body and data alike. **Nunito via `next/font/google`** (400, 600, 700, 800, 900),
-  self-hosted at build, so there's no runtime Google request. SF Pro Rounded is never embedded
-  (Apple's license).
+  for display, body and data alike. SF Pro Rounded is never embedded (Apple's license).
+- **Nunito ships from the repo via `next/font/local`** (`app/fonts/`, latin subset, weights 400,
+  600, 700, 800, 900, the OFL license beside it). The handoff said `next/font/google`, but
+  `origin/main` moved its faces off Google in `75bee9b` because a Google download had failed a
+  Vercel build: "a build should not depend on a third party being reachable". Local files keep
+  that rule and the handoff's intent (self-hosted, no runtime Google request).
 - **Who sees what:** only Safari supports `ui-rounded`, so Mac and iPhone Safari get SF Rounded.
   Chrome everywhere (Mac included), Firefox, Windows and Android get Nunito. Nunito's figures
   are tabular by default (measured in Chrome: `1111` = `0000` = `7777`), and
   `font-variant-numeric: tabular-nums` stays on all data for SF Rounded.
 - **Weights:** headings and names heavy (900 for page titles and section heads, 800 for
   ledger names and figures); body regular; meta 600. `letter-spacing: -.01em` on display.
-- **Plex Mono retires in 3.0.** Data sets in the rounded face with tabular numerals, as Yeti's
-  `numeric` role does. `--type-mono` points at the rounded stack under fancy; 2.0 and 1.0 keep
-  their own `--type-*` values.
+- **Data** sets in the rounded face with tabular numerals, as Yeti's `numeric` role does
+  (`206c281` already moved 3.0's labels off Plex Mono onto the body face; `--type-mono` follows
+  the body face under fancy). Blog code keeps a real monospace through the existing
+  `--type-code` token. 2.0 and 1.0 keep their own `--type-*` values.
 - **No italics** in 3.0: pen notes, captions and footnotes go upright slush. Blog prose keeps
   `<em>` (authored emphasis is content).
 - **Size floor:** nothing in 3.0 below 12px. Today's 0.58–0.65rem mono captions grow to ~0.74rem.
 - **Eyebrows go:** uppercased, letter-spaced labels (song table headers, `.song-fact-k`,
   "READING THE LEDGER", the dial's weekday caps) become lowercase or sentence-case labels in
   slush, per the casing rule.
-- Newsreader and IBM Plex leave `app/layout.tsx`. 2.0 (Helvetica Neue) and 1.0 (Georgia) never
-  used them, so they're unaffected.
+- Newsreader and IBM Plex Sans leave `app/layout.tsx`, and their files and licenses leave
+  `app/fonts/`. 2.0 (Helvetica Neue) and 1.0 (Georgia) never used them, so they're unaffected.
 
 ## The vocabulary (content kind → form)
 
@@ -273,8 +277,8 @@ plans and specs under `docs/superpowers/` stay as written (history).
 - `app/icon.svg`, `app/apple-icon.tsx`: the feather mark in snow on a night tile (the same
   `rx` and stroke as today).
 - `app/opengraph-image.tsx`: night ground, the top-edge snow glow, the wordmark in heavy snow,
-  the rules in frost instead of amber. Nunito is loaded into the image renderer (Satori can't
-  use `ui-rounded`).
+  the rules in frost instead of amber. Nunito is read from `app/fonts/` into the image renderer
+  (Satori can't use `ui-rounded`), so the OG route makes no network request either.
 - `app/favicon.ico`: regenerated from the new `icon.svg`.
 - `theme-color`: `#0F1424` on 3.0 only, via `generateViewport` reading the edition cookie. 2.0
   and 1.0 set none, as today.
@@ -288,7 +292,8 @@ settings) → page forms → charts' colors → icons/OG → app name → docs.
   on bare `:root` for 2.0/1.0, the slate leftovers scoped as above; the material utilities
   (`.y-card`, `.y-bubble`, `.y-stock`, `.y-label`, `.y-tag`, `.y-rs`); `.song-bust`/`.song-cover`
   as plain tags; the setlist row rules; the 2.0 and 1.0 blocks untouched.
-- `app/layout.tsx`: Nunito replaces Newsreader + Plex; `themeScript` goes; `generateViewport`.
+- `app/layout.tsx`: `localFont` Nunito replaces Newsreader + Plex Sans; `themeScript` goes;
+  `generateViewport`. `app/fonts/`: Nunito files + OFL in, the old faces out.
 - `app/_components/pen.tsx` retires: `PenRule` → a straight frost rule (`SectionRule`/`Rule`),
   `PenNote` → `Caption` (upright slush). `PenCircle`/`PenArrow` go where they're used for
   emphasis; the caveat channel stays typographic. Callers: `forms.tsx`, `setlist/fancy.tsx`,
