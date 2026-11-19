@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { allowsTheme, serializeExperienceCookie, type Experience } from "@/lib/experience";
+import { serializeExperienceCookie, type Experience } from "@/lib/experience";
 import { Settings } from "./marks";
-import { SettingsPanel, resolveTheme, DEFAULT_THEME, type Theme } from "./settings-panel";
+import { SettingsPanel } from "./settings-panel";
 
 /** Where initial focus lands when the popover opens: the currently-selected
  *  experience option (aria-current), falling back to the first button. Takes
@@ -16,19 +16,11 @@ export function initialFocusTarget<T>(query: (selector: string) => T | null): T 
 export function SettingsMenu({ current }: { current: Experience }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
   const [isPending, startTransition] = useTransition();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const themeAllowed = allowsTheme(current);
   const isText = current === "minimal";
-
-  useEffect(() => {
-    const saved = resolveTheme(typeof localStorage !== "undefined" ? localStorage.getItem("ga-theme") : null);
-    const attr = resolveTheme(document.documentElement.getAttribute("data-theme"));
-    setTheme(saved ?? attr ?? DEFAULT_THEME);
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -64,21 +56,6 @@ export function SettingsMenu({ current }: { current: Experience }) {
     startTransition(() => router.refresh());
   }
 
-  function chooseTheme(next: Theme) {
-    setTheme(next);
-    if (next === "auto") {
-      document.documentElement.removeAttribute("data-theme");
-    } else {
-      document.documentElement.setAttribute("data-theme", next);
-    }
-    try {
-      if (next === "auto") localStorage.removeItem("ga-theme");
-      else localStorage.setItem("ga-theme", next);
-    } catch {
-      /* ignore */
-    }
-  }
-
   return (
     <div className="relative">
       <button
@@ -101,11 +78,8 @@ export function SettingsMenu({ current }: { current: Experience }) {
         <div ref={panelRef} role="dialog" aria-label="Site settings" className="absolute right-0 top-full z-50 mt-2">
           <SettingsPanel
             current={current}
-            themeAllowed={themeAllowed}
-            theme={theme}
             pending={isPending}
             onSelectExperience={chooseExperience}
-            onSelectTheme={chooseTheme}
           />
         </div>
       )}

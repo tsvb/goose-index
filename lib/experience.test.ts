@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   resolveExperience,
-  allowsTheme,
   serializeExperienceCookie,
   DEFAULT_EXPERIENCE,
   EXPERIENCES,
@@ -22,14 +21,6 @@ describe("resolveExperience", () => {
   });
 });
 
-describe("allowsTheme", () => {
-  it("is true only for fancy", () => {
-    expect(allowsTheme("fancy")).toBe(true);
-    expect(allowsTheme("functional")).toBe(false);
-    expect(allowsTheme("minimal")).toBe(false);
-  });
-});
-
 describe("serializeExperienceCookie", () => {
   it("produces a year-long, path-scoped, lax cookie string", () => {
     const c = serializeExperienceCookie("minimal");
@@ -44,5 +35,11 @@ describe("EXPERIENCES", () => {
   it("lists the three modes in order with web-era labels (keys unchanged for cookie compat)", () => {
     expect(EXPERIENCES.map((e) => e.key)).toEqual(["fancy", "functional", "minimal"]);
     expect(EXPERIENCES.map((e) => e.label)).toEqual(["3.0", "2.0", "1.0"]);
+  });
+
+  it("describes 3.0 by what only it has: dark only, the rounded face (no light/dark switch any more)", () => {
+    const fancy = EXPERIENCES.find((e) => e.key === "fancy")!;
+    expect(fancy.blurb).toBe("Charts, dark, rounded type");
+    expect(fancy.blurb).not.toMatch(/light|hand-drawn/i);
   });
 });

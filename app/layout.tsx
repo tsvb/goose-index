@@ -5,7 +5,6 @@ import "./globals.css";
 import { SiteHeader } from "./_components/site-header";
 import { SiteFooter } from "./_components/site-footer";
 import { SkipLink } from "./_components/skip-link";
-import { themeScript } from "@/lib/theme";
 import { getExperience } from "@/lib/experience.server";
 import { JsonLd } from "./_components/json-ld";
 import { siteJsonLd } from "@/lib/jsonld";
@@ -49,7 +48,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <JsonLd data={siteJsonLd()} />
       </head>
       <body className="flex min-h-screen flex-col">

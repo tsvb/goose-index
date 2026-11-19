@@ -5,14 +5,14 @@ export type Experience = "fancy" | "functional" | "minimal";
 // in the ga_experience cookie, so renaming them would reset every visitor.
 //
 // Blurbs say what you actually get, and only what this edition alone gets:
-//   3.0  charts, hand-drawn, light and dark  (the drawn forms and the fog/slate
-//                                             switch both exist only here)
+//   3.0  charts, dark, rounded type          (2.0 has the same charts; the dark
+//                                             page and the rounded face are 3.0's)
 //   2.0  the same charts, Web 2.0 skin       (only `minimal` branches to tables)
 //   1.0  a plain document, no charts at all
 // "Machine-readable" was dropped from 1.0: JSON-LD ships from the root layout on
 // every edition, so it was never a thing 1.0 alone offered.
 export const EXPERIENCES: { key: Experience; label: string; blurb: string }[] = [
-  { key: "fancy", label: "3.0", blurb: "Charts, hand-drawn, light and dark" },
+  { key: "fancy", label: "3.0", blurb: "Charts, dark, rounded type" },
   { key: "functional", label: "2.0", blurb: "Same charts, glossy skin" },
   { key: "minimal", label: "1.0", blurb: "Plain document, no charts" },
 ];
@@ -24,10 +24,6 @@ const KEYS: Experience[] = ["fancy", "functional", "minimal"];
 
 export function resolveExperience(value: string | null | undefined): Experience {
   return KEYS.includes(value as Experience) ? (value as Experience) : DEFAULT_EXPERIENCE;
-}
-
-export function allowsTheme(experience: Experience): boolean {
-  return experience === "fancy";
 }
 
 export function serializeExperienceCookie(experience: Experience): string {

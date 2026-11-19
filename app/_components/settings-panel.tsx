@@ -1,34 +1,63 @@
 import { EXPERIENCES, type Experience } from "@/lib/experience";
-import { THEME_VALUES, type Theme } from "@/lib/theme";
 import { clsx } from "./clsx";
 
-// The theme list, the default and the pre-paint script all live in lib/theme.ts
-// — layout.tsx needs them too, and an App Router route file can't export them.
-export { DEFAULT_THEME, resolveTheme, type Theme } from "@/lib/theme";
-
-const THEME_LABELS: Record<Theme, string> = {
-  auto: "auto",
-  fog: "fog",
-  slate: "slate",
-};
-export const THEMES = THEME_VALUES.map((value) => ({ value, label: THEME_LABELS[value] }));
-
+/** The edition picker. 3.0 is dark only, so editions are the panel's one
+ * choice; the old appearance row (fog/slate/auto) is gone in every edition.
+ * 3.0 draws it as Yeti's segmented control on a shelf sheet; 2.0 and 1.0 keep
+ * their ruled list. Exactly one option carries aria-current="true" — the menu
+ * focuses it on open (initialFocusTarget). */
 export function SettingsPanel({
   current,
-  themeAllowed,
-  theme,
   pending = false,
   onSelectExperience,
-  onSelectTheme,
 }: {
   current: Experience;
-  themeAllowed: boolean;
-  theme: Theme;
   /** An experience switch is refreshing the page — dim and disable the options. */
   pending?: boolean;
   onSelectExperience: (next: Experience) => void;
-  onSelectTheme: (next: Theme) => void;
 }) {
+  if (current === "fancy") {
+    return (
+      <div className="settings-yeti w-72 rounded-[14px] bg-[var(--shelf)] p-4 text-ink shadow-[inset_0_0_0_1px_var(--frost),0_18px_30px_-22px_rgba(0,0,0,0.8)]">
+        <p className="mb-2.5 text-[0.85rem] font-extrabold lowercase text-muted">edition</p>
+        <div
+          role="group"
+          aria-label="edition"
+          className="grid grid-cols-3 rounded-[12px] bg-[var(--night)] p-[3px] shadow-[inset_0_0_0_1px_var(--frost)]"
+        >
+          {EXPERIENCES.map((e) => {
+            const selected = e.key === current;
+            return (
+              <button
+                key={e.key}
+                type="button"
+                onClick={() => onSelectExperience(e.key)}
+                disabled={pending}
+                aria-current={selected ? "true" : undefined}
+                className={clsx(
+                  "rounded-[9px] py-1.5 text-[0.95rem] font-extrabold transition disabled:opacity-60",
+                  selected
+                    ? "bg-[var(--segment-thumb)] text-ink shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+                    : "text-muted hover:text-ink",
+                )}
+              >
+                {e.label}
+              </button>
+            );
+          })}
+        </div>
+        <dl className="mt-3 grid grid-cols-[2.2rem_1fr] gap-x-2 gap-y-1 text-[0.8rem]">
+          {EXPERIENCES.map((e) => (
+            <div key={e.key} className="contents">
+              <dt className={clsx("font-bold", e.key === current ? "text-ink" : "text-faint")}>{e.label}</dt>
+              <dd className={e.key === current ? "text-muted" : "text-faint"}>{e.blurb}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    );
+  }
+
   return (
     <div className="w-64 border-y border-line bg-paper p-3.5 text-ink">
       <p className="mb-2 font-mono text-[0.62rem] uppercase tracking-wider text-faint">experience</p>
@@ -64,36 +93,6 @@ export function SettingsPanel({
           );
         })}
       </div>
-
-      {themeAllowed ? (
-        <>
-          <div className="my-3 h-px bg-line" />
-          <p className="mb-2 font-mono text-[0.62rem] uppercase tracking-wider text-faint">appearance</p>
-          <div role="group" aria-label="appearance" className="flex gap-4">
-            {THEMES.map((t) => {
-              const pressed = theme === t.value;
-              return (
-                <button
-                  key={t.value}
-                  type="button"
-                  onClick={() => onSelectTheme(t.value)}
-                  aria-pressed={pressed}
-                  className={clsx(
-                    "text-[0.8rem] lowercase underline-offset-4 transition",
-                    pressed ? "text-steel underline font-semibold" : "text-muted underline hover:text-ink",
-                  )}
-                >
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      ) : (
-        <p className="mt-2.5 text-[0.7rem] leading-snug text-faint">
-          appearance applies in the 3.0 experience.
-        </p>
-      )}
     </div>
   );
 }
