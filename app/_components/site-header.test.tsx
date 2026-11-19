@@ -26,10 +26,14 @@ describe("SiteHeader variants", () => {
     for (const label of ["shows", "songs", "stats", "on this day", "venues", "tours", "blog"]) {
       expect(html.toLowerCase()).toContain(label);
     }
-    // Night glass over a blur, ruled by a single frost hairline.
-    expect(html).toContain("backdrop-blur");
-    expect(html).toContain("bg-[rgba(15,20,36,0.82)]");
+    // Night glass over a blur (the .yeti-bar ::before layer), ruled by a
+    // single frost hairline. The header itself carries no backdrop-filter, or
+    // it would become the containing block for the mobile sheet's fixed scrim.
+    expect(html).toContain("yeti-bar");
+    expect(html).not.toContain("backdrop-blur");
     expect(html).toContain("border-b border-line");
+    const css = fs.readFileSync(path.join(__dirname, "..", "globals.css"), "utf8");
+    expect(css).toMatch(/\.yeti-bar::before\s*\{[^}]*backdrop-filter:\s*blur\(18px\)/);
     // The graphite pen rule is gone from 3.0's masthead.
     expect(html).not.toContain("text-pencil");
     expect(html).not.toContain('viewBox="0 0 400 6"');

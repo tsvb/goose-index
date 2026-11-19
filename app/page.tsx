@@ -150,7 +150,7 @@ export default async function Home() {
                 <SectionRule title="tonight" seed="tonight" />
                 <div className="mt-4 grid gap-6">
                   {tonight.map((s) => (
-                    <TonightPack key={s.showId} show={s} />
+                    <TonightPack key={s.showId} show={s} multi={tonight.length > 1} />
                   ))}
                 </div>
               </section>

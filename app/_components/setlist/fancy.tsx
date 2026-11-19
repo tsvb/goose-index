@@ -19,7 +19,8 @@ export function SetlistFancy({
   if (entries.length === 0) return null;
   const groups = groupSets(entries);
   // While the show may be on stage, the newest logged song is the playing row:
-  // Yeti's row sticker and a faint sale wash.
+  // Yeti's row sticker and a faint sale wash. "May be": the live window is a
+  // date, so the label claims only "newest song logged".
   const newest = live ? entries[entries.length - 1]?.uniqueId : undefined;
 
   return (
@@ -82,13 +83,13 @@ export function SetlistFancy({
                     )}
                   >
                     <span className="w-5 shrink-0 self-center text-right font-mono text-[0.75rem] tabular-nums text-faint">
-                      {e.uniqueId === newest ? <RowSticker label="newest song, on stage now" /> : i + 1}
+                      {e.uniqueId === newest ? <RowSticker /> : i + 1}
                     </span>
                     <span className="flex-1 leading-snug">
                       {segFromPrev && <span className="mr-1 select-none text-steel">›</span>}
                       {e.slug
-                        ? <Link href={`/songs/${e.slug}`} className={clsx("text-[1.02rem] font-semibold hover:underline", e.uniqueId === newest ? "text-[var(--sale)]" : "text-ink")}>{e.song}</Link>
-                        : <span className={clsx("text-[1.02rem] font-semibold", e.uniqueId === newest ? "text-[var(--sale)]" : "text-ink")}>{e.song}</span>}
+                        ? <Link href={`/songs/${e.slug}`} className={clsx("text-[1.02rem] font-semibold hover:underline", e.uniqueId === newest ? "text-ember" : "text-ink")}>{e.song}</Link>
+                        : <span className={clsx("text-[1.02rem] font-semibold", e.uniqueId === newest ? "text-ember" : "text-ink")}>{e.song}</span>}
                       {/* Heat wears ember, everywhere heat appears (flames,
                           Dusted Off); steel stays structural — segue carets,
                           rules. The XL II discipline, applied to all fancy

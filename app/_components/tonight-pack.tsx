@@ -7,7 +7,8 @@ import type { ShowSummary } from "@/lib/queries/shows";
  * site where something is on. Until songs land the bubble is empty (Yeti's
  * "nothing yet" pack); once the setlist has entries it holds the date tile.
  * The Tonight sticker marks the state; the copy is TonightEntry's, unchanged. */
-export function TonightPack({ show }: { show: ShowSummary }) {
+/** `multi`: more than one show tonight, so each pack names its show number. */
+export function TonightPack({ show, multi = false }: { show: ShowSummary; multi?: boolean }) {
   const loc = locationLine(show.city, show.state, show.country);
   return (
     <Link href={showHref(show.date, show.order)} className="tonight-pack group block max-w-[320px] rounded-[22px]">
@@ -22,7 +23,7 @@ export function TonightPack({ show }: { show: ShowSummary }) {
           {[loc || null, show.tour].filter(Boolean).join(" · ") || "—"}
         </p>
         <p className="mt-3 flex items-center gap-2 text-[0.875rem] lowercase text-muted">
-          {show.order != null && <span className="text-faint">show {show.order} ·</span>}
+          {multi && show.order != null && <span className="text-faint">show {show.order} ·</span>}
           the setlist will appear live
         </p>
       </Pack>

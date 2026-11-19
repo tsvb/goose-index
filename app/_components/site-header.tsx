@@ -19,10 +19,13 @@ const NAV = [
 
 export function HeaderFancy({ experience }: { experience: Experience }) {
   return (
-    // Yeti's glass bar: night at 82% over a blur, one frost rule beneath.
+    // Yeti's glass bar: night at 82% over a blur, one frost rule beneath. The
+    // glass is a ::before layer (globals.css, .yeti-bar), not the header's own
+    // backdrop-filter: a filter on the header would make it the containing
+    // block for MobileNav's fixed scrim and sheet, collapsing the scrim.
     // --header-h is the full header box (h-14 plus the 1px rule) — MobileNav
     // offsets its sheet from it, and venues' sticky letter bar sits under it.
-    <header className="yeti-bar sticky top-0 z-40 border-b border-line bg-[rgba(15,20,36,0.82)] backdrop-blur-[18px] [--header-h:calc(3.5rem_+_1px)]">
+    <header className="yeti-bar sticky top-0 z-40 border-b border-line [--header-h:calc(3.5rem_+_1px)]">
       <Container className="flex h-14 items-center justify-between gap-3">
         <Link href="/" className="shrink-0 text-[1.1rem] font-black lowercase tracking-tight text-ink">
           goose index

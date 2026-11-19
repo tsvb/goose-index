@@ -837,6 +837,19 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
    Unlayered on purpose: it must out-rank the shared markup's utilities.
    ============================================================ */
 
+/* The glass bar (HeaderFancy). On a pseudo-element so the header itself
+   carries no backdrop-filter and fixed descendants (the mobile scrim and
+   sheet) stay anchored to the viewport. */
+.yeti-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(15, 20, 36, 0.82);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
 /* Search fields (header, home, mobile sheet): a shelf field with a frost
    keyline, idle placeholder, foil caret (base layer). */
 [data-experience="fancy"] .search-field {
@@ -849,11 +862,11 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
   box-shadow: inset 0 0 0 1px var(--slush);
 }
 
-/* The mobile sheet: night glass under the bar, heavy rows on frost rules. */
+/* The mobile sheet: solid night under the bar (it lives inside the glass
+   header, whose backdrop-filter is the only backdrop it could sample), with
+   heavy rows on frost rules. */
 [data-experience="fancy"] .mobile-sheet {
-  background: rgba(15, 20, 36, 0.96);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
+  background: var(--night);
 }
 [data-experience="fancy"] .mobile-sheet nav a {
   font-weight: 800;

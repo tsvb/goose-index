@@ -63,8 +63,10 @@ export function PlainTag({ children, className }: { children: React.ReactNode; c
 }
 
 /** The playing row's sticker: a sale disc holding Yeti's four-bar stair.
- * Static — it never bounces. */
-export function RowSticker({ label = "on stage now" }: { label?: string }) {
+ * Static — it never bounces. The site can't know a song is on stage right
+ * now (the live window is a date, and holds through set break and after the
+ * encore), so the label says only what is known. */
+export function RowSticker({ label = "newest song logged" }: { label?: string }) {
   return (
     <span className="yeti-rs" role="img" aria-label={label}>
       <span className="yeti-rs-stair" aria-hidden="true">
