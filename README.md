@@ -67,9 +67,9 @@ tape. The shape of a night is visible without reading twenty-four track times.
 </tr>
 </table>
 
-*Screenshots above are from 2026-07-13, before the pen & instrument redesign — the forms they
-show (rings, dials, meters, tape) are still how these charts draw; the colors and chrome
-around them are not. Current look: [gooseindex.com/stats](https://www.gooseindex.com/stats).*
+*Screenshots above are from 2026-07-13, two redesigns ago (before Pen & Instrument, and before
+3.0 took Yeti's look in November 2026) — the forms they show (rings, dials, meters, tape) are
+still how these charts draw; the colors and chrome around them are not. Current look: [gooseindex.com/stats](https://www.gooseindex.com/stats).*
 
 **The catalog profile** — the stats hub opens with every played song ranked by plays, as one
 stepped shape: a steep head of staples, a long flat tail. The cuts are bracketed onto it
@@ -89,15 +89,17 @@ Three rules hold across all of them. **A change that breaks one is a bug, even i
    88–1367 days). Where the data is too thin to be honest about, the chart draws nothing
    rather than something misleading.
 
-Five roles carry that color, and each keeps to one job everywhere on the site:
+Six roles carry that color, and each keeps to one job everywhere on the site. The values are
+3.0's (Yeti, dark only); 2.0 maps the same roles onto its own period palette.
 
-| Role | Carries |
-|---|---|
-| `--steel` | Field and structure. |
-| `--hand` | The reading, now — marks only (a dot, a stroke), never running text. |
-| `--ember` | Heat and overdue — the one amber allowed as text (`--hand` never is). |
-| `--spruce` | Links, and the footnote marks that pair with them. |
-| `--pencil` | The human margin — captions, footnotes, the caveat channel. |
+| Role | 3.0 | Carries |
+|---|---|---|
+| `--steel` | slush `#9FABCE` | Field and structure. |
+| `--hand` | sale yellow `#F2E27A` | The reading, now — marks only (a dot, a stroke), never running text. |
+| `--ember` | sale yellow `#F2E27A` | Heat — jams, the meters' red zone, the hottest night; the yellow allowed as text (`--hand` never is). |
+| `--foil` | foil pink `#FF8FC4` | Elapsed time — gap rings and overdue counts. Never a fill. (2.0 draws it as its ember.) |
+| `--spruce` | snow `#E9EEF7` | Links (told apart by their underline), and the footnote marks that pair with them. |
+| `--pencil` | slush `#9FABCE` | The human margin — captions, footnotes, the caveat channel. |
 
 `--hand` on running text is the bug this split exists to catch; the suite greps for it.
 
@@ -124,13 +126,13 @@ per visitor:
 
 | Edition | What you get |
 |---|---|
-| **3.0** | Charts, hand-drawn, light and dark. The default. |
-| **2.0** | Same charts, glossy skin — striped ledger rows, classic blue links, gel buttons; its own period-literal palette, independent of the fog/slate values above. |
+| **3.0** | Charts, dark, rounded type — the look of [Yeti](https://github.com/tsvb/yeti), the same author's nugs.net player: night shelves, snow type, sale-yellow stickers, and one foil accent kept for elapsed time. The default. |
+| **2.0** | Same charts, glossy skin — striped ledger rows, classic blue links, gel buttons; its own period-literal palette, independent of 3.0's values above. |
 | **1.0** | Plain document, no charts. |
 
-Appearance is a 3.0-only switch, and it's two fixed looks, not a wardrobe of named themes:
-**fog** (light), **slate** (dark), or **auto** (follows the OS — the default). 2.0 and 1.0 each
-render a single fixed look.
+Each edition is one fixed look; there is no light/dark switch. 3.0 is dark only and uses the
+system's rounded face where the browser has it (Safari), else the platform's own UI face — no
+webfont, in any edition.
 
 ## Architecture
 
@@ -144,7 +146,7 @@ happens out of band in the sync job, so page loads never depend on the elgoose A
 up.
 
 - **Next.js (App Router) + TypeScript** — server-rendered. No client-side charting library; every
-  chart is SVG against role tokens, so it reskins with the edition and, inside 3.0, with fog/slate.
+  chart is SVG against role tokens, so it reskins with the edition.
 - **Postgres + Drizzle** — a cached copy of the live-performance record.
 - **Vitest** — the suite runs fully offline (fixtures + in-memory PGlite). No network, no database.
 - **Vercel Web Analytics** — cookieless page views, on every edition.

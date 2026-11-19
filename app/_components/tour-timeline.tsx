@@ -160,18 +160,17 @@ export function TourTimeline({
                     const hot = t.tourId === busiest.tourId;
                     // Marks (the connector, the bar, its ticks) read the busiest run in
                     // hand; the tour-name label is text, so it stays in ember — hand is
-                    // a mark-only color, never text (see the pen & instrument roles).
+                    // a mark-only color, never text (see the role table in README).
                     const markColor = future ? "var(--faint)" : hot ? "var(--hand)" : "var(--steel)";
                     // The label sits on its own bar's tinted wash (22%/30% color-mix over
                     // --bg-deep), not on plain paper — a computed background the standing
                     // contrast gate (app/globals-contrast.test.ts) can't see, since it only
                     // reads :root hex literals. Measured (scratchpad script, CSS Color 4
-                    // srgb math + WCAG luminance): plain --steel/--ember on that wash is
-                    // 3.65:1 fog / 3.85:1 slate (steel) and 3.52:1 fog / 4.24:1 slate
-                    // (ember) — below the site's 4.5:1 text floor. Mixing 30% toward --ink
-                    // (same idiom as the steel-mix hover recipes elsewhere) clears it in
-                    // both themes: steel 5.09:1 fog / 5.03:1 slate, ember 4.96:1 fog /
-                    // 4.75:1 slate. See tour-timeline-label-contrast.test.ts.
+                    // srgb math + WCAG luminance): on the old light and dark pages plain
+                    // --steel/--ember on that wash fell below the site's 4.5:1 text floor,
+                    // and mixing 30% toward --ink cleared it. On 3.0's night (the only 3.0
+                    // page since 2026-11) the same mix lands well above AA. See
+                    // tour-timeline-label-contrast.test.ts, which recomputes it.
                     //
                     // Functional doesn't clear with that same recipe: its gel-blue --steel
                     // and its darkened --ember pull further from --ink, so the identical
@@ -179,8 +178,8 @@ export function TourTimeline({
                     // fail AA. Plain --ink on those washes clears at 6.95:1 / 6.19:1, so
                     // functional gets its own literal via the CSS override below
                     // ([data-experience="functional"] .tour-timeline-label) rather than
-                    // the fog/slate mix recipe. The --tour-label-color custom property
-                    // carries this value as the default (fog/slate); the class lets the
+                    // the mix recipe. The --tour-label-color custom property carries this
+                    // value as the default (3.0); the class lets the
                     // functional rule out-specificity it without an inline !important.
                     const nameColor = future
                       ? "var(--faint)"

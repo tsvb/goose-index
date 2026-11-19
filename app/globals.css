@@ -252,7 +252,7 @@
 
 /* ---- Blog post body (lib/blog + post-body.tsx) ---- */
 /* Everything is drawn from theme tokens, so a post reskins with the edition
-   like the rest of the site: Newsreader and Plex on 3.0, the system stack on
+   like the rest of the site: the system rounded face on 3.0, Helvetica on
    2.0, Georgia in the 1.0 document. Color keeps its one
    meaning — steel marks structure, spruce stays on links via .link, ember
    appears nowhere because prose has no heat. */
@@ -435,9 +435,8 @@
      the swap is a visual no-op. The base layer (@layer base above) consumes
      --steel/--paper globally (::selection, :focus-visible), and FilterLink,
      FolioNav, PageHead, and chromeLink resolve their colors through
-     --steel/--spruce — without a literal here, a dark-OS visitor would
-     silently inherit the fog/slate values instead of this experience's own
-     blue/green. */
+     --steel/--spruce — without a literal here this edition would inherit
+     the bare :root floor instead of its own blue/green. */
   --paper: #e7f0f9;
   --steel: #1f6cb0;
   --hand: #a85413;
@@ -588,11 +587,10 @@
   /* Period-literal role tokens (Plan 5 Task 2) — the values the old
      --steel: var(--gold) / --spruce: var(--sage) / --pencil: var(--muted)
      inverse aliases resolved to, now the roles' own definitions here, so
-     the swap is a visual no-op. Without a literal here, a dark-OS visitor
-     would silently inherit the fog/slate --steel/--paper the base layer's
-     ::selection and :focus-visible consume globally, instead of this
-     experience's own flat black (e.g. the #7ba3c4 slate focus ring at
-     ~2.67:1 on this block's white --paper). */
+     the swap is a visual no-op. Without a literal here this edition would
+     inherit the bare :root floor's --steel/--paper, which the base layer's
+     ::selection and :focus-visible consume globally, instead of its own flat
+     black. */
   --paper: #ffffff;
   --steel: #141414;
   --hand: #141414;
@@ -721,9 +719,10 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 [data-experience="functional"] .song-bust { color: #b8501a; border-color: #f4a72b; }
 
 /* ---- nugs "Listen / Watch" affordance ---- */
-/* Cool "player" blues/violets, deliberately apart from the ledger palette.
-   Fog-safe text colors below (link/link-strong/watch/watch-strong/track) —
-   dark-safe values for slate live on the two slate blocks up top. */
+/* Cool "player" blues/violets, deliberately apart from the ledger palette —
+   the floor 2.0 and 1.0 inherit (each reskins the controls further down).
+   3.0 overrides every one of these in its token block: there Listen is the
+   one snow primary and the rest are frost rings. */
 :root {
   --nugs-link: #1d5c86;
   --nugs-link-strong: #144a6d;
@@ -821,7 +820,7 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 /* ---- Tour timeline label (tour-timeline.tsx) ----
    The tour-name label's color is computed per-tour (future/hot/default) and
    passed down as the --tour-label-color custom property, so the base rule
-   here just reads it back. Fog/slate clear 4.5:1 with that mix recipe (see
+   here just reads it back. 3.0 clears 4.5:1 with that mix recipe (see
    the nameColor comment in tour-timeline.tsx); functional's gel-blue --steel
    and darkened --ember don't (steel label 4.10:1, hot ember 3.69:1), so
    functional overrides to plain --ink, which clears both washes (6.95:1 /
