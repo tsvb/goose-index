@@ -15,13 +15,15 @@ function row(name: string, daysSincePlayed: number, totalPlays = 9, songId = day
 }
 
 /** Thickness comes off the pack (graphite — the song's size); the red-zone
- * reading comes off the ring, which is the only thing carrying accent. */
+ * reading comes off the ring, which is the only thing carrying accent. The
+ * ring draws --foil past a year and --gap-near before it: one color in 3.0
+ * (foil is elapsed time), 2.0's old steel/ember pair through the aliases. */
 function marks(html: string) {
-  const packs = [...html.matchAll(/data-role="pack"[^>]*stroke="var\(--line\)" stroke-width="([\d.]+)"/g)];
-  const rings = [...html.matchAll(/data-role="gap"[^>]*stroke="var\(--(ember|steel)\)"/g)];
+  const packs = [...html.matchAll(/data-role="pack"[^>]*stroke="var\(--graphite\)" stroke-width="([\d.]+)"/g)];
+  const rings = [...html.matchAll(/data-role="gap"[^>]*stroke="var\(--(foil|gap-near)\)"/g)];
   return packs.map((m, i) => ({
     thickness: Number(m[1]),
-    red: rings[i]?.[1] === "ember",
+    red: rings[i]?.[1] === "foil",
   }));
 }
 
@@ -38,7 +40,7 @@ describe("TheShelf spools", () => {
     const html = renderToStaticMarkup(<TheShelf data={data} />);
     // Color means exactly one thing here: how long it has been. If the pack
     // ever takes accent again, a fat spool starts out-shouting an urgent one.
-    const packsWithAccent = html.match(/data-role="pack"[^>]*var\(--(gold|steel|ember|hand)\)/g);
+    const packsWithAccent = html.match(/data-role="pack"[^>]*var\(--(gold|steel|ember|hand|foil|gap-near)\)/g);
     expect(packsWithAccent).toBeNull();
   });
 
@@ -109,5 +111,15 @@ describe("spoolReadings", () => {
     expect(sameGap[0].wound).toBe(sameGap[1].wound);
     expect(sameGap[0].gap).toBeGreaterThan(0);
     expect(sameGap[0].wound).toBeGreaterThan(0);
+  });
+
+  it("names what the ring draws in each edition: 3.0's halo, 2.0's red", () => {
+    const data = [row("Longest", 1367), row("Shortest", 88)];
+    const fancy = renderToStaticMarkup(<TheShelf data={data} edition="fancy" />);
+    expect(fancy).toContain("Past a year the ring gets a halo.");
+    expect(fancy).not.toContain("runs into the");
+    const glossy = renderToStaticMarkup(<TheShelf data={data} edition="functional" />);
+    expect(glossy).toContain("Past a year the ring runs into the");
+    expect(glossy).not.toContain("halo");
   });
 });

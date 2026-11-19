@@ -46,7 +46,7 @@ describe("GapSparkline", () => {
     expect(widths.length).toBeGreaterThan(0);
     expect(widths.every((w) => w > 0)).toBe(true);
     expect(html).toContain("var(--steel)"); // the field — normal bars
-    expect(html).toContain("var(--ember");   // the heat — dusted-off bust bars
+    expect(html).toContain("var(--foil");    // elapsed time — the dusted-off returns
   });
 
   it("summarizes the data in an aria-label instead of per-bar titles alone", () => {
@@ -75,13 +75,13 @@ describe("GapSparkline", () => {
     expect(widths).toHaveLength(1);
     expect(widths[0]).toBeLessThanOrEqual(4);
     expect(html).toContain("across 1 performance;"); // singular
-    expect(html).not.toContain("var(--ember"); // no gap to highlight
+    expect(html).not.toContain("var(--foil"); // no gap to highlight
   });
 
   it("embers exactly one bar — the most recent longest gap — when a song has never been dusted off", () => {
     const perfs = Array.from({ length: 40 }, (_, i) => perf(i)); // gaps cycle 1..7, no busts
     const html = renderToStaticMarkup(<GapSparkline perfs={perfs} />);
-    expect((html.match(/var\(--ember/g) ?? []).length).toBe(1);
+    expect((html.match(/var\(--foil/g) ?? []).length).toBe(1);
     expect(html).toContain("longest gap 7 shows");
     expect(html).toContain("0 dusted-off returns");
   });

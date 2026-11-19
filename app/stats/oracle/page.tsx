@@ -161,7 +161,7 @@ export default async function OraclePage() {
           title="The shelf"
           blurb="Originals gathering dust: the ring is how long since the last play, the tape is how big a song it is."
         >
-          <TheShelf data={shelf} />
+          <TheShelf data={shelf} edition={experience} />
         </OracleSection>
 
         <OracleSection

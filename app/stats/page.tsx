@@ -276,7 +276,7 @@ function GapRing({ fraction }: { fraction: number }) {
   return (
     <svg viewBox="0 0 16 16" width={16} height={16} className="shrink-0" aria-hidden="true">
       <circle cx={c} cy={c} r={r} fill="none" stroke="var(--line)" strokeWidth={1.5} />
-      <path d={d} fill="none" stroke="var(--ember)" strokeWidth={1.5} />
+      <path d={d} fill="none" stroke="var(--foil)" strokeWidth={1.5} />
     </svg>
   );
 }
@@ -294,7 +294,7 @@ function OverdueList({ rows, record }: { rows: SongIndexRow[]; record: number })
               {r.name}
             </Link>
             <span className="shrink-0 font-mono text-[0.75rem]">
-              <span className="text-ember">{compact(gap)}</span> <span className="text-faint">shows</span>
+              <span className="text-[var(--foil)]">{compact(gap)}</span> <span className="text-faint">shows</span>
             </span>
           </li>
         );

@@ -61,9 +61,11 @@ export async function generateMetadata({ params }: Params, parent: ResolvingMeta
 }
 
 /** Legend for the gap sparkline — must describe only what the chart actually renders. */
-function gapLegend(hasBusts: boolean, longestGap: number | null, timesPlayed: number): string {
-  if (hasBusts) return `The ember bars mark "Dusted Off" returns — a gap in this song's longest 5% (≥15 shows), on the first play of the night it came back.`;
-  if ((longestGap ?? 0) > 0) return `The ember bar marks the longest gap (${longestGap} shows). No "Dusted Off" returns yet — that takes a gap of ≥15 shows.`;
+function gapLegend(hasBusts: boolean, longestGap: number | null, timesPlayed: number, experience: Experience): string {
+  // The marks are elapsed time: foil (pink) in 3.0; 2.0 still draws them ember.
+  const color = experience === "fancy" ? "pink" : "ember";
+  if (hasBusts) return `The ${color} bars mark "Dusted Off" returns — a gap in this song's longest 5% (≥15 shows), on the first play of the night it came back.`;
+  if ((longestGap ?? 0) > 0) return `The ${color} bar marks the longest gap (${longestGap} shows). No "Dusted Off" returns yet — that takes a gap of ≥15 shows.`;
   return timesPlayed === 1 ? "Played once — no gaps between plays yet." : "No gaps yet — played at every show since its debut.";
 }
 
@@ -151,7 +153,7 @@ export default async function SongPage({ params, searchParams }: Params) {
               <section>
                 <SectionRule title="gaps & returns" seed="song-gaps-returns" />
                 <GapSparkline perfs={perfs} />
-                <p className="mt-2 font-mono text-[0.68rem] text-faint">{gapLegend(perfs.some((p) => p.isDustedOff), song.longestGap, perfs.length)}</p>
+                <p className="mt-2 font-mono text-[0.68rem] text-faint">{gapLegend(perfs.some((p) => p.isDustedOff), song.longestGap, perfs.length, experience)}</p>
               </section>
             )}
             {song.longestVersions.length > 0 && (

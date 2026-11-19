@@ -668,7 +668,7 @@ table.song-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 table.song-table .dim { color: var(--faint); }
 table.song-table .rotation { color: var(--steel); }
 table.song-table .gapcell { color: var(--steel); }
-table.song-table .overdue { color: var(--ember, #ff8a3d); font-weight: 700; }
+table.song-table .overdue { color: var(--foil); font-weight: 700; }
 table.song-table th.song-pin, table.song-table td.song-pin { position: sticky; left: 0; z-index: 2; background: var(--bg); border-right: 1px solid var(--line); min-width: 120px; }
 .song-pin-name { display: block; overflow: hidden; text-overflow: ellipsis; }
 .song-venue-name { display: block; }
