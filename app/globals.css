@@ -1,19 +1,17 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Goose Index — "Pen & instrument" design system
-   Fog (light) and slate (dark), drawn once and reused: ink=content,
-   steel=the record's structure, hand=now and the reading, spruce=links,
-   pencil=the human margin. Three experiences (3.0/2.0/1.0) pivot the
-   same tokens into three distinct system types below.
+   Goose Index — three editions over one set of role tokens.
+   3.0 wears Yeti (spec 2026-11-18): night shelves, snow type, sale-yellow
+   stickers, one foil accent kept for elapsed time. Dark only.
+   2.0 and 1.0 keep their own period looks (blocks further down).
    ============================================================ */
 
-/* ---- Pen & instrument tokens ----
-   One meaning per color (spec 2026-08-16): ink=content · steel=the record's
-   structure · hand=now and the reading · spruce=links only · pencil=the human
-   margin. Fog is the light page; slate (below) the dark. Legacy names alias
-   the new roles so un-migrated utilities re-temper instead of breaking; the
-   aliases die with Plan 5. */
+/* ---- Role tokens: the floor 2.0 and 1.0 inherit ----
+   These are the values 2.0 (functional) and 1.0 (minimal) resolve for any
+   role their own [data-experience] block doesn't redeclare. They are the old
+   light ("fog") values, kept exactly so neither edition moves. 3.0 overrides
+   every one of them in the fancy block below. */
 :root {
   --paper: #f3f5f7;
   --ink: #1f242b;
@@ -27,87 +25,84 @@
   --line-soft: rgba(31, 36, 43, 0.13);
   color-scheme: light;
 
-  /* Legacy aliases still standing after Plan 5 Task 2 — --bg/--bg-deep/
-     --surface/--surface-2 have no role-token equivalent (surface-2 is a
-     tinted elevation, not a plain paper alias) and still have real
-     consumers across the site (venue-map.tsx, the-shelf.tsx, venue-depth.tsx,
-     tape.tsx, and several rules below); their deletion stays gated on a
-     zero-consumer grep for a later task. The --gold and --sage token
-     families, plus --shadow, reached zero consumers this task and are
-     gone. */
   --bg: var(--paper);
   --bg-deep: var(--paper);
   --surface: var(--paper);
   --surface-2: color-mix(in oklab, var(--ink) 5%, var(--paper));
-  /* --ember is its own AA-safe literal, not a --hand alias: --hand only
-     needs to clear 3:1 (it's a mark, always paired with written values),
-     but --ember is consumed as TEXT (.live-flag, .overdue, .song-bust) and
-     has to clear 4.5:1 on its own. Same amber family as --hand, darkened
-     for the text role. Ember is a permanent role — heat, overdue, and the
-     text-safe amber — not a legacy alias; it survives the Plan 5 alias
-     purge, tuned to 4.5:1 text contrast per theme. */
   --ember: #8a6504;
+
+  /* Chart roles 3.0 split out of older tokens (spec: "Scoping"). 2.0 renders
+     the same chart components as 3.0, so here they alias exactly what those
+     charts drew before the split: elapsed time drew --ember, a gap ring under
+     a year drew --steel, chart graphite drew --line. A custom property that
+     references another resolves on the element, so each edition's own
+     --ember/--steel/--line flow through. */
+  --foil: var(--ember);
+  --gap-near: var(--steel);
+  --graphite: var(--line);
 }
 
-/* Slate — the dark cave. Follows the system unless the visitor pins fog;
-   an explicit slate pin wins in both directions. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="fog"]) {
-    --paper: #22262d;
-    --ink: #e8ecf1;
-    --muted: #aab3bd;
-    --faint: #848e9b;
-    --steel: #7ba3c4;
-    --hand: #f2b705;
-    --spruce: #7fae9f;
-    --pencil: #98a1ab;
-    --line: rgba(232, 236, 241, 0.3);
-    --line-soft: rgba(232, 236, 241, 0.14);
-    color-scheme: dark;
-    /* --ember: the hand's amber already clears 4.5:1 as text on slate
-       paper, so unlike fog it doesn't need its own darker literal — same
-       value as --hand, named for the text role. A permanent role (see the
-       :root block above), not a legacy alias. */
-    --ember: #f2b705;
+/* ---- 3.0: Yeti ----
+   Values are Yeti's Theme.swift, one to one (palette comments name the app's
+   role). The site's roles map onto them; several share a value, which is
+   allowed: a role is a job, not a hue. Contrast is gated in
+   globals-contrast.test.ts against night and card stock. */
+:root[data-experience="fancy"] {
+  /* palette */
+  --night: #0F1424;          /* base */
+  --shelf: #18203A;          /* raised */
+  --frost: #2E3A5C;          /* hairline */
+  --well: #121830;           /* recessed: the footer */
+  --card-stock: #1B2443;     /* the backing card */
+  --snow: #E9EEF7;           /* textPrimary, and the light */
+  --slush: #9FABCE;          /* textSecondary */
+  --idle: #8590B0;           /* textIdle: AA on night, shelf and card */
+  --sale: #F2E27A;           /* playState and every sticker */
+  --sticker-hi: #FBF1A6;
+  --sticker-edge: #E3D267;
+  --sticker-ink: #0F1424;
+  --segment-thumb: #2A355A;
 
-    /* Dark-safe nugs text colors — WCAG contrast machinery ported from the
-       old per-theme split, not a theme identity. Fog's defaults (below,
-       on :root) carry the light-safe values instead. */
-    --nugs-link: #8fc6ee;
-    --nugs-link-strong: #bfe0fb;
-    --nugs-watch: #c6b8ee;
-    --nugs-watch-strong: #ddd0fb;
-    --nugs-track: #7fbfe8;
-  }
-}
-:root[data-theme="slate"] {
-  --paper: #22262d;
-  --ink: #e8ecf1;
-  --muted: #aab3bd;
-  --faint: #848e9b;
-  --steel: #7ba3c4;
-  --hand: #f2b705;
-  --spruce: #7fae9f;
-  --pencil: #98a1ab;
-  --line: rgba(232, 236, 241, 0.3);
-  --line-soft: rgba(232, 236, 241, 0.14);
+  /* roles */
+  --paper: #0F1424;          /* night */
+  --ink: #E9EEF7;            /* snow: content */
+  --muted: #9FABCE;          /* slush: secondary text */
+  --faint: #8590B0;          /* idle: tertiary text, ticks and scales you read */
+  --steel: #9FABCE;          /* slush: the record's structure, a chart's subject */
+  --pencil: #9FABCE;         /* slush: the caveat channel, upright */
+  --spruce: #E9EEF7;         /* snow: links, told apart by the underline */
+  --hand: #F2E27A;           /* sale: the reading, now. Marks only, never text */
+  --ember: #F2E27A;          /* sale: heat, as text */
+  --foil: #FF8FC4;           /* elapsed time; also focus and the caret. Never a fill */
+  --gap-near: #FF8FC4;       /* the Shelf's ring is one color in 3.0 */
+  --graphite: #8590B0;       /* idle: chart tape and hubs (frost is too dim to read) */
+  --line: #2E3A5C;           /* frost: dividers, ring tracks */
+  --line-soft: #18203A;      /* shelf: bar fields */
+  --bg: #0F1424;
+  --bg-deep: #0F1424;
+  --surface: #0F1424;
+  --surface-2: #18203A;
+
+  /* nugs: Listen is the page's one snow primary; the rest are frost rings */
+  --nugs-link: #E9EEF7;
+  --nugs-link-strong: #FFFFFF;
+  --nugs-watch: #E9EEF7;
+  --nugs-watch-strong: #FFFFFF;
+  --nugs-track: #9FABCE;
+  --nugs-line: #2E3A5C;
+  --nugs-line-strong: #9FABCE;
+  --nugs-watch-line: #2E3A5C;
+  --nugs-watch-line-strong: #9FABCE;
+  --nugs-track-line: transparent;
+  --nugs-wash: none;
+  --nugs-watch-wash: none;
+
   color-scheme: dark;
-  /* --ember: see the media-query block above. */
-  --ember: #f2b705;
-
-  /* Dark-safe nugs text colors — see the media-query block above. */
-  --nugs-link: #8fc6ee;
-  --nugs-link-strong: #bfe0fb;
-  --nugs-watch: #c6b8ee;
-  --nugs-watch-strong: #ddd0fb;
-  --nugs-track: #7fbfe8;
 }
 
 /* ---- Type tokens — overridable per experience. The `@theme inline` map below
    inlines `var(--type-*)` into the font utilities, so redefining these on a
    `[data-experience]` selector actually re-fonts the page (like the colors).
-   The system stack is the floor every edition starts from; 3.0 alone loads
-   real faces (app/layout.tsx sets the --font-*-face variables).
    `--type-code` is the one token that is always a real monospace: it sets code
    in blog posts, where columns have to line up. ---- */
 :root {
@@ -116,13 +111,13 @@
   --type-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --type-code: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+/* 3.0: SF Rounded where the browser has it (Safari), else the platform's own
+   UI face. No webfont: nothing to download, nothing to fail. Labels, dates and
+   figures wear the same face; `.font-mono` still turns on tabular figures. */
 :root[data-experience="fancy"] {
-  --type-display: var(--font-display-face), Georgia, "Times New Roman", serif;
-  --type-body: var(--font-body-face), -apple-system, system-ui, sans-serif;
-  /* Labels, dates and figures wear the body sans, not a monospace (2.0 already
-     does the same with Helvetica). `.font-mono` still turns on tabular figures,
-     so number columns keep lining up. */
-  --type-mono: var(--type-body);
+  --type-display: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --type-body: var(--type-display);
+  --type-mono: var(--type-display);
 }
 
 /* ---- Map tokens into Tailwind's theme (inline = resolves at runtime) ---- */
@@ -192,6 +187,35 @@
 /* Tabular figures wherever data is set in mono. */
 .font-mono { font-variant-numeric: tabular-nums; }
 
+/* ---- 3.0 base: Yeti ----
+   In the base layer so a component's own utilities still win. Snow is the
+   light: a cool glow from the top edge, never a pictured flake. Keyboard
+   focus wears the foil, never the system blue. */
+@layer base {
+  [data-experience="fancy"] body {
+    background:
+      radial-gradient(120% 440px at 50% -60px, rgba(233, 238, 247, 0.08), rgba(233, 238, 247, 0) 70%) no-repeat,
+      var(--night);
+    font-variant-numeric: tabular-nums;
+  }
+  [data-experience="fancy"] :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--foil);
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+  [data-experience="fancy"] ::selection {
+    background: var(--segment-thumb);
+    color: var(--snow);
+  }
+  [data-experience="fancy"] :where(h1, h2, h3, h4) {
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  [data-experience="fancy"] input {
+    caret-color: var(--foil);
+  }
+}
+
 /* ---- De-lifting bridge ----
    Fancy still shouldn't float on hover, even now that nothing renders a
    rounded box under it: the corner-radius half of this bridge (which zeroed
@@ -217,6 +241,13 @@
 }
 .link:hover {
   text-decoration-color: var(--spruce);
+}
+/* 3.0 links are snow; the slush underline is what tells them apart. */
+[data-experience="fancy"] .link {
+  text-decoration-color: color-mix(in oklab, var(--slush) 70%, transparent);
+}
+[data-experience="fancy"] .link:hover {
+  text-decoration-color: var(--snow);
 }
 
 /* ---- Blog post body (lib/blog + post-body.tsx) ---- */

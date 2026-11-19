@@ -7,7 +7,7 @@ import path from "node:path";
 // the standing gate (globals-contrast.test.ts) can't see, because that gate
 // only reads literal hex values out of the :root token blocks. This file
 // extends the same reasoning to that one computed case: it reads the same
-// :root/[data-theme="slate"] hex tokens globals-contrast.test.ts does, and
+// 3.0 (fancy) and 2.0 (functional) hex tokens the stylesheet declares, and
 // the color-mix() percentages themselves out of tour-timeline.tsx's actual
 // ternaries (so neither the token hexes nor the component's mix recipe can
 // drift out from under this test), composites the label's actual wash per
@@ -107,8 +107,7 @@ function extractLabelMixPercents(source: string): { ember: number; steel: number
   return { ember: Number(m[1]), steel: Number(m[2]) };
 }
 
-let fogTokens: Map<string, string>;
-let slateTokens: Map<string, string>;
+let fancyTokens: Map<string, string>;
 let cssSource: string;
 let steelWashPct: number;
 let handWashPct: number;
@@ -117,14 +116,12 @@ let emberInkPct: number;
 
 beforeAll(() => {
   cssSource = fs.readFileSync(CSS_PATH, "utf8");
-  const fogBlockSrc = extractBlock(cssSource, /:root\s*\{([^}]*)\}/, 'the fog ":root { }" block');
-  fogTokens = extractHexTokens(fogBlockSrc);
-  const slateBlockSrc = extractBlock(
+  const fancyBlockSrc = extractBlock(
     cssSource,
-    /:root\[data-theme=["']slate["']\]\s*\{([^}]*)\}/,
-    ':root[data-theme="slate"] block',
+    /:root\[data-experience=["']fancy["']\]\s*\{([^}]*)\}/,
+    ':root[data-experience="fancy"] block',
   );
-  slateTokens = extractHexTokens(slateBlockSrc);
+  fancyTokens = extractHexTokens(fancyBlockSrc);
 
   const componentSource = fs.readFileSync(COMPONENT_PATH, "utf8");
   const washPct = extractWashPercents(componentSource);
@@ -135,12 +132,11 @@ beforeAll(() => {
   emberInkPct = labelPct.ember;
 });
 
-// bg-deep has no literal of its own — the CSS defines it as `var(--paper)`,
-// so it resolves to whichever theme's --paper is active. Same value the
-// component's row wash actually composites over.
+// 3.0 declares --bg-deep as its own literal (night), the backdrop the row
+// wash composites over.
 function themeTokens(tokens: Map<string, string>, label: string) {
   return {
-    bgDeep: requireToken(tokens, "paper", label),
+    bgDeep: requireToken(tokens, "bg-deep", label),
     steel: requireToken(tokens, "steel", label),
     ember: requireToken(tokens, "ember", label),
     ink: requireToken(tokens, "ink", label),
@@ -148,31 +144,15 @@ function themeTokens(tokens: Map<string, string>, label: string) {
 }
 
 describe("TourTimeline tour-name label — computed contrast on its own wash", () => {
+  // The fog/slate pair this recipe was tuned for is gone (3.0 is dark only).
+  // On night the plain steel label already clears AA, so the "plain steel
+  // fails" case that documented the old bug no longer describes anything;
+  // the mixed recipe is held to the floor instead.
   const themes = () => ({
-    fog: themeTokens(fogTokens, "the fog block"),
-    slate: themeTokens(slateTokens, 'the :root[data-theme="slate"] block'),
+    "3.0": themeTokens(fancyTokens, 'the :root[data-experience="fancy"] block'),
   });
 
-  // This whole file assumes --bg-deep is a bare alias for --paper (true
-  // today at globals.css:38, `--bg-deep: var(--paper);`), so themeTokens()
-  // reads --paper as a stand-in for the wash's actual backdrop. If --bg-deep
-  // is ever redefined to its own literal, that assumption goes stale silently
-  // — the tests above would keep passing, but against the wrong backdrop.
-  it("the --bg-deep alias this file relies on still resolves to var(--paper)", () => {
-    expect(
-      cssSource,
-      "tour-timeline-label-contrast assumes `--bg-deep: var(--paper);` in globals.css so it can read --paper as the wash's backdrop; if --bg-deep now has its own literal, themeTokens() is compositing against the wrong color and every ratio below is measuring the wrong wash",
-    ).toMatch(/--bg-deep:\s*var\(--paper\)\s*;/);
-  });
-
-  it("plain --steel on the unmixed steel wash fails 4.5:1 (documents the bug this fix closes)", () => {
-    for (const [name, t] of Object.entries(themes())) {
-      const steelWash = washOver(t.steel, steelWashPct, t.bgDeep);
-      expect(contrastRatio(hexToRgb(t.steel), steelWash), `${name}: plain steel on its own unmixed wash`).toBeLessThan(4.5);
-    }
-  });
-
-  it("the default (non-hot) label — steel mixed toward ink — clears 4.5:1 on its own steel wash, both themes", () => {
+  it("the default (non-hot) label — steel mixed toward ink — clears 4.5:1 on its own steel wash in 3.0", () => {
     for (const [name, t] of Object.entries(themes())) {
       const wash = washOver(t.steel, steelWashPct, t.bgDeep);
       const text = mixToward(t.steel, steelInkPct, t.ink);
@@ -181,14 +161,12 @@ describe("TourTimeline tour-name label — computed contrast on its own wash", (
     }
   });
 
-  it("the hot (busiest-run) label — ember mixed toward ink — clears 4.5:1 on its own hand wash, both themes", () => {
+  it("the hot (busiest-run) label — ember mixed toward ink — clears 4.5:1 on its own hand wash in 3.0", () => {
     // The hot bar's wash is --hand, but the label text is --ember (the
-    // text-safe amber, per the mark-vs-text rule) — mirror the component.
-    const fogHand = requireToken(fogTokens, "hand", "the fog block");
-    const slateHand = requireToken(slateTokens, "hand", 'the :root[data-theme="slate"] block');
-    const hands = { fog: fogHand, slate: slateHand };
+    // text role, per the mark-vs-text rule) — mirror the component.
+    const hand = requireToken(fancyTokens, "hand", 'the :root[data-experience="fancy"] block');
     for (const [name, t] of Object.entries(themes())) {
-      const wash = washOver(hands[name as "fog" | "slate"], handWashPct, t.bgDeep);
+      const wash = washOver(hand, handWashPct, t.bgDeep);
       const text = mixToward(t.ember, emberInkPct, t.ink);
       const ratio = contrastRatio(text, wash);
       expect(ratio, `${name}: ember-mixed label on its own wash`).toBeGreaterThanOrEqual(4.5);
@@ -196,7 +174,7 @@ describe("TourTimeline tour-name label — computed contrast on its own wash", (
   });
 });
 
-// Functional doesn't share the fog/slate mix recipe above — its gel-blue
+// Functional doesn't share the 3.0 mix recipe above — its gel-blue
 // --steel and darkened --ember pull too far from --ink for the identical
 // 70/30 mix to clear 4.5:1 on its own wash, so globals.css overrides the
 // label to plain --ink for this experience instead (see the nameColor
@@ -205,7 +183,7 @@ describe("TourTimeline tour-name label — computed contrast on its own wash", (
 // that fix: the mix recipe genuinely fails here (so the override is
 // necessary, not decorative) and the override's actual color clears AA.
 describe("TourTimeline tour-name label — functional edition overrides to plain --ink", () => {
-  // Unlike fog/slate, functional's --bg-deep is its own literal
+  // Unlike the bare :root floor, functional's --bg-deep is its own literal
   // (`--bg-deep: #d6e6f4;` inside :root[data-experience="functional"]), not
   // an alias to --paper — so this reads --bg-deep directly rather than
   // reusing themeTokens()'s --paper substitution.
@@ -230,13 +208,13 @@ describe("TourTimeline tour-name label — functional edition overrides to plain
     functional = functionalTokens(extractHexTokens(functionalBlockSrc));
   });
 
-  it("the fog/slate mix recipe fails 4.5:1 with functional's own steel/ember (documents why it needs the override)", () => {
+  it("the 3.0 mix recipe fails 4.5:1 with functional's own steel/ember (documents why it needs the override)", () => {
     const steelWash = washOver(functional.steel, steelWashPct, functional.bgDeep);
     const steelLabel = mixToward(functional.steel, steelInkPct, functional.ink);
     expect(contrastRatio(steelLabel, steelWash), "steel-mixed label on functional's steel wash").toBeLessThan(4.5);
 
     // functional's --ember equals its --hand (both #a85413), same as the
-    // component mirrors for fog/slate above.
+    // component mirrors for 3.0 above.
     const handWash = washOver(functional.hand, handWashPct, functional.bgDeep);
     const emberLabel = mixToward(functional.hand, emberInkPct, functional.ink);
     expect(contrastRatio(emberLabel, handWash), "ember-mixed label on functional's hand wash").toBeLessThan(4.5);
