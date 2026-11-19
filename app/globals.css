@@ -1126,3 +1126,13 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
   box-shadow: inset 0 0 0 1px rgba(233, 238, 247, 0.3);
 }
 [data-experience="fancy"] .live-flag { font-weight: 700; font-size: 0.8rem; }
+
+/* Prose links that carry no class of their own (the listen-links page's body,
+   shared with 2.0): 3.0's links are snow, so the underline is what marks them. */
+[data-experience="fancy"] .listen-prose a:not([class]) {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--slush) 70%, transparent);
+  text-underline-offset: 3px;
+}
+[data-experience="fancy"] .listen-prose a:not([class]):hover { text-decoration-color: var(--ink); }
