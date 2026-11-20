@@ -27,6 +27,7 @@ import { CUTS, type CutMeta } from "./cuts";
 import { CatalogProfile } from "./catalog-profile";
 import { weekReading } from "./oracle/components/dow-dial";
 import { canonicalUrl } from "@/lib/site";
+import { CatalogAnswer, Shelf, OverdueTiles, PlaysLedger, RarityRows, DebutRows, SetLines } from "./_hub";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -75,8 +76,8 @@ export default async function StatsHub() {
     );
   }
 
-  // Fancy and functional share this body. Every line below is read from the
-  // same queries the cut pages run, so the hub can never disagree with a cut.
+  // Every line on the hub is read from the same queries the cut pages run, so
+  // the hub can never disagree with a cut.
   const [scope, profile, top, rare, gaps, byYear, recent, buckets, dow] = await Promise.all([
     getOverviewStats(),
     catalogProfile(),
@@ -98,6 +99,47 @@ export default async function StatsHub() {
   ]
     .filter(Boolean)
     .join(" · ");
+
+  // 3.0 is Yeti's Home for the catalog (spec 2026-11-18, round 6): the
+  // profile's reading said outright, then each cut as a shelf. 2.0 keeps the
+  // profile and the ruled sections below.
+  if (experience === "fancy") {
+    return (
+      <Container>
+        <PageHead title="stats" meta={meta} />
+        <CatalogAnswer plays={profile.plays} tailMax={RARITY_MAX_PLAYS} />
+        <div className="mt-2 grid gap-x-11 gap-y-9 pt-6 md:grid-cols-2">
+          <Shelf
+            cut={cut("current-gaps")}
+            linkLabel="the top 100 →"
+            note={`A full ring is every one of the ${compact(profile.shows)} shows with a setlist.`}
+          >
+            <OverdueTiles rows={gaps} record={profile.shows} />
+          </Shelf>
+          <Shelf cut={cut("most-played")} linkLabel={`the top ${MOST_PLAYED_TOP} →`}>
+            <PlaysLedger rows={top} />
+          </Shelf>
+          <Shelf
+            cut={cut("rarities")}
+            linkLabel={`all ${compact(rare.length)} →`}
+            note={`Played ${RARITY_MAX_PLAYS} times or fewer; a cover played once is a one-off, not a rarity.`}
+          >
+            <RarityRows rows={rare} lines={LINES.rarities} />
+          </Shelf>
+          <Shelf cut={cut("debuts")} linkLabel="the latest 25 →" note={debutsNote(byYear, thisYear)}>
+            <DebutColumns data={byYear} thisYear={thisYear} />
+            <DebutRows rows={recent} />
+          </Shelf>
+          <Shelf cut={cut("set-stats")} linkLabel="the top 15 of each →">
+            <SetLines buckets={buckets} />
+          </Shelf>
+          <Shelf cut={cut("oracle")} linkLabel="all five readings →">
+            <OracleReading dow={dow} />
+          </Shelf>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container>

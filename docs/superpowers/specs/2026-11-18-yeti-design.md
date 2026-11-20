@@ -526,6 +526,25 @@ of eight tiles. Every chart becomes a form the app already draws:
 3.0 only; 2.0 and 1.0 keep their song page. No new query (distinct shows per year come from the
 performances the page already loads).
 
+## Round 6: the stats hub, as Yeti's Home for the catalog
+
+Approved by Tim 2026-11-19 on the round-6 mockup (the review artifact's `hub.html`): "land it".
+
+**The theory.** The hub is Yeti's Home for the catalog: it opens with an answer, not a chart, then
+shelves each cut with its first entries drawn the way the app draws that kind of thing.
+
+- **The answer** replaces the catalog profile in 3.0: "N songs are half of everything the band has
+  played", over two aligned segmented capsules, one of the songs and one of the plays, split into
+  the staples (`halfPoint`), the rest of the rotation, and the rarities' tail (`tailStart` at
+  `RARITY_MAX_PLAYS`), so the inversion shows. A segment under 7% keeps its true width and its
+  label sits outside. A key under it says each group's share. 2.0 keeps the profile.
+- **Most overdue**: the Shelf's ring tiles (foil; a full ring is every show with a setlist), a
+  cover tagged. **Most played**: a ledger with level tracks. **Rarities**: the count and split, the
+  latest returns with plain tags. **Debuts**: the year columns and the newest as rows. **Set
+  stats**: each leader as a line ("opens the show", "opens set 2", "closes it"). **Oracle**: its
+  one reading. Each shelf's head links its cut.
+- No new query (`catalogProfile().plays`). 3.0 only.
+
 ## Out of scope
 
 Data, queries, routes, the sync, analytics; 2.0 and 1.0 styling; blog content;
