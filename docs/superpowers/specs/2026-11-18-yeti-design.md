@@ -502,6 +502,30 @@ stays; only the numbers go. Each release is filed like a show in the crate.
 - Two columns of cards from `lg`, one below. A legend under the cards: › and → are the band's own
   `>` and `->`; a tag is the coach's note on the song before it.
 
+## Round 5: a song, as Yeti would read a track
+
+Approved by Tim 2026-11-19 on the round-5 mockup (the review artifact's `song5.html`): "land it".
+
+**The theory.** A song page is Yeti's dashboard for a track. It first answers *how long since it
+was played*, drawn as the pill's foil ring (the Shelf's object) read against the song's own longest
+gap, with the Shelf's halo once the current gap passes every finished one ("Gone 61 shows, longer
+than ever" + a `longest it's been gone` tag). The numbers sit in a "says so on the box" list instead
+of eight tiles. Every chart becomes a form the app already draws:
+
+- **The whole run** replaces the gap sparkline: debut to today laid out in shows (a play sits
+  `gap + 1` after the last; a reprise is one night), a mark per night played (Dusted Off returns
+  taller, in sale), empty track for gaps, the gap still running in foil, the longest finished gap
+  underlined in slush.
+- **Its years**: per year, a level track of the distinct shows it was played at out of that year's
+  shows with a setlist (`careerYears().documented`), the count printed beside it.
+- **Where it lands**: set 1 / set 2 / encore as one segmented capsule; *opens* and *jammed* overlap
+  them, so they're plain tags.
+- **Longest versions** with length tracks; **where it's played most**; **every performance** as
+  queue rows (a Dusted Off return tagged, jam-chart picks marked), paged as before.
+
+3.0 only; 2.0 and 1.0 keep their song page. No new query (distinct shows per year come from the
+performances the page already loads).
+
 ## Out of scope
 
 Data, queries, routes, the sync, analytics; 2.0 and 1.0 styling; blog content;

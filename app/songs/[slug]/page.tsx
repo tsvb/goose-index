@@ -9,6 +9,9 @@ import { NilState, chromeLink } from "@/app/_components/page-chrome";
 import { FactRibbon, PlaysPerYearChart, SetPlacementBars, GapSparkline, PerformanceTable, AppearsOn } from "@/app/_components/song";
 import { getSongBySlug, getSongPerformances, getSongAlbums, type SongStat, type SongAlbum } from "@/lib/queries/songs";
 import { getExperience } from "@/lib/experience.server";
+import { careerYears } from "@/lib/queries/dimensions";
+import { SongYeti, PerfRows } from "@/app/_components/song/yeti";
+import { yearShares } from "@/app/_components/song/run";
 import type { Experience } from "@/lib/experience";
 import { showHref, formatShortDate, formatDuration } from "@/lib/queries/format";
 import { entityMetadata } from "@/lib/site";
@@ -131,6 +134,42 @@ export default async function SongPage({ params, searchParams }: Params) {
             <p className="doc-crumb">* a "Dusted Off" return — gap in this song&apos;s longest 5% (≥15 shows), on the first play of the night it came back.</p>
           </DocSection>
         </Doc>
+      </Container>
+    );
+  }
+
+  // 3.0 reads the song as Yeti reads a track (spec 2026-11-18, round 5); 2.0
+  // keeps the page below.
+  if (experience === "fancy") {
+    const career = await careerYears();
+    const setlists = new Map(career.map((c) => [c.year, c.documented]));
+    const pager =
+      totalPages > 1 ? (
+        <div className="mt-4">
+          <FolioNav
+            prevHref={page > 1 ? pageHref(page - 1) : undefined}
+            nextHref={page < totalPages ? pageHref(page + 1) : undefined}
+            prevLabel="newer"
+            nextLabel="older"
+            center={`page ${page} of ${totalPages}`}
+          />
+        </div>
+      ) : null;
+    return (
+      <Container className="py-7">
+        <SongYeti
+          song={song}
+          perfs={perfs}
+          shares={yearShares(song.playsPerYear.map((y) => y.year), perfs, setlists)}
+          tag={song.isOriginal ? "original" : `cover · ${song.originalArtist ?? "trad."}`}
+          appearsOn={<AppearsOn albums={albums} />}
+          performances={
+            <>
+              <PerfRows perfs={pagePerfs} />
+              {pager}
+            </>
+          }
+        />
       </Container>
     );
   }

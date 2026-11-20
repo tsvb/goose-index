@@ -12,6 +12,12 @@ const h = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("notFound"); } }));
 vi.mock("@/lib/experience.server", () => ({ getExperience: async () => h.experience }));
+vi.mock("@/lib/queries/dimensions", () => ({
+  careerYears: async () => [
+    { year: 2024, shows: 71, documented: 71, performances: 0, uniqueSongs: 0, debuts: 0, partial: false },
+    { year: 2026, shows: 76, documented: 75, performances: 0, uniqueSongs: 0, debuts: 0, partial: true },
+  ],
+}));
 vi.mock("@/lib/queries/songs", () => ({
   getSongBySlug: async () => h.song as unknown as SongStat | null,
   getSongPerformances: async () => {
@@ -103,7 +109,10 @@ describe("SongPage for a never-played song", () => {
   });
 });
 
-describe("SongPage for a played song", () => {
+describe("SongPage for a played song (2.0)", () => {
+  beforeEach(() => {
+    h.experience = "functional";
+  });
   it("keeps the ribbon and performance table", async () => {
     h.song = song({ timesPlayed: 2, debutDate: "2021-06-01", lastPlayedDate: "2024-04-20" });
     h.perfs = [];
@@ -122,7 +131,7 @@ describe("SongPage for a played song", () => {
   });
 });
 
-describe("SongPage performance pagination", () => {
+describe("SongPage performance pagination (2.0 and 3.0)", () => {
   const perf = (i: number) => ({
     uniqueId: `p${i}`, date: `2024-01-${String((i % 28) + 1).padStart(2, "0")}`, showId: i, order: 1,
     venue: "V", city: "C", state: "S", setLabel: "Set I", position: 1, trackTime: null, seconds: null,
@@ -134,7 +143,8 @@ describe("SongPage performance pagination", () => {
     const html = await render();
     expect(html).not.toContain("page 1 of");
   });
-  it("pages at 50 and links newer/older", async () => {
+  it.each(["functional", "fancy"])("pages at 50 and links newer/older (%s)", async (edition) => {
+    h.experience = edition;
     h.song = song({ timesPlayed: 120 });
     h.perfs = Array.from({ length: 120 }, (_, i) => perf(i));
     const el = await SongPage({ params: Promise.resolve({ slug: "creatures" }), searchParams: Promise.resolve({ page: "2" }) });
@@ -151,8 +161,9 @@ describe("SongPage performance pagination", () => {
   });
 });
 
-describe("SongPage furniture — breadcrumb, tag, section rules", () => {
+describe("SongPage furniture — breadcrumb, tag, section rules (2.0)", () => {
   beforeEach(() => {
+    h.experience = "functional";
     h.song = song({
       timesPlayed: 2, debutDate: "2021-06-01", lastPlayedDate: "2024-04-20",
       longestVersions: [{ date: "2024-01-01", showId: 1, order: null, venue: "The Cap", trackTime: "12:34", seconds: 754 }],
@@ -256,5 +267,74 @@ describe("SongPage metadata robots", () => {
     h.song = song({ timesPlayed: 1, debutDate: "2023-05-01" });
     const m = await meta();
     expect(m.robots).toBeUndefined();
+  });
+});
+
+describe("SongPage as Yeti reads a track (3.0)", () => {
+  const perf = (showId: number, date: string, gap: number | null, extra: Record<string, unknown> = {}) => ({
+    uniqueId: `p${showId}`, date, showId, order: null, venue: "The Cap", city: "C", state: "S", setLabel: "Set I",
+    position: 1, trackTime: "9:11", seconds: 551, gap, isJamchart: false, isDustedOff: false, ...extra,
+  });
+  beforeEach(() => {
+    h.experience = "fancy";
+    h.song = song({
+      name: "Lead the Way", timesPlayed: 3, debutDate: "2024-01-01", lastPlayedDate: "2026-05-07", lastOrder: null,
+      currentGap: 61, longestGap: 51, avgGap: 6.1, rotationPct: 13,
+      playsPerYear: [{ year: 2024, count: 2 }, { year: 2025, count: 0 }, { year: 2026, count: 1 }],
+      setPlacement: { set1: 92, set2: 6, encore: 2, opener: 30, jammed: 4 },
+      longestVersions: [{ date: "2024-01-01", showId: 1, order: null, venue: "The Cap", trackTime: "14:56", seconds: 896 }],
+      topVenues: [{ venueId: 9, name: "The Cap", count: 3 }],
+    });
+    h.perfs = [
+      perf(3, "2026-05-07", 51, { isDustedOff: true, trackTime: null }),
+      perf(2, "2024-01-05", 2, { isJamchart: true }),
+      perf(1, "2024-01-01", null),
+    ];
+  });
+
+  it("leads with the gap ring and says when the song is gone longer than ever", async () => {
+    const html = await render();
+    expect((html.match(/<h1/g) ?? []).length).toBe(1);
+    expect(html).toContain('data-role="record"');
+    expect(html).toContain('data-role="gap"');
+    expect(html).toContain("Gone 61 shows, longer than ever.");
+    expect(html).toContain("longest it&#x27;s been gone");
+    expect(html).not.toContain('data-stub="ribbon"');
+  });
+
+  it("puts the numbers on one says-so-on-the-box list", async () => {
+    const html = await render();
+    expect(html).toContain(">Says so on the box<");
+    expect(html).toMatch(/>rotation<\/dt><dd[^>]*>13% of shows since its debut</);
+    expect(html).toMatch(/>longest gap<\/dt><dd[^>]*>51 shows</);
+  });
+
+  it("draws the whole run with the gap still running in foil and returns marked", async () => {
+    const html = await render();
+    expect(html.match(/data-mark="played"/g)).toHaveLength(2);
+    expect(html.match(/data-mark="returned"/g)).toHaveLength(1);
+    expect(html).toContain('data-role="now"');
+    expect(html).toContain("now · 61 since");
+  });
+
+  it("reads its years as shows out of the year's setlists, and its placement as one capsule", async () => {
+    const html = await render();
+    expect(html).toMatch(/>2024<\/span>.*?>2<span[^>]*> of (<!-- -->)?71<\/span>/s);
+    expect(html).toContain(">2025<");
+    expect(html).toContain('data-seg="set 1"');
+    expect(html).toMatch(/opens (<!-- -->)?30(<!-- -->)?% of the time/);
+  });
+
+  it("lists every performance as queue rows: dusted-off tagged, jam marked", async () => {
+    const html = await render();
+    expect(html).toMatch(/dusted off · (<!-- -->)?51/);
+    expect(html).toContain("set i · after 2");
+    expect(html).toContain('href="/shows/2026-05-07"');
+    expect(html).not.toContain('data-stub="perf-table"');
+  });
+
+  it("tags a cover with its artist, as the band credits it", async () => {
+    h.song = { ...h.song!, isOriginal: false, originalArtist: "Kylie Minogue" };
+    expect(await render()).toContain("cover · Kylie Minogue");
   });
 });
