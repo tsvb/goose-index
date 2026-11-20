@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { TransitionRow } from "@/lib/queries/discoveries";
 import { chromeLink } from "@/app/_components/page-chrome";
+import type { Experience } from "@/lib/experience";
 
 /** Segues, set in the notation the scene already reads.
  *
@@ -42,7 +43,31 @@ function Splice({ weight }: { weight: number }) {
   );
 }
 
-export function TransitionsList({ data }: { data: TransitionRow[] }) {
+/** 3.0 (Yeti, round 2): the join as a round-capped bar — the same mark the set
+ * strip uses for songs run together — weighted the same way. No arrowhead: the
+ * row reads left to right, as a setlist does. */
+const BAR = { w: 64, h: 14, min: 2, max: 9 } as const;
+
+function SegueBar({ weight }: { weight: number }) {
+  const stroke = Number((BAR.min + weight * (BAR.max - BAR.min)).toFixed(2));
+  const mid = BAR.h / 2;
+  return (
+    <svg viewBox={`0 0 ${BAR.w} ${BAR.h}`} width={BAR.w} height={BAR.h} className="shrink-0" aria-hidden="true">
+      <line
+        data-role="segue"
+        x1={stroke / 2 + 1}
+        y1={mid}
+        x2={BAR.w - stroke / 2 - 1}
+        y2={mid}
+        stroke="var(--steel)"
+        strokeWidth={stroke}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+export function TransitionsList({ data, edition }: { data: TransitionRow[]; edition: Experience }) {
   if (data.length === 0) {
     return <p className="font-mono text-sm text-faint">No transitions found yet.</p>;
   }
@@ -63,7 +88,7 @@ export function TransitionsList({ data }: { data: TransitionRow[] }) {
               <span className="min-w-0 flex-1 truncate text-right font-mono text-sm">
                 <SongTag name={t.sourceName} slug={t.sourceSlug} />
               </span>
-              <Splice weight={weight} />
+              {edition === "fancy" ? <SegueBar weight={weight} /> : <Splice weight={weight} />}
               <span className="min-w-0 flex-1 truncate font-mono text-sm">
                 <SongTag name={t.targetName} slug={t.targetSlug} />
               </span>
@@ -76,7 +101,9 @@ export function TransitionsList({ data }: { data: TransitionRow[] }) {
         })}
       </ol>
       <p className="mt-3 font-mono text-[0.62rem] text-faint">
-        Read as a setlist: the splice thickens with how often the band actually plays the segue.
+        {edition === "fancy"
+          ? "The bar thickens with how often the band plays the segue."
+          : "Read as a setlist: the splice thickens with how often the band actually plays the segue."}
       </p>
     </>
   );

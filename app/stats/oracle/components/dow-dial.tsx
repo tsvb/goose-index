@@ -1,5 +1,6 @@
 import { WEEKDAYS } from "@/lib/queries/format";
 import type { DayOfWeekJamsRow } from "@/lib/queries/discoveries";
+import type { Experience } from "@/lib/experience";
 
 /** A week is a cycle, so it gets a dial rather than a row of bars.
  *
@@ -15,6 +16,8 @@ import type { DayOfWeekJamsRow } from "@/lib/queries/discoveries";
 const FACE = { c: 110, baseline: 56, reach: 18, label: 92, tickIn: 66, tickOut: 72 } as const;
 /** Spoke width, in SVG units, from thinnest evidence to thickest. */
 const SPOKE = { min: 1.5, max: 7 } as const;
+/** 3.0's spokes are round-capped, so the cap is the tip's dot; a touch wider. */
+const YETI_SPOKE = { min: 2, max: 8 } as const;
 
 /** Sunday (0) last, so the dial reads Mon → Sun like a calendar week. */
 const ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
@@ -54,7 +57,7 @@ export function weekReading(data: DayOfWeekJamsRow[]): WeekReading | null {
   return { mean, hottest, bestEvidenced };
 }
 
-export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
+export function DayOfWeekDial({ data, edition }: { data: DayOfWeekJamsRow[]; edition: Experience }) {
   const days = orderMonSun(data);
   const reading = weekReading(days);
   if (!reading) {
@@ -74,10 +77,10 @@ export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
   const mostShows = bestEvidenced.totalShows;
   const fewestShows = Math.min(...played.map((d) => d.totalShows));
   const evidenceSpread = Math.log(mostShows) - Math.log(fewestShows);
-  const widthFor = (d: DayOfWeekJamsRow) => {
-    if (evidenceSpread <= 0) return (SPOKE.min + SPOKE.max) / 2;
+  const widthFor = (d: DayOfWeekJamsRow, range: { min: number; max: number } = SPOKE) => {
+    if (evidenceSpread <= 0) return (range.min + range.max) / 2;
     const t = (Math.log(d.totalShows) - Math.log(fewestShows)) / evidenceSpread;
-    return SPOKE.min + t * (SPOKE.max - SPOKE.min);
+    return range.min + t * (range.max - range.min);
   };
 
   const radiusFor = (d: DayOfWeekJamsRow) =>
@@ -87,6 +90,76 @@ export function DayOfWeekDial({ data }: { data: DayOfWeekJamsRow[] }) {
     const p = point(i, radiusFor(d));
     return `${i === 0 ? "M" : "L"}${p.x.toFixed(2)} ${p.y.toFixed(2)}`;
   }).join(" ") + " Z";
+
+  const label = `Jams per show by weekday, as deviation from the weekly mean of ${mean.toFixed(2)}. ${days
+    .filter((d) => d.totalShows > 0)
+    .map((d) => `${d.dayName} ${d.avgJams.toFixed(2)}`)
+    .join(", ")}.`;
+  const signed = (n: number) => `${n >= 0 ? "+" : "−"}${Math.abs(n).toFixed(2)}`;
+
+  // 3.0 (Yeti, round 2): the same rose and spokes, out of the instrument. The
+  // tick bezel, the dashed mean and the letterspaced capitals were the Braun
+  // face; here the rose sits on shelf, the mean is a plain frost circle, the
+  // spokes are round-capped (thickness is still the evidence), and only the
+  // hottest night takes the heat color.
+  if (edition === "fancy") {
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <svg viewBox="0 0 220 220" className="w-full max-w-[380px] font-display" role="img" aria-label={label}>
+          <path d={rose} fill="var(--shelf)" stroke="var(--frost)" strokeWidth={1.2} strokeLinejoin="round" />
+          <circle cx={FACE.c} cy={FACE.c} r={FACE.baseline} fill="none" stroke="var(--frost)" strokeWidth={1} />
+          {days.map((d, i) => {
+            if (d.totalShows === 0) return null;
+            const from = point(i, FACE.baseline);
+            const to = point(i, radiusFor(d));
+            const hot = d.dow === hottest.dow;
+            return (
+              <line
+                key={d.dow}
+                x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+                stroke={hot ? "var(--hand)" : "var(--steel)"}
+                strokeWidth={widthFor(d, YETI_SPOKE)}
+                strokeLinecap="round"
+              />
+            );
+          })}
+          {days.map((d, i) => {
+            const p = point(i, FACE.label);
+            const hot = d.totalShows > 0 && d.dow === hottest.dow;
+            return (
+              <g key={d.dow}>
+                <text x={p.x} y={p.y - 2} textAnchor="middle" fontSize={10.5} fontWeight={800}
+                  fill={hot ? "var(--ember)" : "var(--ink)"}>
+                  {d.dayName.slice(0, 3).toLowerCase()}
+                </text>
+                <text x={p.x} y={p.y + 10} textAnchor="middle" fontSize={9.5}
+                  fill={d.totalShows === 0 ? "var(--faint)" : hot ? "var(--ember)" : "var(--muted)"}
+                  style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {d.totalShows === 0 ? "—" : signed(d.avgJams - mean)}
+                </text>
+              </g>
+            );
+          })}
+          <text x={FACE.c} y={FACE.c + 4} textAnchor="middle" fontSize={22} fontWeight={900} fill="var(--ink)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>
+            {mean.toFixed(2)}
+          </text>
+          <text x={FACE.c} y={FACE.c + 18} textAnchor="middle" fontSize={9.5} fill="var(--muted)">
+            week mean
+          </text>
+        </svg>
+
+        <p className="max-w-xl text-center font-mono text-[0.62rem] leading-relaxed text-faint">
+          Spokes read against the week&apos;s mean: outward is a jammier night than usual, inward a leaner one. A
+          spoke&apos;s thickness is how many shows stand behind it.{" "}
+          <span className="text-ember">{hottest.dayName}</span> runs loosest ({hottest.avgJams.toFixed(2)} jams a show,{" "}
+          {signed(hottest.avgJams - mean)} on the week), but on {hottest.totalShows}{" "}
+          {hottest.totalShows === 1 ? "show" : "shows"}, against {mostShows} on a {bestEvidenced.dayName}. A thin spoke
+          is thin evidence.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-4">
