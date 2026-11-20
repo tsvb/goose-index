@@ -12,6 +12,7 @@ vi.mock("@/lib/queries/songs", () => ({
   debutsByYear: async () => [{ year: 2020, count: 3 }, { year: 2021, count: 0 }, { year: 2022, count: 1 }],
   recentDebuts: async () => [{ slug: "hot-tea", name: "Hot Tea", date: "2020-01-01", venue: "The Cap" }],
   setStats: async () => [{ key: "show-opener", label: "Show openers", rows: [{ slug: "madhuvan", name: "Madhuvan", count: 5 }] }],
+  catalogProfile: async () => ({ plays: [187], shows: 687 }),
 }));
 
 const row = {
@@ -54,7 +55,8 @@ describe("StatsCut cut-switcher and methodology footnote", () => {
     expect(html).toContain('href="/songs?sort=overdue"');
   });
 
-  it("links table headers to the /songs sorts with the cut's own sort active", async () => {
+  it("links table headers to the /songs sorts with the cut's own sort active (2.0's table)", async () => {
+    h.experience = "functional";
     const html = await render("rarities");
     expect(html).toContain('href="/songs?sort=az"');
     expect(html).toContain('href="/songs?sort=overdue"');
@@ -79,13 +81,57 @@ describe("StatsCut cut-switcher and methodology footnote", () => {
   });
 });
 
-describe("StatsCut debuts", () => {
+describe("StatsCut debuts (2.0)", () => {
   it("labels both halves and the chart announces itself as debuts", async () => {
+    h.experience = "functional";
     const html = await render("debuts");
     expect(html).toContain(">Debuts per year</h2>");
     expect(html).toContain("Recent debuts");
     expect(html).toContain("latest 1");
     expect(html).toContain('aria-label="Debuts per year"');
     expect(html).not.toContain('role="img"');
+  });
+});
+
+describe("StatsCut as the hub's shelves at full length (3.0)", () => {
+  it("most played: a ranked ledger with level tracks and one line of numbers, no catalog table", async () => {
+    const html = await render("most-played");
+    expect(html).toContain("cut-ledger");
+    expect(html).toContain('data-role="level"');
+    expect(html).toContain("rotation 29% · last jun 12, 2026");
+    expect(html).not.toContain("<table");
+    // The full sortable table is a link away, in the footnote.
+    expect(html).toContain('href="/songs"');
+    expect(html).toContain("same sort, full catalog");
+  });
+
+  it("most overdue: the longest gone as ring tiles, against every show with a setlist", async () => {
+    const html = await render("current-gaps");
+    expect(html).toContain(">The longest gone</h2>");
+    expect(html).toContain('stroke="var(--foil)"');
+    expect(html).toContain("187 plays · last jun 12, 2026");
+    expect(html).not.toContain("<table");
+  });
+
+  it("rarities: grouped by how rare", async () => {
+    const html = await render("rarities");
+    expect(html).toContain("Played 187 times");
+    expect(html).toContain("3 shows since");
+  });
+
+  it("debuts: the year columns, then the latest grouped by night with the date tile", async () => {
+    const html = await render("debuts");
+    expect(html).toContain('aria-label="Debuts per year"');
+    expect(html).toContain("The latest 1, by the night they debuted");
+    expect(html).toContain("yeti-tile yeti-tile-sm");
+    expect(html).toContain(">The Cap</b>");
+    expect(html).toContain('href="/songs/hot-tea"');
+  });
+
+  it("set stats: each bucket as a ranked ledger, said as a line", async () => {
+    const html = await render("set-stats");
+    expect(html).toContain("opens the show");
+    expect(html).toContain("Madhuvan");
+    expect(html).toContain('data-role="level"');
   });
 });

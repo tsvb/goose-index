@@ -15,8 +15,10 @@ import {
   debutsByYear,
   recentDebuts,
   setStats,
+  catalogProfile,
   type SongIndexRow,
 } from "@/lib/queries/songs";
+import { PlayedLedger, OverdueCut, RarityGroups, DebutNights, SetLedgers } from "../_cuts";
 import { getExperience } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
 
@@ -88,6 +90,22 @@ export default async function StatsCut({ params }: Params) {
         </Container>
       );
     }
+    // 3.0: each cut answers its question in its own form (spec 2026-11-18,
+    // round 7); 2.0 keeps the catalog table.
+    if (experience === "fancy") {
+      const record = cut === "current-gaps" ? (await catalogProfile()).shows : 0;
+      return (
+        <StatsShell cut={meta}>
+          {cut === "most-played" ? (
+            <PlayedLedger rows={rows} />
+          ) : cut === "rarities" ? (
+            <RarityGroups rows={rows} />
+          ) : (
+            <OverdueCut rows={rows} record={record} />
+          )}
+        </StatsShell>
+      );
+    }
     return (
       <StatsShell cut={meta}>
         <SongIndexTable
@@ -135,6 +153,22 @@ export default async function StatsCut({ params }: Params) {
             {noteRow}
           </Doc>
         </Container>
+      );
+    }
+    if (experience === "fancy") {
+      return (
+        <StatsShell cut={meta}>
+          <section>
+            <h2 className="mb-2 text-[0.9rem] font-extrabold text-muted">Debuts per year</h2>
+            <PlaysPerYearChart data={byYear} label="Debuts per year" />
+          </section>
+          <section className="mt-8">
+            <h2 className="mb-1 text-[0.9rem] font-extrabold text-muted">
+              The latest {recent.length}, by the night they debuted
+            </h2>
+            <DebutNights rows={recent} />
+          </section>
+        </StatsShell>
       );
     }
     return (
@@ -189,6 +223,13 @@ export default async function StatsCut({ params }: Params) {
           {noteRow}
         </Doc>
       </Container>
+    );
+  }
+  if (experience === "fancy") {
+    return (
+      <StatsShell cut={meta}>
+        <SetLedgers buckets={buckets} />
+      </StatsShell>
     );
   }
   return (

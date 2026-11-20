@@ -125,7 +125,7 @@ export function Nil({ children }: { children: React.ReactNode }) {
 
 /** Most overdue: the Shelf's ring tiles. Foil is elapsed time; a full ring is
  * every show with a setlist. */
-function OverdueRing({ gap, record }: { gap: number; record: number }) {
+export function OverdueRing({ gap, record }: { gap: number; record: number }) {
   const f = Math.min(record > 0 ? gap / record : 0, 0.995);
   const end = Math.max(f, 0.012);
   const r = 38;
