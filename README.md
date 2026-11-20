@@ -68,8 +68,13 @@ tape. The shape of a night is visible without reading twenty-four track times.
 </table>
 
 *Screenshots above are from 2026-07-13, two redesigns ago (before Pen & Instrument, and before
-3.0 took Yeti's look in November 2026) — the forms they show (rings, dials, meters, tape) are
-still how these charts draw; the colors and chrome around them are not. Current look: [gooseindex.com/stats](https://www.gooseindex.com/stats).*
+3.0 took Yeti's look in November 2026). 2.0 still draws these objects. 3.0 keeps every reading
+and draws it in Yeti's forms instead of a tape deck's: the shelf's spools are card-stock discs
+inside the pill's foil ring (a halo past a year), the VU meters are level tracks that turn yellow
+past the zone, the weekday dial loses its bezel and keeps round-capped spokes, the segue splices
+are round bars, the set is a strip of rounded pieces with segued songs fused, the tour bars carry
+a dot per show, the years chart drops its hatching for an empty box, and the coach's liner notes
+are printed on a card. Current look: [gooseindex.com/stats](https://www.gooseindex.com/stats).*
 
 **The catalog profile** — the stats hub opens with every played song ranked by plays, as one
 stepped shape: a steep head of staples, a long flat tail. The cuts are bracketed onto it
@@ -81,9 +86,9 @@ a gap as a closing ring, debuts as columns by year.
 Three rules hold across all of them. **A change that breaks one is a bug, even if it renders.**
 
 1. **Each question gets the form its number is.** Duration → length. Cycle → dial. Sequence →
-   setlist notation. Level → meter. Gap → a closing ring.
+   setlist notation. Level → meter (3.0: a level track). Gap → a closing ring.
 2. **Color means exactly one thing per section.** On The Shelf it means *how long since the
-   last play* — which is why the tape is graphite and only the ring is lit. Ink follows
+   last play* — which is why the tape (3.0: the disc) never takes color and only the ring is lit. Ink follows
    significance: the song that most deserves your attention carries the most of it.
 3. **A claim never travels without its evidence.** Skewed data is log-scaled (gaps span
    88–1367 days). Where the data is too thin to be honest about, the chart draws nothing
@@ -109,7 +114,7 @@ Six roles carry that color, and each keeps to one job everywhere on the site. Th
 
 | | |
 |---|---|
-| **Shows** | Every show, with full setlists — segues, jams, track times, footnotes — plus the tape above. |
+| **Shows** | Every show, with full setlists — segues, jams, track times, footnotes — plus the set drawn as a length above them. |
 | **Songs** | Per-song history: every performance, gaps, debuts, bust-outs, covers. |
 | **Stats** | Six cuts — Most Played, Rarities, Most Overdue, Debuts, Set Stats, and [Oracle](https://www.gooseindex.com/stats/oracle). |
 | **Browse** | By venue, tour, year, and On This Day. Full-text search. |
