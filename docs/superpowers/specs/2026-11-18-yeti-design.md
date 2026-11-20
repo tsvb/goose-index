@@ -545,6 +545,25 @@ shelves each cut with its first entries drawn the way the app draws that kind of
   one reading. Each shelf's head links its cut.
 - No new query (`catalogProfile().plays`). 3.0 only.
 
+## Round 7: the stats cuts, as the hub's shelves at full length
+
+Approved by Tim 2026-11-19 on the round-7 mockup (the review artifact's `cuts.html`).
+
+**The theory.** Each cut is its hub shelf opened all the way: the same form, every entry. Three
+cuts used to drop into the catalog's eight-column sortable table; in 3.0 each answers its one
+question in its own form, and the table stays at /songs (each cut's footnote keeps "same sort,
+full catalog →").
+
+- **Most played**: a ranked ledger with level tracks, "rotation N% · last <date>" under each name.
+- **Most overdue**: the six longest gone as the Shelf's ring tiles (a full ring is every show with
+  a setlist, `catalogProfile().shows`), the rest as rows with a small ring and the gap in foil.
+- **Rarities**: grouped by how rare (played once, twice, three times), newest return first, with
+  "last <date> · N shows since".
+- **Debuts**: the year columns, then the latest 25 grouped by the night they debuted (date tile,
+  venue, the songs as links), so a Goosemas's six debuts are one row.
+- **Set stats**: three ranked ledgers side by side ("opens the show", "opens set 2", "closes it").
+- The activity sparkline and debut-year columns don't come along. No new queries. 3.0 only.
+
 ## Out of scope
 
 Data, queries, routes, the sync, analytics; 2.0 and 1.0 styling; blog content;
