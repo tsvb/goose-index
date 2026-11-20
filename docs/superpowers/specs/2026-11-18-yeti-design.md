@@ -434,6 +434,49 @@ round ends there would need a 2.0 branch for a change too small to see.
 **How 2.0 stays put.** These components are shared. Each takes the edition and keeps 2.0's JSX
 verbatim on its own branch, or is reached through a class hook only 3.0's CSS reads.
 
+## Round 3: tours, as Yeti would shelve them
+
+Approved by Tim 2026-11-19 on the round-3 mockups (the review artifact's `tours.html`), every
+option as recommended. His note: "the tours page needs a net new design theory true to the yeti
+overhaul".
+
+**The theory.** `/tours` is Yeti's Videos tab for the band's runs: shelves named by *when*, not a
+chart. What's on the road leads; what's coming up is next on the shelf; every past run is a flat
+tile in the crate. Each tile's face is its **year ring**, the pill's own form: January at the top,
+clockwise, the tour's legs lit as arcs, the show count in the middle. An eleven-week summer is a
+long arc and a two-week leg a short one, all on one scale, so README's rule (an interval keeps its
+length) holds without a calendar chart. A run in progress is the page's one foil mark: its ring is
+foil up to today, because that's time moving. A tour's own page reads like Yeti's artist page.
+
+**`/tours` (3.0 only):**
+- **On the road**, when today falls between a running tour's first and last show: the tile (its
+  ring foil to today, the center "13 / of 15 · tonight", or "N / of M played" on a night off), the
+  name, route (first city → last city) and dates; beside it (below on a phone) *Tonight* (the
+  row with sale wash and the Tonight sticker), *Coming up next* (the rest of the run, up to 3) and
+  *Just played* (the last 3, with song counts). In a break between legs: "home until {date}". The
+  site knows dates, not stage time: *Tonight*, never *Live*.
+- **Coming up**: every tour that hasn't started (its ring's arcs outlined, not lit), and *Not on a
+  tour*: upcoming shows filed under no run, as rows with a plain "one-off" tag.
+- **Just back**, when nothing is running: the latest run, with shows/cities, weeks out and route
+  as a "says so on the box" list.
+- **The crate**: every other past run, newest first, under heavy year heads. Tile: ring face on card
+  stock (flat, frost keyline — no blister pack; the pack stays on tonight's show), name, "dates ·
+  N wk", route. Phone: each year is a shelf that scrolls sideways; desktop: a six-column grid.
+  Last, "Not on a tour": the placeholder run (one-offs, festivals, sit-ins) as one plain tile.
+- **The calendar chart is removed from 3.0** (the rings carry duration and season); 2.0 keeps it.
+  Round 2's 3.0 drawing of the timeline (rounded legs, names beside the bars) is deleted with it.
+
+**`/tours/[id]` (3.0 only):** the ring tile beside a heavy title, then counts as plain type
+("15 shows · 9 cities · nov 3 – 21, 2026 · 2 legs"); for a running tour, "12 of 15 played · show
+13 is tonight in Pittsburgh". The shows in order as queue rows (number, date, venue and city, song
+count), tonight's row stickered and sale-washed, upcoming rows in slush. A multi-leg tour gets a
+heavy head per leg ("Leg 2 · aug 13 – sep 2 · 15 shows · after 40 days home"); two legs sit side by
+side on desktop.
+
+**Data:** one new read-only query, `tourRuns()` (the timeline's spans plus each show's city, for
+routes and city counts). Upcoming one-offs come from the existing `getUpcomingShows`. Nothing under
+`db/` or `drizzle/`.
+
 ## Out of scope
 
 Data, queries, routes, the sync, analytics; 2.0 and 1.0 styling; blog content;

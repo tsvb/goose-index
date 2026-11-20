@@ -1,7 +1,6 @@
 import { Fragment, type CSSProperties } from "react";
 import Link from "next/link";
 import type { TourSpan } from "@/lib/queries/dimensions";
-import type { Experience } from "@/lib/experience";
 
 /**
  * The touring year, drawn as time.
@@ -22,116 +21,6 @@ import type { Experience } from "@/lib/experience";
 const MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
 /** Lane height and gap, in the row's own pixels. */
 const LANE = { h: 24, gap: 4 } as const;
-
-/** 3.0 (Yeti, round 2): the leg washes, in percent of the mark color over
- * night. No text sits on them in 3.0 (names print beside the bars). 2.0 keeps
- * its own recipe below, untouched. */
-const YETI_LEG = { steelWash: 20, handWash: 14 } as const;
-/** 3.0's name colors. The names sit beside the bars on night, not on a wash,
- * so the standing contrast gate's night checks cover them; the label test
- * re-derives them anyway. */
-export const YETI_NAME_COLOR = { plain: "var(--muted)", hot: "var(--ember)", future: "var(--faint)" } as const;
-
-/** 3.0 prints a tour's name beside its bars, not inside them: a name inside a
- * bar clips to a stub ("Su…") on all but the longest runs. The name takes the
- * side of the tour with more open lane before the neighboring tour (or the
- * year's edge), and it prints only when that gap is wide enough at the width
- * the lane actually renders. The lane is a CSS size container: a name needing
- * N px in a gap that is a fraction g of the lane hides below a lane width of
- * N / g. Thresholds are a static table in 20px steps, so Tailwind can see every
- * class it has to generate; a gap that would need more than the widest lane
- * gets no printed name at all. The name is always inside the link for screen
- * readers, on hover, and in the list below. */
-const YETI_NAME_HIDE = [
-  "@max-[220px]:hidden",
-  "@max-[240px]:hidden",
-  "@max-[260px]:hidden",
-  "@max-[280px]:hidden",
-  "@max-[300px]:hidden",
-  "@max-[320px]:hidden",
-  "@max-[340px]:hidden",
-  "@max-[360px]:hidden",
-  "@max-[380px]:hidden",
-  "@max-[400px]:hidden",
-  "@max-[420px]:hidden",
-  "@max-[440px]:hidden",
-  "@max-[460px]:hidden",
-  "@max-[480px]:hidden",
-  "@max-[500px]:hidden",
-  "@max-[520px]:hidden",
-  "@max-[540px]:hidden",
-  "@max-[560px]:hidden",
-  "@max-[580px]:hidden",
-  "@max-[600px]:hidden",
-  "@max-[620px]:hidden",
-  "@max-[640px]:hidden",
-  "@max-[660px]:hidden",
-  "@max-[680px]:hidden",
-  "@max-[700px]:hidden",
-  "@max-[720px]:hidden",
-  "@max-[740px]:hidden",
-  "@max-[760px]:hidden",
-  "@max-[780px]:hidden",
-  "@max-[800px]:hidden",
-  "@max-[820px]:hidden",
-  "@max-[840px]:hidden",
-  "@max-[860px]:hidden",
-  "@max-[880px]:hidden",
-  "@max-[900px]:hidden",
-  "@max-[920px]:hidden",
-  "@max-[940px]:hidden",
-  "@max-[960px]:hidden",
-] as const;
-/** About 7.8px a character at 12px heavy (a safe margin over the measured
- * ~7px), plus 6px clear of the bar on one side and 8px of the neighbor on the
- * other. */
-const nameWidthPx = (name: string) => name.length * 7.8 + 14;
-
-export type NamePlacement = { side: "right" | "left"; hide: string };
-
-/** Where 3.0 prints a tour's name, given its span and its lane neighbors, all in
- * percent of the year. Null when no lane is ever wide enough. */
-export function yetiNamePlacement(
-  name: string,
-  span: { start: number; end: number },
-  room: { prevEnd: number; nextStart: number },
-): NamePlacement | null {
-  const right = room.nextStart - span.end;
-  const left = span.start - room.prevEnd;
-  const side = right >= left ? "right" : "left";
-  const gap = Math.max(right, left) / 100;
-  if (gap <= 0) return null;
-  const laneNeeded = nameWidthPx(name) / gap;
-  if (laneNeeded <= YETI_NAME_HIDE_FLOOR) return { side, hide: "" };
-  const step = Math.ceil((laneNeeded - YETI_NAME_HIDE_FLOOR) / 20) - 1;
-  if (step >= YETI_NAME_HIDE.length) return null;
-  return { side, hide: YETI_NAME_HIDE[Math.max(0, step)] };
-}
-/** Below this lane width (about the sm breakpoint) names don't print anyway. */
-const YETI_NAME_HIDE_FLOOR = 200;
-
-/** Places every name in one lane. Each open gap (before the first tour, between
- * two tours, after the last) holds at most one name, so two neighbors can't
- * print into the same gap and collide. Left to right, each tour takes the
- * larger of its two gaps that is still free. */
-export function yetiLaneNames(
-  names: string[],
-  spans: { start: number; end: number }[],
-): (NamePlacement | null)[] {
-  const taken = new Set<number>();
-  return names.map((name, k) => {
-    const prevEnd = k > 0 ? spans[k - 1].end : 0;
-    const nextStart = k < spans.length - 1 ? spans[k + 1].start : 100;
-    const leftFree = !taken.has(k);
-    const rightFree = !taken.has(k + 1);
-    const place = yetiNamePlacement(name, spans[k], {
-      prevEnd: leftFree ? prevEnd : spans[k].start,
-      nextStart: rightFree ? nextStart : spans[k].end,
-    });
-    if (place) taken.add(place.side === "left" ? k : k + 1);
-    return place;
-  });
-}
 
 const dayOfYear = (iso: string) => {
   const d = new Date(iso + "T00:00:00Z");
@@ -209,18 +98,11 @@ export function TourTimeline({
   tours,
   untouredShows,
   today,
-  edition,
 }: {
   tours: TourSpan[];
   untouredShows: number;
   today: string;
-  edition: Experience;
 }) {
-  // 3.0 draws the same calendar out of the tape deck: no boxed rows, rounded
-  // legs, a dot per show instead of a tick, the busiest run outlined in sale,
-  // future legs dashed frost, and names only where they fit (screen-reader
-  // only below sm). Every 2.0 literal below is kept on its own branch.
-  const yeti = edition === "fancy";
   if (tours.length === 0) return null;
 
   const byYear = new Map<number, TourSpan[]>();
@@ -258,7 +140,7 @@ export function TourTimeline({
                 {year}
               </span>
               <div
-                className={yeti ? "@container relative flex-1" : "relative flex-1 rounded-[2px] border border-line-soft bg-bg-deep"}
+                className="relative flex-1 rounded-[2px] border border-line-soft bg-bg-deep"
                 style={{ height: lanes.length * LANE.h + (lanes.length - 1) * LANE.gap + 4 }}
               >
                 {/* Month gridlines — the quiet months are only legible against them. */}
@@ -266,25 +148,13 @@ export function TourTimeline({
                   <span
                     key={i}
                     aria-hidden
-                    className={yeti ? "absolute top-0 h-full w-px bg-line opacity-55" : "absolute top-0 h-full w-px bg-line-soft"}
+                    className="absolute top-0 h-full w-px bg-line-soft"
                     style={{ left: `${(i / 12) * 100}%` }}
                   />
                 ))}
 
-                {lanes.map((lane, li) => {
-                  // Each tour's extent on the year, legs and connector included,
-                  // so 3.0 can print a name in the open lane beside it.
-                  const spans = lane.map((t) => {
-                    const ls = splitLegs(t.dates);
-                    const first = dayOfYear(ls[0]?.start ?? t.start);
-                    const ends = ls.map((l) => {
-                      const from = dayOfYear(l.start);
-                      return (from / days) * 100 + Math.max(((dayOfYear(l.end) - from + 1) / days) * 100, 0.7);
-                    });
-                    return { start: (first / days) * 100, end: Math.max(...ends, (first / days) * 100) };
-                  });
-                  const names = yeti ? yetiLaneNames(lane.map((t) => shortName(t.name)), spans) : [];
-                  return lane.map((t, ti) => {
+                {lanes.map((lane, li) =>
+                  lane.map((t) => {
                     const legs = splitLegs(t.dates);
                     const future = t.start > today;
                     const hot = t.tourId === busiest.tourId;
@@ -298,10 +168,9 @@ export function TourTimeline({
                     // reads :root hex literals. Measured (scratchpad script, CSS Color 4
                     // srgb math + WCAG luminance): on the old light and dark pages plain
                     // --steel/--ember on that wash fell below the site's 4.5:1 text floor,
-                    // and mixing 30% toward --ink cleared it. Since round 2 (2026-11-19)
-                    // 3.0 doesn't use this recipe: its labels are plain --ink / --ember
-                    // on the YETI_LEG washes, set where the label is drawn. See
-                    // tour-timeline-label-contrast.test.ts, which recomputes both.
+                    // and mixing 30% toward --ink cleared it. On 3.0's night (the only 3.0
+                    // page since 2026-11) the same mix lands well above AA. See
+                    // tour-timeline-label-contrast.test.ts, which recomputes it.
                     //
                     // Functional doesn't clear with that same recipe: its gel-blue --steel
                     // and its darkened --ember pull further from --ink, so the identical
@@ -309,9 +178,9 @@ export function TourTimeline({
                     // fail AA. Plain --ink on those washes clears at 6.95:1 / 6.19:1, so
                     // functional gets its own literal via the CSS override below
                     // ([data-experience="functional"] .tour-timeline-label) rather than
-                    // the mix recipe. The --tour-label-color custom property carries the
-                    // label color; the class lets the functional rule out-specificity it
-                    // without an inline !important.
+                    // the mix recipe. The --tour-label-color custom property carries this
+                    // value as the default (3.0); the class lets the
+                    // functional rule out-specificity it without an inline !important.
                     const nameColor = future
                       ? "var(--faint)"
                       : hot
@@ -349,25 +218,8 @@ export function TourTimeline({
                               key={leg.start}
                               href={`/tours/${t.tourId}`}
                               title={`${t.name} — ${t.start} to ${t.end}, ${t.shows} ${t.shows === 1 ? "show" : "shows"}${legs.length > 1 ? ` · leg ${i + 1} of ${legs.length}: ${leg.start} to ${leg.end}, ${leg.dates.length} shows` : ""}${t.upcoming ? ` (${t.upcoming} still ahead)` : ""}`}
-                              className={
-                                yeti
-                                  ? "group absolute flex items-center overflow-hidden rounded-full transition"
-                                  : "group absolute flex items-center rounded-[2px] transition"
-                              }
-                              style={yeti ? {
-                                left: `${(from / days) * 100}%`,
-                                width: `max(10px, ${width}%)`,
-                                top,
-                                height: LANE.h,
-                                background: future
-                                  ? "transparent"
-                                  : `color-mix(in srgb, var(${hot ? "--hand" : "--steel"}) ${hot ? YETI_LEG.handWash : YETI_LEG.steelWash}%, transparent)`,
-                                border: future
-                                  ? "1.5px dashed var(--line)"
-                                  : hot
-                                    ? "1.5px solid var(--hand)"
-                                    : "1px solid color-mix(in srgb, var(--steel) 55%, transparent)",
-                              } : {
+                              className="group absolute flex items-center rounded-[2px] transition"
+                              style={{
                                 left: `${(from / days) * 100}%`,
                                 width: `${width}%`,
                                 top,
@@ -388,7 +240,7 @@ export function TourTimeline({
                                     // doubleheaders repeat a date (2022-07-22, 2020-02-29) — the date alone is not unique
                                     key={`${d}·${di}`}
                                     aria-hidden
-                                    className={yeti ? "absolute bottom-[4px] -ml-[1.5px] h-[3px] w-[3px] rounded-full" : "absolute bottom-[2px] h-[5px] w-px"}
+                                    className="absolute bottom-[2px] h-[5px] w-px"
                                     style={{
                                       left: `${Math.min(at, 99)}%`,
                                       background: d > today ? "var(--faint)" : hot ? "var(--hand)" : "var(--steel)",
@@ -398,10 +250,7 @@ export function TourTimeline({
                               })}
                               {/* The name rides the first leg only — repeating it
                                   on every leg would read as separate tours. */}
-                              {/* 3.0 prints the name beside the bars (below); inside, the
-                                  link keeps it for screen readers. */}
-                              {i === 0 && yeti && <span className="sr-only">{t.name}</span>}
-                              {i === 0 && !yeti && (
+                              {i === 0 && (
                                 <span
                                   className="tour-timeline-label pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
                                   style={{ "--tour-label-color": nameColor } as CSSProperties}
@@ -412,36 +261,10 @@ export function TourTimeline({
                             </Link>
                           );
                         })}
-                        {yeti && (() => {
-                          const span = spans[ti];
-                          const place = names[ti];
-                          if (!place) return null;
-                          return (
-                            <span
-                              aria-hidden
-                              className={`tour-timeline-label pointer-events-none absolute z-10 -translate-y-1/2 whitespace-nowrap font-display text-[0.75rem] font-extrabold leading-none max-sm:hidden ${place.hide}`.trim()}
-                              style={
-                                {
-                                  top: top + LANE.h / 2,
-                                  ...(place.side === "right"
-                                    ? { left: `calc(${span.end}% + 6px)` }
-                                    : { right: `calc(${100 - span.start}% + 6px)` }),
-                                  "--tour-label-color": future
-                                    ? YETI_NAME_COLOR.future
-                                    : hot
-                                      ? YETI_NAME_COLOR.hot
-                                      : YETI_NAME_COLOR.plain,
-                                } as Record<string, string | number> as CSSProperties
-                              }
-                            >
-                              {shortName(t.name)}
-                            </span>
-                          );
-                        })()}
                       </Fragment>
                     );
-                  });
-                })}
+                  }),
+                )}
               </div>
             </li>
           );
@@ -449,22 +272,10 @@ export function TourTimeline({
       </ol>
 
       <figcaption className="mt-3 font-mono text-[0.62rem] leading-relaxed text-faint">
-        {yeti ? (
-          <>
-            Each bar is the weeks a tour was actually played, with a dot for every show. A tour with a break of two
-            weeks or more is drawn as separate legs joined by a dotted line — the band went home, and a solid bar
-            through that gap would claim touring that didn&apos;t happen. Dashed bars haven&apos;t happened yet. The
-            busiest run, <span className="text-ember">{busiest.name}</span> at {busiest.shows} shows, is outlined in
-            yellow.{" "}
-          </>
-        ) : (
-          <>
-            Each bar is the weeks a tour was actually played, and every tick inside it is a show. A tour with a break of
-            two weeks or more is drawn as separate legs joined by a dotted line — the band went home, and a solid bar
-            through that gap would claim touring that didn&apos;t happen. Dashed bars haven&apos;t happened yet. The busiest
-            run — <span className="text-ember">{busiest.name}</span>, {busiest.shows} shows — is marked.{" "}
-          </>
-        )}
+        Each bar is the weeks a tour was actually played, and every tick inside it is a show. A tour with a break of
+        two weeks or more is drawn as separate legs joined by a dotted line — the band went home, and a solid bar
+        through that gap would claim touring that didn&apos;t happen. Dashed bars haven&apos;t happened yet. The busiest
+        run — <span className="text-ember">{busiest.name}</span>, {busiest.shows} shows — is marked.{" "}
         {untouredShows > 0 && (
           <>
             {untouredShows} shows belong to no tour at all and aren&apos;t drawn here: one-offs, festivals and sit-ins

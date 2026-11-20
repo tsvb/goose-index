@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TourTimeline, shortName, splitLegs, yetiLaneNames, yetiNamePlacement } from "./tour-timeline";
+import { TourTimeline, shortName, splitLegs } from "./tour-timeline";
 import type { TourSpan } from "@/lib/queries/dimensions";
 
 function tour(over: Partial<TourSpan> & { tourId: number; name: string; start: string; end: string }): TourSpan {
@@ -30,7 +30,6 @@ describe("TourTimeline", () => {
     // draws them on top of each other and silently hides one.
     const html = renderToStaticMarkup(
       <TourTimeline
-        edition="functional"
         today={TODAY}
         untouredShows={0}
         tours={[
@@ -46,7 +45,6 @@ describe("TourTimeline", () => {
   it("keeps a non-overlapping year on a single lane", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
-        edition="functional"
         today={TODAY}
         untouredShows={0}
         tours={[
@@ -61,7 +59,6 @@ describe("TourTimeline", () => {
   it("draws a tour that hasn't happened yet as dashed, not as a gap", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
-        edition="functional"
         today={TODAY}
         untouredShows={0}
         tours={[tour({ tourId: 9, name: "Fall Tour 2026", start: "2026-11-03", end: "2026-11-21", upcoming: 14 })]}
@@ -76,7 +73,6 @@ describe("TourTimeline", () => {
     // excluded from the bars — but that's a fact, not a gap, so it's stated.
     const html = renderToStaticMarkup(
       <TourTimeline
-        edition="functional"
         today={TODAY}
         untouredShows={245}
         tours={[tour({ tourId: 1, name: "Summer Tour 2018", start: "2018-06-01", end: "2018-09-01", shows: 32 })]}
@@ -118,12 +114,12 @@ describe("TourTimeline", () => {
       }
       walk((node as { props?: { children?: unknown } }).props?.children);
     };
-    walk(TourTimeline({ edition: "functional", today: TODAY, untouredShows: 0, tours: [doubleheader] }));
+    walk(TourTimeline({ today: TODAY, untouredShows: 0, tours: [doubleheader] }));
     expect(dups).toEqual([]);
 
     // and the fixture really renders all three ticks
     const html = renderToStaticMarkup(
-      <TourTimeline edition="functional" today={TODAY} untouredShows={0} tours={[doubleheader]} />,
+      <TourTimeline today={TODAY} untouredShows={0} tours={[doubleheader]} />,
     );
     expect(html.match(/bottom-\[2px\]/g)).toHaveLength(3);
   });
@@ -131,7 +127,6 @@ describe("TourTimeline", () => {
   it("marks the busiest run", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
-        edition="functional"
         today={TODAY}
         untouredShows={0}
         tours={[
@@ -147,7 +142,6 @@ describe("TourTimeline", () => {
   it("draws the non-busiest run's bar and ticks in steel, not the retired gold alias", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
-        edition="functional"
         today={TODAY}
         untouredShows={0}
         tours={[
@@ -166,7 +160,7 @@ describe("TourTimeline", () => {
   });
 
   it("renders nothing rather than an empty frame", () => {
-    expect(renderToStaticMarkup(<TourTimeline edition="functional" tours={[]} untouredShows={0} today={TODAY} />)).toBe("");
+    expect(renderToStaticMarkup(<TourTimeline tours={[]} untouredShows={0} today={TODAY} />)).toBe("");
   });
 });
 
@@ -215,7 +209,6 @@ describe("TourTimeline legs", () => {
   it("joins the legs of one tour with a connector, not a solid bar", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
-        edition="functional"
         today="2026-07-13"
         untouredShows={0}
         tours={[
@@ -238,7 +231,6 @@ describe("TourTimeline legs", () => {
   it("names the tour once, on the first leg only", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
-        edition="functional"
         today="2026-07-13"
         untouredShows={0}
         tours={[
@@ -256,7 +248,6 @@ describe("TourTimeline legs", () => {
   it("delivers the label color via --tour-label-color, not a bare inline color: — a revert to style={{ color: nameColor }} would beat the CSS rules in globals.css (base + functional override) and silently reintroduce the 2.0 AA failure while every other test here stays green", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
-        edition="functional"
         today="2026-07-13"
         untouredShows={0}
         tours={[
@@ -278,80 +269,5 @@ describe("TourTimeline legs", () => {
     // { color: var(--ink) }` override.
     const style = label!.match(/style="([^"]*)"/)?.[1] ?? "";
     expect(style).not.toMatch(/(^|;)\s*color:/);
-  });
-});
-
-describe("TourTimeline out of the tape deck (3.0)", () => {
-  const tours = [
-    tour({ tourId: 1, name: "Small Tour 2019", start: "2019-01-01", end: "2019-01-10", shows: 3,
-      dates: ["2019-01-01", "2019-01-05", "2019-01-10"] }),
-    // A show every ten days: one leg, wide enough to carry its name.
-    tour({ tourId: 2, name: "Summer Tour 2018", start: "2018-06-01", end: "2018-08-30", shows: 32,
-      dates: ["2018-06-01", "2018-06-11", "2018-06-21", "2018-07-01", "2018-07-11", "2018-07-21", "2018-07-31", "2018-08-10", "2018-08-20", "2018-08-30"] }),
-    tour({ tourId: 3, name: "Spring Tour 2027", start: "2027-04-09", end: "2027-04-18", shows: 7 }),
-  ];
-  const html = renderToStaticMarkup(<TourTimeline edition="fancy" today={TODAY} untouredShows={0} tours={tours} />);
-
-  it("draws rounded legs with a dot per show, on unboxed rows", () => {
-    expect(html).toContain("rounded-full transition");
-    expect(html.match(/h-\[3px\] w-\[3px\] rounded-full/g)).toHaveLength(3 + 10 + 1);
-    expect(html).not.toContain("rounded-[2px]");
-    expect(html).not.toContain("bg-bg-deep");
-    expect(html).not.toContain("bottom-[2px]");
-  });
-
-  it("outlines the busiest run in sale and dashes the future in frost", () => {
-    expect(html).toContain("border:1.5px solid var(--hand)");
-    expect(html).toContain("border:1.5px dashed var(--line)");
-  });
-
-  it("prints names beside the bars, never inside them", () => {
-    // Inside each named leg, the name is for screen readers only.
-    expect(html).toContain('<span class="sr-only">Summer Tour 2018</span>');
-    expect(html).toContain('<span class="sr-only">Small Tour 2019</span>');
-    // Beside: plain names in slush, the busiest run in the heat color, the
-    // future in faint; none below sm; each lane is the size container.
-    expect(html).toMatch(/aria-hidden="true" class="tour-timeline-label [^"]*max-sm:hidden[^"]*" style="top:14px;left:calc\([\d.]+% \+ 6px\);--tour-label-color:var\(--muted\)">Small</);
-    expect(html).toMatch(/--tour-label-color:var\(--ember\)">Summer</);
-    expect(html).toMatch(/--tour-label-color:var\(--faint\)">Spring</);
-    expect(html).toContain("@container relative flex-1");
-    expect(html).not.toContain("truncate font-display");
-  });
-
-  it("never prints two names into the same gap", () => {
-    // Two tours with one wide gap between them and no room outside: the first
-    // takes the shared gap, the second gets nothing rather than colliding.
-    const placed = yetiLaneNames(["Summer", "Fall"], [{ start: 0, end: 20 }, { start: 60, end: 100 }]);
-    expect(placed[0]?.side).toBe("right");
-    expect(placed[1]).toBeNull();
-    // With room on its far side, the second tour uses that instead.
-    const both = yetiLaneNames(["Summer", "Fall"], [{ start: 0, end: 20 }, { start: 60, end: 70 }]);
-    expect(both.map((p) => p?.side)).toEqual(["right", "right"]);
-  });
-
-  it("puts a name on the side with more open lane, and prints it only when that gap fits it", () => {
-    // Late in the year with a neighbor right after: the name goes left.
-    expect(yetiNamePlacement("Fall", { start: 80, end: 90 }, { prevEnd: 40, nextStart: 92 })?.side).toBe("left");
-    expect(yetiNamePlacement("Fall", { start: 10, end: 20 }, { prevEnd: 8, nextStart: 70 })?.side).toBe("right");
-    // A wide gap fits at any lane width that prints names at all.
-    expect(yetiNamePlacement("Fall", { start: 10, end: 20 }, { prevEnd: 0, nextStart: 70 })).toEqual({ side: "right", hide: "" });
-    // A tighter gap hides below the lane width it needs: "Summer" is 6 × 7.8 + 14
-    // = 60.8px, in a 10% gap a 608px lane, rounded up to the 20px step.
-    expect(yetiNamePlacement("Summer", { start: 10, end: 20 }, { prevEnd: 5, nextStart: 30 })).toEqual({
-      side: "right",
-      hide: "@max-[620px]:hidden",
-    });
-    // A longer name in the same gap needs a wider lane.
-    const px = (p: ReturnType<typeof yetiNamePlacement>) => Number(p!.hide.match(/\[(\d+)px\]/)![1]);
-    expect(px(yetiNamePlacement("Everything Must Go", { start: 10, end: 20 }, { prevEnd: 5, nextStart: 40 }))).toBeGreaterThan(620);
-    // No gap wide enough at any real lane width: no printed name.
-    expect(yetiNamePlacement("Summer", { start: 10, end: 20 }, { prevEnd: 19, nextStart: 22 })).toBeNull();
-    expect(yetiNamePlacement("Summer", { start: 10, end: 20 }, { prevEnd: 10, nextStart: 20 })).toBeNull();
-  });
-
-  it("captions dots and the yellow outline, not ticks", () => {
-    expect(html).toContain("with a dot for every show");
-    expect(html).toContain("is outlined in");
-    expect(html).not.toMatch(/tick/i);
   });
 });

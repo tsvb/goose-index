@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { YETI_NAME_COLOR } from "./tour-timeline";
 
 // The tour-name label in TourTimeline (tour-timeline.tsx) sits on its own
 // bar's color-mix() tinted wash, not on plain --paper — a computed background
@@ -144,20 +143,38 @@ function themeTokens(tokens: Map<string, string>, label: string) {
   };
 }
 
-describe("TourTimeline tour-name label — 3.0 prints names beside the bars, on night", () => {
-  // Since round 2 the 3.0 names sit in the open lane beside the bars, not on a
-  // wash, so each name color is held to 4.5:1 on the night it actually sits on.
-  const t = () => themeTokens(fancyTokens, 'the :root[data-experience="fancy"] block');
-  for (const [kind, ref] of Object.entries(YETI_NAME_COLOR)) {
-    it(`the ${kind} name (${ref}) clears 4.5:1 on night`, () => {
-      const token = ref.match(/var\(--([a-z-]+)\)/)![1];
-      const color = requireToken(fancyTokens, token, 'the :root[data-experience="fancy"] block');
-      expect(contrastRatio(hexToRgb(color), hexToRgb(t().bgDeep))).toBeGreaterThanOrEqual(4.5);
-    });
-  }
+describe("TourTimeline tour-name label — computed contrast on its own wash", () => {
+  // The fog/slate pair this recipe was tuned for is gone (3.0 is dark only).
+  // On night the plain steel label already clears AA, so the "plain steel
+  // fails" case that documented the old bug no longer describes anything;
+  // the mixed recipe is held to the floor instead.
+  const themes = () => ({
+    "3.0": themeTokens(fancyTokens, 'the :root[data-experience="fancy"] block'),
+  });
+
+  it("the default (non-hot) label — steel mixed toward ink — clears 4.5:1 on its own steel wash in 3.0", () => {
+    for (const [name, t] of Object.entries(themes())) {
+      const wash = washOver(t.steel, steelWashPct, t.bgDeep);
+      const text = mixToward(t.steel, steelInkPct, t.ink);
+      const ratio = contrastRatio(text, wash);
+      expect(ratio, `${name}: steel-mixed label on its own wash`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it("the hot (busiest-run) label — ember mixed toward ink — clears 4.5:1 on its own hand wash in 3.0", () => {
+    // The hot bar's wash is --hand, but the label text is --ember (the
+    // text role, per the mark-vs-text rule) — mirror the component.
+    const hand = requireToken(fancyTokens, "hand", 'the :root[data-experience="fancy"] block');
+    for (const [name, t] of Object.entries(themes())) {
+      const wash = washOver(hand, handWashPct, t.bgDeep);
+      const text = mixToward(t.ember, emberInkPct, t.ink);
+      const ratio = contrastRatio(text, wash);
+      expect(ratio, `${name}: ember-mixed label on its own wash`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
 });
 
-// Functional doesn't share the mix recipe 3.0 used before round 2 — its gel-blue
+// Functional doesn't share the 3.0 mix recipe above — its gel-blue
 // --steel and darkened --ember pull too far from --ink for the identical
 // 70/30 mix to clear 4.5:1 on its own wash, so globals.css overrides the
 // label to plain --ink for this experience instead (see the nameColor
@@ -191,7 +208,7 @@ describe("TourTimeline tour-name label — functional edition overrides to plain
     functional = functionalTokens(extractHexTokens(functionalBlockSrc));
   });
 
-  it("the component's mix recipe fails 4.5:1 with functional's own steel/ember (documents why it needs the override)", () => {
+  it("the 3.0 mix recipe fails 4.5:1 with functional's own steel/ember (documents why it needs the override)", () => {
     const steelWash = washOver(functional.steel, steelWashPct, functional.bgDeep);
     const steelLabel = mixToward(functional.steel, steelInkPct, functional.ink);
     expect(contrastRatio(steelLabel, steelWash), "steel-mixed label on functional's steel wash").toBeLessThan(4.5);
