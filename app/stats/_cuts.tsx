@@ -143,9 +143,9 @@ export function RarityGroups({ rows }: { rows: SongIndexRow[] }) {
             </h2>
             <ol>
               {group.map((r) => (
-                <li key={r.songId} className="flex items-center justify-between gap-2.5 border-t border-line py-2 text-[0.88rem]">
+                <li key={r.songId} className="grid min-w-0 border-t border-line py-2 text-[0.88rem]">
                   <Name row={r} />
-                  <span className="shrink-0 text-[0.75rem] text-muted">
+                  <span className="truncate text-[0.75rem] text-muted">
                     {r.lastPlayedDate ? `last ${low(r.lastPlayedDate)}` : ""}
                     {r.currentGap != null ? ` · ${compact(r.currentGap)} shows since` : ""}
                   </span>
