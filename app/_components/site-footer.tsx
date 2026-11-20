@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { Container } from "./container";
-import { PenRule } from "./pen";
 import { getExperience } from "@/lib/experience.server";
 import { BANDCAMP_HOME } from "@/lib/bandcamp";
-
-const LABEL = "font-mono text-[0.68rem] font-semibold lowercase tracking-[0.06em] text-faint";
 
 // Who made the site, kept quiet: it inherits the surrounding text color and
 // shows an underline only on hover, so it reads as part of the copyright line.
@@ -12,39 +9,33 @@ const AUTHOR_URL = "https://timvanbenschoten.com";
 const AUTHOR_LINK = "underline-offset-4 transition hover:text-ink hover:underline";
 
 export function FooterFancy() {
+  // Yeti's recessed surface: the footer sits on the well under one frost
+  // rule, so it reads as outside the page without a card. Column heads are
+  // the barker's heavy type (snow), links slush until hovered.
+  const head = "text-[0.95rem] font-black lowercase text-ink";
+  const nav = "lowercase underline-offset-4 transition hover:text-ink hover:underline";
   return (
-    // The footer is the one region set outside the page's measure. Three
-    // signals put it there, none of them a background fill: the pen rule runs
-    // full-bleed (the masthead's is container-inset), every column is headed
-    // by the same mono micro-label as the two closing strips, and the whole
-    // block sits a notch below content type at 0.8rem.
-    //
-    // A tinted band would say it faster, and can't: fog's palette is tuned to
-    // the AA floor against --paper — spruce (links) clears 4.67:1 and faint
-    // 4.59:1 — so even a 4% ink tint drops both under 4.5:1. Structure and
-    // scale do the separating instead. See globals-contrast.test.ts.
-    <footer className="mt-28">
+    <footer className="mt-24 border-t border-line bg-[var(--well)]">
       <h2 className="sr-only">Site footer</h2>
-      <PenRule seed="footer" />
-      <Container className="grid gap-8 py-9 text-[0.8rem] sm:grid-cols-[1.4fr_1fr_1fr]">
+      <Container className="grid gap-8 py-10 text-[0.875rem] sm:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <span className={LABEL}>goose index</span>
+          <span className={head}>goose index</span>
           <p className="mt-2.5 max-w-[34ch] leading-relaxed text-muted">
             A complete index of every Goose show — setlists, segues, jams, venues, and the story of
             each night.
           </p>
         </div>
         <nav aria-label="Footer" className="flex flex-col gap-1.5 text-muted">
-          <span className={`${LABEL} mb-1`}>browse</span>
-          <Link href="/shows" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">all shows</Link>
-          <Link href="/songs" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">songs</Link>
-          <Link href="/stats" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">stats</Link>
-          <Link href="/on-this-day" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">on this day</Link>
-          <Link href="/venues" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">venues</Link>
-          <Link href="/tours" className="lowercase underline-offset-4 transition hover:text-ink hover:underline">tours</Link>
+          <span className={`${head} mb-1`}>browse</span>
+          <Link href="/shows" className={nav}>all shows</Link>
+          <Link href="/songs" className={nav}>songs</Link>
+          <Link href="/stats" className={nav}>stats</Link>
+          <Link href="/on-this-day" className={nav}>on this day</Link>
+          <Link href="/venues" className={nav}>venues</Link>
+          <Link href="/tours" className={nav}>tours</Link>
         </nav>
         <div className="flex flex-col gap-1.5 text-muted">
-          <span className={`${LABEL} mb-1`}>source</span>
+          <span className={`${head} mb-1`}>source</span>
           <p className="leading-relaxed">
             Setlist data courtesy of{" "}
             <a href="https://elgoose.net" className="link" target="_blank" rel="noreferrer">
@@ -66,19 +57,19 @@ export function FooterFancy() {
           </p>
         </div>
       </Container>
-      <div className="border-t border-line-soft">
-        <Container className="py-4 text-center font-mono text-xs lowercase text-faint">
-          you&rsquo;re reading the <span className="text-steel">3.0</span> edition — the gear in the header
+      <div className="border-t border-line">
+        <Container className="py-4 text-center text-[0.8rem] lowercase text-muted">
+          you&rsquo;re reading the <span className="font-bold text-ink">3.0</span> edition — the gear in the header
           switches to 2.0 (glossy) or 1.0 (plain).
         </Container>
       </div>
-      <div className="border-t border-line-soft">
-        <Container className="flex flex-col items-center justify-between gap-2 py-5 text-xs text-faint sm:flex-row">
-          <span className="font-mono">
+      <div className="border-t border-line">
+        <Container className="flex flex-col items-center justify-between gap-2 py-5 text-[0.8rem] text-faint sm:flex-row">
+          <span>
             © {new Date().getFullYear()} Goose Index ·{" "}
             <a href={AUTHOR_URL} rel="author" className={AUTHOR_LINK}>tim vanbenschoten</a>
           </span>
-          <span className="font-mono">Not affiliated with Goose. Built by fans.</span>
+          <span>Not affiliated with Goose. Built by fans.</span>
         </Container>
       </div>
     </footer>

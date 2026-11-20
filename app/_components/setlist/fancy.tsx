@@ -8,18 +8,20 @@ import { groupSets, isSegue, footnoteRepeatsArtist } from "./shared";
 import { SetTape } from "./tape";
 import { NugsLink } from "../nugs-link";
 import { nugsTrackHref, nugsWebFallback } from "@/lib/nugs";
-import { PenNote } from "../pen";
-import { NilState } from "../page-chrome";
+import { PlainTag, RowSticker } from "../yeti";
 
 export function SetlistFancy({
-  entries, showDate, venue, containerId = null,
-}: { entries: SetlistEntry[]; showDate: string; venue: string | null; containerId?: number | null }) {
-  // A nil sentence, not a dashed box — no link out; there's nothing else on
-  // this page to browse instead while a setlist is still pending.
-  if (entries.length === 0) {
-    return <NilState>No setlist has been recorded for this show yet.</NilState>;
-  }
+  entries, showDate, venue, containerId = null, live = false,
+}: { entries: SetlistEntry[]; showDate: string; venue: string | null; containerId?: number | null; live?: boolean }) {
+  // Nothing logged yet: the show header already says so, beside Yeti's empty
+  // pack ("Setlist not yet in the ledger — check back soon"), so the body
+  // adds no second nil sentence.
+  if (entries.length === 0) return null;
   const groups = groupSets(entries);
+  // While the show may be on stage, the newest logged song is the playing row:
+  // Yeti's row sticker and a faint sale wash. "May be": the live window is a
+  // date, so the label claims only "newest song logged".
+  const newest = live ? entries[entries.length - 1]?.uniqueId : undefined;
 
   return (
     <div className="space-y-10">
@@ -45,7 +47,7 @@ export function SetlistFancy({
             <div className="mb-2 flex items-baseline justify-between gap-4 border-b border-line pb-2">
               {/* h2, not h3 — the show page's h1 (the date) is the only level
                   above; element only, styling unchanged. */}
-              <h2 className="font-display text-xl text-ink">{g.label}</h2>
+              <h2 className="text-[1.2rem] font-black text-ink">{g.label}</h2>
               <span className="font-mono text-[0.7rem] text-faint">
                 {g.entries.length} {g.entries.length === 1 ? "song" : "songs"}
                 {total ? ` · ${formatDuration(total)}` : ""}
@@ -73,20 +75,21 @@ export function SetlistFancy({
                     className={clsx(
                       // setlist-row: almanac themes rule each row like ledger
                       // paper (globals.css); carries no styles elsewhere.
-                      "setlist-row group relative flex items-baseline gap-3 py-[7px] pl-4 nugs-row",
+                      "setlist-row group relative flex items-baseline gap-3 border-t border-line py-[9px] pl-4 nugs-row first:border-t-0",
+                      e.uniqueId === newest && "bg-[rgba(242,226,122,0.07)]",
                       inRun &&
                         "before:absolute before:left-[1px] before:w-[2px] before:rounded-full before:bg-steel/45",
                       inRun && thread,
                     )}
                   >
-                    <span className="w-5 shrink-0 text-right font-mono text-[0.7rem] tabular-nums text-faint">
-                      {i + 1}
+                    <span className="w-5 shrink-0 self-center text-right font-mono text-[0.75rem] tabular-nums text-faint">
+                      {e.uniqueId === newest ? <RowSticker /> : i + 1}
                     </span>
                     <span className="flex-1 leading-snug">
                       {segFromPrev && <span className="mr-1 select-none text-steel">›</span>}
                       {e.slug
-                        ? <Link href={`/songs/${e.slug}`} className="text-[1.02rem] text-ink hover:underline">{e.song}</Link>
-                        : <span className="text-[1.02rem] text-ink">{e.song}</span>}
+                        ? <Link href={`/songs/${e.slug}`} className={clsx("text-[1.02rem] font-semibold hover:underline", e.uniqueId === newest ? "text-ember" : "text-ink")}>{e.song}</Link>
+                        : <span className={clsx("text-[1.02rem] font-semibold", e.uniqueId === newest ? "text-ember" : "text-ink")}>{e.song}</span>}
                       {/* Heat wears ember, everywhere heat appears (flames,
                           Dusted Off); steel stays structural — segue carets,
                           rules. The XL II discipline, applied to all fancy
@@ -98,11 +101,11 @@ export function SetlistFancy({
                       )}
                       {e.isDustedOff && (
                         <span title={`First play in ${e.gap} shows`}>
-                          <PenNote inline className="ml-2">first in {e.gap} shows</PenNote>
+                          <PlainTag className="ml-2">first in {e.gap} shows</PlainTag>
                         </span>
                       )}
                       {!e.isOriginal && e.originalArtist && (
-                        <span className="ml-2 align-baseline text-xs italic text-faint">{e.originalArtist}</span>
+                        <span className="ml-2 align-baseline text-[0.8rem] text-muted">{e.originalArtist}</span>
                       )}
                       {fnIndex.has(e.uniqueId) && (
                         <sup className="ml-0.5">
@@ -170,10 +173,10 @@ export function SetlistFancy({
 
       {/* Legend — the almanac explains its own marks. Keep in step with what
           the rows above actually render: segue carets, jam-chart flames, and
-          numbered endnotes. (Dusted Off is a pen note that names itself —
+          numbered endnotes. (Dusted Off is a plain tag that names itself —
           "first in n shows" — so it needs no separate legend entry.) */}
       <p className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line-soft pt-3 font-mono text-[0.65rem] leading-relaxed text-faint">
-        <span className="uppercase tracking-[0.18em]">Reading the ledger</span>
+        <span className="font-bold">reading the ledger</span>
         <span><span className="text-steel">›</span> = segue</span>
         <span><Flame className="inline h-3 w-3 -translate-y-px text-ember" strokeWidth={1.7} /> = jam chart pick</span>
         <span><span className="text-spruce">¹</span> = see the notes under each set</span>

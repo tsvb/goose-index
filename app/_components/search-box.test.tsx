@@ -58,4 +58,10 @@ describe("SearchBox", () => {
     expect(html).not.toContain("rounded-full");
     expect(html).not.toContain("gold");
   });
+
+  it("carries the search-field hook 3.0 skins as a shelf field (2.0 has no rule for it)", () => {
+    for (const size of ["compact", "full"] as const) {
+      expect(renderToStaticMarkup(<SearchBox size={size} />)).toContain("search-field");
+    }
+  });
 });

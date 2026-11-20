@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { DeepestVenueRow } from "@/lib/queries/discoveries";
+import type { Experience } from "@/lib/experience";
+import { clsx } from "@/app/_components/clsx";
 
 /** Jam share is a level, so it gets a meter.
  *
@@ -79,7 +81,76 @@ function Meter({ fraction, fullScale }: { fraction: number; fullScale: number })
   );
 }
 
-export function VenueDepth({ data }: { data: DeepestVenueRow[] }) {
+/** 3.0 (Yeti, round 2): the level, drawn as the app draws one.
+ *
+ * Yeti's volume control is a slim track — "volume isn't time, so it isn't
+ * foil" — and a jam share is the same kind of number. Each room is a row: the
+ * track fills slush to the reading and turns sale yellow past the zone, with a
+ * notch where the zone starts. The track's end does the needle's job; the
+ * scale, the housing and the graduations were the tape deck's. Same full
+ * scale and zone as the meters, so the two editions read the same numbers. */
+function VenueTracks({ data, fullScale }: { data: DeepestVenueRow[]; fullScale: number }) {
+  const zone = RED_FROM * 100;
+  return (
+    <>
+      <ol className="grid gap-x-9 gap-y-3.5 md:grid-cols-2">
+        {data.map((v) => {
+          const fraction = Math.min(1, Math.max(0, v.jamPercentage / fullScale));
+          const inZone = fraction >= RED_FROM;
+          return (
+            <li key={v.venueId} className="min-w-0 border-b border-line pb-3">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="min-w-0 truncate font-display text-[0.95rem] font-extrabold text-ink">
+                  {v.slug ? (
+                    <Link href={`/venues/${v.slug}`} className="underline-offset-4 hover:underline">
+                      {v.name}
+                    </Link>
+                  ) : (
+                    v.name
+                  )}
+                </span>
+                <span
+                  className={clsx(
+                    "shrink-0 font-mono text-[0.95rem] font-extrabold tabular-nums",
+                    inZone ? "text-ember" : "text-ink",
+                  )}
+                >
+                  {v.jamPercentage.toFixed(1)}%
+                </span>
+              </div>
+              <span data-role="level" aria-hidden="true" className="relative mt-1.5 block h-1.5 rounded-full bg-[var(--frost)]">
+                <span
+                  className={clsx("absolute inset-y-0 left-0 bg-steel", inZone ? "rounded-l-full" : "rounded-full")}
+                  style={{ width: `${Math.min(fraction, RED_FROM) * 100}%` }}
+                />
+                {inZone && (
+                  <span
+                    data-role="zone"
+                    className="absolute inset-y-0 rounded-r-full bg-[var(--hand)]"
+                    style={{ left: `${zone}%`, width: `${(fraction - RED_FROM) * 100}%` }}
+                  />
+                )}
+                <span
+                  className="absolute -top-[3px] -ml-px h-3 w-0.5 rounded-[1px] bg-ink opacity-55"
+                  style={{ left: `${zone}%` }}
+                />
+              </span>
+              <p className="mt-1 font-mono text-[0.6rem] text-faint">
+                {v.totalJams}/{v.totalPerformances} jams · {v.totalShows} shows
+              </p>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="mt-4 font-mono text-[0.62rem] text-faint">
+        Each track runs to {fullScale}% jam-tagged and turns yellow past the notch at{" "}
+        {Math.round(fullScale * RED_FROM)}%. The counts underneath keep a hot three-show room honest.
+      </p>
+    </>
+  );
+}
+
+export function VenueDepth({ data, edition }: { data: DeepestVenueRow[]; edition: Experience }) {
   if (data.length === 0) {
     return <p className="font-mono text-sm text-faint">No venues qualify yet.</p>;
   }
@@ -88,6 +159,8 @@ export function VenueDepth({ data }: { data: DeepestVenueRow[] }) {
   // read against the same dial rather than each being self-normalized.
   const hottest = Math.max(...data.map((d) => d.jamPercentage));
   const fullScale = Math.max(10, Math.ceil(hottest / 10) * 10);
+
+  if (edition === "fancy") return <VenueTracks data={data} fullScale={fullScale} />;
 
   return (
     <>

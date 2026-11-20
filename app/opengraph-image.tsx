@@ -1,7 +1,9 @@
 import { ImageResponse } from "next/og";
 
-// Default social card: the Feather mark and wordmark on the almanac dark
-// ground. Uses next/og's bundled font only — no network fetch at render time.
+// Default social card: the Feather mark and wordmark in snow on Yeti's night,
+// with the snow glow from the top edge (3.0 is the default edition, so this is
+// the site's face). Uses next/og's bundled font only — no network fetch at
+// render time (it can't use the system rounded face).
 export const alt = "Goose Index — every show, indexed.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -17,9 +19,9 @@ export default function OpengraphImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#15110c",
+          backgroundColor: "#0F1424",
           backgroundImage:
-            "radial-gradient(circle at 50% 36%, rgba(237, 171, 68, 0.16), rgba(21, 17, 12, 0) 58%)",
+            "radial-gradient(120% 70% at 50% -10%, rgba(233, 238, 247, 0.12), rgba(233, 238, 247, 0) 70%)",
           fontFamily:
             'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
         }}
@@ -29,7 +31,7 @@ export default function OpengraphImage() {
           height="132"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#edab44"
+          stroke="#E9EEF7"
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -43,7 +45,7 @@ export default function OpengraphImage() {
             marginTop: 34,
             fontSize: 104,
             letterSpacing: "-0.02em",
-            color: "#f3ead9",
+            color: "#E9EEF7",
           }}
         >
           Goose Index
@@ -56,18 +58,16 @@ export default function OpengraphImage() {
             gap: 22,
           }}
         >
-          <div style={{ width: 64, height: 1, backgroundColor: "rgba(237, 171, 68, 0.4)" }} />
+          <div style={{ width: 64, height: 1, backgroundColor: "#2E3A5C" }} />
           <div
             style={{
-              fontSize: 27,
-              letterSpacing: "0.28em",
-              textTransform: "uppercase",
-              color: "#edab44",
+              fontSize: 30,
+              color: "#9FABCE",
             }}
           >
             Every show, indexed.
           </div>
-          <div style={{ width: 64, height: 1, backgroundColor: "rgba(237, 171, 68, 0.4)" }} />
+          <div style={{ width: 64, height: 1, backgroundColor: "#2E3A5C" }} />
         </div>
       </div>
     ),

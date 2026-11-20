@@ -15,30 +15,32 @@ function row(name: string, daysSincePlayed: number, totalPlays = 9, songId = day
 }
 
 /** Thickness comes off the pack (graphite — the song's size); the red-zone
- * reading comes off the ring, which is the only thing carrying accent. */
+ * reading comes off the ring, which is the only thing carrying accent. The
+ * ring draws --foil past a year and --gap-near before it: one color in 3.0
+ * (foil is elapsed time), 2.0's old steel/ember pair through the aliases. */
 function marks(html: string) {
-  const packs = [...html.matchAll(/data-role="pack"[^>]*stroke="var\(--line\)" stroke-width="([\d.]+)"/g)];
-  const rings = [...html.matchAll(/data-role="gap"[^>]*stroke="var\(--(ember|steel)\)"/g)];
+  const packs = [...html.matchAll(/data-role="pack"[^>]*stroke="var\(--graphite\)" stroke-width="([\d.]+)"/g)];
+  const rings = [...html.matchAll(/data-role="gap"[^>]*stroke="var\(--(foil|gap-near)\)"/g)];
   return packs.map((m, i) => ({
     thickness: Number(m[1]),
-    red: rings[i]?.[1] === "ember",
+    red: rings[i]?.[1] === "foil",
   }));
 }
 
-describe("TheShelf spools", () => {
+describe("TheShelf spools (2.0)", () => {
   const data = [row("Longest", 1367), row("Middle", 400), row("Shortest", 88)];
 
   it("runs the ring into the red only past a year on the shelf", () => {
-    const m = marks(renderToStaticMarkup(<TheShelf data={data} />));
+    const m = marks(renderToStaticMarkup(<TheShelf data={data} edition="functional" />));
     expect(m).toHaveLength(3);
     expect(m.map((x) => x.red)).toEqual([true, true, false]);
   });
 
   it("spends accent only on the ring — never on the tape", () => {
-    const html = renderToStaticMarkup(<TheShelf data={data} />);
+    const html = renderToStaticMarkup(<TheShelf data={data} edition="functional" />);
     // Color means exactly one thing here: how long it has been. If the pack
     // ever takes accent again, a fat spool starts out-shouting an urgent one.
-    const packsWithAccent = html.match(/data-role="pack"[^>]*var\(--(gold|steel|ember|hand)\)/g);
+    const packsWithAccent = html.match(/data-role="pack"[^>]*var\(--(gold|steel|ember|hand|foil|gap-near)\)/g);
     expect(packsWithAccent).toBeNull();
   });
 
@@ -58,6 +60,35 @@ describe("TheShelf spools", () => {
 
   it("renders an empty state rather than dividing by zero", () => {
     expect(renderToStaticMarkup(<TheShelf data={[]} />)).toContain("No originals qualify yet");
+  });
+});
+
+describe("TheShelf ring and disc (3.0)", () => {
+  const data = [row("Longest", 1367, 9), row("Middle", 400, 40), row("Shortest", 88, 110)];
+  const html = renderToStaticMarkup(<TheShelf data={data} edition="fancy" />);
+
+  it("draws the pill's foil ring for every song, and no spool", () => {
+    expect([...html.matchAll(/data-role="gap"[^>]*stroke="var\(--foil\)"/g)]).toHaveLength(3);
+    expect(html).not.toContain('data-role="pack"');
+    // The six-prong hub is the tape theme's; it doesn't come along.
+    expect(html).not.toContain("var(--graphite)");
+  });
+
+  it("marks a year on the shelf with a halo, not a color change", () => {
+    expect([...html.matchAll(/data-role="halo"/g)]).toHaveLength(2);
+  });
+
+  it("sizes the disc by plays and never spends accent on it", () => {
+    const radii = [...html.matchAll(/data-role="disc"[^>]*r="([\d.]+)"/g)].map((m) => Number(m[1]));
+    expect(radii).toHaveLength(3);
+    expect(radii[0]).toBeLessThan(radii[1]);
+    expect(radii[1]).toBeLessThan(radii[2]);
+    expect(html.match(/data-role="disc"[^>]*var\(--(foil|sale|hand|ember|gap-near)\)/g)).toBeNull();
+  });
+
+  it("captions the disc, not the tape", () => {
+    expect(html).toContain("A big disc inside a closed ring");
+    expect(html).not.toMatch(/spool|tape|hub/i);
   });
 });
 
@@ -109,5 +140,15 @@ describe("spoolReadings", () => {
     expect(sameGap[0].wound).toBe(sameGap[1].wound);
     expect(sameGap[0].gap).toBeGreaterThan(0);
     expect(sameGap[0].wound).toBeGreaterThan(0);
+  });
+
+  it("names what the ring draws in each edition: 3.0's halo, 2.0's red", () => {
+    const data = [row("Longest", 1367), row("Shortest", 88)];
+    const fancy = renderToStaticMarkup(<TheShelf data={data} edition="fancy" />);
+    expect(fancy).toContain("Past a year the ring gets a halo.");
+    expect(fancy).not.toContain("runs into the");
+    const glossy = renderToStaticMarkup(<TheShelf data={data} edition="functional" />);
+    expect(glossy).toContain("Past a year the ring runs into the");
+    expect(glossy).not.toContain("halo");
   });
 });

@@ -114,7 +114,7 @@ export default async function VenuesPage({
 
   // Fancy's sticky offset matches the real masthead height (h-14 + PenRule);
   // functional's shorter w2 appbar uses its own h-12.
-  const stickyTop = experience === "functional" ? "top-12" : "top-[calc(3.5rem_+_6px)]";
+  const stickyTop = experience === "functional" ? "top-12" : "top-[calc(3.5rem_+_1px)]";
 
   return (
     <Container>

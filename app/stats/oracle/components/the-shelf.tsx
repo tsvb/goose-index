@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatShortDate } from "@/lib/queries/format";
 import type { ShelfRow } from "@/lib/queries/discoveries";
+import type { Experience } from "@/lib/experience";
 
 /** Past a year on the shelf, the tape is drawn in the red — the same
  * "overdue" reading `--ember` carries everywhere else on the site. */
@@ -75,7 +76,7 @@ function ringPath(fraction: number, r: number) {
 /** Six-pronged drive hub, the shape a cassette actually has. */
 function Prongs() {
   return (
-    <g stroke="var(--line)" strokeWidth={2.5} strokeLinecap="round">
+    <g stroke="var(--graphite)" strokeWidth={2.5} strokeLinecap="round">
       {[0, 60, 120, 180, 240, 300].map((deg) => {
         const rad = (deg * Math.PI) / 180;
         return (
@@ -104,7 +105,10 @@ function Spool({ wound, gap, red }: SpoolReading) {
   const thickness = Number(((TAPE.min + wound * TAPE.span) * (HUB.rim - HUB.core)).toFixed(2));
   const packOuter = HUB.core + thickness;
   const mid = HUB.core + thickness / 2;
-  const signal = red ? "var(--ember)" : "var(--steel)";
+  // Elapsed time. 3.0 draws it in foil throughout (Yeti's "foil means time",
+  // the pill's ring), and only the halo marks a year; 2.0 aliases these to its
+  // old steel/ember pair, so its ring still changes color at a year.
+  const signal = red ? "var(--foil)" : "var(--gap-near)";
 
   return (
     <svg viewBox="0 0 100 100" className="w-full" aria-hidden="true">
@@ -124,7 +128,7 @@ function Spool({ wound, gap, red }: SpoolReading) {
       {/* The shell window: the cavity the tape is wound in. */}
       <circle cx={HUB.c} cy={HUB.c} r={HUB.rim} fill="var(--bg-deep)" stroke="var(--line-soft)" strokeWidth={1} />
       {/* The wound pack — graphite. Thickness is the song's size; color says nothing. */}
-      <circle data-role="pack" cx={HUB.c} cy={HUB.c} r={mid} fill="none" stroke="var(--line)" strokeWidth={thickness} />
+      <circle data-role="pack" cx={HUB.c} cy={HUB.c} r={mid} fill="none" stroke="var(--graphite)" strokeWidth={thickness} />
       {thickness > 6 && (
         <>
           <circle cx={HUB.c} cy={HUB.c} r={HUB.core + thickness * 0.35} fill="none" stroke="var(--bg-deep)" strokeWidth={0.6} opacity={0.5} />
@@ -132,16 +136,43 @@ function Spool({ wound, gap, red }: SpoolReading) {
         </>
       )}
       {/* The hub. */}
-      <circle cx={HUB.c} cy={HUB.c} r={HUB.core} fill="var(--surface)" stroke="var(--line)" strokeWidth={1} />
+      <circle cx={HUB.c} cy={HUB.c} r={HUB.core} fill="var(--surface)" stroke="var(--graphite)" strokeWidth={1} />
       <Prongs />
-      <circle cx={HUB.c} cy={HUB.c} r={HUB.hole} fill="var(--bg)" stroke="var(--line)" strokeWidth={1} />
+      <circle cx={HUB.c} cy={HUB.c} r={HUB.hole} fill="var(--bg)" stroke="var(--graphite)" strokeWidth={1} />
+    </svg>
+  );
+}
+
+/** 3.0 (Yeti, round 2): the same two readings, out of the tape deck.
+ *
+ * The ring is the pill's progress ring — a frost track with the foil arc
+ * closing over it, Yeti's own drawing of time passing — and past a year a thin
+ * foil halo marks the shelf. The spool and its six-prong hub were the tape
+ * theme's object; the song's size is now a plain card-stock disc whose radius
+ * is the same `wound` reading. Color still says one thing: only the ring is
+ * foil, the disc never is. */
+const DISC = { c: 50, ring: 44, halo: 48.6, min: 15, span: 21 } as const;
+
+function Disc({ wound, gap, red }: SpoolReading) {
+  const r = Number((DISC.min + wound * DISC.span).toFixed(2));
+  return (
+    <svg viewBox="0 0 100 100" className="w-full" aria-hidden="true">
+      {red && (
+        <circle data-role="halo" cx={DISC.c} cy={DISC.c} r={DISC.halo} fill="none" stroke="var(--foil)" strokeOpacity={0.32} strokeWidth={1} />
+      )}
+      {/* The track has to be visible: a recently played song is a short stub
+          of arc, and without the full turn behind it the stub reads as a tick. */}
+      <circle cx={DISC.c} cy={DISC.c} r={DISC.ring} fill="none" stroke="var(--frost)" strokeWidth={3.2} />
+      <path data-role="gap" d={ringPath(gap, DISC.ring)} fill="none" stroke="var(--foil)" strokeWidth={3.6} strokeLinecap="round" />
+      <circle data-role="disc" cx={DISC.c} cy={DISC.c} r={r} fill="var(--card-stock)" stroke="var(--frost)" strokeWidth={1} />
+      <circle cx={DISC.c} cy={DISC.c} r={Math.max(3, Number((r * 0.16).toFixed(2)))} fill="var(--night)" />
     </svg>
   );
 }
 
 /** Originals with the longest current gap. Sorted oldest-first, so `data[0]`
  * is the barest spool and the fullest ring. */
-export function TheShelf({ data }: { data: ShelfRow[] }) {
+export function TheShelf({ data, edition = "fancy" }: { data: ShelfRow[]; edition?: Experience }) {
   if (data.length === 0) {
     return <p className="font-mono text-sm text-faint">No originals qualify yet.</p>;
   }
@@ -155,7 +186,7 @@ export function TheShelf({ data }: { data: ShelfRow[] }) {
           return (
             <li key={song.songId} className="flex flex-col items-center text-center">
               <div className="relative w-full max-w-[124px]">
-                <Spool {...r} />
+                {edition === "fancy" ? <Disc {...r} /> : <Spool {...r} />}
                 <span className="absolute left-0 top-0 font-mono text-[0.6rem] tabular-nums text-faint">
                   {String(i + 1).padStart(2, "0")}
                 </span>
@@ -169,7 +200,7 @@ export function TheShelf({ data }: { data: ShelfRow[] }) {
                   <span className="block truncate font-display text-[0.9rem] text-ink">{song.name}</span>
                 )}
                 <p className="mt-0.5 font-mono text-sm tabular-nums">
-                  <span className={r.red ? "text-ember" : "text-steel"}>{song.daysSincePlayed}</span>
+                  <span className={r.red ? "text-[var(--foil)]" : "text-[var(--gap-near)]"}>{song.daysSincePlayed}</span>
                   <span className="ml-1 text-xs text-faint">days</span>
                 </p>
                 <p className="mt-0.5 font-mono text-[0.62rem] leading-relaxed text-faint">
@@ -180,12 +211,24 @@ export function TheShelf({ data }: { data: ShelfRow[] }) {
           );
         })}
       </ol>
-      <p className="mt-5 max-w-2xl font-mono text-[0.62rem] leading-relaxed text-faint">
-        Two readings per spool: the <span className="text-muted">tape</span> on the hub is how big a song is (total
-        plays), and the <span className="text-steel">ring</span> around it is how long since it was last played, closing
-        as the gap grows. Past a year the ring runs into the <span className="text-ember">red</span>. A thick spool
-        inside a closed ring is the one to worry about — a staple the band has stopped playing.
-      </p>
+      {/* The caption names what the chart draws, and 3.0 draws it differently:
+          a foil ring with a halo past a year around a disc, where 2.0 draws a
+          spool whose ring changes color. */}
+      {edition === "fancy" ? (
+        <p className="mt-5 max-w-2xl font-mono text-[0.62rem] leading-relaxed text-faint">
+          Two readings per song: the <span className="text-[var(--foil)]">ring</span> closes as the gap since the last
+          play grows, and the <span className="text-muted">disc</span> inside is how big a song is (total plays). Past a
+          year the ring gets a halo. A big disc inside a closed ring is the one to worry about: a staple the band has
+          stopped playing.
+        </p>
+      ) : (
+        <p className="mt-5 max-w-2xl font-mono text-[0.62rem] leading-relaxed text-faint">
+          Two readings per spool: the <span className="text-muted">tape</span> on the hub is how big a song is (total
+          plays), and the <span className="text-steel">ring</span> around it is how long since it was last played, closing
+          as the gap grows. Past a year the ring runs into the <span className="text-ember">red</span>. A thick spool
+          inside a closed ring is the one to worry about — a staple the band has stopped playing.
+        </p>
+      )}
     </>
   );
 }

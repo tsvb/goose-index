@@ -1,9 +1,15 @@
-# AppleNugs ⇄ Goose Index — deep-link contract
+# Yeti (formerly AppleNugs) ⇄ Goose Index — deep-link contract
 
-_Status: BUILT 2026-06-28 (both sides live) · Applies to: this repo (emits links) + `tsvb/applenugs` (handles them)_
+_Status: BUILT 2026-06-28 (both sides live) · Applies to: this repo (emits links) + `tsvb/yeti` (handles them; formerly `tsvb/applenugs`, which GitHub redirects)_
+
+> **The name.** The app was renamed **Yeti** on its `main` in November 2026 (repo `tsvb/yeti`).
+> The only public download is still **v1.5**, which installs as **AppleNugs** and registers only
+> `applenugs://`. Yeti builds register both `yeti://` and `applenugs://`. So this site keeps
+> emitting `applenugs://` (it works with every build) and says nothing about `yeti://` until a
+> Yeti release ships. This file keeps its name; the scheme it documents is unchanged.
 
 A value-add for Goose fans who use both: every show (and song performance) in the
-Goose Index can hand off to the **AppleNugs** player to **listen or watch** that night on
+Goose Index can hand off to the **Yeti** player (formerly AppleNugs) to **listen or watch** that night on
 nugs.net. The Goose Index stays **decoupled from nugs's catalog** — it emits a show
 identity; the app owns resolution and subscriber entitlement. No commercial angle;
 just a slick handoff.
@@ -54,13 +60,13 @@ space, so a `+` would reach the app literally.
 ## Resolution (app side)
 
 The app turns `artist + date (+ venue, media)` into a nugs container, reusing methods
-it already has (`AppleNugs/Core/NugsClient.swift` + `Catalog.swift`):
+it already has (`Yeti/Core/NugsClient.swift` + `Catalog.swift`; `AppleNugs/Core/` before the rename):
 
 1. `allArtists()` → find the `ArtistEntry` whose `name` matches `artist` → `artistID`. (Cache it — `AppModel` already caches the artist list.)
 2. **audio:** `artistShows(id: artistID)` → `[ContainerSummary]` → match `dateText == <date>` (use `venue` to break ties) → navigate `Route.album(id: container.id)`.
    **video:** `artistVideos(id: artistID)` → `[VideoSummary]` → match `performanceDate`/`dateText` (+ `venue`) → open the video detail (`videoDetail(containerId:)`).
 3. Fallback if no per-artist match: `search("<artist> <date>")` and match the same way.
-4. **No picker UI exists.** Verified against `AppleNugs/Core/DeepLinkRouter.swift` on
+4. **No picker UI exists.** Verified against `AppleNugs/Core/DeepLinkRouter.swift` (now `Yeti/Core/`) on
    2026-08-18: with no usable venue hint, `pick(_:venue:)` takes the **first** same-day
    match (`cs.first`) rather than disambiguating. A venue hint that matches nothing is
    treated as a miss — the caller keeps paging, then falls through to the `search(...)`
@@ -91,7 +97,7 @@ only the app-side handoff can start at a specific performance.
 
 ## Who implements what
 
-**`tsvb/applenugs` (✅ built 2026-06-28):**
+**`tsvb/yeti`, then `tsvb/applenugs` (✅ built 2026-06-28):**
 - Register the scheme: add `CFBundleURLTypes` (scheme `applenugs`) to the Info block in `project.yml`.
 - Add `.onOpenURL` on the root scene (`AppleNugsApp.swift` / `RootView`) → parse the URL → branch on `media` → run the resolver → set the navigation `Route`.
 - Add the resolver (~a thin wrapper over `allArtists` / `artistShows` / `artistVideos` / `search`).

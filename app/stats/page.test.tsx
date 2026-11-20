@@ -101,9 +101,9 @@ describe("StatsHub (fancy/functional)", () => {
     expect(html).toContain("Twice Cover");
     expect(html).toContain("last May 1, 2026");
     expect(html).not.toContain("One Night Only");
-    // overdue: ring in ember + written count
+    // overdue: the ring is elapsed time (--foil: pink in 3.0, ember in 2.0) + written count
     expect(html).toContain("Up On Cripple Creek");
-    expect(html).toContain('stroke="var(--ember)"');
+    expect(html).toContain('stroke="var(--foil)"');
     expect(html).toContain(">616</span>");
     // debuts: the running year is dashed and named
     expect(html).toContain("New One");

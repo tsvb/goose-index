@@ -136,6 +136,11 @@ export default async function OraclePage() {
     );
   }
 
+  // 3.0 draws these readings in Yeti's forms (spec round 2), so the blurbs that
+  // name a drawing say what 3.0 draws; 2.0 keeps its tape-deck words.
+  const yeti = experience === "fancy";
+  const joins = yeti ? "runs" : "welds";
+
   return (
     <StatsShell cut={CUT_META}>
       <div className="space-y-12">
@@ -143,39 +148,43 @@ export default async function OraclePage() {
           title="Which night runs hottest?"
           blurb={`Jam-tagged performances per show by weekday, read against the week's own mean. Spoke thickness is how many shows stand behind the reading.${chartedThrough}`}
         >
-          <DayOfWeekDial data={dow} />
+          <DayOfWeekDial data={dow} edition={experience} />
         </OracleSection>
 
         <OracleSection
           title="The segue lines"
           blurb={
             transitions.length > 0
-              ? `The ${transitions.length} pairs the band welds together most often, across every show.`
-              : "The pairs the band welds together most often, across every show."
+              ? `The ${transitions.length} pairs the band ${joins} together most often, across every show.`
+              : `The pairs the band ${joins} together most often, across every show.`
           }
         >
-          <TransitionsList data={transitions} />
+          <TransitionsList data={transitions} edition={experience} />
         </OracleSection>
 
         <OracleSection
           title="The shelf"
-          blurb="Originals gathering dust: the ring is how long since the last play, the tape is how big a song it is."
+          blurb={
+            yeti
+              ? "Originals gathering dust: the ring is how long since the last play, the disc is how big a song is."
+              : "Originals gathering dust: the ring is how long since the last play, the tape is how big a song it is."
+          }
         >
-          <TheShelf data={shelf} />
+          <TheShelf data={shelf} edition={experience} />
         </OracleSection>
 
         <OracleSection
           title="Deepest venues"
           blurb={`The rooms that pull the most jams, as a share of everything played there (min 3 shows).${chartedThrough}`}
         >
-          <VenueDepth data={venues} />
+          <VenueDepth data={venues} edition={experience} />
         </OracleSection>
 
         <OracleSection
           title="From the coach's desk"
           blurb="The band's own liner notes, lifted from their official Bandcamp releases."
         >
-          <CoachsNotes data={notes} />
+          <CoachsNotes data={notes} edition={experience} />
         </OracleSection>
       </div>
     </StatsShell>
@@ -193,8 +202,8 @@ function OracleSection({
 }) {
   return (
     <section>
-      <h2 className="mb-1 font-display text-base text-ink">{title}</h2>
-      <p className="mb-3 font-mono text-xs text-faint">{blurb}</p>
+      <h2 className="oracle-head mb-1 font-display text-base text-ink">{title}</h2>
+      <p className="oracle-blurb mb-3 font-mono text-xs text-faint">{blurb}</p>
       {children}
     </section>
   );

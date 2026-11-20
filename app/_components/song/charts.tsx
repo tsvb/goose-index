@@ -87,7 +87,7 @@ export function GapSparkline({ perfs }: { perfs: SongPerf[] }) {
       {bars.map((b, i) => {
         const h = Math.max(SPARK.minBarH, round2((b.gap / max) * SPARK.viewH));
         return (
-          <rect key={i} x={round2(i * slot + (slot - barW) / 2)} y={round2(SPARK.viewH - h)} width={round2(barW)} height={h} {...(b.ember ? { fill: "var(--ember)", fillOpacity: 1 } : {})}>
+          <rect key={i} x={round2(i * slot + (slot - barW) / 2)} y={round2(SPARK.viewH - h)} width={round2(barW)} height={h} {...(b.ember ? { fill: "var(--foil)", fillOpacity: 1 } : {})}>
             <title>{b.label}</title>
           </rect>
         );

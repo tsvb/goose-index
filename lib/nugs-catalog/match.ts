@@ -2,7 +2,7 @@ import type { NugsContainer } from "./parse";
 
 /** Lowercased, accent-folded, punctuation-stripped.
  *
- *  Close to DeepLinkMatch.normalize in tsvb/applenugs, but deliberately NOT
+ *  Close to DeepLinkMatch.normalize in tsvb/yeti (formerly applenugs), but deliberately NOT
  *  identical — it is stricter in two places the app gets wrong. The app deletes
  *  ALL punctuation with no substitute, so "St-Denis" collapses to "stdenis" and
  *  stops matching a nugs venue of "St Denis", and " & " leaves a double space.

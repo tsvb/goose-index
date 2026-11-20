@@ -45,7 +45,7 @@ export default async function YearsPage() {
         <p className="mb-5 mt-1 font-mono text-xs text-faint">
           Thirteen years of shows. A list makes you plot this in your head.
         </p>
-        <CareerChart years={career} />
+        <CareerChart years={career} edition={experience} />
       </section>
 
       {/* List */}

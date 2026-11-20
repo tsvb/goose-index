@@ -5,7 +5,9 @@ import path from "node:path";
 // A standing contrast gate over app/globals.css. It reads the literal hex
 // values out of the CSS source (not a browser, not computed styles) so it
 // runs everywhere Vitest does and can't be fooled by JS-computed colors.
-// If a future tune quietly drops a theme below AA, this fails loudly.
+// If a future tune quietly drops 3.0 below AA, this fails loudly. (2.0 and
+// 1.0 hold their own period palettes; their text pairs are pinned by the
+// screenshots and the component tests, as before.)
 
 const CSS_PATH = path.join(__dirname, "globals.css");
 
@@ -80,32 +82,21 @@ function requireToken(tokens: Map<string, string>, name: string, blockLabel: str
 }
 
 let css: string;
-let fogTokens: Map<string, string>;
-let slateTokens: Map<string, string>;
-let slateMediaTokens: Map<string, string>;
+let fancyTokens: Map<string, string>;
+let rootSource: string;
 
 beforeAll(() => {
   css = fs.readFileSync(CSS_PATH, "utf8");
-
-  // The fog block is the first bare `:root { ... }` in the file — the base
-  // color tokens declared before the dark-mode media query and the
-  // `[data-theme]` overrides.
-  const fogBlockSrc = extractBlock(css, /:root\s*\{([^}]*)\}/, 'the fog ":root { }" block');
-  fogTokens = extractHexTokens(fogBlockSrc);
-
-  const slateBlockSrc = extractBlock(
+  // The 3.0 token block is the first `:root[data-experience="fancy"] { ... }`
+  // (the second one sets the type stack).
+  const fancySrc = extractBlock(
     css,
-    /:root\[data-theme=["']slate["']\]\s*\{([^}]*)\}/,
-    ':root[data-theme="slate"] block',
+    /:root\[data-experience=["']fancy["']\]\s*\{([^}]*)\}/,
+    ':root[data-experience="fancy"] token block',
   );
-  slateTokens = extractHexTokens(slateBlockSrc);
-
-  const slateMediaBlockSrc = extractBlock(
-    css,
-    /:root:not\(\[data-theme=["']fog["']\]\)\s*\{([^}]*)\}/,
-    '@media (prefers-color-scheme: dark) :root:not([data-theme="fog"]) block',
-  );
-  slateMediaTokens = extractHexTokens(slateMediaBlockSrc);
+  fancyTokens = extractHexTokens(fancySrc);
+  // The floor 2.0 and 1.0 inherit: the first bare `:root { ... }`.
+  rootSource = extractBlock(css, /:root\s*\{([^}]*)\}/, 'the bare ":root { }" block');
 });
 
 describe("contrast math self-check", () => {
@@ -116,83 +107,71 @@ describe("contrast math self-check", () => {
   });
 });
 
-// Per-theme AA thresholds. Each role keeps its meaning (see the file-header
-// comment in globals.css) — this just holds it to a floor against that
-// theme's paper.
+// AA floors per role (see the role comments in globals.css). Each text role is
+// held against both grounds 3.0 prints on: night (the page) and card stock
+// (the pack, the date tile).
 const THRESHOLDS: { token: string; min: number }[] = [
   { token: "ink", min: 7.0 }, // body text, comfortably AAA
   { token: "muted", min: 4.5 },
-  { token: "faint", min: 4.5 }, // styles 0.55–0.85rem text
-  { token: "pencil", min: 4.5 }, // PenNote is content text
+  { token: "faint", min: 4.5 }, // small numerals and captions
+  { token: "pencil", min: 4.5 }, // the caveat channel is content text
   { token: "steel", min: 4.5 }, // dates/structure text
   { token: "spruce", min: 4.5 }, // links
+  { token: "ember", min: 4.5 }, // heat as text (live, tonight, hottest night)
+  { token: "foil", min: 4.5 }, // elapsed time as text (overdue counts, the Shelf's days)
   { token: "hand", min: 3.0 }, // a mark, always paired with written values
-  { token: "ember", min: 4.5 }, // heat/live text (.live-flag, .overdue, .song-bust)
 ];
 
-describe("fog theme — token contrast against --paper", () => {
-  for (const { token, min } of THRESHOLDS) {
-    it(`--${token} is >= ${min}:1 on fog --paper`, () => {
-      const paper = requireToken(fogTokens, "paper", "the fog block");
-      const fg = requireToken(fogTokens, token, "the fog block");
-      const ratio = contrastRatio(fg, paper);
-      expect(ratio).toBeGreaterThanOrEqual(min);
-    });
-  }
-});
+for (const ground of ["paper", "card-stock"] as const) {
+  describe(`3.0 (Yeti) — token contrast against --${ground}`, () => {
+    for (const { token, min } of THRESHOLDS) {
+      it(`--${token} is >= ${min}:1 on --${ground}`, () => {
+        const bg = requireToken(fancyTokens, ground, "the fancy block");
+        const fg = requireToken(fancyTokens, token, "the fancy block");
+        expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(min);
+      });
+    }
+  });
+}
 
-describe("slate theme — token contrast against --paper", () => {
-  for (const { token, min } of THRESHOLDS) {
-    it(`--${token} is >= ${min}:1 on slate --paper`, () => {
-      const paper = requireToken(slateTokens, "paper", 'the :root[data-theme="slate"] block');
-      const fg = requireToken(slateTokens, token, 'the :root[data-theme="slate"] block');
-      const ratio = contrastRatio(fg, paper);
-      expect(ratio).toBeGreaterThanOrEqual(min);
-    });
-  }
-});
-
-describe("the two slate blocks stay in sync", () => {
-  it("the prefers-color-scheme media block and :root[data-theme=slate] declare identical token values", () => {
-    // Not literal byte-identical text — the media block carries an extra
-    // rationale comment the data-theme block cross-references instead — but
-    // every custom property the two declare must resolve to the same value,
-    // so the dark-OS path and the explicit slate pin never disagree.
-    const slateEntries = Object.fromEntries(slateTokens);
-    const mediaEntries = Object.fromEntries(slateMediaTokens);
-    expect(mediaEntries).toEqual(slateEntries);
+describe("3.0 (Yeti) — stickers", () => {
+  it("night ink on sale stock is >= 4.5:1 at every stop of the stock gradient", () => {
+    const ink = requireToken(fancyTokens, "sticker-ink", "the fancy block");
+    for (const stop of ["sticker-hi", "sale", "sticker-edge"]) {
+      const stock = requireToken(fancyTokens, stop, "the fancy block");
+      expect(contrastRatio(ink, stock), `ink on --${stop}`).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });
 
-describe("source order: the dark-OS media block precedes the experience blocks", () => {
-  // `@media (prefers-color-scheme: dark) :root:not([data-theme="fog"])` and
-  // `:root[data-experience="functional"|"minimal"]` all select the bare
-  // `:root` element with exactly one attribute-ish condition, so they tie on
-  // CSS specificity (0,1,0 each) — the one that appears LATER in source order
-  // wins the cascade. Today the media block comes first, so a dark-OS visitor
-  // on 2.0/1.0 still gets that experience's own period-literal --steel/
-  // --paper/etc. (declared in the [data-experience] block) rather than the
-  // fog/slate values. If the media block ever moved below the experience
-  // blocks, a dark-OS visitor on 2.0/1.0 would silently start seeing the
-  // fog/slate steel/paper instead of the experience's own tokens — invisible
-  // in a fog-only or light-mode check, and easy to introduce by just adding
-  // a new section between them. This test pins the order, not the values
-  // (those are covered by the contrast tests above and the sync check).
-  it("the media block's source index precedes both [data-experience] blocks'", () => {
-    const mediaIdx = css.indexOf('@media (prefers-color-scheme: dark)');
-    const functionalIdx = css.indexOf(':root[data-experience="functional"]');
-    const minimalIdx = css.indexOf(':root[data-experience="minimal"]');
-    expect(mediaIdx, "could not find the `@media (prefers-color-scheme: dark)` block in globals.css").toBeGreaterThanOrEqual(0);
-    expect(functionalIdx, 'could not find `:root[data-experience="functional"]` in globals.css').toBeGreaterThanOrEqual(0);
-    expect(minimalIdx, 'could not find `:root[data-experience="minimal"]` in globals.css').toBeGreaterThanOrEqual(0);
+describe("3.0 is dark only", () => {
+  it("no appearance switch survives: no [data-theme] selector and no prefers-color-scheme block", () => {
+    expect(css).not.toMatch(/\[data-theme/);
+    expect(css).not.toMatch(/prefers-color-scheme/);
+  });
+});
 
-    expect(
-      mediaIdx,
-      'the `@media (prefers-color-scheme: dark)` block must appear before `:root[data-experience="functional"]` in globals.css — they tie on CSS specificity, so source order decides the winner, and a dark-OS visitor on the functional (2.0) edition would silently get the fog/slate --steel/--paper instead of its own period-literal tokens if this ever reordered',
-    ).toBeLessThan(functionalIdx);
-    expect(
-      mediaIdx,
-      'the `@media (prefers-color-scheme: dark)` block must appear before `:root[data-experience="minimal"]` in globals.css — same specificity tie as above, for the minimal (1.0) edition\'s flat black-on-white tokens',
-    ).toBeLessThan(minimalIdx);
+describe("2.0 and 1.0 keep what the shared charts drew before the split", () => {
+  // The charts are shared by 3.0 and 2.0. --foil, --gap-near and --graphite
+  // are 3.0's new roles; on the bare :root floor (what 2.0 and 1.0 inherit)
+  // they must alias the tokens those surfaces drew with, or 2.0 silently
+  // picks up 3.0's pink.
+  it.each([
+    ["foil", "ember"],
+    ["gap-near", "steel"],
+    ["graphite", "line"],
+  ])("--%s aliases var(--%s) on the bare :root", (token, alias) => {
+    expect(rootSource).toMatch(new RegExp(`--${token}:\\s*var\\(--${alias}\\)\\s*;`));
+  });
+
+  it("neither the functional nor the minimal block redeclares them", () => {
+    for (const ed of ["functional", "minimal"]) {
+      const block = extractBlock(
+        css,
+        new RegExp(`:root\\[data-experience=["']${ed}["']\\]\\s*\\{([^}]*)\\}`),
+        `:root[data-experience="${ed}"] block`,
+      );
+      expect(block).not.toMatch(/--(foil|gap-near|graphite)\s*:/);
+    }
   });
 });

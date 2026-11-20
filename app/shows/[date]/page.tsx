@@ -203,7 +203,7 @@ export default async function ShowPage({ params, searchParams }: Params) {
           </aside>
         ))}
 
-        <Setlist entries={setlist} experience={experience} showDate={date} venue={show.venue} containerId={show.nugsContainerId} />
+        <Setlist entries={setlist} experience={experience} showDate={date} venue={show.venue} containerId={show.nugsContainerId} live={isLive} />
 
         {/* Nothing here is marked a jam — say which kind of nothing it is. The
             charts are filed by hand well after the show, so on a night newer

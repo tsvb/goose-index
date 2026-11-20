@@ -84,7 +84,8 @@ describe("Oracle page (fancy)", () => {
     expect(html).toContain("The Capitol Theatre");
     expect(html).toContain("Big night");
     // positive path: a valid bandcamp URL surfaces the Listen link on the J-card
-    expect(html).toContain("Listen ↗");
+    // 3.0's coach's card: listen is an outline button, in the lowercase chrome voice.
+    expect(html).toContain("listen ↗");
     expect(html).toContain("goosetheband.bandcamp.com/album/2026-07-04-spac");
   });
 

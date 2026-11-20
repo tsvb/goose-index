@@ -96,7 +96,7 @@ describe("ListenLinksContent", () => {
     expect(html).toContain(esc("applenugs://show/<YYYY-MM-DD>?artist=<name>"));
     expect(html).toContain("%20");
     expect(html).toContain("URLComponents");   // the reason, not just the rule
-    expect(html).toContain("github.com/tsvb/applenugs");
+    expect(html).toContain("github.com/tsvb/yeti");
   });
 
   it("renders the parameter table as a real table in every edition", () => {
@@ -104,6 +104,28 @@ describe("ListenLinksContent", () => {
       const html = render(e);
       expect(html).toContain("<table");
       expect(html).toContain("venue=");
+    }
+  });
+});
+
+// The app was renamed Yeti on main, but the only public download (v1.5)
+// still installs as AppleNugs and registers only applenugs://. The page names
+// it truthfully for that download, and never tells visitors yeti:// works.
+describe("the app's name", () => {
+  const html = render("fancy");
+  it("calls it Yeti, formerly AppleNugs, and says the current download installs under the old name", () => {
+    expect(html).toContain("Yeti (formerly AppleNugs)");
+    expect(html).toContain("The current release, v1.5, installs as AppleNugs.");
+  });
+  it("points at github.com/tsvb/yeti and never at the old repo", () => {
+    expect(html).toContain("https://github.com/tsvb/yeti/releases/latest");
+    expect(html).not.toContain("github.com/tsvb/applenugs");
+  });
+  it("keeps emitting applenugs:// and never mentions yeti://, in every edition", () => {
+    for (const e of ["minimal", "functional", "fancy"] as const) {
+      const page = render(e);
+      expect(page).toContain("applenugs://");
+      expect(page).not.toContain("yeti://");
     }
   });
 });

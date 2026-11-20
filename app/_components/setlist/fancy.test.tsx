@@ -86,35 +86,31 @@ describe("SetlistFancy", () => {
     expect(html).toContain("<h2");
     expect(html).not.toContain("<h3");
   });
-  it("renders an empty-state when there are no entries", () => {
+  // 3.0: with nothing logged, the show header carries the news beside Yeti's
+  // empty pack ("Setlist not yet in the ledger — check back soon"), so the
+  // setlist adds no second nil sentence — and never a dashed box.
+  it("renders nothing when there are no entries (the header's empty pack says it)", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
-    expect(html).toContain("No setlist");
+    expect(html).toBe("");
   });
-  it("renders the empty state as a nil sentence, not a dashed box", () => {
-    // The spec's empty-state rule: a nil sentence ending in an em dash, no
-    // dashed boxes — this used to be a rounded-lg dashed-border card.
-    const html = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
-    expect(html).not.toContain("border-dashed");
-    expect(html).not.toContain("rounded-lg");
-    expect(html).toContain("—"); // NilState's em-dash convention
-  });
-  it("links the song and marks a Dusted Off return with a pen note and its title", () => {
+  it("links the song and marks a Dusted Off return with a plain tag (a fact) and its title", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[entry({ song: "Hot Tea", slug: "hot-tea", gap: 52, isDustedOff: true })]} showDate="2024-04-20" venue={null} />);
     expect(html).toContain('href="/songs/hot-tea"');
     expect(html).toContain("first in 52 shows");
     expect(html).toContain('title="First play in 52 shows"');
-    expect(html).toContain("italic");
-    expect(html).not.toContain("border-ember/45"); // no pill border on the row anymore
+    expect(html).toContain('<span class="yeti-tag ml-2">first in 52 shows</span>');
+    expect(html).not.toContain("italic");
+    expect(html).not.toContain("yeti-label"); // a fact, never sticker stock
   });
   it("renders a one-line legend decoding the marks, but not on the empty state", () => {
     const html = renderToStaticMarkup(<SetlistFancy entries={[entry({ song: "Hot Tea" })]} showDate="2024-04-20" venue={null} />);
-    expect(html).toContain("Reading the ledger");
+    expect(html).toContain("reading the ledger");
     expect(html).toContain("segue");
     expect(html).toContain("jam chart pick");
-    // Dusted Off is a pen note that names itself — no separate legend entry.
+    // Dusted Off is a plain tag that names itself — no separate legend entry.
     expect(html).not.toContain("first play in n shows");
     const empty = renderToStaticMarkup(<SetlistFancy entries={[]} showDate="2024-04-20" venue={null} />);
-    expect(empty).not.toContain("Reading the ledger");
+    expect(empty).not.toContain("reading the ledger");
   });
   it("spends ember on heat only — flames and the pen note, never the segue caret", () => {
     const html = renderToStaticMarkup(
@@ -173,5 +169,18 @@ describe("SetlistFancy", () => {
       <SetlistFancy entries={[entry({ song: "Hot Tea" })]} showDate="2024-04-20" venue="The Salt Shed" containerId={null} />,
     );
     expect(withoutContainer).toMatch(/<a[^>]*class="nugs-track ml-1 shrink-0"[^>]*data-fallback="https:\/\/play\.nugs\.net\/#\/search\?searchTerm=Goose%202024-04-20"/);
+  });
+
+  it("marks only the newest song as the playing row while the show may be live (Yeti's row sticker)", () => {
+    const entries = [
+      entry({ uniqueId: "a", song: "Hot Tea" }),
+      entry({ uniqueId: "b", song: "Arcadia", position: 2 }),
+    ];
+    const live = renderToStaticMarkup(<SetlistFancy entries={entries} showDate="2024-04-20" venue={null} live />);
+    expect(live.match(/class="yeti-rs"/g)).toHaveLength(1);
+    expect(live).toMatch(/yeti-rs[\s\S]*Arcadia/); // the sticker sits on the last row
+    expect(live).toContain("bg-[rgba(242,226,122,0.07)]");
+    const settled = renderToStaticMarkup(<SetlistFancy entries={entries} showDate="2024-04-20" venue={null} />);
+    expect(settled).not.toContain("yeti-rs");
   });
 });

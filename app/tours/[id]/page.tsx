@@ -9,6 +9,8 @@ import { getTourMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
 import { formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
+import { etToday } from "@/lib/today";
+import { TourPageYeti } from "../_shelf";
 import { entityMetadata } from "@/lib/site";
 
 type Params = { params: Promise<{ id: string }> };
@@ -54,6 +56,21 @@ export default async function TourPage({ params }: Params) {
     );
   }
 
+  // 3.0 reads like Yeti's artist page (spec 2026-11-18, round 3).
+  if (experience === "fancy") {
+    return (
+      <article>
+        <Container className="py-10 sm:py-14">
+          {shows.length === 0 ? (
+            <NilState>No shows found for this tour.</NilState>
+          ) : (
+            <TourPageYeti name={tour.name} shows={shows} today={etToday()} />
+          )}
+        </Container>
+      </article>
+    );
+  }
+
   const dateRange =
     tour.start && tour.end
       ? `${chromeDate(tour.start)} – ${chromeDate(tour.end)}`
@@ -72,7 +89,7 @@ export default async function TourPage({ params }: Params) {
               tours
             </Link>
           </p>
-          <h1 className="mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+          <h1 className="page-head-title mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
             {tour.name}
           </h1>
           <p className="mt-2 font-mono text-[0.75rem] text-faint">

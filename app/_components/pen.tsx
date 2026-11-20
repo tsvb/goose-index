@@ -37,8 +37,7 @@ export function PenRule({
       aria-hidden="true"
       viewBox="0 0 400 6"
       preserveAspectRatio="none"
-      className={clsx("block h-[6px] w-full text-pencil", className)}
-      style={strength === "faint" ? { opacity: 0.45 } : undefined}
+      className={clsx("pen-rule block h-[6px] w-full text-pencil", strength === "faint" && "opacity-45", className)}
       fill="none"
     >
       <path d={d} stroke="currentColor" strokeWidth={strength === "strong" ? 1.4 : 1.1} strokeLinecap="round" />
@@ -53,7 +52,7 @@ export function PenRule({
  * invalidly. */
 export function PenNote({ children, className, inline = false }: { children: React.ReactNode; className?: string; inline?: boolean }) {
   const Tag = inline ? "span" : "p";
-  return <Tag className={clsx("text-[0.78rem] italic text-pencil", className)}>{children}</Tag>;
+  return <Tag className={clsx("pen-note text-[0.78rem] italic text-pencil", className)}>{children}</Tag>;
 }
 
 /** Small hand-drawn arrow. Default points left (margin note → subject). */

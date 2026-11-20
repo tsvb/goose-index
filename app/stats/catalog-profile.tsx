@@ -156,10 +156,10 @@ export function CatalogProfile({ plays, topN }: { plays: number[]; topN: number 
       {/* Rank ruler: ten even minors, labeled majors. */}
       <div className="relative h-6" aria-hidden="true">
         {Array.from({ length: 11 }, (_, i) => (
-          <span key={`m${i}`} className="absolute top-0 h-1 w-px bg-faint" style={{ left: `${i * 10}%` }} />
+          <span key={`m${i}`} className="catalog-tick absolute top-0 h-1 w-px bg-faint" style={{ left: `${i * 10}%` }} />
         ))}
         {majors.map((r) => (
-          <span key={`t${r}`} className="absolute top-0 h-2 w-px bg-faint" style={{ left: `${pct(r - 1)}%` }} />
+          <span key={`t${r}`} className="catalog-tick absolute top-0 h-2 w-px bg-faint" style={{ left: `${pct(r - 1)}%` }} />
         ))}
         {majors.map((r) => (
           <span
@@ -211,7 +211,7 @@ function Bracket({
 }) {
   return (
     <span className="absolute top-0 flex flex-col" style={{ left: `${from}%`, width: `${to - from}%` }}>
-      <span aria-hidden="true" className="block h-1.5 border-x border-t border-pencil" />
+      <span aria-hidden="true" className="catalog-bracket block h-1.5 border-x border-t border-pencil" />
       <Link
         href={href}
         className={`mt-1.5 whitespace-nowrap font-mono text-[0.62rem] leading-none ${chromeLink} ${

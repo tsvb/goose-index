@@ -20,19 +20,25 @@ beforeEach(() => {
 });
 
 describe("SiteHeader variants", () => {
-  it("fancy masthead: lowercase wordmark, text nav, pen rule, no cards", () => {
+  it("fancy masthead: Yeti's glass bar — lowercase wordmark, text nav, one frost rule, no pen", () => {
     const html = renderToStaticMarkup(<HeaderFancy experience="fancy" />);
     expect(html).toContain("goose index");
     for (const label of ["shows", "songs", "stats", "on this day", "venues", "tours", "blog"]) {
       expect(html.toLowerCase()).toContain(label);
     }
-    expect(html).toContain("text-pencil"); // the pen rule under the masthead
-    // The wordmark link itself carries no badge — SettingsMenu's gear button
-    // legitimately keeps rounded-full (it's a real icon-circle control, not a
-    // decorative card).
-    const wordmark = html.match(/<a[^>]*href="\/"[^>]*>[^<]*<\/a>/)?.[0];
-    expect(wordmark).not.toContain("rounded-full"); // the feather badge is gone
+    // Night glass over a blur (the .yeti-bar ::before layer), ruled by a
+    // single frost hairline. The header itself carries no backdrop-filter, or
+    // it would become the containing block for the mobile sheet's fixed scrim.
+    expect(html).toContain("yeti-bar");
     expect(html).not.toContain("backdrop-blur");
+    expect(html).toContain("border-b border-line");
+    const css = fs.readFileSync(path.join(__dirname, "..", "globals.css"), "utf8");
+    expect(css).toMatch(/\.yeti-bar::before\s*\{[^}]*backdrop-filter:\s*blur\(18px\)/);
+    // The graphite pen rule is gone from 3.0's masthead.
+    expect(html).not.toContain("text-pencil");
+    expect(html).not.toContain('viewBox="0 0 400 6"');
+    const wordmark = html.match(/<a[^>]*href="\/"[^>]*>[^<]*<\/a>/)?.[0];
+    expect(wordmark).not.toContain("rounded-full");
   });
   it("functional is slim and mono, no rounded logo mark", () => {
     const html = renderToStaticMarkup(<HeaderFunctional experience="functional" />);
@@ -86,7 +92,8 @@ describe("SiteHeader current-section state", () => {
     nav.pathname = "/shows/2025-06-25";
     const html = renderToStaticMarkup(<HeaderFancy experience="fancy" />);
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
-    expect(html).toMatch(/aria-current="page" class="[^"]*text-steel[^"]*" href="\/shows"/);
+    // The current section sits on Yeti's selected-tab pill, in snow.
+    expect(html).toMatch(/aria-current="page" class="[^"]*bg-\[rgba\(233,238,247,0\.10\)\] text-ink[^"]*" href="\/shows"/);
   });
 
   it("functional marks the current section with aria-current (styling via w2 CSS)", () => {

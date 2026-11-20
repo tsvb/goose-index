@@ -67,9 +67,16 @@ tape. The shape of a night is visible without reading twenty-four track times.
 </tr>
 </table>
 
-*Screenshots above are from 2026-07-13, before the pen & instrument redesign — the forms they
-show (rings, dials, meters, tape) are still how these charts draw; the colors and chrome
-around them are not. Current look: [gooseindex.com/stats](https://www.gooseindex.com/stats).*
+*Screenshots above are from 2026-07-13, two redesigns ago (before Pen & Instrument, and before
+3.0 took Yeti's look in November 2026). 2.0 still draws these objects. 3.0 keeps every reading
+and draws it in Yeti's forms instead of a tape deck's: the shelf's spools are card-stock discs
+inside the pill's foil ring (a halo past a year), the VU meters are level tracks that turn yellow
+past the zone, the weekday dial loses its bezel and keeps round-capped spokes, the segue splices
+are round bars, the set is a strip of rounded pieces with segued songs fused, the years chart
+drops its hatching for an empty box, and the coach's liner notes are printed on a card. 3.0's
+tours page drops the calendar chart altogether: runs are shelved by when (on the road, coming up,
+the crate), and each tile's face is its year as a ring, January at the top, its legs lit, so a run's
+length and season still read on one scale. Current look: [gooseindex.com/stats](https://www.gooseindex.com/stats).*
 
 **The catalog profile** — the stats hub opens with every played song ranked by plays, as one
 stepped shape: a steep head of staples, a long flat tail. The cuts are bracketed onto it
@@ -81,23 +88,25 @@ a gap as a closing ring, debuts as columns by year.
 Three rules hold across all of them. **A change that breaks one is a bug, even if it renders.**
 
 1. **Each question gets the form its number is.** Duration → length. Cycle → dial. Sequence →
-   setlist notation. Level → meter. Gap → a closing ring.
+   setlist notation. Level → meter (3.0: a level track). Gap → a closing ring.
 2. **Color means exactly one thing per section.** On The Shelf it means *how long since the
-   last play* — which is why the tape is graphite and only the ring is lit. Ink follows
+   last play* — which is why the tape (3.0: the disc) never takes color and only the ring is lit. Ink follows
    significance: the song that most deserves your attention carries the most of it.
 3. **A claim never travels without its evidence.** Skewed data is log-scaled (gaps span
    88–1367 days). Where the data is too thin to be honest about, the chart draws nothing
    rather than something misleading.
 
-Five roles carry that color, and each keeps to one job everywhere on the site:
+Six roles carry that color, and each keeps to one job everywhere on the site. The values are
+3.0's (Yeti, dark only); 2.0 maps the same roles onto its own period palette.
 
-| Role | Carries |
-|---|---|
-| `--steel` | Field and structure. |
-| `--hand` | The reading, now — marks only (a dot, a stroke), never running text. |
-| `--ember` | Heat and overdue — the one amber allowed as text (`--hand` never is). |
-| `--spruce` | Links, and the footnote marks that pair with them. |
-| `--pencil` | The human margin — captions, footnotes, the caveat channel. |
+| Role | 3.0 | Carries |
+|---|---|---|
+| `--steel` | slush `#9FABCE` | Field and structure. |
+| `--hand` | sale yellow `#F2E27A` | The reading, now — marks only (a dot, a stroke), never running text. |
+| `--ember` | sale yellow `#F2E27A` | Heat — jams, the meters' red zone, the hottest night; the yellow allowed as text (`--hand` never is). |
+| `--foil` | foil pink `#FF8FC4` | Elapsed time — gap rings and overdue counts. Never a fill. (2.0 draws it as its ember.) |
+| `--spruce` | snow `#E9EEF7` | Links (told apart by their underline), and the footnote marks that pair with them. |
+| `--pencil` | slush `#9FABCE` | The human margin — captions, footnotes, the caveat channel. |
 
 `--hand` on running text is the bug this split exists to catch; the suite greps for it.
 
@@ -107,7 +116,7 @@ Five roles carry that color, and each keeps to one job everywhere on the site:
 
 | | |
 |---|---|
-| **Shows** | Every show, with full setlists — segues, jams, track times, footnotes — plus the tape above. |
+| **Shows** | Every show, with full setlists — segues, jams, track times, footnotes — plus the set drawn as a length above them. |
 | **Songs** | Per-song history: every performance, gaps, debuts, bust-outs, covers. |
 | **Stats** | Six cuts — Most Played, Rarities, Most Overdue, Debuts, Set Stats, and [Oracle](https://www.gooseindex.com/stats/oracle). |
 | **Browse** | By venue, tour, year, and On This Day. Full-text search. |
@@ -124,13 +133,13 @@ per visitor:
 
 | Edition | What you get |
 |---|---|
-| **3.0** | Charts, hand-drawn, light and dark. The default. |
-| **2.0** | Same charts, glossy skin — striped ledger rows, classic blue links, gel buttons; its own period-literal palette, independent of the fog/slate values above. |
+| **3.0** | Charts, dark, rounded type — the look of [Yeti](https://github.com/tsvb/yeti), the same author's nugs.net player: night shelves, snow type, sale-yellow stickers, and one foil accent kept for elapsed time. The default. |
+| **2.0** | Same charts, glossy skin — striped ledger rows, classic blue links, gel buttons; its own period-literal palette, independent of 3.0's values above. |
 | **1.0** | Plain document, no charts. |
 
-Appearance is a 3.0-only switch, and it's two fixed looks, not a wardrobe of named themes:
-**fog** (light), **slate** (dark), or **auto** (follows the OS — the default). 2.0 and 1.0 each
-render a single fixed look.
+Each edition is one fixed look; there is no light/dark switch. 3.0 is dark only and uses the
+system's rounded face where the browser has it (Safari), else the platform's own UI face — no
+webfont, in any edition.
 
 ## Architecture
 
@@ -144,7 +153,7 @@ happens out of band in the sync job, so page loads never depend on the elgoose A
 up.
 
 - **Next.js (App Router) + TypeScript** — server-rendered. No client-side charting library; every
-  chart is SVG against role tokens, so it reskins with the edition and, inside 3.0, with fog/slate.
+  chart is SVG against role tokens, so it reskins with the edition.
 - **Postgres + Drizzle** — a cached copy of the live-performance record.
 - **Vitest** — the suite runs fully offline (fixtures + in-memory PGlite). No network, no database.
 - **Vercel Web Analytics** — cookieless page views, on every edition.
