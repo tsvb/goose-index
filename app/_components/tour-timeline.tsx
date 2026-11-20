@@ -28,10 +28,44 @@ const LANE = { h: 24, gap: 4 } as const;
  * --ember (sale); tour-timeline-label-contrast.test.ts holds both to 4.5:1 on
  * these washes. 2.0 keeps its own recipe below, untouched. */
 export const YETI_LEG = { steelWash: 20, handWash: 14 } as const;
-/** A leg narrower than this (percent of the year, about five weeks) can't hold
- * a name without clipping it to a stub like "T…", so in 3.0 its name is read to
- * screen readers only; the full name is on hover and in the list below. */
-const YETI_LABEL_MIN_WIDTH = 6;
+/** Whether a name fits depends on the name and on how wide its leg renders,
+ * which changes with the viewport — so 3.0 asks the leg itself. Each leg is a
+ * CSS size container, and its label goes screen-reader only when the leg is
+ * narrower than the name needs: about 7.4px a character at 12px heavy, plus
+ * the label's 10px margins. The thresholds are a static table, in 10px steps,
+ * so Tailwind can see every class it has to generate. A name that can't fit is
+ * still read to screen readers; it's on hover, and in the list below. */
+const YETI_LABEL_HIDE = [
+  "@max-[30px]:sr-only",
+  "@max-[40px]:sr-only",
+  "@max-[50px]:sr-only",
+  "@max-[60px]:sr-only",
+  "@max-[70px]:sr-only",
+  "@max-[80px]:sr-only",
+  "@max-[90px]:sr-only",
+  "@max-[100px]:sr-only",
+  "@max-[110px]:sr-only",
+  "@max-[120px]:sr-only",
+  "@max-[130px]:sr-only",
+  "@max-[140px]:sr-only",
+  "@max-[150px]:sr-only",
+  "@max-[160px]:sr-only",
+  "@max-[170px]:sr-only",
+  "@max-[180px]:sr-only",
+  "@max-[190px]:sr-only",
+  "@max-[200px]:sr-only",
+  "@max-[210px]:sr-only",
+  "@max-[220px]:sr-only",
+  "@max-[230px]:sr-only",
+  "@max-[240px]:sr-only",
+  "@max-[250px]:sr-only",
+] as const;
+
+export function yetiLabelHide(name: string): string {
+  const needed = Math.ceil(name.length * 7.4 + 20);
+  const step = Math.min(YETI_LABEL_HIDE.length - 1, Math.max(0, Math.ceil((needed - 30) / 10)));
+  return YETI_LABEL_HIDE[step];
+}
 
 const dayOfYear = (iso: string) => {
   const d = new Date(iso + "T00:00:00Z");
@@ -239,7 +273,7 @@ export function TourTimeline({
                               title={`${t.name} — ${t.start} to ${t.end}, ${t.shows} ${t.shows === 1 ? "show" : "shows"}${legs.length > 1 ? ` · leg ${i + 1} of ${legs.length}: ${leg.start} to ${leg.end}, ${leg.dates.length} shows` : ""}${t.upcoming ? ` (${t.upcoming} still ahead)` : ""}`}
                               className={
                                 yeti
-                                  ? "group absolute flex items-center overflow-hidden rounded-full transition"
+                                  ? "group @container absolute flex items-center overflow-hidden rounded-full transition"
                                   : "group absolute flex items-center rounded-[2px] transition"
                               }
                               style={yeti ? {
@@ -290,9 +324,7 @@ export function TourTimeline({
                                 <span
                                   className={
                                     yeti
-                                      ? width >= YETI_LABEL_MIN_WIDTH
-                                        ? "tour-timeline-label pointer-events-none absolute left-0 right-0 top-[4px] z-10 mx-2.5 truncate font-display text-[0.72rem] font-extrabold leading-none max-sm:sr-only"
-                                        : "tour-timeline-label sr-only"
+                                      ? `tour-timeline-label pointer-events-none absolute left-0 right-0 top-[4px] z-10 mx-2.5 truncate font-display text-[0.75rem] font-extrabold leading-none max-sm:sr-only ${yetiLabelHide(shortName(t.name))}`
                                       : "tour-timeline-label pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
                                   }
                                   style={{ "--tour-label-color": yeti ? (future ? "var(--faint)" : hot ? "var(--ember)" : "var(--ink)") : nameColor } as CSSProperties}

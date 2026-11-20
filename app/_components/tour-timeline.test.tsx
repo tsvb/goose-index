@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TourTimeline, shortName, splitLegs } from "./tour-timeline";
+import { TourTimeline, shortName, splitLegs, yetiLabelHide } from "./tour-timeline";
 import type { TourSpan } from "@/lib/queries/dimensions";
 
 function tour(over: Partial<TourSpan> & { tourId: number; name: string; start: string; end: string }): TourSpan {
@@ -306,9 +306,20 @@ describe("TourTimeline out of the tape deck (3.0)", () => {
   });
 
   it("labels in plain snow, the busiest run in the heat color, screen-reader only below sm", () => {
-    // Small Tour's ten days can't hold a name: it's read, not printed.
-    expect(html).toMatch(/class="tour-timeline-label sr-only" style="--tour-label-color:var\(--ink\)">Small</);
-    expect(html).toMatch(/max-sm:sr-only" style="--tour-label-color:var\(--ember\)">Summer</);
+    expect(html).toMatch(/max-sm:sr-only @max-\[\d+px\]:sr-only" style="--tour-label-color:var\(--ink\)">Small</);
+    expect(html).toMatch(/max-sm:sr-only @max-\[\d+px\]:sr-only" style="--tour-label-color:var\(--ember\)">Summer</);
+    // Each leg is a size container, so its own rendered width decides.
+    expect(html).toContain("group @container absolute");
+  });
+
+  it("hides a name only when its own leg is too narrow for it: a longer name needs a wider leg", () => {
+    const px = (cls: string) => Number(cls.match(/\[(\d+)px\]/)![1]);
+    expect(px(yetiLabelHide("Fall"))).toBeLessThan(px(yetiLabelHide("Summer")));
+    expect(px(yetiLabelHide("Summer"))).toBeLessThan(px(yetiLabelHide("Everything Must Go Summer")));
+    // "Fall" (4 characters at ~7.4px, plus 20px of margin) needs about 50px.
+    expect(yetiLabelHide("Fall")).toBe("@max-[50px]:sr-only");
+    // Very long names cap at the table's last step rather than throwing.
+    expect(yetiLabelHide("x".repeat(80))).toBe("@max-[250px]:sr-only");
   });
 
   it("captions dots and the yellow outline, not ticks", () => {

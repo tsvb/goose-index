@@ -69,4 +69,13 @@ describe("CoachsNotes card (3.0)", () => {
   it("offers listen as an outline button to the Bandcamp release", () => {
     expect(html).toMatch(/<a href="https:\/\/goose\.bandcamp\.com[^>]*rounded-full[^>]*>listen ↗<\/a>/);
   });
+
+  it("gives a row after the footnotes air above its hairline", () => {
+    const after = renderToStaticMarkup(
+      <CoachsNotes edition="fancy" data={[note({ coachNotes: "Coach's Notes:\n [1] Unfinished.\n\nShow Notes: One set." })]} />,
+    );
+    expect(after).toContain('py-2 text-[0.9rem] mt-2"><span class="font-extrabold lowercase text-muted">Show Notes');
+    // ...and only there.
+    expect(html).not.toContain("mt-2\"><span");
+  });
 });

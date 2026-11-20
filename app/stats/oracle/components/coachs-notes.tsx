@@ -19,11 +19,14 @@ import type { Experience } from "@/lib/experience";
  * notes are laid out — not changed — as a "says so on the box" list: each
  * `Label: value` line a row on a frost hairline, the numbered notes as
  * footnotes, blank lines gone. `linerLines` keeps every word, in order. */
-function LinerLineView({ line }: { line: LinerLine }) {
+function LinerLineView({ line, afterNotes }: { line: LinerLine; afterNotes: boolean }) {
+  // A row or line that follows the footnotes needs air above its hairline, or
+  // the rule sits on the last note and reads as its underline.
+  const gap = afterNotes ? " mt-2" : "";
   switch (line.kind) {
     case "row":
       return (
-        <p className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3 border-t border-line py-2 text-[0.9rem]">
+        <p className={`grid grid-cols-[6rem_minmax(0,1fr)] gap-3 border-t border-line py-2 text-[0.9rem]${gap}`}>
           <span className="font-extrabold lowercase text-muted">{line.label}</span>
           <span className="min-w-0 text-ink">{line.value}</span>
         </p>
@@ -37,7 +40,7 @@ function LinerLineView({ line }: { line: LinerLine }) {
         </p>
       );
     default:
-      return <p className="border-t border-line py-2 text-[0.9rem] text-ink">{line.text}</p>;
+      return <p className={`border-t border-line py-2 text-[0.9rem] text-ink${gap}`}>{line.text}</p>;
   }
 }
 
@@ -70,7 +73,7 @@ function LinerCard({ note }: { note: CoachsNoteRow }) {
           )}
         </header>
         {body.map((line, i) => (
-          <LinerLineView key={i} line={line} />
+          <LinerLineView key={i} line={line} afterNotes={body[i - 1]?.kind === "note"} />
         ))}
       </div>
     </article>
