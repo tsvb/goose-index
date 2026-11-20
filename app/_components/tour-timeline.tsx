@@ -24,47 +24,113 @@ const MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
 const LANE = { h: 24, gap: 4 } as const;
 
 /** 3.0 (Yeti, round 2): the leg washes, in percent of the mark color over
- * night. The labels on them are plain --ink (snow) and, on the busiest run,
- * --ember (sale); tour-timeline-label-contrast.test.ts holds both to 4.5:1 on
- * these washes. 2.0 keeps its own recipe below, untouched. */
-export const YETI_LEG = { steelWash: 20, handWash: 14 } as const;
-/** Whether a name fits depends on the name and on how wide its leg renders,
- * which changes with the viewport — so 3.0 asks the leg itself. Each leg is a
- * CSS size container, and its label goes screen-reader only when the leg is
- * narrower than the name needs: about 7.4px a character at 12px heavy, plus
- * the label's 10px margins. The thresholds are a static table, in 10px steps,
- * so Tailwind can see every class it has to generate. A name that can't fit is
- * still read to screen readers; it's on hover, and in the list below. */
-const YETI_LABEL_HIDE = [
-  "@max-[30px]:sr-only",
-  "@max-[40px]:sr-only",
-  "@max-[50px]:sr-only",
-  "@max-[60px]:sr-only",
-  "@max-[70px]:sr-only",
-  "@max-[80px]:sr-only",
-  "@max-[90px]:sr-only",
-  "@max-[100px]:sr-only",
-  "@max-[110px]:sr-only",
-  "@max-[120px]:sr-only",
-  "@max-[130px]:sr-only",
-  "@max-[140px]:sr-only",
-  "@max-[150px]:sr-only",
-  "@max-[160px]:sr-only",
-  "@max-[170px]:sr-only",
-  "@max-[180px]:sr-only",
-  "@max-[190px]:sr-only",
-  "@max-[200px]:sr-only",
-  "@max-[210px]:sr-only",
-  "@max-[220px]:sr-only",
-  "@max-[230px]:sr-only",
-  "@max-[240px]:sr-only",
-  "@max-[250px]:sr-only",
-] as const;
+ * night. No text sits on them in 3.0 (names print beside the bars). 2.0 keeps
+ * its own recipe below, untouched. */
+const YETI_LEG = { steelWash: 20, handWash: 14 } as const;
+/** 3.0's name colors. The names sit beside the bars on night, not on a wash,
+ * so the standing contrast gate's night checks cover them; the label test
+ * re-derives them anyway. */
+export const YETI_NAME_COLOR = { plain: "var(--muted)", hot: "var(--ember)", future: "var(--faint)" } as const;
 
-export function yetiLabelHide(name: string): string {
-  const needed = Math.ceil(name.length * 7.4 + 20);
-  const step = Math.min(YETI_LABEL_HIDE.length - 1, Math.max(0, Math.ceil((needed - 30) / 10)));
-  return YETI_LABEL_HIDE[step];
+/** 3.0 prints a tour's name beside its bars, not inside them: a name inside a
+ * bar clips to a stub ("Su…") on all but the longest runs. The name takes the
+ * side of the tour with more open lane before the neighboring tour (or the
+ * year's edge), and it prints only when that gap is wide enough at the width
+ * the lane actually renders. The lane is a CSS size container: a name needing
+ * N px in a gap that is a fraction g of the lane hides below a lane width of
+ * N / g. Thresholds are a static table in 20px steps, so Tailwind can see every
+ * class it has to generate; a gap that would need more than the widest lane
+ * gets no printed name at all. The name is always inside the link for screen
+ * readers, on hover, and in the list below. */
+const YETI_NAME_HIDE = [
+  "@max-[220px]:hidden",
+  "@max-[240px]:hidden",
+  "@max-[260px]:hidden",
+  "@max-[280px]:hidden",
+  "@max-[300px]:hidden",
+  "@max-[320px]:hidden",
+  "@max-[340px]:hidden",
+  "@max-[360px]:hidden",
+  "@max-[380px]:hidden",
+  "@max-[400px]:hidden",
+  "@max-[420px]:hidden",
+  "@max-[440px]:hidden",
+  "@max-[460px]:hidden",
+  "@max-[480px]:hidden",
+  "@max-[500px]:hidden",
+  "@max-[520px]:hidden",
+  "@max-[540px]:hidden",
+  "@max-[560px]:hidden",
+  "@max-[580px]:hidden",
+  "@max-[600px]:hidden",
+  "@max-[620px]:hidden",
+  "@max-[640px]:hidden",
+  "@max-[660px]:hidden",
+  "@max-[680px]:hidden",
+  "@max-[700px]:hidden",
+  "@max-[720px]:hidden",
+  "@max-[740px]:hidden",
+  "@max-[760px]:hidden",
+  "@max-[780px]:hidden",
+  "@max-[800px]:hidden",
+  "@max-[820px]:hidden",
+  "@max-[840px]:hidden",
+  "@max-[860px]:hidden",
+  "@max-[880px]:hidden",
+  "@max-[900px]:hidden",
+  "@max-[920px]:hidden",
+  "@max-[940px]:hidden",
+  "@max-[960px]:hidden",
+] as const;
+/** About 7.8px a character at 12px heavy (a safe margin over the measured
+ * ~7px), plus 6px clear of the bar on one side and 8px of the neighbor on the
+ * other. */
+const nameWidthPx = (name: string) => name.length * 7.8 + 14;
+
+export type NamePlacement = { side: "right" | "left"; hide: string };
+
+/** Where 3.0 prints a tour's name, given its span and its lane neighbors, all in
+ * percent of the year. Null when no lane is ever wide enough. */
+export function yetiNamePlacement(
+  name: string,
+  span: { start: number; end: number },
+  room: { prevEnd: number; nextStart: number },
+): NamePlacement | null {
+  const right = room.nextStart - span.end;
+  const left = span.start - room.prevEnd;
+  const side = right >= left ? "right" : "left";
+  const gap = Math.max(right, left) / 100;
+  if (gap <= 0) return null;
+  const laneNeeded = nameWidthPx(name) / gap;
+  if (laneNeeded <= YETI_NAME_HIDE_FLOOR) return { side, hide: "" };
+  const step = Math.ceil((laneNeeded - YETI_NAME_HIDE_FLOOR) / 20) - 1;
+  if (step >= YETI_NAME_HIDE.length) return null;
+  return { side, hide: YETI_NAME_HIDE[Math.max(0, step)] };
+}
+/** Below this lane width (about the sm breakpoint) names don't print anyway. */
+const YETI_NAME_HIDE_FLOOR = 200;
+
+/** Places every name in one lane. Each open gap (before the first tour, between
+ * two tours, after the last) holds at most one name, so two neighbors can't
+ * print into the same gap and collide. Left to right, each tour takes the
+ * larger of its two gaps that is still free. */
+export function yetiLaneNames(
+  names: string[],
+  spans: { start: number; end: number }[],
+): (NamePlacement | null)[] {
+  const taken = new Set<number>();
+  return names.map((name, k) => {
+    const prevEnd = k > 0 ? spans[k - 1].end : 0;
+    const nextStart = k < spans.length - 1 ? spans[k + 1].start : 100;
+    const leftFree = !taken.has(k);
+    const rightFree = !taken.has(k + 1);
+    const place = yetiNamePlacement(name, spans[k], {
+      prevEnd: leftFree ? prevEnd : spans[k].start,
+      nextStart: rightFree ? nextStart : spans[k].end,
+    });
+    if (place) taken.add(place.side === "left" ? k : k + 1);
+    return place;
+  });
 }
 
 const dayOfYear = (iso: string) => {
@@ -192,7 +258,7 @@ export function TourTimeline({
                 {year}
               </span>
               <div
-                className={yeti ? "relative flex-1" : "relative flex-1 rounded-[2px] border border-line-soft bg-bg-deep"}
+                className={yeti ? "@container relative flex-1" : "relative flex-1 rounded-[2px] border border-line-soft bg-bg-deep"}
                 style={{ height: lanes.length * LANE.h + (lanes.length - 1) * LANE.gap + 4 }}
               >
                 {/* Month gridlines — the quiet months are only legible against them. */}
@@ -205,8 +271,20 @@ export function TourTimeline({
                   />
                 ))}
 
-                {lanes.map((lane, li) =>
-                  lane.map((t) => {
+                {lanes.map((lane, li) => {
+                  // Each tour's extent on the year, legs and connector included,
+                  // so 3.0 can print a name in the open lane beside it.
+                  const spans = lane.map((t) => {
+                    const ls = splitLegs(t.dates);
+                    const first = dayOfYear(ls[0]?.start ?? t.start);
+                    const ends = ls.map((l) => {
+                      const from = dayOfYear(l.start);
+                      return (from / days) * 100 + Math.max(((dayOfYear(l.end) - from + 1) / days) * 100, 0.7);
+                    });
+                    return { start: (first / days) * 100, end: Math.max(...ends, (first / days) * 100) };
+                  });
+                  const names = yeti ? yetiLaneNames(lane.map((t) => shortName(t.name)), spans) : [];
+                  return lane.map((t, ti) => {
                     const legs = splitLegs(t.dates);
                     const future = t.start > today;
                     const hot = t.tourId === busiest.tourId;
@@ -273,7 +351,7 @@ export function TourTimeline({
                               title={`${t.name} — ${t.start} to ${t.end}, ${t.shows} ${t.shows === 1 ? "show" : "shows"}${legs.length > 1 ? ` · leg ${i + 1} of ${legs.length}: ${leg.start} to ${leg.end}, ${leg.dates.length} shows` : ""}${t.upcoming ? ` (${t.upcoming} still ahead)` : ""}`}
                               className={
                                 yeti
-                                  ? "group @container absolute flex items-center overflow-hidden rounded-full transition"
+                                  ? "group absolute flex items-center overflow-hidden rounded-full transition"
                                   : "group absolute flex items-center rounded-[2px] transition"
                               }
                               style={yeti ? {
@@ -320,14 +398,13 @@ export function TourTimeline({
                               })}
                               {/* The name rides the first leg only — repeating it
                                   on every leg would read as separate tours. */}
-                              {i === 0 && (
+                              {/* 3.0 prints the name beside the bars (below); inside, the
+                                  link keeps it for screen readers. */}
+                              {i === 0 && yeti && <span className="sr-only">{t.name}</span>}
+                              {i === 0 && !yeti && (
                                 <span
-                                  className={
-                                    yeti
-                                      ? `tour-timeline-label pointer-events-none absolute left-0 right-0 top-[4px] z-10 mx-2.5 truncate font-display text-[0.75rem] font-extrabold leading-none max-sm:sr-only ${yetiLabelHide(shortName(t.name))}`
-                                      : "tour-timeline-label pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
-                                  }
-                                  style={{ "--tour-label-color": yeti ? (future ? "var(--faint)" : hot ? "var(--ember)" : "var(--ink)") : nameColor } as CSSProperties}
+                                  className="tour-timeline-label pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
+                                  style={{ "--tour-label-color": nameColor } as CSSProperties}
                                 >
                                   {shortName(t.name)}
                                 </span>
@@ -335,10 +412,36 @@ export function TourTimeline({
                             </Link>
                           );
                         })}
+                        {yeti && (() => {
+                          const span = spans[ti];
+                          const place = names[ti];
+                          if (!place) return null;
+                          return (
+                            <span
+                              aria-hidden
+                              className={`tour-timeline-label pointer-events-none absolute z-10 -translate-y-1/2 whitespace-nowrap font-display text-[0.75rem] font-extrabold leading-none max-sm:hidden ${place.hide}`.trim()}
+                              style={
+                                {
+                                  top: top + LANE.h / 2,
+                                  ...(place.side === "right"
+                                    ? { left: `calc(${span.end}% + 6px)` }
+                                    : { right: `calc(${100 - span.start}% + 6px)` }),
+                                  "--tour-label-color": future
+                                    ? YETI_NAME_COLOR.future
+                                    : hot
+                                      ? YETI_NAME_COLOR.hot
+                                      : YETI_NAME_COLOR.plain,
+                                } as Record<string, string | number> as CSSProperties
+                              }
+                            >
+                              {shortName(t.name)}
+                            </span>
+                          );
+                        })()}
                       </Fragment>
                     );
-                  }),
-                )}
+                  });
+                })}
               </div>
             </li>
           );

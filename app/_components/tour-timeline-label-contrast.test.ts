@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { YETI_LEG } from "./tour-timeline";
+import { YETI_NAME_COLOR } from "./tour-timeline";
 
 // The tour-name label in TourTimeline (tour-timeline.tsx) sits on its own
 // bar's color-mix() tinted wash, not on plain --paper — a computed background
@@ -144,23 +144,17 @@ function themeTokens(tokens: Map<string, string>, label: string) {
   };
 }
 
-describe("TourTimeline tour-name label — 3.0's labels on their own washes", () => {
-  // Round 2 (spec 2026-11-18) gave 3.0 its own legs: a steel or hand wash at
-  // YETI_LEG's percentages over night, labeled in plain --ink (snow) and, on
-  // the busiest run, --ember (sale). Both are held to the 4.5:1 text floor on
-  // the wash they actually sit on.
+describe("TourTimeline tour-name label — 3.0 prints names beside the bars, on night", () => {
+  // Since round 2 the 3.0 names sit in the open lane beside the bars, not on a
+  // wash, so each name color is held to 4.5:1 on the night it actually sits on.
   const t = () => themeTokens(fancyTokens, 'the :root[data-experience="fancy"] block');
-
-  it("the plain label — ink — clears 4.5:1 on the steel wash", () => {
-    const wash = washOver(t().steel, YETI_LEG.steelWash, t().bgDeep);
-    expect(contrastRatio(hexToRgb(t().ink), wash)).toBeGreaterThanOrEqual(4.5);
-  });
-
-  it("the busiest run's label — ember — clears 4.5:1 on the hand wash", () => {
-    const hand = requireToken(fancyTokens, "hand", 'the :root[data-experience="fancy"] block');
-    const wash = washOver(hand, YETI_LEG.handWash, t().bgDeep);
-    expect(contrastRatio(hexToRgb(t().ember), wash)).toBeGreaterThanOrEqual(4.5);
-  });
+  for (const [kind, ref] of Object.entries(YETI_NAME_COLOR)) {
+    it(`the ${kind} name (${ref}) clears 4.5:1 on night`, () => {
+      const token = ref.match(/var\(--([a-z-]+)\)/)![1];
+      const color = requireToken(fancyTokens, token, 'the :root[data-experience="fancy"] block');
+      expect(contrastRatio(hexToRgb(color), hexToRgb(t().bgDeep))).toBeGreaterThanOrEqual(4.5);
+    });
+  }
 });
 
 // Functional doesn't share the mix recipe 3.0 used before round 2 — its gel-blue

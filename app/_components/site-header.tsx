@@ -35,7 +35,9 @@ export function HeaderFancy({ experience }: { experience: Experience }) {
             <NavLink
               key={n.href}
               href={n.href}
-              className="whitespace-nowrap rounded-full px-2 py-1.5 transition lg:px-3"
+              // px-1.5 at md: at 768px the full nav, the search field and the gear
+              // came to 8px wider than the screen.
+              className="whitespace-nowrap rounded-full px-1.5 py-1.5 transition lg:px-3"
               activeClassName="bg-[rgba(233,238,247,0.10)] text-ink"
               inactiveClassName="hover:text-ink"
             >

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TourTimeline, shortName, splitLegs, yetiLabelHide } from "./tour-timeline";
+import { TourTimeline, shortName, splitLegs, yetiLaneNames, yetiNamePlacement } from "./tour-timeline";
 import type { TourSpan } from "@/lib/queries/dimensions";
 
 function tour(over: Partial<TourSpan> & { tourId: number; name: string; start: string; end: string }): TourSpan {
@@ -305,21 +305,48 @@ describe("TourTimeline out of the tape deck (3.0)", () => {
     expect(html).toContain("border:1.5px dashed var(--line)");
   });
 
-  it("labels in plain snow, the busiest run in the heat color, screen-reader only below sm", () => {
-    expect(html).toMatch(/max-sm:sr-only @max-\[\d+px\]:sr-only" style="--tour-label-color:var\(--ink\)">Small</);
-    expect(html).toMatch(/max-sm:sr-only @max-\[\d+px\]:sr-only" style="--tour-label-color:var\(--ember\)">Summer</);
-    // Each leg is a size container, so its own rendered width decides.
-    expect(html).toContain("group @container absolute");
+  it("prints names beside the bars, never inside them", () => {
+    // Inside each named leg, the name is for screen readers only.
+    expect(html).toContain('<span class="sr-only">Summer Tour 2018</span>');
+    expect(html).toContain('<span class="sr-only">Small Tour 2019</span>');
+    // Beside: plain names in slush, the busiest run in the heat color, the
+    // future in faint; none below sm; each lane is the size container.
+    expect(html).toMatch(/aria-hidden="true" class="tour-timeline-label [^"]*max-sm:hidden[^"]*" style="top:14px;left:calc\([\d.]+% \+ 6px\);--tour-label-color:var\(--muted\)">Small</);
+    expect(html).toMatch(/--tour-label-color:var\(--ember\)">Summer</);
+    expect(html).toMatch(/--tour-label-color:var\(--faint\)">Spring</);
+    expect(html).toContain("@container relative flex-1");
+    expect(html).not.toContain("truncate font-display");
   });
 
-  it("hides a name only when its own leg is too narrow for it: a longer name needs a wider leg", () => {
-    const px = (cls: string) => Number(cls.match(/\[(\d+)px\]/)![1]);
-    expect(px(yetiLabelHide("Fall"))).toBeLessThan(px(yetiLabelHide("Summer")));
-    expect(px(yetiLabelHide("Summer"))).toBeLessThan(px(yetiLabelHide("Everything Must Go Summer")));
-    // "Fall" (4 characters at ~7.4px, plus 20px of margin) needs about 50px.
-    expect(yetiLabelHide("Fall")).toBe("@max-[50px]:sr-only");
-    // Very long names cap at the table's last step rather than throwing.
-    expect(yetiLabelHide("x".repeat(80))).toBe("@max-[250px]:sr-only");
+  it("never prints two names into the same gap", () => {
+    // Two tours with one wide gap between them and no room outside: the first
+    // takes the shared gap, the second gets nothing rather than colliding.
+    const placed = yetiLaneNames(["Summer", "Fall"], [{ start: 0, end: 20 }, { start: 60, end: 100 }]);
+    expect(placed[0]?.side).toBe("right");
+    expect(placed[1]).toBeNull();
+    // With room on its far side, the second tour uses that instead.
+    const both = yetiLaneNames(["Summer", "Fall"], [{ start: 0, end: 20 }, { start: 60, end: 70 }]);
+    expect(both.map((p) => p?.side)).toEqual(["right", "right"]);
+  });
+
+  it("puts a name on the side with more open lane, and prints it only when that gap fits it", () => {
+    // Late in the year with a neighbor right after: the name goes left.
+    expect(yetiNamePlacement("Fall", { start: 80, end: 90 }, { prevEnd: 40, nextStart: 92 })?.side).toBe("left");
+    expect(yetiNamePlacement("Fall", { start: 10, end: 20 }, { prevEnd: 8, nextStart: 70 })?.side).toBe("right");
+    // A wide gap fits at any lane width that prints names at all.
+    expect(yetiNamePlacement("Fall", { start: 10, end: 20 }, { prevEnd: 0, nextStart: 70 })).toEqual({ side: "right", hide: "" });
+    // A tighter gap hides below the lane width it needs: "Summer" is 6 × 7.8 + 14
+    // = 60.8px, in a 10% gap a 608px lane, rounded up to the 20px step.
+    expect(yetiNamePlacement("Summer", { start: 10, end: 20 }, { prevEnd: 5, nextStart: 30 })).toEqual({
+      side: "right",
+      hide: "@max-[620px]:hidden",
+    });
+    // A longer name in the same gap needs a wider lane.
+    const px = (p: ReturnType<typeof yetiNamePlacement>) => Number(p!.hide.match(/\[(\d+)px\]/)![1]);
+    expect(px(yetiNamePlacement("Everything Must Go", { start: 10, end: 20 }, { prevEnd: 5, nextStart: 40 }))).toBeGreaterThan(620);
+    // No gap wide enough at any real lane width: no printed name.
+    expect(yetiNamePlacement("Summer", { start: 10, end: 20 }, { prevEnd: 19, nextStart: 22 })).toBeNull();
+    expect(yetiNamePlacement("Summer", { start: 10, end: 20 }, { prevEnd: 10, nextStart: 20 })).toBeNull();
   });
 
   it("captions dots and the yellow outline, not ticks", () => {
