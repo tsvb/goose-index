@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SkeletonBar, SkeletonPage, SkeletonHeader, SkeletonRows, SkeletonPills } from "./skeleton";
-import ShowsLoading from "../shows/loading";
-import ShowLoading from "../shows/[date]/loading";
-import SongsLoading from "../songs/loading";
-import SongLoading from "../songs/[slug]/loading";
-import StatsLoading from "../stats/loading";
-import SearchLoading from "../search/loading";
+import ShowsLoading from "../edition/[experience]/shows/loading";
+import ShowLoading from "../edition/[experience]/shows/[date]/loading";
+import SongsLoading from "../edition/[experience]/songs/loading";
+import SongLoading from "../edition/[experience]/songs/[slug]/loading";
+import StatsLoading from "../edition/[experience]/stats/loading";
+import SearchLoading from "../edition/[experience]/search/loading";
 
 describe("skeleton primitives", () => {
   it("bars shimmer, go still under reduced motion, and are hidden from AT", () => {

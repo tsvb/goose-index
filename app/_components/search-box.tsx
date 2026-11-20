@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSitePathname } from "./site-pathname";
 import { Suspense, useEffect, useState } from "react";
 import { Search } from "./marks";
 import { clsx } from "./clsx";
@@ -25,7 +26,7 @@ export function SearchBox({ size = "compact", className }: { size?: Size; classN
 }
 
 function SeededSearchBox({ size, className }: { size: Size; className?: string }) {
-  const pathname = usePathname();
+  const pathname = useSitePathname();
   const params = useSearchParams();
   // Only echo ?q= on /search itself — elsewhere (e.g. /songs?q=) q is a local
   // filter that shouldn't leak into the global search box.

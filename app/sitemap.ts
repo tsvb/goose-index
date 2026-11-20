@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { allShowDates, allSongSlugs, allYears, allTourIds, allVenueIds, catalogLastmod, type Dated } from "@/lib/queries/sitemap";
 import { listPosts } from "@/lib/blog/posts";
-import { CUTS } from "./stats/cuts";
+import { CUTS } from "./edition/[experience]/stats/cuts";
 import { SITE_URL } from "@/lib/site";
 
 // Rendered per request, not prerendered at build. Every read below goes through

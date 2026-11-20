@@ -1,0 +1,385 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
+import type { ShowDetail, ShowNeighbor } from "@/lib/queries/shows";
+
+const h = vi.hoisted(() => ({
+  experience: "fancy",
+  details: [] as Record<string, unknown>[],
+  neighbors: { prev: null, next: null } as {
+    prev: Record<string, unknown> | null;
+    next: Record<string, unknown> | null;
+  },
+  entryNumber: null as number | null,
+  frontier: null as string | null,
+  setlist: [] as Record<string, unknown>[],
+}));
+
+vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("notFound"); } }));
+vi.mock("next/server", () => ({ after: () => {} }));
+vi.mock("@/lib/sync/maybe-live", () => ({ maybeLiveSync: async () => {} }));
+vi.mock("@/lib/experience.server", () => ({ getExperience: async () => h.experience }));
+vi.mock("@/lib/queries/shows", () => ({
+  getShowDetails: async () => h.details as unknown as ShowDetail[],
+  getSetlist: async () => h.setlist,
+  getShowNeighbors: async () => h.neighbors as unknown as { prev: ShowNeighbor; next: ShowNeighbor },
+  getShowEntryNumber: async () => h.entryNumber,
+}));
+// Only the db-touching lookup is stubbed; `awaitingJamCharts` stays real so the
+// page's pending/settled decision is the one shipped, not a restatement of it.
+vi.mock("@/lib/queries/jam-charts", async (importActual) => ({
+  ...(await importActual<typeof import("@/lib/queries/jam-charts")>()),
+  jamChartFrontier: async () => h.frontier,
+}));
+// Heavy children exercised by their own colocated tests; stubbed to keep this on the nav blocks.
+vi.mock("@/app/_components/setlist", () => ({ Setlist: () => null }));
+vi.mock("@/app/_components/show-header", () => ({ ShowHeader: () => null }));
+
+import ShowPage, { generateMetadata } from "./page";
+
+function show(showId: number, order: number, date = "2025-06-25") {
+  return {
+    showId, date, order, venue: "Venue A", city: "Port Chester", state: "NY", country: "USA",
+    tour: null, tourId: null, songCount: 10, hasNotes: false, venueId: 1, permalink: `p${showId}`, notes: null,
+  };
+}
+
+function neighbor(date: string, order: number) {
+  return { date, order, venue: "Venue A", city: "Port Chester", state: "NY" };
+}
+
+async function render(date: string, n?: string) {
+  const el = await ShowPage({
+    params: Promise.resolve(n ? { date, n } : { date }),
+  });
+  return renderToStaticMarkup(el);
+}
+
+beforeEach(() => {
+  h.experience = "fancy";
+  h.details = [show(1, 1), show(2, 2), show(3, 3)];
+  h.neighbors = { prev: null, next: null };
+  h.entryNumber = null;
+  h.frontier = null;
+  h.setlist = [];
+});
+
+describe("ShowPage prev/next navigation", () => {
+  it("labels same-date neighbors as earlier/later shows this day", async () => {
+    h.neighbors = { prev: neighbor("2025-06-25", 1), next: neighbor("2025-06-25", 3) };
+    const html = await render("2025-06-25", "2");
+    expect(html).toContain("Earlier show this day");
+    expect(html).toContain("Later show this day");
+    expect(html).not.toContain("Previous night");
+    expect(html).not.toContain("Next night");
+    // top-bar links get the same words as their title
+    expect(html).toContain('title="Earlier show this day"');
+    expect(html).toContain('title="Later show this day"');
+  });
+
+  it("titles cross-date top-bar neighbors with their venue, and carries ?n= for order > 1", async () => {
+    h.neighbors = { prev: neighbor("2025-06-24", 1), next: neighbor("2025-06-26", 2) };
+    const html = await render("2025-06-25");
+    expect(html).toContain('title="Venue A"');
+    expect(html).toContain('href="/shows/2025-06-24"'); // show 1 needs no ?n
+    expect(html).toContain('href="/shows/2025-06-26?n=2"');
+  });
+
+  it("links a same-date next neighbor through its ?n=", async () => {
+    h.details = [show(1, 1)]; // no siblings, so any ?n= href must come from the nav
+    h.neighbors = { prev: null, next: neighbor("2025-06-25", 2) };
+    const html = await render("2025-06-25");
+    expect(html).toContain('href="/shows/2025-06-25?n=2"');
+  });
+
+  it("minimal keeps its own inline nav with the same-day words and venue", async () => {
+    h.experience = "minimal";
+    h.neighbors = { prev: neighbor("2025-06-25", 1), next: neighbor("2025-06-25", 3) };
+    const html = await render("2025-06-25", "2");
+    expect(html).toContain("Earlier show this day · Venue A");
+    expect(html).toContain("Later show this day · Venue A");
+    expect(html).toContain('href="/shows/2025-06-25?n=3"');
+    expect(html.match(/<footer/g)).toBeNull(); // minimal never gets the folio footer
+  });
+
+  it("top bar neighbor links hover to ink, never a color accent", async () => {
+    h.neighbors = { prev: neighbor("2025-06-24", 1), next: neighbor("2025-06-26", 2) };
+    const html = await render("2025-06-25");
+    expect(html).toMatch(/hover:text-ink/);
+    expect(html).not.toContain("hover:text-gold");
+    expect(html).not.toContain("hover:text-steel");
+    // No rounded-chip hover fill on the top bar — text-only hover.
+    expect(html).not.toContain("hover:bg-surface");
+    expect(html).not.toMatch(/rounded px-2 py-1/);
+  });
+
+  it("the back arrow carries no hover motion — the live dot is the only motion", async () => {
+    const html = await render("2025-06-25");
+    expect(html).not.toContain("group-hover:-translate-x-0.5");
+  });
+});
+
+describe("ShowPage prev/next folio footer", () => {
+  it("replaces the old prev/next cards with a single folio footer", async () => {
+    h.neighbors = { prev: neighbor("2025-06-24", 1), next: neighbor("2025-06-26", 2) };
+    const html = await render("2025-06-25");
+    expect(html).not.toMatch(/rounded-lg border border-line bg-surface p-5/);
+    expect(html).not.toContain("group-hover:text-gold");
+    expect(html.match(/<footer/g)?.length).toBe(1);
+  });
+
+  it("folio labels carry the neighbor's venue, matching the approved mockup", async () => {
+    h.neighbors = { prev: neighbor("2025-06-24", 1), next: neighbor("2025-06-26", 2) };
+    const html = await render("2025-06-25");
+    expect(html).toContain("jun 24, 2025 · Venue A");
+    expect(html).toContain("jun 26, 2025 · Venue A");
+  });
+});
+
+describe("ShowPage no-show date recovery", () => {
+  it("renders a friendly no-show page (not a 404) for a valid date with no show", async () => {
+    h.details = []; // valid date, nothing logged
+    h.neighbors = { prev: neighbor("2019-03-16", 1), next: neighbor("2019-03-22", 1) };
+    const html = await render("2019-03-19");
+    expect(html).toContain("No show on Tuesday, March 19, 2019");
+    expect(html).toContain("Goose didn’t play this night (or it isn’t logged).");
+    // recovery paths: the year, the neighbors on either side, and On This Day —
+    // now a NilState (no card) plus the same folio footer used elsewhere.
+    expect(html).toContain('href="/shows?year=2019"');
+    expect(html).toContain("browse 2019 shows");
+    expect(html).toContain('href="/on-this-day"');
+    expect(html).toContain("nearest before");
+    expect(html).toContain("nearest after");
+    expect(html).toContain('href="/shows/2019-03-16"');
+    expect(html).toContain('href="/shows/2019-03-22"');
+    expect(html).not.toContain("stage-glow");
+    expect(html).not.toMatch(/rounded-lg border/);
+    expect(html).not.toMatch(/rounded-full border-gold/);
+  });
+
+  it("gives the no-show page a plain Doc in minimal mode", async () => {
+    h.experience = "minimal";
+    h.details = [];
+    h.neighbors = { prev: neighbor("2019-03-16", 1), next: neighbor("2019-03-22", 2) };
+    const html = await render("2019-03-19");
+    expect(html).toContain("doc-crumb"); // breadcrumb, not the fancy hero
+    expect(html).toContain("No show on Tuesday, March 19, 2019");
+    expect(html).toContain("Nearest shows");
+    expect(html).toContain("Before:");
+    expect(html).toContain("After:");
+    // order > 1 neighbor carries ?n=; order 1 does not
+    expect(html).toContain('href="/shows/2019-03-16"');
+    expect(html).toContain('href="/shows/2019-03-22?n=2"');
+    expect(html).toContain('href="/shows?year=2019"');
+    expect(html).not.toContain("stage-glow"); // no fancy hero leaking in
+  });
+
+  it("still hard-404s a shape-invalid date", async () => {
+    h.details = [];
+    await expect(render("2019-13-99")).rejects.toThrow("notFound");
+  });
+
+  it("titles the no-show page but keeps 'Show not found' for garbage", async () => {
+    h.details = [];
+    const noShow = await generateMetadata(
+      { params: Promise.resolve({ date: "2019-03-19" }) },
+      {} as never,
+    );
+    expect(noShow.title).toBe("No show on Mar 19, 2019");
+    // Self-canonical so the recovery page doesn't get consolidated into a random show.
+    expect(noShow.alternates?.canonical).toBe("https://www.gooseindex.com/shows/2019-03-19");
+    const garbage = await generateMetadata(
+      { params: Promise.resolve({ date: "2019-13-99" }) },
+      {} as never,
+    );
+    expect(garbage.title).toBe("Show not found");
+    // No canonical for garbage — nothing to point at.
+    expect(garbage.alternates).toBeUndefined();
+  });
+});
+
+describe("ShowPage title and description", () => {
+  const meta = (date = "2025-06-25") =>
+    generateMetadata({ params: Promise.resolve({ date }) }, {} as never);
+
+  it("leads with 'Goose setlist' once a setlist is logged", async () => {
+    h.setlist = [{ song: "Arcadia" }];
+    const m = await meta();
+    expect(m.title).toBe("Goose setlist · Jun 25, 2025 · Venue A");
+    expect(m.description).toBe("Goose setlist for Wednesday, June 25, 2025 at Venue A, Port Chester, NY.");
+  });
+
+  it("doesn't promise a setlist the page can't show", async () => {
+    h.setlist = [];
+    const m = await meta();
+    expect(m.title).toBe("Goose · Jun 25, 2025 · Venue A");
+    expect(m.title).not.toContain("setlist");
+    expect(m.description).toBe("Goose at Venue A, Port Chester, NY on Wednesday, June 25, 2025. No setlist logged yet.");
+  });
+
+  it("drops the venue segment when there's no venue", async () => {
+    h.setlist = [{ song: "Arcadia" }];
+    h.details = [{ ...show(1, 1), venue: null }];
+    const m = await meta();
+    expect(m.title).toBe("Goose setlist · Jun 25, 2025");
+  });
+});
+
+describe("ShowPage canonical URL (multi-show dates)", () => {
+  const parent = { openGraph: { images: [] } } as never;
+
+  it("canonicals show 1 to the bare date URL — never ?n=1", async () => {
+    // Both no-?n and ?n=1 should resolve to show 1 (order 1) with the same bare canonical.
+    for (const extra of [{}, { n: "1" }]) {
+      const m = await generateMetadata(
+        { params: Promise.resolve({ date: "2025-06-25", ...extra }) },
+        parent,
+      );
+      expect(m.alternates?.canonical).toBe("https://www.gooseindex.com/shows/2025-06-25");
+    }
+  });
+
+  it("canonicals a non-default show to ?n=<its order>", async () => {
+    const m = await generateMetadata(
+      { params: Promise.resolve({ date: "2025-06-25", n: "2" }) },
+      parent,
+    );
+    expect(m.alternates?.canonical).toBe("https://www.gooseindex.com/shows/2025-06-25?n=2");
+  });
+
+  it("openGraph url matches the canonical (so social scrapers and Google agree)", async () => {
+    const m = await generateMetadata(
+      { params: Promise.resolve({ date: "2025-06-25", n: "3" }) },
+      parent,
+    );
+    expect(m.openGraph?.url).toBe(m.alternates?.canonical);
+  });
+});
+
+describe("ShowPage folio footer entry number", () => {
+  it("prints the computed entry number as lowercase chrome in the folio footer", async () => {
+    h.entryNumber = 812;
+    const html = await render("2025-06-25");
+    expect(html).toContain("entry no. 812");
+  });
+
+  it("omits the entry number when the show has no entry number yet", async () => {
+    h.entryNumber = null; // upcoming, or nothing logged
+    const html = await render("2025-06-25");
+    expect(html).not.toContain("entry no.");
+    expect(html).not.toContain("entry-folio");
+    expect(html).not.toContain("The Goose Almanac");
+  });
+
+  it("carries the entry number in functional and fancy — the folio footer isn't fancy-only anymore", async () => {
+    h.entryNumber = 812;
+    for (const exp of ["functional", "fancy"] as const) {
+      h.experience = exp;
+      const html = await render("2025-06-25");
+      expect(html).toContain("entry no. 812");
+    }
+  });
+
+  it("never shows the entry number in minimal — it has no folio footer to carry it", async () => {
+    h.entryNumber = 812;
+    h.experience = "minimal";
+    const html = await render("2025-06-25");
+    expect(html).not.toContain("entry no.");
+  });
+});
+
+describe("ShowPage notes aside", () => {
+  it("tags the fancy/functional notes aside with pen rules and an italic body — no card border", async () => {
+    h.details = [{ ...show(1, 1), notes: "Second Boston night." }];
+    const html = await render("2025-06-25");
+    expect(html).toMatch(/<aside class="show-notes-aside /);
+    expect(html).toContain("Second Boston night.");
+    expect(html).toContain("from the notes");
+    expect(html).toContain("italic");
+    expect(html).not.toContain("border-l-2 border-gold");
+    expect(html.match(/<svg/g)?.length).toBeGreaterThanOrEqual(2); // the two PenRules
+  });
+});
+
+describe("ShowPage 'Also this day' chips", () => {
+  it("names each sibling's venue alongside its show number", async () => {
+    h.details = [
+      { ...show(1, 1), venue: "Capitol Theatre" },
+      { ...show(2, 2), venue: "Brooklyn Bowl" },
+    ];
+    const html = await render("2025-06-25"); // renders show 1; sibling is show 2
+    expect(html).toContain("Also this day");
+    expect(html).toContain("Show 2");
+    // The venue is named in the chip, not a bare "Show 2".
+    expect(html).toContain("Brooklyn Bowl");
+    expect(html).toContain('href="/shows/2025-06-25?n=2"');
+  });
+
+  it("renders siblings as plain spruce text links, not rounded-border chips", async () => {
+    h.details = [
+      { ...show(1, 1), venue: "Capitol Theatre" },
+      { ...show(2, 2), venue: "Brooklyn Bowl" },
+    ];
+    const html = await render("2025-06-25");
+    expect(html).toContain("text-spruce");
+    expect(html).not.toMatch(/rounded border border-line/);
+    expect(html).not.toContain("hover:text-gold");
+  });
+});
+
+describe("ShowPage jam-chart pending note", () => {
+  const entry = (isJamchart: boolean) => ({
+    uniqueId: "u1", song: "Arcadia", songSlug: "arcadia", setType: "Set", setNumber: "1",
+    position: 1, trackTime: null, transition: null, footnote: null,
+    isJamchart, jamchartNotes: null, isJam: false, isReprise: false,
+  });
+
+  it("says why a show newer than the newest filed chart shows no jams", async () => {
+    h.details = [show(1, 1, "2025-06-25")];
+    h.frontier = "2025-05-01";
+    h.setlist = [entry(false)];
+    const html = await render("2025-06-25");
+    expect(html).toContain("No jam-chart entries for this show");
+    // The claim travels with the evidence it rests on.
+    expect(html).toContain("May 1, 2025");
+  });
+
+  it("stays quiet on a show older than the frontier — that absence is settled", async () => {
+    h.details = [show(1, 1, "2025-04-01")];
+    h.frontier = "2025-05-01";
+    h.setlist = [entry(false)];
+    expect(await render("2025-04-01")).not.toContain("No jam-chart entries");
+  });
+
+  it("stays quiet once the show has a chart entry of its own", async () => {
+    h.details = [show(1, 1, "2025-06-25")];
+    h.frontier = "2025-05-01";
+    h.setlist = [entry(true)];
+    expect(await render("2025-06-25")).not.toContain("No jam-chart entries");
+  });
+
+  it("claims nothing when no chart has ever been filed", async () => {
+    h.details = [show(1, 1, "2025-06-25")];
+    h.frontier = null;
+    h.setlist = [entry(false)];
+    expect(await render("2025-06-25")).not.toContain("No jam-chart entries");
+  });
+
+  it("says nothing on an announced show that hasn't been played", async () => {
+    // Upcoming dates are show rows with no setlist, and every one of them is
+    // past the frontier — the note would otherwise land on the whole calendar.
+    h.details = [show(1, 1, "2099-01-01")];
+    h.frontier = "2025-05-01";
+    h.setlist = [];
+    expect(await render("2099-01-01")).not.toContain("No jam-chart entries");
+  });
+
+  it("carries the note in minimal too, in minimal's own plain voice", async () => {
+    h.experience = "minimal";
+    h.details = [show(1, 1, "2025-06-25")];
+    h.frontier = "2025-05-01";
+    h.setlist = [entry(false)];
+    const html = await render("2025-06-25");
+    expect(html).toContain("No jam-chart entries for this show");
+    expect(html).not.toContain("font-mono text-[0.62rem]");
+  });
+});

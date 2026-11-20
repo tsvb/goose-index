@@ -4,7 +4,6 @@ import { NavLink } from "./nav-links";
 import { SearchBox } from "./search-box";
 import { MobileNav } from "./mobile-nav";
 import { SettingsMenu } from "./settings-menu";
-import { getExperience } from "@/lib/experience.server";
 import { type Experience } from "@/lib/experience";
 
 const NAV = [
@@ -98,8 +97,7 @@ export function HeaderMinimal({ experience }: { experience: Experience }) {
   );
 }
 
-export async function SiteHeader() {
-  const experience = await getExperience();
+export function SiteHeader({ experience }: { experience: Experience }) {
   if (experience === "minimal") return <HeaderMinimal experience={experience} />;
   if (experience === "functional") return <HeaderFunctional experience={experience} />;
   return <HeaderFancy experience={experience} />;

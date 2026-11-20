@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useSitePathname } from "./site-pathname";
 
 /**
  * Section-level match: /shows is current on /shows and /shows/2025-06-25 but
@@ -30,7 +30,7 @@ export function NavLink({
   inactiveClassName?: string;
   children: React.ReactNode;
 }) {
-  const pathname = usePathname() ?? "";
+  const pathname = useSitePathname() ?? "";
   const active = isNavActive(pathname, href);
   const extra = active ? activeClassName : inactiveClassName;
   return (
