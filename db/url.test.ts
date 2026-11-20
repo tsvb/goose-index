@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
-import { databaseUrl, sslFor } from "./url";
+import { databaseUrl, sessionPoolerProblem, sslFor } from "./url";
 
 // Five preview builds failed in a row on 2026-08-29 with "DATABASE_URL is not
 // set". The Vercel ↔ Supabase integration writes POSTGRES_URL to Production
@@ -88,5 +88,25 @@ describe("sslFor", () => {
 
   it("has no opinion on a string it cannot parse", () => {
     expect(sslFor("not a url")).toBeUndefined();
+  });
+});
+
+describe("sessionPoolerProblem", () => {
+  it("flags Supabase's session-mode pooler, explicit port or default", () => {
+    expect(sessionPoolerProblem("postgresql://postgres.ref:pw@aws-1-us-east-1.pooler.supabase.com:5432/postgres")).toMatch(
+      /session-mode pooler \(aws-1-us-east-1\.pooler\.supabase\.com:5432\).*port 6543/,
+    );
+    expect(sessionPoolerProblem("postgresql://postgres.ref:pw@aws-0-us-east-1.pooler.supabase.com/postgres")).toMatch(/:5432\)/);
+  });
+
+  it("passes the transaction-mode pooler and anything that isn't a Supabase pooler", () => {
+    expect(sessionPoolerProblem("postgresql://postgres.ref:pw@aws-1-us-east-1.pooler.supabase.com:6543/postgres")).toBeNull();
+    expect(sessionPoolerProblem("postgres://tim@localhost:5432/goose")).toBeNull();
+    expect(sessionPoolerProblem("postgres://u:p@db.ref.supabase.co:5432/postgres")).toBeNull();
+    expect(sessionPoolerProblem("not a url")).toBeNull();
+  });
+
+  it("never echoes the password", () => {
+    expect(sessionPoolerProblem("postgresql://postgres.ref:s3cret@aws-1-us-east-1.pooler.supabase.com:5432/postgres")).not.toContain("s3cret");
   });
 });

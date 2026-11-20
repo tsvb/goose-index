@@ -27,6 +27,14 @@ job, so page loads never depend on the elgoose API being up.
   `scripts/migrate.ts` both set `prepare: false`, required in transaction mode —
   the migrate script needs it because the production build migrates over whatever
   connection string Vercel has, i.e. the pooled one.
+- **Every Vercel environment needs the transaction-mode string — Preview included.**
+  The integration writes `POSTGRES_URL` to Production only; a hand-set Preview
+  `POSTGRES_URL` must be the **6543** string too. On 2026-11-19 it was the session
+  string (5432), and preview deploys failed with `EMAXCONNSESSION` whenever the shared
+  pool of 15 filled. `db/client.ts` now logs a `[db]` warning on Vercel if it sees a
+  session-mode pooler string, and `next build` no longer opens a database connection
+  (the sitemap renders per request), so a full pooler can't fail a build — but pages
+  on that deployment still can.
 - The **session-mode pooler** (same host, port `5432`) is the right string for the
   GitHub Actions (bulk jobs, happier off transaction pooling). The **direct**
   connection (`db.<project-ref>.supabase.co:5432`) is IPv6-only without a paid
