@@ -58,7 +58,7 @@ export default async function ToursPage() {
           Every tour across the calendar it ran on. A list makes an eleven-week summer and a two-week Europe leg look
           the same; this doesn&apos;t.
         </p>
-        <TourTimeline tours={timeline.tours} untouredShows={timeline.untouredShows} today={today} />
+        <TourTimeline tours={timeline.tours} untouredShows={timeline.untouredShows} today={today} edition={experience} />
       </section>
 
       {/* List, grouped by year */}

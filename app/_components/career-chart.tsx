@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { CareerYear } from "@/lib/queries/dimensions";
+import type { Experience } from "@/lib/experience";
 
 /**
  * The career, drawn as a series.
@@ -22,16 +23,22 @@ import type { CareerYear } from "@/lib/queries/dimensions";
 /** `label` reserves room above the tallest bar — without it the value sits on
  * top of whatever prose precedes the chart. */
 const CHART = { h: 168, min: 3, label: 18 } as const;
+/** 3.0 sets the value at Yeti's 12px floor, so it needs a taller reserve. */
+const YETI_LABEL = 26;
 
-export function CareerChart({ years }: { years: CareerYear[] }) {
+export function CareerChart({ years, edition }: { years: CareerYear[]; edition: Experience }) {
   if (years.length === 0) return null;
+  // 3.0 (Yeti, round 2): no hatching — an engraver's mark. The documented
+  // shows are the solid part; the undocumented ones are the empty box above
+  // them, outlined in frost. Same split, no texture.
+  const yeti = edition === "fancy";
   const most = Math.max(...years.map((y) => y.shows));
   const peak = years.reduce((a, b) => (!b.partial && b.shows > a.shows ? b : a), years[0]);
   const anyGaps = years.some((y) => y.documented < y.shows);
 
   return (
     <figure className="m-0">
-      <div className="flex items-end gap-1.5" style={{ height: CHART.h + CHART.label }}>
+      <div className="flex items-end gap-1.5" style={{ height: CHART.h + (yeti ? YETI_LABEL : CHART.label) }}>
         {years.map((y) => {
           const h = Math.max((y.shows / most) * CHART.h, CHART.min);
           const covered = y.shows === 0 ? 0 : (y.documented / y.shows) * h;
@@ -44,9 +51,35 @@ export function CareerChart({ years }: { years: CareerYear[] }) {
               title={`${y.year} — ${y.shows} shows${y.documented < y.shows ? `, setlists for ${y.documented}` : ""}, ${y.uniqueSongs} different songs, ${y.debuts} debuts${y.partial ? " (year still running)" : ""}`}
               className="group flex flex-1 flex-col justify-end"
             >
-              <span className="mb-1 text-center font-mono text-[0.6rem] tabular-nums text-faint transition group-hover:text-ink">
+              <span
+                className={
+                  yeti && isPeak
+                    ? "mb-1 text-center font-mono text-[0.6rem] font-extrabold tabular-nums text-ember"
+                    : "mb-1 text-center font-mono text-[0.6rem] tabular-nums text-faint transition group-hover:text-ink"
+                }
+              >
                 {y.shows}
               </span>
+              {yeti ? (
+                <span
+                  className="relative block w-full overflow-hidden rounded-[7px_7px_3px_3px]"
+                  style={{
+                    height: h,
+                    ...(y.partial
+                      ? { outline: "1.5px dashed var(--steel)", outlineOffset: "-1.5px" }
+                      : { boxShadow: `inset 0 0 0 1.5px ${isPeak ? "var(--hand)" : "var(--line)"}` }),
+                  }}
+                >
+                  <span
+                    className="absolute inset-x-0 bottom-0 block rounded-[3px]"
+                    style={{
+                      height: covered,
+                      background: isPeak && !y.partial ? "var(--hand)" : "var(--steel)",
+                      opacity: y.partial ? 0.45 : isPeak ? 1 : 0.8,
+                    }}
+                  />
+                </span>
+              ) : (
               <span className="relative block w-full" style={{ height: h }}>
                 {/* Shows we know happened, and nothing else. Hatched, not hidden. */}
                 {missing > 0 && (
@@ -76,6 +109,7 @@ export function CareerChart({ years }: { years: CareerYear[] }) {
                   }}
                 />
               </span>
+              )}
               <span
                 className={`mt-1.5 text-center font-mono text-[0.6rem] tabular-nums transition ${
                   isPeak ? "text-ember" : "text-faint group-hover:text-ink"
@@ -94,8 +128,17 @@ export function CareerChart({ years }: { years: CareerYear[] }) {
         {anyGaps && (
           <>
             {" "}
-            The hatched part of a bar is shows elgoose has logged but has <em className="not-italic text-muted">no
-            setlist for</em> — 2017 has {years.find((y) => y.year === 2017)?.shows ?? 0} shows and setlists for{" "}
+            {yeti ? (
+              <>
+                The empty part of a bar is shows elgoose has logged but has{" "}
+                <em className="not-italic text-muted">no setlist for</em>
+              </>
+            ) : (
+              <>
+                The hatched part of a bar is shows elgoose has logged but has <em className="not-italic text-muted">no
+                setlist for</em>
+              </>
+            )} — 2017 has {years.find((y) => y.year === 2017)?.shows ?? 0} shows and setlists for{" "}
             {years.find((y) => y.year === 2017)?.documented ?? 0}. The early record is thin, and that is a fact about
             the archive rather than about the band.
           </>

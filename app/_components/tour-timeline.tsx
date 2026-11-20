@@ -1,6 +1,7 @@
 import { Fragment, type CSSProperties } from "react";
 import Link from "next/link";
 import type { TourSpan } from "@/lib/queries/dimensions";
+import type { Experience } from "@/lib/experience";
 
 /**
  * The touring year, drawn as time.
@@ -21,6 +22,16 @@ import type { TourSpan } from "@/lib/queries/dimensions";
 const MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
 /** Lane height and gap, in the row's own pixels. */
 const LANE = { h: 24, gap: 4 } as const;
+
+/** 3.0 (Yeti, round 2): the leg washes, in percent of the mark color over
+ * night. The labels on them are plain --ink (snow) and, on the busiest run,
+ * --ember (sale); tour-timeline-label-contrast.test.ts holds both to 4.5:1 on
+ * these washes. 2.0 keeps its own recipe below, untouched. */
+export const YETI_LEG = { steelWash: 20, handWash: 14 } as const;
+/** A leg narrower than this (percent of the year, about five weeks) can't hold
+ * a name without clipping it to a stub like "T…", so in 3.0 its name is read to
+ * screen readers only; the full name is on hover and in the list below. */
+const YETI_LABEL_MIN_WIDTH = 6;
 
 const dayOfYear = (iso: string) => {
   const d = new Date(iso + "T00:00:00Z");
@@ -98,11 +109,18 @@ export function TourTimeline({
   tours,
   untouredShows,
   today,
+  edition,
 }: {
   tours: TourSpan[];
   untouredShows: number;
   today: string;
+  edition: Experience;
 }) {
+  // 3.0 draws the same calendar out of the tape deck: no boxed rows, rounded
+  // legs, a dot per show instead of a tick, the busiest run outlined in sale,
+  // future legs dashed frost, and names only where they fit (screen-reader
+  // only below sm). Every 2.0 literal below is kept on its own branch.
+  const yeti = edition === "fancy";
   if (tours.length === 0) return null;
 
   const byYear = new Map<number, TourSpan[]>();
@@ -140,7 +158,7 @@ export function TourTimeline({
                 {year}
               </span>
               <div
-                className="relative flex-1 rounded-[2px] border border-line-soft bg-bg-deep"
+                className={yeti ? "relative flex-1" : "relative flex-1 rounded-[2px] border border-line-soft bg-bg-deep"}
                 style={{ height: lanes.length * LANE.h + (lanes.length - 1) * LANE.gap + 4 }}
               >
                 {/* Month gridlines — the quiet months are only legible against them. */}
@@ -148,7 +166,7 @@ export function TourTimeline({
                   <span
                     key={i}
                     aria-hidden
-                    className="absolute top-0 h-full w-px bg-line-soft"
+                    className={yeti ? "absolute top-0 h-full w-px bg-line opacity-55" : "absolute top-0 h-full w-px bg-line-soft"}
                     style={{ left: `${(i / 12) * 100}%` }}
                   />
                 ))}
@@ -168,9 +186,10 @@ export function TourTimeline({
                     // reads :root hex literals. Measured (scratchpad script, CSS Color 4
                     // srgb math + WCAG luminance): on the old light and dark pages plain
                     // --steel/--ember on that wash fell below the site's 4.5:1 text floor,
-                    // and mixing 30% toward --ink cleared it. On 3.0's night (the only 3.0
-                    // page since 2026-11) the same mix lands well above AA. See
-                    // tour-timeline-label-contrast.test.ts, which recomputes it.
+                    // and mixing 30% toward --ink cleared it. Since round 2 (2026-11-19)
+                    // 3.0 doesn't use this recipe: its labels are plain --ink / --ember
+                    // on the YETI_LEG washes, set where the label is drawn. See
+                    // tour-timeline-label-contrast.test.ts, which recomputes both.
                     //
                     // Functional doesn't clear with that same recipe: its gel-blue --steel
                     // and its darkened --ember pull further from --ink, so the identical
@@ -178,9 +197,9 @@ export function TourTimeline({
                     // fail AA. Plain --ink on those washes clears at 6.95:1 / 6.19:1, so
                     // functional gets its own literal via the CSS override below
                     // ([data-experience="functional"] .tour-timeline-label) rather than
-                    // the mix recipe. The --tour-label-color custom property carries this
-                    // value as the default (3.0); the class lets the
-                    // functional rule out-specificity it without an inline !important.
+                    // the mix recipe. The --tour-label-color custom property carries the
+                    // label color; the class lets the functional rule out-specificity it
+                    // without an inline !important.
                     const nameColor = future
                       ? "var(--faint)"
                       : hot
@@ -218,8 +237,25 @@ export function TourTimeline({
                               key={leg.start}
                               href={`/tours/${t.tourId}`}
                               title={`${t.name} — ${t.start} to ${t.end}, ${t.shows} ${t.shows === 1 ? "show" : "shows"}${legs.length > 1 ? ` · leg ${i + 1} of ${legs.length}: ${leg.start} to ${leg.end}, ${leg.dates.length} shows` : ""}${t.upcoming ? ` (${t.upcoming} still ahead)` : ""}`}
-                              className="group absolute flex items-center rounded-[2px] transition"
-                              style={{
+                              className={
+                                yeti
+                                  ? "group absolute flex items-center overflow-hidden rounded-full transition"
+                                  : "group absolute flex items-center rounded-[2px] transition"
+                              }
+                              style={yeti ? {
+                                left: `${(from / days) * 100}%`,
+                                width: `max(10px, ${width}%)`,
+                                top,
+                                height: LANE.h,
+                                background: future
+                                  ? "transparent"
+                                  : `color-mix(in srgb, var(${hot ? "--hand" : "--steel"}) ${hot ? YETI_LEG.handWash : YETI_LEG.steelWash}%, transparent)`,
+                                border: future
+                                  ? "1.5px dashed var(--line)"
+                                  : hot
+                                    ? "1.5px solid var(--hand)"
+                                    : "1px solid color-mix(in srgb, var(--steel) 55%, transparent)",
+                              } : {
                                 left: `${(from / days) * 100}%`,
                                 width: `${width}%`,
                                 top,
@@ -240,7 +276,7 @@ export function TourTimeline({
                                     // doubleheaders repeat a date (2022-07-22, 2020-02-29) — the date alone is not unique
                                     key={`${d}·${di}`}
                                     aria-hidden
-                                    className="absolute bottom-[2px] h-[5px] w-px"
+                                    className={yeti ? "absolute bottom-[4px] -ml-[1.5px] h-[3px] w-[3px] rounded-full" : "absolute bottom-[2px] h-[5px] w-px"}
                                     style={{
                                       left: `${Math.min(at, 99)}%`,
                                       background: d > today ? "var(--faint)" : hot ? "var(--hand)" : "var(--steel)",
@@ -252,8 +288,14 @@ export function TourTimeline({
                                   on every leg would read as separate tours. */}
                               {i === 0 && (
                                 <span
-                                  className="tour-timeline-label pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
-                                  style={{ "--tour-label-color": nameColor } as CSSProperties}
+                                  className={
+                                    yeti
+                                      ? width >= YETI_LABEL_MIN_WIDTH
+                                        ? "tour-timeline-label pointer-events-none absolute left-0 right-0 top-[4px] z-10 mx-2.5 truncate font-display text-[0.72rem] font-extrabold leading-none max-sm:sr-only"
+                                        : "tour-timeline-label sr-only"
+                                      : "tour-timeline-label pointer-events-none absolute left-0 right-0 top-[3px] z-10 mx-1.5 truncate font-mono text-[0.6rem] leading-none"
+                                  }
+                                  style={{ "--tour-label-color": yeti ? (future ? "var(--faint)" : hot ? "var(--ember)" : "var(--ink)") : nameColor } as CSSProperties}
                                 >
                                   {shortName(t.name)}
                                 </span>
@@ -272,10 +314,22 @@ export function TourTimeline({
       </ol>
 
       <figcaption className="mt-3 font-mono text-[0.62rem] leading-relaxed text-faint">
-        Each bar is the weeks a tour was actually played, and every tick inside it is a show. A tour with a break of
-        two weeks or more is drawn as separate legs joined by a dotted line — the band went home, and a solid bar
-        through that gap would claim touring that didn&apos;t happen. Dashed bars haven&apos;t happened yet. The busiest
-        run — <span className="text-ember">{busiest.name}</span>, {busiest.shows} shows — is marked.{" "}
+        {yeti ? (
+          <>
+            Each bar is the weeks a tour was actually played, with a dot for every show. A tour with a break of two
+            weeks or more is drawn as separate legs joined by a dotted line — the band went home, and a solid bar
+            through that gap would claim touring that didn&apos;t happen. Dashed bars haven&apos;t happened yet. The
+            busiest run, <span className="text-ember">{busiest.name}</span> at {busiest.shows} shows, is outlined in
+            yellow.{" "}
+          </>
+        ) : (
+          <>
+            Each bar is the weeks a tour was actually played, and every tick inside it is a show. A tour with a break of
+            two weeks or more is drawn as separate legs joined by a dotted line — the band went home, and a solid bar
+            through that gap would claim touring that didn&apos;t happen. Dashed bars haven&apos;t happened yet. The busiest
+            run — <span className="text-ember">{busiest.name}</span>, {busiest.shows} shows — is marked.{" "}
+          </>
+        )}
         {untouredShows > 0 && (
           <>
             {untouredShows} shows belong to no tour at all and aren&apos;t drawn here: one-offs, festivals and sit-ins

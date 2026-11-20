@@ -30,6 +30,7 @@ describe("TourTimeline", () => {
     // draws them on top of each other and silently hides one.
     const html = renderToStaticMarkup(
       <TourTimeline
+        edition="functional"
         today={TODAY}
         untouredShows={0}
         tours={[
@@ -45,6 +46,7 @@ describe("TourTimeline", () => {
   it("keeps a non-overlapping year on a single lane", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
+        edition="functional"
         today={TODAY}
         untouredShows={0}
         tours={[
@@ -59,6 +61,7 @@ describe("TourTimeline", () => {
   it("draws a tour that hasn't happened yet as dashed, not as a gap", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
+        edition="functional"
         today={TODAY}
         untouredShows={0}
         tours={[tour({ tourId: 9, name: "Fall Tour 2026", start: "2026-11-03", end: "2026-11-21", upcoming: 14 })]}
@@ -73,6 +76,7 @@ describe("TourTimeline", () => {
     // excluded from the bars — but that's a fact, not a gap, so it's stated.
     const html = renderToStaticMarkup(
       <TourTimeline
+        edition="functional"
         today={TODAY}
         untouredShows={245}
         tours={[tour({ tourId: 1, name: "Summer Tour 2018", start: "2018-06-01", end: "2018-09-01", shows: 32 })]}
@@ -114,12 +118,12 @@ describe("TourTimeline", () => {
       }
       walk((node as { props?: { children?: unknown } }).props?.children);
     };
-    walk(TourTimeline({ today: TODAY, untouredShows: 0, tours: [doubleheader] }));
+    walk(TourTimeline({ edition: "functional", today: TODAY, untouredShows: 0, tours: [doubleheader] }));
     expect(dups).toEqual([]);
 
     // and the fixture really renders all three ticks
     const html = renderToStaticMarkup(
-      <TourTimeline today={TODAY} untouredShows={0} tours={[doubleheader]} />,
+      <TourTimeline edition="functional" today={TODAY} untouredShows={0} tours={[doubleheader]} />,
     );
     expect(html.match(/bottom-\[2px\]/g)).toHaveLength(3);
   });
@@ -127,6 +131,7 @@ describe("TourTimeline", () => {
   it("marks the busiest run", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
+        edition="functional"
         today={TODAY}
         untouredShows={0}
         tours={[
@@ -142,6 +147,7 @@ describe("TourTimeline", () => {
   it("draws the non-busiest run's bar and ticks in steel, not the retired gold alias", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
+        edition="functional"
         today={TODAY}
         untouredShows={0}
         tours={[
@@ -160,7 +166,7 @@ describe("TourTimeline", () => {
   });
 
   it("renders nothing rather than an empty frame", () => {
-    expect(renderToStaticMarkup(<TourTimeline tours={[]} untouredShows={0} today={TODAY} />)).toBe("");
+    expect(renderToStaticMarkup(<TourTimeline edition="functional" tours={[]} untouredShows={0} today={TODAY} />)).toBe("");
   });
 });
 
@@ -209,6 +215,7 @@ describe("TourTimeline legs", () => {
   it("joins the legs of one tour with a connector, not a solid bar", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
+        edition="functional"
         today="2026-07-13"
         untouredShows={0}
         tours={[
@@ -231,6 +238,7 @@ describe("TourTimeline legs", () => {
   it("names the tour once, on the first leg only", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
+        edition="functional"
         today="2026-07-13"
         untouredShows={0}
         tours={[
@@ -248,6 +256,7 @@ describe("TourTimeline legs", () => {
   it("delivers the label color via --tour-label-color, not a bare inline color: — a revert to style={{ color: nameColor }} would beat the CSS rules in globals.css (base + functional override) and silently reintroduce the 2.0 AA failure while every other test here stays green", () => {
     const html = renderToStaticMarkup(
       <TourTimeline
+        edition="functional"
         today="2026-07-13"
         untouredShows={0}
         tours={[
@@ -269,5 +278,42 @@ describe("TourTimeline legs", () => {
     // { color: var(--ink) }` override.
     const style = label!.match(/style="([^"]*)"/)?.[1] ?? "";
     expect(style).not.toMatch(/(^|;)\s*color:/);
+  });
+});
+
+describe("TourTimeline out of the tape deck (3.0)", () => {
+  const tours = [
+    tour({ tourId: 1, name: "Small Tour 2019", start: "2019-01-01", end: "2019-01-10", shows: 3,
+      dates: ["2019-01-01", "2019-01-05", "2019-01-10"] }),
+    // A show every ten days: one leg, wide enough to carry its name.
+    tour({ tourId: 2, name: "Summer Tour 2018", start: "2018-06-01", end: "2018-08-30", shows: 32,
+      dates: ["2018-06-01", "2018-06-11", "2018-06-21", "2018-07-01", "2018-07-11", "2018-07-21", "2018-07-31", "2018-08-10", "2018-08-20", "2018-08-30"] }),
+    tour({ tourId: 3, name: "Spring Tour 2027", start: "2027-04-09", end: "2027-04-18", shows: 7 }),
+  ];
+  const html = renderToStaticMarkup(<TourTimeline edition="fancy" today={TODAY} untouredShows={0} tours={tours} />);
+
+  it("draws rounded legs with a dot per show, on unboxed rows", () => {
+    expect(html).toContain("rounded-full transition");
+    expect(html.match(/h-\[3px\] w-\[3px\] rounded-full/g)).toHaveLength(3 + 10 + 1);
+    expect(html).not.toContain("rounded-[2px]");
+    expect(html).not.toContain("bg-bg-deep");
+    expect(html).not.toContain("bottom-[2px]");
+  });
+
+  it("outlines the busiest run in sale and dashes the future in frost", () => {
+    expect(html).toContain("border:1.5px solid var(--hand)");
+    expect(html).toContain("border:1.5px dashed var(--line)");
+  });
+
+  it("labels in plain snow, the busiest run in the heat color, screen-reader only below sm", () => {
+    // Small Tour's ten days can't hold a name: it's read, not printed.
+    expect(html).toMatch(/class="tour-timeline-label sr-only" style="--tour-label-color:var\(--ink\)">Small</);
+    expect(html).toMatch(/max-sm:sr-only" style="--tour-label-color:var\(--ember\)">Summer</);
+  });
+
+  it("captions dots and the yellow outline, not ticks", () => {
+    expect(html).toContain("with a dot for every show");
+    expect(html).toContain("is outlined in");
+    expect(html).not.toMatch(/tick/i);
   });
 });

@@ -25,18 +25,18 @@ const YEARS: CareerYear[] = [
 describe("CareerChart", () => {
   it("hatches the shows that were logged but never had a setlist", () => {
     // Hiding them would let the chart claim a documentation it doesn't have.
-    const html = renderToStaticMarkup(<CareerChart years={YEARS} />);
+    const html = renderToStaticMarkup(<CareerChart edition="functional" years={YEARS} />);
     expect(html).toContain("repeating-linear-gradient");
     expect(html).toContain("setlists for 37");
   });
 
   it("draws no hatching at all for a fully documented year", () => {
-    const html = renderToStaticMarkup(<CareerChart years={[year({ year: 2022, shows: 87 })]} />);
+    const html = renderToStaticMarkup(<CareerChart edition="functional" years={[year({ year: 2022, shows: 87 })]} />);
     expect(html).not.toContain("repeating-linear-gradient");
   });
 
   it("dashes the year still running, so a short bar isn't read as a slump", () => {
-    const html = renderToStaticMarkup(<CareerChart years={YEARS} />);
+    const html = renderToStaticMarkup(<CareerChart edition="functional" years={YEARS} />);
     expect(html).toContain("dashed");
     expect(html).toContain("still running");
   });
@@ -44,32 +44,56 @@ describe("CareerChart", () => {
   it("never crowns a partial year as the peak", () => {
     // A year in progress can't be "the busiest ever" — it isn't over.
     const html = renderToStaticMarkup(
-      <CareerChart years={[year({ year: 2022, shows: 87 }), year({ year: 2026, shows: 200, partial: true })]} />,
+      <CareerChart edition="functional" years={[year({ year: 2022, shows: 87 }), year({ year: 2026, shows: 200, partial: true })]} />,
     );
     expect(html).toContain("2022");
     expect(html).not.toContain("2026 is the busiest");
   });
 
   it("marks the busiest completed year", () => {
-    const html = renderToStaticMarkup(<CareerChart years={YEARS} />);
+    const html = renderToStaticMarkup(<CareerChart edition="functional" years={YEARS} />);
     expect(html).toContain("var(--hand)");
     expect(html).toContain("107 shows");
   });
 
   it("draws every non-peak year's bar in steel, not the retired gold alias", () => {
-    const html = renderToStaticMarkup(<CareerChart years={YEARS} />);
+    const html = renderToStaticMarkup(<CareerChart edition="functional" years={YEARS} />);
     // 2022 and 2026 aren't the peak (2017 is) — their fill must be steel.
     expect(html).toContain("background:var(--steel)");
     expect(html).not.toMatch(/background:var\(--gold/);
   });
 
   it("links each year to its own page", () => {
-    const html = renderToStaticMarkup(<CareerChart years={YEARS} />);
+    const html = renderToStaticMarkup(<CareerChart edition="functional" years={YEARS} />);
     expect(html).toContain('href="/years/2017"');
     expect(html).toContain('href="/years/2026"');
   });
 
   it("renders nothing rather than an empty frame", () => {
-    expect(renderToStaticMarkup(<CareerChart years={[]} />)).toBe("");
+    expect(renderToStaticMarkup(<CareerChart edition="functional" years={[]} />)).toBe("");
+  });
+});
+
+describe("CareerChart without hatching (3.0)", () => {
+  const html = renderToStaticMarkup(<CareerChart edition="fancy" years={YEARS} />);
+
+  it("draws the undocumented part as an empty outlined box, not a hatch", () => {
+    expect(html).not.toContain("repeating-linear-gradient");
+    expect(html).toContain("box-shadow:inset 0 0 0 1.5px var(--line)");
+    expect(html).toContain("rounded-[7px_7px_3px_3px]");
+  });
+
+  it("outlines and fills the busiest year in sale, and dashes the running year", () => {
+    expect(html).toContain("box-shadow:inset 0 0 0 1.5px var(--hand)");
+    expect(html).toContain("background:var(--hand)");
+  });
+
+  it("captions the empty part, not the hatching", () => {
+    expect(html).toContain("The empty part of a bar");
+    expect(html).not.toMatch(/hatch/i);
+  });
+
+  it("reserves room above the tallest bar for a 12px value", () => {
+    expect(html).toContain("height:194px");
   });
 });
