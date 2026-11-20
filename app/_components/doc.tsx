@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import { showHref, locationLine } from "@/lib/queries/format";
 import type { ShowSummary } from "@/lib/queries/shows";
 
-export function Doc({ children }: { children: ReactNode }) {
-  return <div className="doc">{children}</div>;
+export function Doc({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={className ? `doc ${className}` : "doc"}>{children}</div>;
 }
 
 export function Breadcrumb({ trail }: { trail: { href?: string; label: string }[] }) {
