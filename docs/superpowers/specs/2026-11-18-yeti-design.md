@@ -40,8 +40,9 @@ not the app's copy. No barker lines ("It's on its way") come with it.
 ## Decisions (with why)
 
 Tim's calls from the handoff are not reopened: Yeti replaces 3.0's look; 3.0 stays the default;
-2.0 and 1.0 are untouched; 3.0 is dark only; the charts keep their forms. The calls below were
-made on the mockups (2026-11-18), each on the recommended option.
+2.0 and 1.0 are untouched; 3.0 is dark only. The handoff's fourth call, "the charts keep their
+forms", was reopened by Tim on 2026-11-19: see [Round 2](#round-2-the-charts-out-of-the-tape-deck).
+The calls below were made on the mockups (2026-11-18), each on the recommended option.
 
 | Decision | Choice | Why |
 |---|---|---|
@@ -244,9 +245,8 @@ Pen & Instrument's forms survive; their finish changes.
   the performance table with jam marks in ember.
 - **/stats:** catalog profile (slush shape, sale half-line, idle scale); the cut previews
   (Most Overdue's rings and counts in foil); section heads heavy.
-- **/stats/oracle:** the dial (slush polygon, sale reading); the segue lines (slush splices,
-  thickness unchanged); the Shelf (foil rings, idle tape, halo past a year); the meters (slush
-  arc, sale red zone and needle in the zone, idle ticks).
+- **/stats/oracle:** redrawn in round 2 (see [Round 2](#round-2-the-charts-out-of-the-tape-deck)):
+  round spokes, segue bars, the Shelf's ring and disc, level tracks, the coach's card.
 - **/venues, /tours, /years, /on-this-day, /search:** ledgers and contents; the venue map and
   tour timeline re-tinted (tour-name label colors re-derived and kept AA, see Verification).
 - **/listen-links:** restyled prose; the grammar table on frost rules; the app-name lines below.
@@ -390,8 +390,52 @@ charts are the point" (add `--foil`, re-describe `--ember`, the new values), the
 note, and the architecture line "it reskins with the edition and, inside 3.0, with fog/slate".
 A doc that still says Pen & Instrument or fog/slate for the current design is a bug.
 
+## Round 2: the charts out of the tape deck
+
+Approved by Tim 2026-11-19 on the round-2 mockups (published to the review artifact, every
+option as recommended). His note: the special UI (stats, tours, set analysis) "was tuned to a
+tapes type of theme, yeti is new".
+
+**What changes.** Round 1 kept every chart's *object*: cassette spools, VU meters, a rotary dial
+with a tick bezel, tape splices, a J-card, a tape strip with a minute ruler, ticked tour bars,
+hatched year bars. Those are the tape theme the charts were first drawn for. In 3.0 each chart
+keeps what it **measures** and is redrawn in Yeti's own forms. 2.0 and 1.0 keep today's drawings
+(byte-compared as before).
+
+**What doesn't.** README's three chart rules still bind: the form follows the number (a length
+stays a length, a cycle stays round, a level stays a level, time since stays a closing ring);
+color means one thing per section; nothing claims more than its evidence. No blister packs on
+charts (the pack stays on tonight's show), no motion, foil is elapsed time and never a fill.
+
+**Where the forms come from (the app).** Time is the foil ring around a circle, as on the pill.
+A level is the volume track ("volume isn't time, so it isn't foil"). Heat is sale yellow. A
+record is printed on card stock, and its facts are a "says so on the box" list.
+
+| Chart | 3.0 draws it as | 3.0 caption (2.0 keeps its own) |
+|---|---|---|
+| The Shelf (`the-shelf.tsx`) | The pill's ring: a frost track with the foil arc closing over it, a thin foil halo past a year. The spool and hub become a plain card-stock disc whose radius is total plays (same log scale), with a night center hole. | "Originals gathering dust. The ring closes as the gap grows, and the disc inside is how big a song is. Past a year the ring gets a halo. A big disc inside a closed ring is the one to worry about: a staple the band has stopped playing." |
+| Deepest venues (`venue-depth.tsx`) | **A, the level track.** One row per room: name and percentage, a 6px frost track filled slush to the reading and sale yellow past the zone, a snow notch at the zone; counts below. Two columns from `md`, one on a phone. | "Each track runs to {full}% jam-tagged and turns yellow past the notch at {zone}%. The counts underneath keep a hot three-show room honest." (Fixes today's "red past 30%", which 3.0 draws yellow.) |
+| The week (`dow-dial.tsx`) | **A, round spokes.** The rose on shelf with a frost edge; the mean a plain frost circle; spokes round-capped, thickness = shows (same log scale); hottest night sale, others slush; labels lowercase rounded type, no letterspacing; no tick bezel. | "Spokes read against the week's mean: outward is a jammier night than usual, inward a leaner one. A spoke's thickness is how many shows stand behind it. {Day} runs loosest (…), but on {n} shows, against {m} on a {day}." |
+| Segue lines (`transitions-list.tsx`) | A round-capped slush bar between the two names, thickness = count; no arrowhead (a setlist reads left to right). | Section blurb "…pairs the band runs together most often…"; caption "The bar thickens with how often the band plays the segue." |
+| Coach's desk (`coachs-notes.tsx`) | A card-stock card (22px radius, frost keyline). The show's date tile, upright, replaces the rotated spine. The notes are laid out, not changed: a `Label: value` line becomes a spec row (label slush, value snow, frost hairline between rows); `[n] text` lines are footnotes with the mark in idle; a bare `Label:` line is a small head; blank lines drop; a leading `YYYY/MM/DD venue` line becomes the card's subhead. Listen is a snow outline pill. | — |
+| Set strip (`setlist/tape.tsx`, 3.0 only) | Rounded pieces in a well, as wide as they are long; a 3px gap between songs played separately, a segued run fused into one piece; jams sale; no minute ruler, only the two ends. | "Each song is as wide as it is long. Segued songs run together as one piece, and jams are yellow." |
+| Touring year (`tour-timeline.tsx`) | No boxed rows: faint frost month lines on night. Legs are rounded bars (slush wash and keyline) with a dot per show; dotted joins stay; busiest run sale-outlined; future legs dashed frost. Names only where they fit; below `sm` they're screen-reader only. | "…one dot per show… The busiest run, {name} at {n} shows, is outlined in yellow." |
+| The shape of it (`career-chart.tsx`) | No hatching: the documented part is solid slush, the undocumented part is the empty box above it (frost keyline). Rounded tops; the busiest year sale; the running year dashed. The label reserve grows so values clear the prose above. | "The empty part of a bar is shows elgoose has logged but has no setlist for…" |
+| Catalog profile (`catalog-profile.tsx`) | The rank ruler's ticks go (labels stay); the cut brackets get round ends. The reading stays. | — |
+
+**Smaller fixes in the same pass (3.0 only):** every page title (`PageHead`) takes the heavy
+rounded head that the section pages use; the Oracle's section heads match 3.0's section heads;
+bars and columns (most played, set placement, plays per year, debuts) get round ends. The cut
+tables' activity sparklines stay square: their 4px bars are one shared path across 600 rows, and
+round ends there would need a 2.0 branch for a change too small to see.
+
+**Unchanged:** the venue map, Most Overdue's rings, On This Day, the debuts columns' layout.
+
+**How 2.0 stays put.** These components are shared. Each takes the edition and keeps 2.0's JSX
+verbatim on its own branch, or is reached through a class hook only 3.0's CSS reads.
+
 ## Out of scope
 
-Data, queries, routes, the sync, analytics; 2.0 and 1.0 styling; blog content; chart *forms*;
+Data, queries, routes, the sync, analytics; 2.0 and 1.0 styling; blog content;
 the Yeti app repo; 1.0's existing `/listen-links` overflow at 390px (579px wide on `main` today,
 a separate fix).
