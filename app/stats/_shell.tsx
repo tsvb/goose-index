@@ -63,7 +63,7 @@ export function StatsShell({ cut, children }: { cut: CutMeta; children: ReactNod
               stats
             </Link>
           </p>
-          <h1 className="mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+          <h1 className="page-head-title mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
             {cut.title}
           </h1>
           <p className="mt-2 font-mono text-[0.75rem] text-faint">{cut.blurb}</p>

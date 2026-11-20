@@ -209,7 +209,7 @@ function PlaysList({ rows }: { rows: SongIndexRow[] }) {
           <Link href={songHref(r)} className={songLink}>
             {r.name}
           </Link>
-          <span className="block h-[7px] bg-line-soft" aria-hidden="true">
+          <span className="plays-bar block h-[7px] bg-line-soft" aria-hidden="true">
             <span className="block h-full bg-steel" style={{ width: `${(r.timesPlayed / most) * 100}%` }} />
           </span>
           <span className="text-right font-mono text-[0.75rem] text-muted">{r.timesPlayed}</span>
@@ -318,7 +318,7 @@ function DebutColumns({ data, thisYear }: { data: { year: number; count: number 
           <span key={d.year} className="flex flex-1 flex-col items-center justify-end" title={`${d.year}: ${d.count} debuts`}>
             <span className="font-mono text-[0.55rem] leading-none text-faint">{d.count}</span>
             <span
-              className="mt-0.5 block w-full"
+              className="debut-col mt-0.5 block w-full"
               style={{
                 height: h,
                 background: partial ? "color-mix(in srgb, var(--steel) 22%, transparent)" : "var(--steel)",

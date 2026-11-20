@@ -1025,6 +1025,7 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 /* No italics in 3.0: captions, caveats and cover credits are upright slush. */
 [data-experience="fancy"] .italic { font-style: normal; }
 /* Yeti's floor is 12px: the old micro-labels grow to meet it. */
+[data-experience="fancy"] .text-\[0\.55rem\],
 [data-experience="fancy"] .text-\[0\.58rem\],
 [data-experience="fancy"] .text-\[0\.6rem\],
 [data-experience="fancy"] .text-\[0\.62rem\],
@@ -1149,3 +1150,30 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
   text-underline-offset: 3px;
 }
 [data-experience="fancy"] .listen-prose a:not([class]):hover { text-decoration-color: var(--ink); }
+
+/* ---- 3.0 (Yeti) — round 2: the charts out of the tape deck ----
+   The Oracle's readings, the set strip and the coach's card are 3.0 branches in
+   their components; what's left is shared markup reached through hooks. */
+
+/* The coach's card carries the show's date tile at 72px, on shelf so it reads
+   against the card stock behind it. */
+.yeti-tile.yeti-tile-sm { border-radius: 16px; background: var(--shelf); }
+.yeti-tile-sm .yeti-tile-m,
+.yeti-tile-sm .yeti-tile-y { font-size: 12px; }
+.yeti-tile-sm .yeti-tile-d { font-size: 1.65rem; margin: 2px 0 3px; color: var(--snow); }
+
+/* Oracle section heads take 3.0's heavy section head. */
+[data-experience="fancy"] .oracle-head { font-size: 1.3rem; font-weight: 900; letter-spacing: -0.005em; }
+
+/* Bars and columns get Yeti's round ends (the app's tracks are capsules). */
+[data-experience="fancy"] .plays-bar,
+[data-experience="fancy"] .plays-bar > span,
+[data-experience="fancy"] .song-bar,
+[data-experience="fancy"] .song-bar > span { border-radius: 999px; }
+[data-experience="fancy"] .debut-col,
+[data-experience="fancy"] .song-ppy-bar { border-radius: 4px 4px 2px 2px; }
+
+/* The catalog profile loses its ruler's ticks (the rank labels stay); its cut
+   brackets get round shoulders. */
+[data-experience="fancy"] .catalog-tick { display: none; }
+[data-experience="fancy"] .catalog-bracket { border-top-left-radius: 5px; border-top-right-radius: 5px; }

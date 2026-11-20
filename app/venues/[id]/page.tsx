@@ -87,7 +87,7 @@ export default async function VenuePage({ params }: Params) {
               venues
             </Link>
           </p>
-          <h1 className="mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+          <h1 className="page-head-title mt-1 text-[1.7rem] font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
             {venue.name}
           </h1>
           {loc && (
