@@ -83,7 +83,9 @@ stepped shape: a steep head of staples, a long flat tail. The cuts are bracketed
 (Most Played is the head, the rarity ceiling marks the tail), and the one yellow reading is
 the rank where the running total of plays crosses half — how few songs carry half the nights.
 Each cut beneath it then shows its first lines in the number's own form: a count as a length,
-a gap as a closing ring, debuts as columns by year.
+a gap as a closing ring, debuts as columns by year. (3.0 says the profile's reading outright
+instead: two aligned capsules, the catalog's songs and its plays, split into the staples that carry
+half, the rest of the rotation, and the rarities' tail.)
 
 Three rules hold across all of them. **A change that breaks one is a bug, even if it renders.**
 

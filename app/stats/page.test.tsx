@@ -74,7 +74,10 @@ beforeEach(() => {
   h.d = h.fresh();
 });
 
-describe("StatsHub (fancy/functional)", () => {
+describe("StatsHub (2.0)", () => {
+  beforeEach(() => {
+    h.experience = "functional";
+  });
   it("opens with the catalog's scope, computed from the overview", async () => {
     const html = await render();
     expect(html).toContain("839 shows · 7,725 songs played · 368 unique songs · since 2014");
@@ -160,13 +163,62 @@ describe("StatsHub (fancy/functional)", () => {
       expect(html).toContain(`href="/stats/${slug}"`);
   });
 
-  it("functional shares the fancy hub markup — no cards", async () => {
-    h.experience = "functional";
-    const functionalHtml = await render();
-    h.experience = "fancy";
-    const fancyHtml = await render();
-    expect(functionalHtml).toBe(fancyHtml);
-    expect(functionalHtml).not.toContain("surface-card");
+  it("keeps 2.0's profile and ruled sections — no cards, no 3.0 answer", async () => {
+    const html = await render();
+    expect(html).toContain("songs are half of all plays");
+    expect(html).not.toContain("catalog-answer");
+    expect(html).not.toContain("surface-card");
+  });
+});
+
+describe("StatsHub as Yeti's Home for the catalog (3.0)", () => {
+  it("opens with the answer: the staples, the rotation and the tail, as songs and as plays", async () => {
+    const html = await render();
+    expect(html).toContain("839 shows · 7,725 songs played · 368 unique songs · since 2014");
+    expect(html).toContain('<b class="font-black text-ink">2 songs</b> are half of everything the band has played.');
+    // 12 songs: 2 | 5 | 5; 817 plays: 484 (59%) | 325 (40%) | 8 (1%, a sliver labeled outside)
+    expect(html.match(/data-seg="/g)).toHaveLength(6);
+    expect(html).toContain("the staples, the top 2: 59% of the plays");
+    expect(html).toContain("played 3 times or fewer, 5 songs: 1% of the plays");
+    expect(html).not.toContain('stroke="var(--hand)"'); // the 2.0 profile isn't drawn
+  });
+
+  it("shelves each cut in its own form, every cut linked twice", async () => {
+    const html = await render();
+    // overdue: a ring tile, foil, the count in the ring, a cover tagged
+    expect(html).toContain('stroke="var(--foil)"');
+    expect(html).toMatch(/>616<\/text>/);
+    expect(html).toMatch(/Up On Cripple Creek<\/b><span class="yeti-tag[^"]*">cover/);
+    // most played: a ledger with level tracks
+    expect(html).toContain(">284<");
+    // rarities: the count, its split, the latest return (never a one-play song)
+    expect(html).toContain("3 songs</b> qualify · 2 originals, 1 cover");
+    expect(html).toContain("Twice Cover");
+    expect(html).not.toContain("One Night Only");
+    // debuts: columns and the newest as rows
+    expect(html).toContain("4 so far in 2026");
+    expect(html).toContain("New One");
+    // set stats: lines in a list, the empty bucket a dash
+    expect(html).toContain(">opens the show</dt>");
+    expect(html).toContain("32 shows");
+    expect(html).toContain(">closes it</dt>");
+    // oracle
+    expect(html).toContain("but on 25 shows, against 221 on a Saturday");
+    for (const slug of ["most-played", "rarities", "current-gaps", "debuts", "set-stats", "oracle"]) {
+      const hits = html.match(new RegExp(`href="/stats/${slug}"`, "g")) ?? [];
+      expect(hits.length, slug).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it("survives an empty catalog: no answer, nil lines, every cut still linked", async () => {
+    h.d.profile = { plays: [], shows: 0 };
+    h.d.top = []; h.d.rare = []; h.d.gaps = []; h.d.byYear = []; h.d.recent = []; h.d.buckets = []; h.d.dow = [];
+    const html = await render();
+    expect(html).not.toContain("catalog-answer");
+    expect(html).toContain("No plays logged yet —");
+    expect(html).toContain("Nothing overdue —");
+    for (const slug of ["most-played", "rarities", "current-gaps", "debuts", "set-stats", "oracle"])
+      expect(html).toContain(`href="/stats/${slug}"`);
   });
 });
 
