@@ -58,9 +58,13 @@ function GoneLine({ song }: { song: SongStat }) {
         <b className="font-extrabold text-[var(--foil)]">Gone {plural(cur, "show")}, longer than ever.</b> Its longest gap
         before this was {song.longestGap}
         {avg ? `; it usually comes back after ${avg}` : ""}.{" "}
-        <PlainTag className="mt-1.5 text-[var(--foil)] shadow-[inset_0_0_0_1px_rgba(255,143,196,0.5)]">
+        {/* The tag's own sheet sets snow ink, so the record's foil is inline. */}
+        <span
+          className="yeti-tag mt-1.5"
+          style={{ color: "var(--foil)", boxShadow: "inset 0 0 0 1px rgba(255, 143, 196, 0.5)" }}
+        >
           longest it&apos;s been gone
-        </PlainTag>
+        </span>
       </p>
     );
   }
