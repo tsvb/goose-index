@@ -209,7 +209,11 @@ export function ListenLinksContent({
   if (experience === "minimal") {
     return (
       <Container className="py-8">
-        <Doc>
+        {/* The example links are single unbroken words up to ~180 characters; at
+            phone width they ran the page 579px wide. break-word breaks a word only
+            when it can't fit on a line by itself, so short inline code still moves
+            whole to the next line. */}
+        <Doc className="[&_code]:[overflow-wrap:break-word]">
           <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { label: "Listen links" }]} />
           <h1>How the listen links work</h1>
           {sections.map((s) => (

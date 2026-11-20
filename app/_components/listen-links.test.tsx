@@ -128,4 +128,10 @@ describe("the app's name", () => {
       expect(page).not.toContain("yeti://");
     }
   });
+
+  it("lets 1.0's long example links wrap instead of running the page wide", () => {
+    // The links are single unbroken words up to ~180 characters; at 390px they
+    // ran 1.0's page 579px wide.
+    expect(render("minimal")).toContain('class="doc [&amp;_code]:[overflow-wrap:break-word]"');
+  });
 });
