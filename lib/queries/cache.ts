@@ -1,5 +1,6 @@
 import { etToday } from "@/lib/today";
 import { createLimiter } from "./limit";
+import { formatTimeoutReport, isConnectTimeout, loopLag, startLoopLagMonitor } from "./loop-lag";
 
 /**
  * How many catalog reads may be in flight on one server instance. Two under the
@@ -85,6 +86,9 @@ export async function cachedQuery<T>(
 ): Promise<T> {
   const cache = await nextCache();
   if (!cache) return limitRead(fn);
+  // Measure how late this instance's event loop runs, so a connect timeout can
+  // say whether the CPU was too busy to finish the handshake (loop-lag.ts).
+  startLoopLagMonitor();
   // What the query itself did, recorded so the catch below can tell a failure in
   // Next's cache plumbing (retryable) from a failure in the read (not). Without
   // this the catch swallows a failed query and runs it again — a second round
@@ -99,6 +103,7 @@ export async function cachedQuery<T>(
       return value;
     } catch (error) {
       failed = { error };
+      if (isConnectTimeout(error)) reportConnectTimeout();
       throw error;
     }
   };
@@ -151,4 +156,22 @@ export function revalidateLiveShow(date: string, showIds: number[]): Promise<boo
 /** Drop every catalog entry. Called from POST /api/revalidate after the nightly sync. */
 export function revalidateCatalog(): Promise<boolean> {
   return bustTags([CATALOG_TAG], "the catalog");
+}
+
+/** Log a connect timeout beside this instance's event-loop lag and read load
+ * (diagnostic, 2026-11-19: is Vercel's CPU the bottleneck? See loop-lag.ts). */
+function reportConnectTimeout(): void {
+  try {
+    const { active, waiting } = limitRead.load();
+    console.warn(
+      formatTimeoutReport(loopLag(), {
+        readsActive: active,
+        readsWaiting: waiting,
+        rssMb: Math.round(process.memoryUsage().rss / 1e6),
+        uptimeS: Math.round(process.uptime()),
+      }),
+    );
+  } catch {
+    // A diagnostic must never be the thing that breaks a page.
+  }
 }

@@ -18,12 +18,17 @@ import { AsyncLocalStorage } from "node:async_hooks";
  * deadlock the moment every slot was held by an outer call waiting on its
  * inner one.
  */
-export function createLimiter(max: number): <T>(fn: () => T | Promise<T>) => Promise<T> {
+export type Limiter = (<T>(fn: () => T | Promise<T>) => Promise<T>) & {
+  /** How many calls hold a slot and how many are queued — for diagnostics. */
+  load(): { active: number; waiting: number };
+};
+
+export function createLimiter(max: number): Limiter {
   let active = 0;
   const waiting: (() => void)[] = [];
   const holdsSlot = new AsyncLocalStorage<true>();
 
-  return async function limit<T>(fn: () => T | Promise<T>): Promise<T> {
+  const limit = async function limit<T>(fn: () => T | Promise<T>): Promise<T> {
     if (holdsSlot.getStore()) return fn();
     if (active < max) active++;
     else await new Promise<void>((resume) => waiting.push(resume));
@@ -36,4 +41,5 @@ export function createLimiter(max: number): <T>(fn: () => T | Promise<T>) => Pro
       else active--;
     }
   };
+  return Object.assign(limit, { load: () => ({ active, waiting: waiting.length }) });
 }
