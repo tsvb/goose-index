@@ -40,3 +40,32 @@ export function sslFor(url: string): "require" | undefined {
     return undefined; // a malformed URL fails loudly at connect time
   }
 }
+
+/**
+ * Why a connection string is wrong for a serverless function, or null.
+ *
+ * Supavisor serves two modes on one host: transaction mode on 6543, which is
+ * what serverless needs, and session mode on 5432, where every client holds a
+ * server connection for as long as it's connected and the whole project shares
+ * a pool of 15 (with the nightly sync, which is meant to use it). A function
+ * pointed at 5432 works until a handful of warm instances hold the pool — then
+ * pages and builds fail with EMAXCONNSESSION. Three preview builds died that way
+ * on 2026-11-19: the hand-set Preview POSTGRES_URL was the session string.
+ *
+ * Only a Supabase pooler host is judged; anything else (local Postgres, another
+ * provider) returns null.
+ */
+export function sessionPoolerProblem(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (!u.hostname.endsWith(".pooler.supabase.com")) return null;
+    if (u.port !== "" && u.port !== "5432") return null;
+    return (
+      `the database URL points at Supabase's session-mode pooler (${u.hostname}:${u.port || "5432"}). ` +
+      "Serverless functions need the transaction-mode pooler on port 6543; session mode shares one pool " +
+      "of 15 connections across the project and fails with EMAXCONNSESSION once it fills. See docs/DEPLOY.md."
+    );
+  } catch {
+    return null;
+  }
+}

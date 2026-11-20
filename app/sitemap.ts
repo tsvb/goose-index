@@ -4,9 +4,14 @@ import { listPosts } from "@/lib/blog/posts";
 import { CUTS } from "./stats/cuts";
 import { SITE_URL } from "@/lib/site";
 
-// The URL set only changes when the nightly sync writes new shows/songs.
-// ISR here so crawlers don't open five Neon connections on every fetch.
-export const revalidate = 3600;
+// Rendered per request, not prerendered at build. Every read below goes through
+// cachedQuery (lib/queries/sitemap.ts), so a crawler's fetch hits the Data Cache
+// and opens no connection until the hourly TTL lapses — the cost is the same as
+// ISR. What changes is the build: as ISR the sitemap was the one page `next
+// build` rendered against the database, so a full connection pooler failed the
+// deploy (three preview builds on 2026-11-19, EMAXCONNSESSION). Now a build
+// opens no database connection at all, except the production migration step.
+export const dynamic = "force-dynamic";
 
 // <lastmod> is set only where the data says when a page's content last moved
 // (see lastmodOf in lib/queries/sitemap.ts). /on-this-day changes every day

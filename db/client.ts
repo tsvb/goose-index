@@ -2,7 +2,7 @@ import "dotenv/config";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
-import { databaseUrl, sslFor } from "./url";
+import { databaseUrl, sessionPoolerProblem, sslFor } from "./url";
 
 function connect(connectionString: string) {
   const client = postgres(connectionString, {
@@ -47,6 +47,14 @@ function init(): Connection {
   if (!connection) {
     const connectionString = databaseUrl();
     if (!connectionString) throw new Error("DATABASE_URL is not set");
+    // On Vercel, say so loudly if the string is the session-mode pooler: it
+    // works until the shared pool of 15 fills, then pages and builds fail.
+    // A warning, not a throw — a misconfigured preview should still render.
+    // (The nightly Action uses session mode on purpose and isn't on Vercel.)
+    if (process.env.VERCEL) {
+      const problem = sessionPoolerProblem(connectionString);
+      if (problem) console.warn(`[db] ${problem}`);
+    }
     connection = connect(connectionString);
   }
   return connection;
