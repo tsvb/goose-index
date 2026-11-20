@@ -72,9 +72,11 @@ tape. The shape of a night is visible without reading twenty-four track times.
 and draws it in Yeti's forms instead of a tape deck's: the shelf's spools are card-stock discs
 inside the pill's foil ring (a halo past a year), the VU meters are level tracks that turn yellow
 past the zone, the weekday dial loses its bezel and keeps round-capped spokes, the segue splices
-are round bars, the set is a strip of rounded pieces with segued songs fused, the tour bars carry
-a dot per show, the years chart drops its hatching for an empty box, and the coach's liner notes
-are printed on a card. Current look: [gooseindex.com/stats](https://www.gooseindex.com/stats).*
+are round bars, the set is a strip of rounded pieces with segued songs fused, the years chart
+drops its hatching for an empty box, and the coach's liner notes are printed on a card. 3.0's
+tours page drops the calendar chart altogether: runs are shelved by when (on the road, coming up,
+the crate), and each tile's face is its year as a ring, January at the top, its legs lit, so a run's
+length and season still read on one scale. Current look: [gooseindex.com/stats](https://www.gooseindex.com/stats).*
 
 **The catalog profile** — the stats hub opens with every played song ranked by plays, as one
 stepped shape: a steep head of staples, a long flat tail. The cuts are bracketed onto it
