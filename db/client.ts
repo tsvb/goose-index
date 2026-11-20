@@ -25,7 +25,12 @@ function connect(connectionString: string) {
     // compute-billed platform that's "the database is always on".
     idle_timeout: 20,
     max_lifetime: 60 * 30,
-    connect_timeout: 10,
+    // 30s, the driver's default (was 10). Production logs CONNECT_TIMEOUT every
+    // few minutes, mostly mid-TLS-handshake — a handshake the pooler finishes in
+    // well under a second, so the likeliest cause is this instance being too
+    // busy to run it (lib/queries/loop-lag.ts measures that). A connection that
+    // arrives late beats a read that fails.
+    connect_timeout: 30,
     ...tls(connectionString),
   });
   return { client, db: drizzle(client, { schema }) };

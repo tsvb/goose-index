@@ -54,3 +54,18 @@ describe("createLimiter", () => {
     expect(results).toEqual([0, 1, 2, 3, 4, 5]);
   });
 });
+
+describe("createLimiter load()", () => {
+  it("reports how many calls hold a slot and how many wait", async () => {
+    const limit = createLimiter(1);
+    let release!: () => void;
+    const first = limit(() => new Promise<void>((r) => (release = r)));
+    const second = limit(async () => {});
+    await Promise.resolve();
+    expect(limit.load()).toEqual({ active: 1, waiting: 1 });
+    release();
+    await first;
+    await second;
+    expect(limit.load()).toEqual({ active: 0, waiting: 0 });
+  });
+});
