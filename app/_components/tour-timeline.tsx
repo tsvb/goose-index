@@ -168,8 +168,9 @@ export function TourTimeline({
                     // reads :root hex literals. Measured (scratchpad script, CSS Color 4
                     // srgb math + WCAG luminance): on the old light and dark pages plain
                     // --steel/--ember on that wash fell below the site's 4.5:1 text floor,
-                    // and mixing 30% toward --ink cleared it. On 3.0's night (the only 3.0
-                    // page since 2026-11) the same mix lands well above AA. See
+                    // and mixing 30% toward --ink cleared it. 3.0 no longer draws this
+                    // chart (its tours page shelves runs by year ring instead, spec
+                    // 2026-11-18 round 3); 2.0 overrides the label below. See
                     // tour-timeline-label-contrast.test.ts, which recomputes it.
                     //
                     // Functional doesn't clear with that same recipe: its gel-blue --steel
@@ -179,7 +180,7 @@ export function TourTimeline({
                     // functional gets its own literal via the CSS override below
                     // ([data-experience="functional"] .tour-timeline-label) rather than
                     // the mix recipe. The --tour-label-color custom property carries this
-                    // value as the default (3.0); the class lets the
+                    // value as the default; the class lets the
                     // functional rule out-specificity it without an inline !important.
                     const nameColor = future
                       ? "var(--faint)"

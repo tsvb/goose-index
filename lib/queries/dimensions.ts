@@ -345,6 +345,60 @@ export async function tourTimeline(): Promise<{ tours: TourSpan[]; untouredShows
   }, { varyByToday: true });
 }
 
+// ── Tours as runs (3.0's tours page) ──────────────────────────────────────────
+
+/** A tour as 3.0's tours page shelves it: the timeline's span, plus where each
+ * show was, so a tile can print its route and the tour page its city count. */
+export type TourRun = TourSpan & {
+  /** "City, ST" (or "City, Country") for each show, in date order; null where
+   * the venue has no city on file. */
+  places: (string | null)[];
+};
+
+export async function tourRuns(): Promise<{ runs: TourRun[]; untouredShows: number }> {
+  return cachedQuery("tourRuns", [], async () => {
+    const rows = allRows(await db.execute(sql`
+      select t.tour_id, t.name,
+             min(s.show_date)::text as start,
+             max(s.show_date)::text as "end",
+             count(s.show_id)::int as shows,
+             count(*) filter (where s.show_date > ${today()})::int as upcoming,
+             array_agg(s.show_date::text order by s.show_date, s.show_order) as dates,
+             array_agg(
+               nullif(concat_ws(', ', v.city, coalesce(nullif(v.state, ''), nullif(v.country, 'USA'))), '')
+               order by s.show_date, s.show_order
+             ) as places
+      from tours t
+      join shows s on s.tour_id = t.tour_id
+      left join venues v on v.venue_id = s.venue_id
+      group by t.tour_id, t.name
+      order by min(s.show_date) desc
+    `));
+
+    const runs: TourRun[] = [];
+    let untouredShows = 0;
+    for (const r of rows) {
+      const name = String(r.name);
+      const shows = num(r.shows);
+      if (NOT_A_TOUR.test(name)) {
+        untouredShows += shows;
+        continue;
+      }
+      runs.push({
+        tourId: num(r.tour_id),
+        name,
+        start: String(r.start),
+        end: String(r.end),
+        shows,
+        upcoming: num(r.upcoming),
+        dates: (r.dates as string[] | null) ?? [],
+        places: ((r.places as (string | null)[] | null) ?? []).map((p) => (p ? String(p) : null)),
+      });
+    }
+    return { runs, untouredShows };
+  }, { varyByToday: true });
+}
+
 // ── The career ────────────────────────────────────────────────────────────────
 
 export type CareerYear = {

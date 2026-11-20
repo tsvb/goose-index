@@ -2,7 +2,10 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";
-import { listTours, tourTimeline } from "@/lib/queries/dimensions";
+import { listTours, tourTimeline, tourRuns } from "@/lib/queries/dimensions";
+import { getUpcomingShows, listShows } from "@/lib/queries/shows";
+import { ToursShelf } from "./_shelf";
+import { shelveTours, dayLabel } from "./shelf";
 import { TourTimeline } from "@/app/_components/tour-timeline";
 import { PageHead, chromeDate } from "@/app/_components/page-chrome";
 import { SectionRule, Ledger } from "@/app/_components/forms";
@@ -18,10 +21,34 @@ export const metadata: Metadata = {
 };
 
 export default async function ToursPage() {
-  const [tours, timeline] = await Promise.all([listTours(), tourTimeline()]);
   const experience = await getExperience();
   // Same clock as every query on the page — ET, not the server's zone.
   const today = etToday();
+
+  // 3.0 shelves the runs by when, as Yeti's Videos tab does (spec 2026-11-18,
+  // round 3); 2.0 and 1.0 keep the list and the calendar below.
+  if (experience === "fancy") {
+    const [{ runs }, upcomingShows] = await Promise.all([tourRuns(), getUpcomingShows(60)]);
+    const { running, upcoming } = shelveTours(runs, today);
+    const runningShows = running ? (await listShows({ tourId: running.tourId, perPage: 400, dir: "asc" })).rows : [];
+    // A show filed under no run carries a null tour name (shows.ts maps the
+    // upstream "Not Part of a Tour" placeholder to null).
+    const oneOffs = upcomingShows.filter((s) => s.tour == null);
+    const nextDate = [upcoming[0]?.start, oneOffs[0]?.date].filter((d): d is string => !!d).sort()[0];
+    const first = runs.reduce((y, r) => Math.min(y, Number(r.start.slice(0, 4))), Infinity);
+    const meta = [
+      `${runs.length} runs${Number.isFinite(first) ? ` since ${first}` : ""}`,
+      running ? `${running.name} is on the road` : nextDate ? `home until ${dayLabel(nextDate)}` : null,
+    ].filter(Boolean).join(" · ");
+    return (
+      <Container>
+        <PageHead title="tours" meta={meta} />
+        <ToursShelf runs={runs} today={today} runningShows={runningShows} oneOffs={oneOffs} />
+      </Container>
+    );
+  }
+
+  const [tours, timeline] = await Promise.all([listTours(), tourTimeline()]);
 
   if (experience === "minimal") {
     return (
@@ -58,7 +85,7 @@ export default async function ToursPage() {
           Every tour across the calendar it ran on. A list makes an eleven-week summer and a two-week Europe leg look
           the same; this doesn&apos;t.
         </p>
-        <TourTimeline tours={timeline.tours} untouredShows={timeline.untouredShows} today={today} edition={experience} />
+        <TourTimeline tours={timeline.tours} untouredShows={timeline.untouredShows} today={today} />
       </section>
 
       {/* List, grouped by year */}

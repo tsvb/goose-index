@@ -9,6 +9,8 @@ import { getTourMeta } from "@/lib/queries/dimensions";
 import { listShows } from "@/lib/queries/shows";
 import { formatShortDate } from "@/lib/queries/format";
 import { getExperience } from "@/lib/experience.server";
+import { etToday } from "@/lib/today";
+import { TourPageYeti } from "../_shelf";
 import { entityMetadata } from "@/lib/site";
 
 type Params = { params: Promise<{ id: string }> };
@@ -51,6 +53,21 @@ export default async function TourPage({ params }: Params) {
           <DocSection title="Shows"><ShowTable shows={shows} /></DocSection>
         </Doc>
       </Container>
+    );
+  }
+
+  // 3.0 reads like Yeti's artist page (spec 2026-11-18, round 3).
+  if (experience === "fancy") {
+    return (
+      <article>
+        <Container className="py-10 sm:py-14">
+          {shows.length === 0 ? (
+            <NilState>No shows found for this tour.</NilState>
+          ) : (
+            <TourPageYeti name={tour.name} shows={shows} today={etToday()} />
+          )}
+        </Container>
+      </article>
     );
   }
 
