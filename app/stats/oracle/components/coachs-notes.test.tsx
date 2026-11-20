@@ -37,45 +37,49 @@ describe("CoachsNotes", () => {
   });
 });
 
-describe("CoachsNotes card (3.0)", () => {
+describe("CoachsNotes card (3.0): each note on its song", () => {
   const release = note({
+    venueName: "Red Rocks Amphitheatre",
     coachNotes:
-      "2024/06/01 Red Rocks Amphitheatre, Morrison, CO\n\nSet 1: Arcadia [1] -> Hot Tea\n\nCoach's Notes:\n [1] Unfinished.",
+      "2024/06/01 Red Rocks Amphitheatre, Morrison, CO\n\nSet 1: Arcadia [1] -> Hot Tea [2], Drive [1]\n\nEncore: Bear [3]\n\nCoach's Notes:\n [1] Unfinished.\n [2] Kylie Minogue.\n [3] Otis Day & The Knights. With a tease from Rick.\n\nShow Notes: One set, due to weather.",
   });
   const html = renderToStaticMarkup(<CoachsNotes edition="fancy" data={[release]} />);
 
-  it("prints the notes on card stock with the show's date tile, not a J-card spine", () => {
+  it("files the release like a show: date tile beside the venue and its city, no J-card spine", () => {
     expect(html).toContain("coach-card");
-    expect(html).toContain("var(--card-stock)");
-    expect(html).toContain("yeti-tile yeti-tile-sm");
+    expect(html).toContain("yeti-tile yeti-tile-sm w-[64px]");
+    expect(html).toMatch(/<h3[^>]*><span class="sr-only">Jun 1, 2024 · <\/span>Red Rocks Amphitheatre<\/h3>/);
+    expect(html).toContain(">Morrison, CO<");
     expect(html).not.toContain("writing-mode");
-    expect(html).not.toContain("repeating-linear-gradient");
   });
 
-  it("lays the notes out as rows and footnotes, keeping every word", () => {
-    expect(html).toContain("Red Rocks Amphitheatre, Morrison, CO");
-    expect(html).toContain('lowercase text-muted">Set 1</span>');
-    expect(html).toContain("Arcadia [1] -&gt; Hot Tea");
-    expect(html).toContain("Coach&#x27;s Notes");
-    expect(html).toContain('text-faint">[1]</span> Unfinished.');
+  it("puts each short note on the song it marks, on every song it marks, and drops the numbers", () => {
+    expect(html).toMatch(/>Arcadia<\/span><span class="yeti-tag[^"]*">Unfinished<\/span>/);
+    expect(html).toMatch(/>Drive<\/span><span class="yeti-tag[^"]*">Unfinished<\/span>/);
+    expect(html).toMatch(/>Hot Tea<\/span><span class="whitespace-nowrap"><span class="yeti-tag[^"]*">Kylie Minogue<\/span><span class="text-muted">,<\/span><\/span>/);
+    expect(html).not.toMatch(/\[\d\]/);
+    expect(html).not.toContain("Coach&#x27;s Notes");
   });
 
-  it("falls back to the venue name when the notes don't open with a place line", () => {
+  it("typesets the band's -> as →, and keeps a long note as a line under its set, with its song", () => {
+    expect(html).toContain("→</span>");
+    expect(html).toMatch(/>Bear<\/span>Otis Day &amp; The Knights\. With a tease from Rick\.<\/p>/);
+    expect(html).toContain('lowercase">Show Notes</b> One set, due to weather.');
+  });
+
+  it("offers Bandcamp as the one snow button, and the show a link away", () => {
+    expect(html).toMatch(/<a href="https:\/\/goose\.bandcamp\.com[^>]*bg-\[var\(--snow\)\][^>]*>listen on bandcamp ↗<\/a>/);
+    expect(html).toContain('href="/shows/2024-06-01"');
+    expect(html).toContain("the show →");
+  });
+
+  it("keeps notes with no place line or no marks whole", () => {
     const plain = renderToStaticMarkup(<CoachsNotes edition="fancy" data={[note()]} />);
     expect(plain).toContain("Red Rocks");
     expect(plain).toContain("A rare full-band jam vehicle tonight.");
   });
 
-  it("offers listen as an outline button to the Bandcamp release", () => {
-    expect(html).toMatch(/<a href="https:\/\/goose\.bandcamp\.com[^>]*rounded-full[^>]*>listen ↗<\/a>/);
-  });
-
-  it("gives a row after the footnotes air above its hairline", () => {
-    const after = renderToStaticMarkup(
-      <CoachsNotes edition="fancy" data={[note({ coachNotes: "Coach's Notes:\n [1] Unfinished.\n\nShow Notes: One set." })]} />,
-    );
-    expect(after).toContain('py-2 text-[0.9rem] mt-2"><span class="font-extrabold lowercase text-muted">Show Notes');
-    // ...and only there.
-    expect(html).not.toContain("mt-2\"><span");
+  it("explains the marks once, under the cards", () => {
+    expect(html).toContain("› and → are the band&#x27;s own &gt; and -&gt;; a tag is the coach&#x27;s note on the song before it.");
   });
 });

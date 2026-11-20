@@ -182,7 +182,11 @@ export default async function OraclePage() {
 
         <OracleSection
           title="From the coach's desk"
-          blurb="The band's own liner notes, lifted from their official Bandcamp releases."
+          blurb={
+            yeti
+              ? "The band's own liner notes, from their Bandcamp releases. Where the coach marked a song, the note sits on it."
+              : "The band's own liner notes, lifted from their official Bandcamp releases."
+          }
         >
           <CoachsNotes data={notes} edition={experience} />
         </OracleSection>
