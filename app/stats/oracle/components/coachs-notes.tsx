@@ -33,7 +33,7 @@ function SetLine({ set }: { set: LinerSet }) {
               <span className={set.quiet ? "font-medium text-muted" : "font-bold text-ink"}>{p.song}</span>
             );
             const tags = p.tags.map((t, k) => (
-              <PlainTag key={k} className="mx-1 align-[1px]">
+              <PlainTag key={k} className="ml-1.5 mr-0.5 align-[1px]">
                 {t}
               </PlainTag>
             ));
