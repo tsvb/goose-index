@@ -477,6 +477,31 @@ side on desktop.
 routes and city counts). Upcoming one-offs come from the existing `getUpcomingShows`. Nothing under
 `db/` or `drizzle/`.
 
+## Round 4: the coach's desk, as Yeti would print it
+
+Approved by Tim 2026-11-19 on the round-4 mockup (the review artifact's `coach.html`), as shown.
+His note: the coach's notes cards "need the same treatment" as tours.
+
+**The theory.** The coach's notes are the band's margin notes on a night. Round 2's card printed
+the set lines with numbered marks and the notes below them, so the reader matched *[2]* to
+*Kylie Minogue*. Yeti prints a fact as a plain tag on the thing it describes, so each note moves
+to where its mark is: *Can't Get You Out Of My Head* `Kylie Minogue`. Every word the band wrote
+stays; only the numbers go. Each release is filed like a show in the crate.
+
+**The card (3.0 only; 2.0's J-card and 1.0's plain text unchanged):**
+- Header: the show's date tile (small, on shelf) beside the venue (heavy) and its city; *listen on
+  bandcamp ↗* as the one snow button; *the show →* to the show page.
+- Set lines (`Set 1:`, `One Set:`, `Encore:`, `Soundcheck:` …) are typeset, not rewritten: the
+  band's `>` and `->` (and `→`) draw as › and →, commas stay, song names as the band spelled them.
+  Songs aren't linked (the notes don't always use the catalog's names).
+- A note on a song is a plain tag after it (stickers are states; a note is a fact). A note marked
+  on several songs appears on each. A note that's a sentence rather than a phrase (over 28
+  characters, or two sentences) prints as a line under its set, starting with the song it's about.
+  A note whose mark appears nowhere, or a mark with no note, prints as written: nothing is dropped.
+- Other rows (*Show Notes*) stay prose under the sets; *Soundcheck* is the quietest line.
+- Two columns of cards from `lg`, one below. A legend under the cards: › and → are the band's own
+  `>` and `->`; a tag is the coach's note on the song before it.
+
 ## Out of scope
 
 Data, queries, routes, the sync, analytics; 2.0 and 1.0 styling; blog content;
