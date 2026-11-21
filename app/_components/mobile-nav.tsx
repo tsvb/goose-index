@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useSitePathname } from "./site-pathname";
 import { Search } from "./marks";
 
 const NAV = [
@@ -35,7 +36,7 @@ export function MobileNav() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = useSitePathname();
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {

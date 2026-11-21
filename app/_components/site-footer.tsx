@@ -1,6 +1,6 @@
+import type { Experience } from "@/lib/experience";
 import Link from "next/link";
 import { Container } from "./container";
-import { getExperience } from "@/lib/experience.server";
 import { BANDCAMP_HOME } from "@/lib/bandcamp";
 
 // Who made the site, kept quiet: it inherits the surrounding text color and
@@ -111,8 +111,7 @@ export function FooterMinimal() {
   );
 }
 
-export async function SiteFooter() {
-  const experience = await getExperience();
+export function SiteFooter({ experience }: { experience: Experience }) {
   if (experience === "minimal") return <FooterMinimal />;
   if (experience === "functional") return <FooterFunctional />;
   return <FooterFancy />;

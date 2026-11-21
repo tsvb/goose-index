@@ -1,45 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const h = vi.hoisted(() => ({ experience: "fancy" as string }));
+const h = vi.hoisted(() => ({ edition: undefined as string | undefined }));
 
-vi.mock("@/lib/experience.server", () => ({ getExperience: async () => h.experience }));
+vi.mock("next/navigation", () => ({ useParams: () => ({ experience: h.edition }) }));
+vi.mock("@vercel/analytics/next", () => ({ Analytics: () => null }));
+vi.mock("@vercel/speed-insights/next", () => ({ SpeedInsights: () => null }));
+vi.mock("@/app/_components/site-header", () => ({ SiteHeader: () => null }));
+vi.mock("@/app/_components/site-footer", () => ({ SiteFooter: () => null }));
+vi.mock("@/app/globals.css", () => ({}));
 
 import NotFound from "./not-found";
 
-async function render() {
-  return renderToStaticMarkup(await NotFound());
-}
-
 beforeEach(() => {
-  h.experience = "fancy";
+  h.edition = undefined;
 });
 
-describe("NotFound experience branching", () => {
-  it("renders the de-carded kicker + prose for the default (fancy) experience, no stage-glow card", async () => {
-    const html = await render();
+describe("root NotFound", () => {
+  it("wraps the 404 in the default (fancy) edition with no edition in the URL", async () => {
+    const html = renderToStaticMarkup(<NotFound />);
+    expect(html).toContain('data-experience="fancy"');
     expect(html).toContain("off the setlist");
-    expect(html).toContain("This page isn’t in the index.");
-    expect(html).not.toContain("stage-glow");
-    expect(html).toContain('href="/shows"');
   });
 
-  it("shares the same de-carded markup in functional mode", async () => {
-    h.experience = "functional";
-    const html = await render();
-    // Functional shares the fancy markup and only recolors via tokens.
-    expect(html).toContain("off the setlist");
-    expect(html).not.toContain("stage-glow");
-  });
-
-  it("renders a plain Doc in minimal mode, with no fancy hero leaking in", async () => {
-    h.experience = "minimal";
-    const html = await render();
-    expect(html).toContain("doc-crumb"); // breadcrumb
-    expect(html).toContain("This page isn’t in the index");
-    expect(html).toContain('href="/shows"');
-    expect(html).toContain('href="/songs"');
-    expect(html).not.toContain("stage-glow");
+  it("follows the edition in the URL", async () => {
+    h.edition = "minimal";
+    const html = renderToStaticMarkup(<NotFound />);
+    expect(html).toContain('data-experience="minimal"');
+    expect(html).toContain("doc-crumb");
     expect(html).not.toContain("off the setlist");
   });
 });

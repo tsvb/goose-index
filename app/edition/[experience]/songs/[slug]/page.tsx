@@ -1,0 +1,278 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import type { Metadata, ResolvingMetadata } from "next";
+import { Container } from "@/app/_components/container";
+import { FolioNav } from "@/app/_components/page-chrome";
+import { Doc, Breadcrumb, MetaTable, DocSection } from "@/app/_components/doc";
+import { SectionRule } from "@/app/_components/forms";
+import { NilState, chromeLink } from "@/app/_components/page-chrome";
+import { FactRibbon, PlaysPerYearChart, SetPlacementBars, GapSparkline, PerformanceTable, AppearsOn } from "@/app/_components/song";
+import { getSongBySlug, getSongPerformances, getSongAlbums, type SongStat, type SongAlbum } from "@/lib/queries/songs";
+import { getExperience } from "@/lib/experience.server";
+import { careerYears } from "@/lib/queries/dimensions";
+import { SongYeti, PerfRows } from "@/app/_components/song/yeti";
+import { yearShares } from "@/app/_components/song/run";
+import type { Experience } from "@/lib/experience";
+import { showHref, formatShortDate, formatDuration } from "@/lib/queries/format";
+import { entityMetadata } from "@/lib/site";
+
+// No paths at build (a build opens no database connection). Each one renders
+// on its first visit and is then cached; see the edition layout's revalidate.
+export function generateStaticParams() {
+  return [];
+}
+
+/** Crumb trail for the fancy/functional song page — plain text, spruce links. */
+function SongCrumb({ name }: { name: string }) {
+  return (
+    <nav className="text-[0.7rem] text-faint">
+      <Link href="/" className={chromeLink}>Index</Link>
+      {" › "}
+      <Link href="/songs" className={chromeLink}>Songs</Link>
+      {" › "}
+      <span>{name}</span>
+    </nav>
+  );
+}
+
+/** The cover/original tag for the fancy/functional chrome slot: "cover"/
+ * "original" is a chrome word and folds, but the artist name is authored
+ * data and keeps its case. (The bug this replaces: a blanket `lowercase`
+ * class on the tag's <span> used to fold the artist name along with it.) */
+function chromeTag(song: Pick<SongStat, "isOriginal" | "originalArtist">) {
+  return song.isOriginal ? "original" : <>cover · {song.originalArtist ?? "trad."}</>;
+}
+
+// Cached (ISR, revalidate from the edition layout). `page` is a path param,
+// not `?page=`: reading searchParams would make every song page dynamic again.
+// middleware.ts rewrites the public `/songs/<slug>?page=2` to p/[page].
+type Params = { params: Promise<{ experience?: string; slug: string; page?: string }> };
+
+/** The performance table pages at the same size as /shows. The charts above
+ * it still read every performance — only the table is sliced. */
+const PERFS_PER_PAGE = 50;
+
+export async function generateMetadata({ params }: Params, parent: ResolvingMetadata): Promise<Metadata> {
+  const { slug } = await params;
+  const song = await getSongBySlug(slug);
+  if (!song) return { title: "Song not found" };
+  const description = song.timesPlayed === 0
+    ? `${song.name} is in the Goose songbook, but never yet played live.`
+    : `Goose has played ${song.name} ${song.timesPlayed} time${song.timesPlayed === 1 ? "" : "s"}${song.debutDate ? ` since ${song.debutDate}` : ""}.`;
+  return {
+    title: song.name,
+    description,
+    ...entityMetadata({ title: song.name, description, path: `/songs/${slug}`, parent: await parent }),
+    // A never-played song's page says only that, so keep it out of the index
+    // (the sitemap leaves it out too — lib/queries/sitemap.ts). follow stays on:
+    // its links to /songs and /stats/debuts are real. It re-indexes itself the
+    // night the sync logs a first play.
+    ...(song.timesPlayed === 0 ? { robots: { index: false, follow: true } } : {}),
+  };
+}
+
+/** Legend for the gap sparkline — must describe only what the chart actually renders. */
+function gapLegend(hasBusts: boolean, longestGap: number | null, timesPlayed: number, experience: Experience): string {
+  // The marks are elapsed time: foil (pink) in 3.0; 2.0 still draws them ember.
+  const color = experience === "fancy" ? "pink" : "ember";
+  if (hasBusts) return `The ${color} bars mark "Dusted Off" returns — a gap in this song's longest 5% (≥15 shows), on the first play of the night it came back.`;
+  if ((longestGap ?? 0) > 0) return `The ${color} bar marks the longest gap (${longestGap} shows). No "Dusted Off" returns yet — that takes a gap of ≥15 shows.`;
+  return timesPlayed === 1 ? "Played once — no gaps between plays yet." : "No gaps yet — played at every show since its debut.";
+}
+
+function facts(song: SongStat) {
+  const dur = song.longestSeconds != null ? formatDuration(song.longestSeconds) : "—";
+  return [
+    { k: "Times played", v: song.timesPlayed },
+    { k: "Rotation", v: `${song.rotationPct}%` },
+    { k: "Current gap", v: song.currentGap ?? "—" },
+    { k: "Avg gap", v: song.avgGap ?? "—" },
+    { k: "Longest gap", v: song.longestGap ?? "—" },
+    { k: "Debut", v: song.debutDate ? formatShortDate(song.debutDate) : "—" },
+    { k: "Last played", v: song.lastPlayedDate ? formatShortDate(song.lastPlayedDate) : "—" },
+    { k: "Longest", v: dur },
+  ];
+}
+
+export default async function SongPage({ params }: Params) {
+  const { slug, page: pageParam } = await params;
+  const requestedPage = Math.max(1, pageParam ? parseInt(pageParam, 10) || 1 : 1);
+  const song = await getSongBySlug(slug);
+  if (!song) notFound();
+  const experience = await getExperience(params);
+  // Minimal's doc-crumb doesn't fold chrome words (see ShowHeader's minimal
+  // branch), so it keeps its original capitalized "Cover"/"Original" text;
+  // the fancy/functional chrome slot uses chromeTag() below instead, which
+  // folds only the chrome word and keeps the artist name authored-case.
+  const tag = song.isOriginal ? "Original" : `Cover · ${song.originalArtist ?? "trad."}`;
+
+  // A song with no performances has no ribbon, charts, or table worth rendering
+  // — a wall of zeros reads as broken. Say what's true instead.
+  if (song.timesPlayed === 0) return <NeverPlayed song={song} tag={tag} experience={experience} />;
+
+  const albums = await getSongAlbums(song.songId);
+
+  const perfs = await getSongPerformances(song.songId);
+  const totalPages = Math.max(1, Math.ceil(perfs.length / PERFS_PER_PAGE));
+  const page = Math.min(requestedPage, totalPages);
+  const pagePerfs = perfs.slice((page - 1) * PERFS_PER_PAGE, page * PERFS_PER_PAGE);
+  const pageHref = (n: number) => (n === 1 ? `/songs/${slug}` : `/songs/${slug}?page=${n}`);
+
+  if (experience === "minimal") {
+    return (
+      <Container className="py-8">
+        <Doc>
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
+          <h1>{song.name}</h1>
+          <p className="doc-crumb">{tag}</p>
+          <MetaTable rows={facts(song).map((f) => ({ k: f.k, v: f.v }))} />
+          <AppearsOn albums={albums} minimal />
+          <DocSection title="Plays per year">
+            <table className="doc-table"><tbody>{song.playsPerYear.map((y) => <tr key={y.year}><td>{y.year}</td><td className="num">{y.count}</td></tr>)}</tbody></table>
+          </DocSection>
+          <DocSection title="Longest versions">
+            <table className="doc-table"><tbody>{song.longestVersions.map((v) => <tr key={v.showId}><td className="num">{v.trackTime}</td><td><Link href={showHref(v.date, v.order)}>{v.date}</Link></td><td>{v.venue ?? "—"}</td></tr>)}</tbody></table>
+          </DocSection>
+          <DocSection title={`Every performance · ${perfs.length}`}>
+            <table className="doc-table">
+              <thead><tr><th>Date</th><th>Venue</th><th>Set</th><th className="num">Gap</th><th className="num">Time</th></tr></thead>
+              <tbody>{perfs.map((p) => <tr key={p.uniqueId}><td><Link href={showHref(p.date, p.order)}>{p.date}</Link></td><td>{p.venue ?? "—"}</td><td>{p.setLabel}</td><td className="num">{p.gap ?? "—"}{p.isDustedOff ? " *" : ""}</td><td className="num">{p.trackTime ?? "—"}</td></tr>)}</tbody>
+            </table>
+            <p className="doc-crumb">* a "Dusted Off" return — gap in this song&apos;s longest 5% (≥15 shows), on the first play of the night it came back.</p>
+          </DocSection>
+        </Doc>
+      </Container>
+    );
+  }
+
+  // 3.0 reads the song as Yeti reads a track (spec 2026-11-18, round 5); 2.0
+  // keeps the page below.
+  if (experience === "fancy") {
+    const career = await careerYears();
+    const setlists = new Map(career.map((c) => [c.year, c.documented]));
+    const pager =
+      totalPages > 1 ? (
+        <div className="mt-4">
+          <FolioNav
+            prevHref={page > 1 ? pageHref(page - 1) : undefined}
+            nextHref={page < totalPages ? pageHref(page + 1) : undefined}
+            prevLabel="newer"
+            nextLabel="older"
+            center={`page ${page} of ${totalPages}`}
+          />
+        </div>
+      ) : null;
+    return (
+      <Container className="py-7">
+        <SongYeti
+          song={song}
+          perfs={perfs}
+          shares={yearShares(song.playsPerYear.map((y) => y.year), perfs, setlists)}
+          tag={song.isOriginal ? "original" : `cover · ${song.originalArtist ?? "trad."}`}
+          appearsOn={<AppearsOn albums={albums} />}
+          performances={
+            <>
+              <PerfRows perfs={pagePerfs} />
+              {pager}
+            </>
+          }
+        />
+      </Container>
+    );
+  }
+
+  return (
+    <>
+      <Container className="py-7">
+        <SongCrumb name={song.name} />
+        <div className="mt-2 flex flex-wrap items-baseline gap-3">
+          <h1 className="font-display text-[2.2rem] leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
+          <span className="font-mono text-[0.7rem] text-faint">{chromeTag(song)}</span>
+        </div>
+        <FactRibbon facts={facts(song)} />
+        <AppearsOn albums={albums} />
+        <div className="song-cols mt-6">
+          <div className="space-y-7">
+            <section><SectionRule title="plays per year" seed="song-plays-per-year" /><PlaysPerYearChart data={song.playsPerYear} /></section>
+            <section><SectionRule title="set placement" seed="song-set-placement" /><SetPlacementBars placement={song.setPlacement} /></section>
+            {perfs.length > 0 && (
+              <section>
+                <SectionRule title="gaps & returns" seed="song-gaps-returns" />
+                <GapSparkline perfs={perfs} />
+                <p className="mt-2 font-mono text-[0.68rem] text-faint">{gapLegend(perfs.some((p) => p.isDustedOff), song.longestGap, perfs.length, experience)}</p>
+              </section>
+            )}
+            {song.longestVersions.length > 0 && (
+              <section>
+                <SectionRule title="longest versions" seed="song-longest-versions" />
+                <ul className="space-y-1 text-sm">{song.longestVersions.map((v) => <li key={v.showId} className="flex justify-between gap-3"><span className="tabular-nums text-ink">{v.trackTime}</span><Link href={showHref(v.date, v.order)} className="text-muted hover:text-ink">{v.date} · {v.venue ?? "—"}</Link></li>)}</ul>
+              </section>
+            )}
+            {song.topVenues.length > 0 && (
+              <section>
+                <SectionRule title="top venues" seed="song-top-venues" />
+                <ul className="space-y-1 text-sm">{song.topVenues.map((v) => <li key={v.venueId} className="flex justify-between gap-3"><Link href={`/venues/${v.venueId}`} className="text-muted hover:text-ink">{v.name}</Link><span className="tabular-nums text-faint">{v.count}×</span></li>)}</ul>
+              </section>
+            )}
+          </div>
+          <div>
+            <SectionRule title={<>every performance <span className="font-mono text-xs text-faint">· {perfs.length}</span></>} seed="song-every-performance" />
+            <PerformanceTable perfs={pagePerfs} />
+            {totalPages > 1 && (
+              <div className="mt-4">
+                <FolioNav
+                  prevHref={page > 1 ? pageHref(page - 1) : undefined}
+                  nextHref={page < totalPages ? pageHref(page + 1) : undefined}
+                  prevLabel="newer"
+                  nextLabel="older"
+                  center={`page ${page} of ${totalPages}`}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </Container>
+    </>
+  );
+}
+
+/** Empty state for songs in the book that have never been performed —
+ *  the ribbon/charts/table would render a wall of zeros. */
+function NeverPlayed({ song, tag, experience }: { song: SongStat; tag: string; experience: Experience }) {
+  if (experience === "minimal") {
+    return (
+      <Container className="py-8">
+        <Doc>
+          <Breadcrumb trail={[{ href: "/", label: "Goose Index" }, { href: "/songs", label: "Songs" }, { label: song.name }]} />
+          <h1>{song.name}</h1>
+          <p className="doc-crumb">{tag}</p>
+          <p>
+            In the songbook, but never yet played live. When it debuts, this page will log the
+            date, the venue, and every performance after it.
+          </p>
+          <p>
+            <Link href="/songs">All songs</Link> · <Link href="/stats/debuts">Recent debuts</Link>
+          </p>
+        </Doc>
+      </Container>
+    );
+  }
+  return (
+    <Container className="py-7">
+      <SongCrumb name={song.name} />
+      <div className="mt-2 flex flex-wrap items-baseline gap-3">
+        <h1 className="font-display text-[2.2rem] leading-none tracking-tight text-ink sm:text-4xl">{song.name}</h1>
+        <span className="font-mono text-[0.7rem] text-faint">{chromeTag(song)}</span>
+      </div>
+      <div className="mt-8">
+        <NilState href="/songs" linkLabel="browse the catalog">
+          In the songbook, but never yet played live. The Index keeps a page for every song in the
+          book — this one is still waiting for its first night. When it debuts, the plays, gaps,
+          set placements, and longest versions will be logged here. Or see{" "}
+          <Link href="/stats/debuts" className={chromeLink}>recent debuts</Link>{" "}
+          in the meantime.
+        </NilState>
+      </div>
+    </Container>
+  );
+}

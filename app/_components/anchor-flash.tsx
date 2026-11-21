@@ -1,7 +1,8 @@
 "use client";
 
 import { Suspense, useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useSitePathname } from "./site-pathname";
 
 const FLASH_CLASS = "show-anchor-flash";
 
@@ -56,7 +57,7 @@ export function samePageHash(
 }
 
 function AnchorFlashInner() {
-  const pathname = usePathname();
+  const pathname = useSitePathname();
   const search = useSearchParams().toString();
 
   // Router navigations (the jump link changing ?page= plus the hash) re-run
