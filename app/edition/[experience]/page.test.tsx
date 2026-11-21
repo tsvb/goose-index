@@ -131,10 +131,14 @@ describe("Home Tonight banner", () => {
     h.tonight = [show(99, "2026-07-11", "Tonight Amphitheater")];
     const html = await render();
     expect(html).toContain("tonight");
-    // The one pack on the site: card stock and an empty bubble (no songs
-    // logged yet), with the Tonight state on a sticker.
+    // The one pack on the site: card stock, a bubble holding tonight's poster
+    // (the night has no release cover yet), the Tonight state on a sticker.
     expect(html).toContain("tonight-pack");
-    expect(html).toContain("yeti-bubble yeti-bubble-empty");
+    expect(html).not.toContain("yeti-bubble-empty");
+    expect(html).toContain('class="yeti-tile yeti-poster"');
+    expect(html).toContain('<span class="yeti-poster-city" style="--chars:7">Port Chester</span>');
+    expect(html).toContain('<span class="yeti-poster-region">NY</span>');
+    expect(html).toContain('<span class="yeti-poster-date">sat · jul 11</span>');
     expect(html).toContain('<span class="yeti-label">Tonight</span>');
     expect(html).toContain("Tonight Amphitheater");
     expect(html).toContain('href="/shows/2026-07-11"');
@@ -159,5 +163,37 @@ describe("Home Tonight banner", () => {
     expect(html).toContain("Tonight");
     expect(html).toContain('href="/shows/2026-07-11"');
     expect(html).toContain("the setlist will appear live");
+  });
+});
+
+describe("Home covers (3.0)", () => {
+  it("leads a row with its Bandcamp cover, else the date tile", async () => {
+    h.recent = [
+      { ...show(9, "2026-07-10", "Red Rocks", 1), artId: "3912345678" },
+      show(8, "2026-07-09", "The Cap", 1),
+    ];
+    const html = await render();
+    expect(html).toContain('src="https://f4.bcbits.com/img/a3912345678_7.jpg"');
+    // The row's link already names the show, so the cover is decorative there.
+    expect(html).toContain('alt=""');
+    // The Cap has no release: its square is the date tile.
+    expect(html).toMatch(/<span class="yeti-tile-d">9<\/span>/);
+    // With the square holding the date, the date moves under the venue.
+    expect(html).toContain("jul 10, 2026 · Port Chester, NY");
+  });
+
+  it("never builds an image URL from an art id that isn't digits", async () => {
+    h.recent = [{ ...show(9, "2026-07-10", "Red Rocks", 1), artId: "1/../../evil" }];
+    const html = await render();
+    expect(html).not.toContain("<img");
+    expect(html).toMatch(/<span class="yeti-tile-d">10<\/span>/);
+  });
+
+  it("keeps 2.0's rows as they were", async () => {
+    h.experience = "functional";
+    h.recent = [{ ...show(9, "2026-07-10", "Red Rocks", 1), artId: "3912345678" }];
+    const html = await render();
+    expect(html).not.toContain("bcbits.com");
+    expect(html).not.toContain("yeti-tile");
   });
 });

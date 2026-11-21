@@ -26,3 +26,20 @@ export function isBandcampUrl(url: string | null | undefined): boolean {
 export function bandcampHref(url: string | null | undefined): string | null {
   return isBandcampUrl(url) ? url! : null;
 }
+
+/** Bandcamp's image sizes, by the format number in the file name. Bandcamp
+ *  crops every cover square. */
+const ART_SIZES = { thumb: 7, medium: 16, large: 10 } as const; // ~150, 700, 1200px
+export type ArtSize = keyof typeof ART_SIZES;
+
+/**
+ * A release cover's URL, built from its art id, or null.
+ *
+ * The id comes from the same scrape as the URLs above, so it gets the same
+ * distrust: only a run of digits becomes a URL, and the host is fixed here —
+ * nothing from the scrape is ever placed in the host or the path's shape.
+ */
+export function bandcampArtUrl(artId: string | null | undefined, size: ArtSize): string | null {
+  if (!artId || !/^\d{1,15}$/.test(artId)) return null;
+  return `https://f4.bcbits.com/img/a${artId}_${ART_SIZES[size]}.jpg`;
+}

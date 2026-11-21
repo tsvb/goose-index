@@ -24,6 +24,11 @@ export type ShowSummary = {
   tourId: number | null;
   songCount: number;
   hasNotes: boolean;
+  /** The cover of the band's Bandcamp release of this night (an art id; build
+   *  the URL with bandcampArtUrl). Null until a release is out and imported —
+   *  always null for tonight's show. Optional so hand-built summaries (tests,
+   *  raw-SQL readers) needn't carry it. */
+  artId?: string | null;
 };
 
 // Correlated subqueries keep these single-row-per-show (no GROUP BY gymnastics).
@@ -47,6 +52,7 @@ function summaryColumns() {
     tourId: shows.tourId,
     songCount: songCountSql,
     hasNotes: hasNotesSql,
+    artId: shows.bandcampArtId,
   };
 }
 

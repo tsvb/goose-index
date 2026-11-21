@@ -3,6 +3,7 @@ name: Bandcamp discography
 # Scrapes the band's Bandcamp and loads it into the database:
 #   * albums / album_tracks — the discography behind /songs?sort=album
 #   * shows.coach_notes     — the liner notes behind /stats/oracle
+#   * shows.bandcamp_art_id — each released night's cover (3.0's show squares)
 #
 # elgoose knows nothing about releases, so this is the only source for either.
 #
@@ -13,7 +14,8 @@ name: Bandcamp discography
 # already has and only fetches/imports what's new — a normal month is a
 # handful of releases, not the full ~500-release catalog. Trade-off: an edit
 # to an already-imported release's notes won't be picked up. Trigger manually
-# with "full" checked to force a complete rescan.
+# with "full" checked to force a complete rescan — needed once after the covers
+# column landed (2026-11-21), so releases imported before it get their art.
 
 on:
   schedule:

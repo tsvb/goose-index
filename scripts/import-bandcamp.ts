@@ -1,4 +1,5 @@
-// Import bandcamp album data into the shows table.
+// Import bandcamp album data into the shows table: each live release's link,
+// its cover (art id) and, when it has them, the coach's notes.
 //
 // Pipeline:
 //   1. Run scripts/scrape_bandcamp.py to produce data/albums.jsonl
@@ -19,19 +20,15 @@ import { db, closeDb } from "@/db/client";
 import { shows } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { announceTarget } from "./target";
+import { isShowRelease, showPatch, type LiveRelease } from "./bandcamp-patch";
 import { databaseUrl } from "../db/url";
 
 // db/client pulls in dotenv, so the env is loaded by the time this runs.
 announceTarget(databaseUrl() ?? "");
 
-type Album = {
-  album_id: number;
+type Album = LiveRelease & {
   slug: string;
-  url: string;
   title: string;
-  is_live: boolean;
-  show_date: string | null;
-  notes_raw: string | null;
 };
 
 /** Slug convention for multi-show days: "…-uk-2" → the second show that day. */
@@ -65,10 +62,13 @@ async function main() {
     .filter(Boolean)
     .map((line) => JSON.parse(line) as Album);
 
-  const live = albums.filter((a): a is Album & { show_date: string; notes_raw: string } =>
-    Boolean(a.is_live && a.show_date && a.notes_raw),
-  );
-  console.log(`read ${albums.length} albums; ${live.length} live w/ notes_raw`);
+  // Every dated live release, notes or not: a release without notes still
+  // links its show and carries its cover. showPatch only writes notes when the
+  // release has them.
+  const live = albums.filter((a): a is Album & { show_date: string } => isShowRelease(a));
+  const withNotes = live.filter((a) => a.notes_raw).length;
+  const withArt = live.filter((a) => showPatch(a).bandcampArtId).length;
+  console.log(`read ${albums.length} albums; ${live.length} dated live (${withNotes} w/ notes_raw, ${withArt} w/ art)`);
 
   let updated = 0;
   let noShowMatch = 0;
@@ -108,11 +108,7 @@ async function main() {
     if (!dryRun) {
       await db
         .update(shows)
-        .set({
-          bandcampAlbumId: String(a.album_id),
-          bandcampUrl: a.url,
-          coachNotes: a.notes_raw,
-        })
+        .set(showPatch(a))
         .where(eq(shows.showId, target.showId));
     }
     updated++;
