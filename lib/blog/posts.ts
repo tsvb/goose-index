@@ -44,12 +44,17 @@ function loadFile(dir: string, filename: string): Post {
 }
 
 /** Every post, newest first (date desc, slug as the tiebreak). Reads the
- *  filesystem per call — the site renders per-request anyway, post counts are
- *  small, and a cache would be one more thing that can lie. */
+ *  filesystem per call — pages are ISR-cached above this, post counts are
+ *  small, and a second cache would be one more thing that can lie.
+ *
+ *  The turbopackIgnore comments stop Turbopack tracing the whole project into
+ *  every function that reads posts (it can't see that `dir` is always
+ *  content/blog). The posts still ship: next.config.ts lists content/blog in
+ *  outputFileTracingIncludes for each route that calls this. */
 export function listPosts(dir: string = CONTENT_DIR): Post[] {
-  if (!fs.existsSync(dir)) return [];
+  if (!fs.existsSync(/*turbopackIgnore: true*/ dir)) return [];
   return fs
-    .readdirSync(dir)
+    .readdirSync(/*turbopackIgnore: true*/ dir)
     .filter((f) => f.endsWith(".md"))
     .map((f) => loadFile(dir, f))
     .sort((a, b) => (a.date === b.date ? a.slug.localeCompare(b.slug) : b.date.localeCompare(a.date)));

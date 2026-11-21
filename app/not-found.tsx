@@ -9,7 +9,7 @@ import { resolveExperience } from "@/lib/experience";
 // Every 404 renders here: unknown URLs (the [...missing] catch-all) and
 // notFound() on a page. Next renders it inside the cached page's render, so it
 // must not read the cookie (that would throw "static to dynamic" at runtime).
-// Middleware already put the edition in the URL (/edition/<experience>/…),
+// The proxy (proxy.ts) already put the edition in the URL (/edition/<experience>/…),
 // and useParams sees it on the server render too.
 export default function NotFound() {
   const experience = resolveExperience(useParams<{ experience?: string }>()?.experience);

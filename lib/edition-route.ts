@@ -2,7 +2,7 @@ import { EXPERIENCE_COOKIE, resolveExperience } from "./experience";
 import { liveCandidateDate } from "./live";
 
 /**
- * Where middleware.ts sends a page request.
+ * Where proxy.ts sends a page request.
  *
  * Every page lives under app/edition/[experience]/, so each edition (3.0, 2.0,
  * 1.0) of each page is its own cached entry and nothing has to read the

@@ -4,7 +4,7 @@ import { EXPERIENCE_COOKIE, editionRoute } from "@/lib/edition-route";
 // Picks the edition from the ga_experience cookie and rewrites the request to
 // /edition/<experience>/<path>, so pages never read the cookie themselves and
 // can be cached (see lib/edition-route.ts). The browser's URL doesn't change.
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const url = req.nextUrl.clone();
   const route = editionRoute(url.pathname, url.searchParams, req.cookies.get(EXPERIENCE_COOKIE)?.value, new Date());
   url.pathname = route.pathname;

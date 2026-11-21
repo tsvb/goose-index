@@ -8,7 +8,7 @@ export function generateStaticParams() {
 }
 
 // Cached (ISR, revalidate from the edition layout). Tonight's show inside the
-// live window goes to live/page.tsx instead — see middleware.ts.
+// live window goes to live/page.tsx instead — see proxy.ts.
 type Props = { params: Promise<ShowParams> };
 
 export function generateMetadata(props: Props, parent: ResolvingMetadata): Promise<Metadata> {

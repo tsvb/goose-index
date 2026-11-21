@@ -45,7 +45,7 @@ function chromeTag(song: Pick<SongStat, "isOriginal" | "originalArtist">) {
 
 // Cached (ISR, revalidate from the edition layout). `page` is a path param,
 // not `?page=`: reading searchParams would make every song page dynamic again.
-// middleware.ts rewrites the public `/songs/<slug>?page=2` to p/[page].
+// proxy.ts rewrites the public `/songs/<slug>?page=2` to p/[page].
 type Params = { params: Promise<{ experience?: string; slug: string; page?: string }> };
 
 /** The performance table pages at the same size as /shows. The charts above

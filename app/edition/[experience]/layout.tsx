@@ -34,7 +34,7 @@ export async function generateViewport({ params }: { params: Promise<EditionPara
 // Pages are cached HTML (ISR). The edition used to come from the
 // ga_experience cookie, a Dynamic API, so every page rendered on every request
 // — crawlers included — and that spent the free plan's Fluid Active CPU.
-// middleware.ts now reads the cookie and rewrites to /edition/<experience>/…,
+// proxy.ts now reads the cookie and rewrites to /edition/<experience>/…,
 // so each edition of each page is its own cached entry.
 //
 // An hour, the same as the catalog's Data Cache TTL (lib/queries/cache.ts).
@@ -61,7 +61,7 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: Promise<EditionParams>;
 }) {
-  // Only middleware should reach /edition/…; a hand-typed key that isn't an
+  // Only proxy.ts should reach /edition/…; a hand-typed key that isn't an
   // edition is a 404, not a fourth copy of every page in the cache.
   const key = (await params).experience;
   if (!EXPERIENCES.some((e) => e.key === key)) notFound();
