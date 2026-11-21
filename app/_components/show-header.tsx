@@ -9,7 +9,7 @@ import type { Experience } from "@/lib/experience";
 import { NugsLink } from "./nugs-link";
 import { nugsShowHref, nugsWebFallback, nugsWebHref } from "@/lib/nugs";
 import { bandcampHref } from "@/lib/bandcamp";
-import { DateTile, Pack } from "./yeti";
+import { Pack, ShowSquare } from "./yeti";
 
 /** The band's own release of this night, when they've put one out — 445 of the
  * shows have one. nugs is a subscription; Bandcamp is where buying the music
@@ -87,6 +87,28 @@ function ShowNugs({
         >↗ Open on nugs.net</a>
       )}
     </span>
+  );
+}
+
+/** 3.0's square for a show page: the release cover, linked to the release, or
+ * the date tile. */
+function HeaderSquare({ show, date }: { show: ShowDetail; date: string }) {
+  const square = (
+    <ShowSquare
+      iso={date}
+      artId={show.artId}
+      size="medium"
+      alt={`Cover of the Bandcamp release of ${show.venue ?? "this show"}, ${date}`}
+      className="w-[132px] sm:w-[168px]"
+    />
+  );
+  const href = show.artId ? bandcampHref(show.bandcampUrl) : null;
+  return href ? (
+    <a href={href} target="_blank" rel="noreferrer" className="block w-fit rounded-[16px]">
+      {square}
+    </a>
+  ) : (
+    square
   );
 }
 
@@ -171,10 +193,11 @@ export function ShowHeader({
     );
   }
 
-  // 3.0 (Yeti): the show's square is a flat date tile (Yeti's MonogramTile,
-  // its no-art answer; the site has no show imagery), beside the nameplate.
-  // Yeti's rule is "the pack is only for what's playing", so a show page gets
-  // no bubble, except the empty pack while nothing is logged yet.
+  // 3.0 (Yeti): the show's square sits flat beside the nameplate: the cover of
+  // the band's Bandcamp release of the night when there is one ("cover flat on
+  // the shelf, no bubble"), else the date tile (Yeti's MonogramTile, its no-art
+  // answer). Yeti's rule is "the pack is only for what's playing", so a show
+  // page gets no bubble, except the empty pack while nothing is logged yet.
   const empty = setlist.length === 0;
   const elgoose = show.permalink ? (
     <a href={`https://elgoose.net/setlists/${show.permalink}`} target="_blank" rel="noreferrer" className={chromeLink}>View on elgoose ↗</a>
@@ -186,7 +209,7 @@ export function ShowHeader({
           {empty ? (
             <Pack className="w-[168px]" />
           ) : (
-            <DateTile iso={date} className="w-[132px] sm:w-[168px]" />
+            <HeaderSquare show={show} date={date} />
           )}
           <div className="min-w-0">
             {/* Casing boundary: the tour link is authored data and keeps its

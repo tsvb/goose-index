@@ -47,7 +47,7 @@ The calls below were made on the mockups (2026-11-18), each on the recommended o
 | Decision | Choice | Why |
 |---|---|---|
 | Foil on the charts | **A: foil = elapsed time.** Gap rings (The Shelf, Most Overdue) and overdue counts are foil. | A ring closing as time passes *is* Yeti's pill ring, and "foil means time" is the app's own rule. It also makes the Shelf stricter: one color for one thing, where today's ring switches from steel to amber. |
-| Material placement | **The pack only where something is on; the empty pack where nothing is yet; a flat date tile on every other show.** | Yeti's surfaces sheet: "the pack goes where something is playing", "the empty pack goes where nothing is yet", "Show page: cover flat on the shelf, no bubble". The site has no show imagery, so it never invents art. `MonogramTile` is the app's own no-art answer. |
+| Material placement | **The pack only where something is on; the empty pack where nothing is yet; a flat square on every other show — the night's Bandcamp cover when the band has released it, else the date tile.** | Yeti's surfaces sheet: "the pack goes where something is playing", "the empty pack goes where nothing is yet", "Show page: cover flat on the shelf, no bubble". Covers are the band's own release art (2026-11-21); the site never invents art. `MonogramTile` is the app's own no-art answer. |
 | Casing | **Keep lowercase chrome.** All-caps eyebrows go. | Pen & Instrument filed lowercase chrome under voice, and voice is unchanged. Yeti's "no eyebrows, no caps" still removes the uppercased labels. |
 | Motion | **No FoilSweep.** The live dot keeps its pulse. | The sweep marks a track starting; nothing on the site starts. |
 | Site chrome | **Recolor icon, apple-icon, OG card and favicon to Yeti; `theme-color` night on 3.0 only.** | They're still the retired XL II amber-on-brown (`#edab44` on `#15110c`). 3.0 is the default, so the site's face is Yeti's. The feather mark stays. |
@@ -194,17 +194,23 @@ Pen & Instrument's forms survive; their finish changes.
 - **Tonight's show (Home):** card stock with the punched hang slot, a bubble, the **Tonight**
   label sticker on the bubble's corner, and the nameplate printed on the card (venue heavy,
   city · tour in slush, then "the setlist will appear live", today's copy, unchanged; the show
-  number only on a multi-show night). Before songs land, the bubble is **empty** (never
-  animated, never a glyph); once the setlist has entries it holds the date tile. The sticker
+  number only on a multi-show night). The bubble holds **tonight's poster** (2026-11-21): a
+  gig bill printed on card stock from the show's own facts — "Goose", the city sized to its
+  longest word, the region, a sale rule, the date in ember — since a night has no Bandcamp
+  cover until its release is out. Never animated, never art the site doesn't have. The sticker
   always reads **Tonight**: the live window is a date, so the site can't claim "Live". On the
   show page, while that window is open, the newest logged song carries the row sticker (labeled
   "newest song logged") and a faint sale wash. Shown in the leading column when Home is wide (≥ 900px), first under the masthead on
   a phone.
 - **A show page with no setlist yet** (upcoming or tonight): the empty pack replaces "No setlist
   has been recorded for this show yet."
-- **Every other show page:** no card, no bubble. A **flat date tile** (card stock, frost keyline,
-  radius 16, slush print: month, day heavy, year) beside the nameplate. 132px on a phone, 168px
-  wide. "Shows are squares."
+- **Every other show page:** no card, no bubble. A flat square beside the nameplate: the
+  night's **Bandcamp cover** (linked to the release) when one is imported, else the **date
+  tile** (card stock, frost keyline, radius 16, slush print: month, day heavy, year). 132px on
+  a phone, 168px wide. "Shows are squares."
+- **Home's on-this-day and latest-shows rows** lead with the same square at 58px (cover or
+  small date tile), the date moving under the venue. Flat, like the stats cuts' tiles — not
+  the card material, which stays off lists.
 - **The edition picker:** the gear opens a popover (shelf, frost keyline, radius 14) holding
   Yeti's **segmented control** (3.0 · 2.0 · 1.0; shelf track, `#2A355A` thumb) with each
   edition's blurb under it. The appearance row is gone.

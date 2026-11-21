@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isBandcampUrl, bandcampHref, BANDCAMP_HOME } from "./bandcamp";
+import { isBandcampUrl, bandcampHref, bandcampArtUrl, BANDCAMP_HOME } from "./bandcamp";
 
 // This is a security control, not a formatting helper. Every Bandcamp URL on the
 // site comes from a scrape — data we don't control — so a poisoned scrape must
@@ -38,5 +38,23 @@ describe("bandcampHref", () => {
     );
     expect(bandcampHref("https://evil.test/x")).toBeNull();
     expect(bandcampHref(null)).toBeNull();
+  });
+});
+
+// The art id is scraped too. It only ever fills a digit slot in a URL whose
+// host and shape are fixed here.
+describe("bandcampArtUrl", () => {
+  it("builds each size from the id", () => {
+    expect(bandcampArtUrl("3912345678", "thumb")).toBe("https://f4.bcbits.com/img/a3912345678_7.jpg");
+    expect(bandcampArtUrl("3912345678", "medium")).toBe("https://f4.bcbits.com/img/a3912345678_16.jpg");
+    expect(bandcampArtUrl("3912345678", "large")).toBe("https://f4.bcbits.com/img/a3912345678_10.jpg");
+  });
+
+  it("refuses anything but digits", () => {
+    expect(bandcampArtUrl("12/../../x", "thumb")).toBeNull();
+    expect(bandcampArtUrl("123?x=1", "thumb")).toBeNull();
+    expect(bandcampArtUrl("https://evil.test/a.jpg", "thumb")).toBeNull();
+    expect(bandcampArtUrl("", "thumb")).toBeNull();
+    expect(bandcampArtUrl(null, "thumb")).toBeNull();
   });
 });

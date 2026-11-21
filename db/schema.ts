@@ -43,6 +43,10 @@ export const shows = pgTable("shows", {
   notes: text("notes"),
   bandcampAlbumId: text("bandcamp_album_id"),
   bandcampUrl: text("bandcamp_url"),
+  // The release's cover, as Bandcamp's art id (digits; the image URL is built
+  // from it at render time — see bandcampArtUrl). Text, like the album id: art
+  // ids outgrow a 32-bit integer.
+  bandcampArtId: text("bandcamp_art_id"),
   nugsContainerId: integer("nugs_container_id"),
   nugsHasVideo: boolean("nugs_has_video"),
   coachNotes: text("coach_notes"),

@@ -160,6 +160,27 @@ describe("ShowHeader in 3.0 (Yeti)", () => {
     expect(html).toContain('<span class="yeti-tile-d">26</span>');
     expect(html).not.toContain("yeti-bubble");
   });
+  it("lays the night's Bandcamp cover flat, linked to the release, when there is one", () => {
+    const one = [{ uniqueId: "x", song: "Hot Tea", setNumber: "1", position: 1, trackTime: "8:00" }] as unknown as SetlistEntry[];
+    const released = {
+      ...base,
+      artId: "3912345678",
+      bandcampUrl: "https://goosetheband.bandcamp.com/album/2026-06-26-raleigh-nc",
+    } as ShowDetail;
+    const html = renderToStaticMarkup(<ShowHeader show={released} date="2026-06-26" setlist={one} experience="fancy" />);
+    expect(html).toContain('src="https://f4.bcbits.com/img/a3912345678_16.jpg"');
+    expect(html).toContain('alt="Cover of the Bandcamp release of Red Hat Amphitheater, 2026-06-26"');
+    expect(html).toMatch(/<a href="https:\/\/goosetheband\.bandcamp\.com\/album\/2026-06-26-raleigh-nc"[^>]*><span class="yeti-tile yeti-cover/);
+    expect(html).not.toContain("yeti-tile-d");
+    expect(html).not.toContain("yeti-bubble");
+  });
+  it("shows the cover unlinked when the release URL fails the Bandcamp guard", () => {
+    const one = [{ uniqueId: "x", song: "Hot Tea", setNumber: "1", position: 1, trackTime: "8:00" }] as unknown as SetlistEntry[];
+    const odd = { ...base, artId: "3912345678", bandcampUrl: "https://evil.test/x" } as ShowDetail;
+    const html = renderToStaticMarkup(<ShowHeader show={odd} date="2026-06-26" setlist={one} experience="fancy" />);
+    expect(html).toContain("yeti-cover");
+    expect(html).not.toContain("evil.test");
+  });
   it("shows Yeti's empty pack while nothing is logged, and no listen buttons", () => {
     const html = renderToStaticMarkup(<ShowHeader show={base} date="2026-06-26" setlist={[]} experience="fancy" />);
     expect(html).toContain("yeti-card");

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Children } from "react";
 import { PenRule } from "./pen";
 import { clsx } from "./clsx";
+import { ShowSquare } from "./yeti";
 import { chromeLink } from "./page-chrome";
 import { showHref, dateParts, locationLine } from "@/lib/queries/format";
 import type { ShowSummary } from "@/lib/queries/shows";
@@ -57,22 +58,39 @@ export function Ledger({ children, seed }: { children: React.ReactNode; seed: st
  * display slot. A missing location reads nil ("—") over zero, per copy rule 1;
  * a missing setlist says so in words, because a run of dashes down the latest
  * shows reads as a broken sync rather than data that hasn't landed yet. */
-export function LedgerEntry({ show, context }: { show: ShowSummary; context?: "venue" | "tour" }) {
+/** `square` (3.0 only): the row leads with the show's square, its Bandcamp
+ *  cover or the small date tile, and the date moves under the venue. */
+export function LedgerEntry({
+  show,
+  context,
+  square = false,
+}: {
+  show: ShowSummary;
+  context?: "venue" | "tour";
+  square?: boolean;
+}) {
   const dp = dateParts(show.date);
   const loc = locationLine(show.city, show.state, show.country);
   const onVenue = context === "venue";
+  const withSquare = square && !onVenue;
   const month = dp.month.slice(0, 3).toLowerCase();
   const display = onVenue ? `${month} ${dp.day}, ${dp.year}` : (show.venue ?? "Unknown venue");
-  const sub = onVenue ? (show.tour ?? dp.weekday.toLowerCase()) : loc;
+  const sub = onVenue
+    ? (show.tour ?? dp.weekday.toLowerCase())
+    : withSquare
+      ? [`${month} ${dp.day}, ${dp.year}`, loc].filter(Boolean).join(" · ")
+      : loc;
   return (
     <Link
       href={showHref(show.date, show.order)}
       className={clsx(
-        "ledger-entry group grid items-baseline gap-x-4 py-2.5",
-        onVenue ? "grid-cols-[1fr_auto]" : "grid-cols-[5.6rem_1fr_auto]",
+        "ledger-entry group grid gap-x-4 py-2.5",
+        withSquare ? "items-center" : "items-baseline",
+        onVenue ? "grid-cols-[1fr_auto]" : withSquare ? "grid-cols-[58px_1fr_auto]" : "grid-cols-[5.6rem_1fr_auto]",
       )}
     >
-      {!onVenue && (
+      {withSquare && <ShowSquare iso={show.date} artId={show.artId} className="yeti-tile-sm w-[58px]" />}
+      {!onVenue && !withSquare && (
         <span className="shrink-0">
           <span className="ledger-date block font-mono text-[0.8rem] text-steel">{`${month} ${dp.day}`}</span>
           <span className="block font-mono text-[0.62rem] lowercase text-faint">

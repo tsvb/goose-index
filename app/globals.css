@@ -957,6 +957,63 @@ tr.song-group td { background: var(--surface-2); border-top: 1px solid var(--lin
 .yeti-tile-d { font-weight: 900; font-size: 3.6rem; letter-spacing: -0.03em; margin: 4px 0 6px; }
 .yeti-tile-y { font-weight: 800; font-size: 14px; }
 
+/* A release cover, flat: the tile's square and radius, the image filling it,
+   the frost keyline drawn over the image so a dark cover keeps its edge. */
+.yeti-cover { display: block; position: relative; overflow: hidden; background: var(--shelf); }
+.yeti-cover > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.yeti-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--frost);
+  pointer-events: none;
+}
+.yeti-bubble > .yeti-cover { width: 100%; height: 100%; border-radius: 18px; }
+
+/* Tonight's poster: a gig bill printed on card stock, set flush left and
+   anchored to the foot. The city is sized by its longest word (--chars) in
+   container units, so it fills the bill's width without overflowing it. */
+.yeti-poster {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  place-content: normal;
+  padding: 9% 10%;
+  text-align: left;
+  color: var(--snow);
+  line-height: 1;
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(242, 226, 122, 0.07), transparent 60%),
+    var(--card-stock);
+}
+.yeti-poster-band {
+  margin-bottom: auto;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--slush);
+}
+.yeti-poster-city {
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 0.92;
+  font-size: clamp(1.25rem, calc(100cqi / (var(--chars) * 0.57)), 3.4rem);
+  overflow-wrap: break-word;
+}
+.yeti-poster-region {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--slush);
+}
+.yeti-poster-rule { display: block; height: 3px; width: 34%; margin: 14px 0 10px; border-radius: 2px; background: var(--hand); }
+.yeti-poster-date { font-size: 15px; font-weight: 900; color: var(--ember); }
+.yeti-poster-year { margin-top: 3px; font-size: 12px; font-weight: 800; color: var(--slush); }
+
 /* stickers: sale stock, night ink */
 .yeti-label {
   display: inline-flex;

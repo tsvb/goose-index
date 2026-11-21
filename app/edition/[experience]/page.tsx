@@ -109,7 +109,7 @@ export default async function Home({ params }: EditionProps) {
             />
             <Ledger seed="otd-ledger">
               {onThisDay.slice(0, 3).map((s) => (
-                <LedgerEntry key={s.showId} show={s} />
+                <LedgerEntry key={s.showId} show={s} square />
               ))}
             </Ledger>
           </section>
@@ -118,7 +118,7 @@ export default async function Home({ params }: EditionProps) {
           <SectionRule title="latest shows" seed="latest" href="/shows" linkLabel="browse all shows" />
           <Ledger seed="latest-ledger">
             {recent.map((s) => (
-              <LedgerEntry key={s.showId} show={s} />
+              <LedgerEntry key={s.showId} show={s} square />
             ))}
           </Ledger>
         </section>
