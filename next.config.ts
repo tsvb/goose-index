@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
   // functions ship an empty content dir and the blog quietly renders "No
   // posts yet." — list every route that calls lib/blog/posts.
   outputFileTracingIncludes: {
-    // Pages live under app/edition/[experience]/ (see middleware.ts).
+    // Pages live under app/edition/[experience]/ (see proxy.ts).
     "/edition/[experience]/blog": ["./content/blog/*.md"],
     "/edition/[experience]/blog/[slug]": ["./content/blog/*.md"],
     "/blog/feed.xml": ["./content/blog/*.md"],

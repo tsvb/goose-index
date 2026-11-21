@@ -8,6 +8,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # TypeScript 7 (the native port) breaks `next build`: Next type-checks
+      # through the TypeScript JS API, which 7.0 doesn't provide (#41). Lift
+      # this once Next supports TypeScript 7.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     groups:
       # One PR for routine minor/patch bumps; majors and security fixes come
       # separately so they can be read on their own.

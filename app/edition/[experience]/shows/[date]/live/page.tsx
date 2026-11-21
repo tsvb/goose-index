@@ -2,7 +2,7 @@ import type { Metadata, ResolvingMetadata } from "next";
 import { ShowPage, generateShowMetadata, type ShowParams } from "../show-page";
 
 // Tonight's show while it could be on stage (lib/live.ts: 3pm–4am ET).
-// middleware.ts sends that one date here; every other show is cached. This
+// proxy.ts sends that one date here; every other show is cached. This
 // route renders per request, as the whole site used to, so the setlist the
 // live loop re-renders is the pull that just finished.
 export const dynamic = "force-dynamic";

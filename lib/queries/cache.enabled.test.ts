@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const unstableCalls: { keys: string[]; opts: { tags?: string[]; revalidate?: number } }[] = [];
 const tags: string[] = [];
+const profiles: unknown[] = [];
 
 /** Lets a test make the cache plumbing itself fail, at either of the two moments
  *  it can: before it ever calls the query, or after the query has returned (a
@@ -24,13 +25,15 @@ vi.mock("next/cache", () => ({
       return value;
     };
   },
-  revalidateTag: (tag: string) => {
+  revalidateTag: (tag: string, profile: unknown) => {
     if (revalidateThrows) throw new Error("static generation store missing");
     tags.push(tag);
+    profiles.push(profile);
   },
 }));
 
 import {
+  BUST_NOW,
   CATALOG_REVALIDATE_SECONDS,
   CATALOG_TAG,
   cachedQuery,
@@ -44,6 +47,7 @@ describe("cachedQuery when Next's cache is available", () => {
     delete process.env.VERCEL;
     unstableCalls.length = 0;
     tags.length = 0;
+    profiles.length = 0;
     plumbing = "ok";
     revalidateThrows = false;
   });
@@ -108,12 +112,17 @@ describe("cachedQuery when Next's cache is available", () => {
     process.env.NEXT_RUNTIME = "nodejs";
     await expect(revalidateLiveShow("2026-08-26", [900, 901])).resolves.toBe(true);
     expect(tags).toEqual(["show:2026-08-26", "show-id:900", "show-id:901"]);
+    // Expire now, not stale-while-revalidate: a live setlist must not be served
+    // one bust behind.
+    expect(profiles).toEqual([BUST_NOW, BUST_NOW, BUST_NOW]);
+    expect(BUST_NOW).toEqual({ expire: 0 });
   });
 
   it("revalidateCatalog busts the catalog tag", async () => {
     process.env.VERCEL = "1";
     await expect(revalidateCatalog()).resolves.toBe(true);
     expect(tags).toEqual([CATALOG_TAG]);
+    expect(profiles).toEqual([BUST_NOW]);
   });
 
   // A tag bust that quietly fails is invisible from the outside: an hour-stale

@@ -6,7 +6,7 @@ export function generateStaticParams() {
   return [];
 }
 
-// middleware.ts sends every page URL under /edition/<experience>/, so a path
+// proxy.ts sends every page URL under /edition/<experience>/, so a path
 // no route matches lands here; app/not-found.tsx renders it in that edition.
 export default function Missing(): never {
   notFound();

@@ -30,7 +30,7 @@ import { canonicalUrl, entityMetadata } from "@/lib/site";
 /**
  * Route params for every way into a show page. `n` (which show on a
  * multi-show date) is a path param, not `?n=`: reading searchParams would make
- * the page dynamic again. middleware.ts turns the public `/shows/<date>?n=2`
+ * the page dynamic again. proxy.ts turns the public `/shows/<date>?n=2`
  * into `/edition/<experience>/shows/<date>/n/2`.
  */
 export type ShowParams = { experience?: string; date: string; n?: string };
@@ -38,7 +38,7 @@ export type ShowParams = { experience?: string; date: string; n?: string };
 type Params = {
   params: Promise<ShowParams>;
   /**
-   * True only on the live route (`live/page.tsx`), which middleware uses for
+   * True only on the live route (`live/page.tsx`), which proxy.ts uses for
    * tonight's date inside the live window. The cached routes never render the
    * live loop, so a page cached mid-window can't keep polling after the show.
    */

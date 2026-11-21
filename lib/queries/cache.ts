@@ -135,11 +135,17 @@ export async function cachedQuery<T>(
  * is invisible by construction: a live setlist that is an hour stale looks
  * exactly like one that is current, so the warning is the only signal there is.
  */
+/** Expire on the spot rather than stale-while-revalidate. */
+export const BUST_NOW = { expire: 0 } as const;
+
 async function bustTags(tags: string[], what: string): Promise<boolean> {
   const cache = await nextCache();
   if (!cache) return false;
   try {
-    for (const tag of tags) cache.revalidateTag(tag);
+    // `{ expire: 0 }`, not "max": since Next 16, "max" marks the tag stale and
+    // serves the old entry while it refreshes — the hour-stale live setlist this
+    // function exists to prevent. Expire-now is what a sync webhook needs.
+    for (const tag of tags) cache.revalidateTag(tag, BUST_NOW);
     return true;
   } catch (e) {
     // `revalidateTag` throws outside a request, and during render. Say so.

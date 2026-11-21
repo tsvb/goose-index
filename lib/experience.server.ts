@@ -3,7 +3,7 @@ import { resolveExperience, type Experience } from "./experience";
 /**
  * The edition a page renders comes from the URL, not from the cookie.
  *
- * `middleware.ts` reads the `ga_experience` cookie and rewrites each request to
+ * `proxy.ts` reads the `ga_experience` cookie and rewrites each request to
  * `/edition/<experience>/<path>`, so the edition arrives as the `[experience]`
  * route param. Reading `cookies()` here instead would be a Dynamic API: every
  * page would render on every request (crawlers included) and nothing could be
