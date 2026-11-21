@@ -43,7 +43,7 @@
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "dotenv": "^16.4.0",
+    "dotenv": "^18.0.10",
     "drizzle-kit": "^0.31.11",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.1",
