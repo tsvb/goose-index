@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { TransitionRow } from "@/lib/queries/discoveries";
 import { chromeLink } from "@/app/_components/page-chrome";
 import type { Experience } from "@/lib/experience";

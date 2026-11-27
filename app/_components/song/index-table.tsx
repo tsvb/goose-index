@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { songHref } from "@/lib/queries/format";
 import type { SongIndexRow, SongSort } from "@/lib/queries/songs";
 import { ScrollTable } from "./scroll-table";

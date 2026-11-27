@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { ReactNode } from "react";
 import { Container } from "@/app/_components/container";
 import { FilterLink, FilterRow, chromeLink } from "@/app/_components/page-chrome";

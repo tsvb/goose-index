@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { clsx } from "./clsx";
 import { formatShortDate } from "@/lib/queries/format";
 

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { DeepestVenueRow } from "@/lib/queries/discoveries";
 import type { Experience } from "@/lib/experience";
 import { clsx } from "@/app/_components/clsx";

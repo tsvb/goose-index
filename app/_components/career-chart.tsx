@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { CareerYear } from "@/lib/queries/dimensions";
 import type { Experience } from "@/lib/experience";
 

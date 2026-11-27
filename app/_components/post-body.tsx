@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { ReactNode } from "react";
 import { showRefLabel, songRefLabel, type Block, type CellAlign, type Inline } from "@/lib/blog/markdown";
 

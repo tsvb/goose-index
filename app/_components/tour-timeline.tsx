@@ -1,5 +1,5 @@
 import { Fragment, type CSSProperties } from "react";
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { TourSpan } from "@/lib/queries/dimensions";
 
 /**

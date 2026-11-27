@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { Container } from "@/app/_components/container";
 import { SearchBox } from "@/app/_components/search-box";
 import { SectionRule, Ledger, LedgerEntry, TonightEntry, ContentsRow, Figure } from "@/app/_components/forms";

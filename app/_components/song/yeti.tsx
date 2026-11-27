@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { SongPerf, SongStat } from "@/lib/queries/songs";
 import { showHref, formatShortDate } from "@/lib/queries/format";
 import { PlainTag } from "@/app/_components/yeti";
