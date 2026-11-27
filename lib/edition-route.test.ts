@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { editionRoute } from "./edition-route";
+import { BROWSE_KEYS, editionRoute } from "./edition-route";
 
 // 2026-11-20 at noon ET: outside the live window (3pm–4am ET).
 const NOON = new Date("2026-11-20T17:00:00Z");
@@ -46,12 +46,16 @@ describe("editionRoute", () => {
     expect(editionRoute("/shows/2026-11-19", q(), undefined, NINE_PM).pathname).toBe("/edition/fancy/shows/2026-11-19");
   });
 
-  it("sends a browse page with no query to its cached copy, and any query to the per-request page", () => {
+  it("sends a browse page to its cached copy unless the query has a key the page reads", () => {
     expect(editionRoute("/shows", q(), undefined, NOON)).toEqual({ pathname: "/edition/fancy/shows/_all", drop: [] });
     expect(editionRoute("/songs", q(), "minimal", NOON).pathname).toBe("/edition/minimal/songs/_all");
     expect(editionRoute("/venues/", q(), "functional", NOON).pathname).toBe("/edition/functional/venues/_all");
     expect(editionRoute("/shows", q("year=2024"), undefined, NOON).pathname).toBe("/edition/fancy/shows");
     expect(editionRoute("/songs", q("sort=gap"), undefined, NOON).pathname).toBe("/edition/fancy/songs");
+    expect(editionRoute("/venues", q("q="), undefined, NOON).pathname).toBe("/edition/fancy/venues");
+    // A parameter the page never reads doesn't change it, so it doesn't cost a render.
+    expect(editionRoute("/shows", q("utm_source=x&fbclid=y"), undefined, NOON).pathname).toBe("/edition/fancy/shows/_all");
+    expect(editionRoute("/songs", q("_vercel_share=abc"), undefined, NOON).pathname).toBe("/edition/fancy/songs/_all");
     // Not a browse page: the plain rule.
     expect(editionRoute("/tours", q(), undefined, NOON).pathname).toBe("/edition/fancy/tours");
   });
@@ -65,5 +69,18 @@ describe("editionRoute", () => {
 
   it("re-prefixes a hand-typed /edition/ URL, so it 404s instead of serving a duplicate", () => {
     expect(editionRoute("/edition/fancy/tours", q(), undefined, NOON).pathname).toBe("/edition/fancy/edition/fancy/tours");
+  });
+});
+
+describe("BROWSE_KEYS", () => {
+  // A key the page reads but this list lacks would serve the unfiltered cached
+  // copy for a filtered URL. Read each page's own searchParams type and compare.
+  it.each(["shows", "songs", "venues"])("matches the query keys %s/page.tsx declares", async (page) => {
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync(new URL(`../app/edition/[experience]/${page}/page.tsx`, import.meta.url), "utf8");
+    const type = /^type (?:SearchParams|SP) = (?:Promise<)?\{([^}]*)\}/m.exec(src);
+    expect(type, "searchParams type not found").not.toBeNull();
+    const keys = [...type![1].matchAll(/(\w+)\?:/g)].map((m) => m[1]);
+    expect([...BROWSE_KEYS[page]].sort()).toEqual(keys.sort());
   });
 });

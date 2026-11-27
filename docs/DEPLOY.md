@@ -67,8 +67,9 @@ What the app does to keep Vercel function usage low:
 
 - Pages are cached HTML (ISR): `proxy.ts` puts the edition in the path, so no page
   reads the cookie. `/shows`, `/songs` and `/venues` read their query string and
-  render per request — except with no query at all, which `proxy.ts` sends to a
-  cached copy (`<page>/_all`).
+  render per request — except when the query holds none of the keys the page reads
+  (none at all, or only `utm_*` and the like), which `proxy.ts` sends to a cached
+  copy (`<page>/_all`).
 - Tonight's show page (`shows/<date>/live`) is cached too, for 60s, and each live
   pull busts it. `/api/live`, which every open tab polls, is held at Vercel's CDN
   for 30s. However many people watch a show, that's a page render or two

@@ -12,7 +12,8 @@ import { getExperience, type EditionParams } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
 import { etYear } from "@/lib/today";
 
-// With no query string at all, proxy.ts serves the cached copy in _all/ instead.
+// With none of its query keys set, proxy.ts serves the cached copy in _all/
+// instead (BROWSE_KEYS in lib/edition-route.ts lists them: keep it in step).
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Songs", description: "Every Goose song, sortable by plays, rarity, gap, and debut.", alternates: { canonical: canonicalUrl("/songs") } };
 
