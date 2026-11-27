@@ -60,6 +60,10 @@ What the app does to keep database traffic low:
   while tonight's setlist updates.
 - `postgres` closes idle sockets after 20s (`db/client.ts`), so a warm Vercel isolate
   cannot hold a connection open on its own.
+- Every connection attempt is held inside the request that started it
+  (`lib/queries/connect-keepalive.ts`, via `after()`). A page's parallel reads open
+  spare connections; one left mid-handshake when Vercel suspended the instance woke
+  with its timer expired and failed the next request's reads with `CONNECT_TIMEOUT`.
 - `/sitemap.xml` renders per request (a build opens no database connection), but
   Vercel's CDN holds it for an hour (`Vercel-CDN-Cache-Control` in `next.config.ts`).
 

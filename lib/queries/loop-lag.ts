@@ -11,8 +11,15 @@ import { monitorEventLoopDelay, type ELDHistogram } from "node:perf_hooks";
  * instance's event loop is too busy to run it: Fluid compute serves many
  * requests on one standard (1 vCPU) instance, and every page renders per
  * request. This module tells those apart. Each instance measures how late its
- * event loop runs, and a connect timeout logs that measurement beside it: lag in
- * seconds means the CPU was the bottleneck; lag in milliseconds means it wasn't.
+ * event loop runs, and a connect timeout logs that measurement beside it.
+ *
+ * What it found (2026-11-27): neither. The timeouts came with single stalls of
+ * 37–245s and ~20ms either side, and failed within a second of the request
+ * arriving. No CPU stalls like that; a suspended instance does. The reading
+ * that fits: Vercel freezes an idle instance, and a connection attempt left
+ * open by an earlier request wakes up with its 30s timer long expired. lib/queries/connect-keepalive.ts
+ * fixes that. Kept so the next deploy can show the timeouts are gone: a lag
+ * of seconds to minutes means a suspension, not load.
  */
 
 const WINDOW_MS = 60_000;
