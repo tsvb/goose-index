@@ -6,7 +6,7 @@ import { createElgooseClient } from "@/lib/elgoose/client";
 import type { ElgooseClient } from "@/lib/elgoose/types";
 import { liveCandidateDate } from "@/lib/live";
 import { runLiveSync, type LiveSyncSummary } from "./live";
-import { revalidateLiveShow } from "@/lib/queries/cache";
+import { CATALOG_TAG, cachedQuery, revalidateLiveShow, showDateTag } from "@/lib/queries/cache";
 
 export interface LiveStatus {
   live: boolean;
@@ -51,9 +51,14 @@ export async function maybeLiveSync(deps?: { db?: AppDb; now?: Date; client?: El
   if (!date) return { live: false };
   try {
     // Only sync dates we know have a show — elgoose pre-seeds the schedule,
-    // so the nightly sync has tonight's row long before doors.
-    const known = await d.select({ id: schema.shows.showId }).from(schema.shows)
-      .where(eq(schema.shows.showDate, date)).limit(1);
+    // so the nightly sync has tonight's row long before doors. Cached: the live
+    // window opens every afternoon, show or not, and this is asked on every
+    // /api/live miss. Tagged like the show's own rows, so the nightly sync and
+    // each live pull drop it with them.
+    const known = await cachedQuery("liveKnownShow", [date], () =>
+      d.select({ id: schema.shows.showId }).from(schema.shows)
+        .where(eq(schema.shows.showDate, date)).limit(1),
+    { tags: [CATALOG_TAG, showDateTag(date)] });
     if (known.length === 0) return { live: false, date };
 
     const claimed = claimRows(await d.execute(sql`
