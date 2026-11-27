@@ -36,8 +36,8 @@ The draft mechanism is git:
 2. Proofread it on the branch's Vercel preview deploy.
 3. Merge. The post is live on the next production deploy — and in the
    [RSS feed](https://www.gooseindex.com/blog/feed.xml), the sitemap, and the
-   `/blog` index, all of which derive from the content directory at request
-   time.
+   `/blog` index, all of which derive from the content directory (the feed is
+   built once per deploy).
 
 There is no draft flag, no scheduled publishing, and no CMS. A post committed
 to `main` is published; a post on a branch is a draft.

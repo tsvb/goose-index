@@ -95,13 +95,17 @@ const SYNC_TIMEOUT_MS = 20_000;
  * Rendered only while this page's show is inside its live window (the server
  * decides). Every 75s while the tab is visible it has the server pull elgoose
  * (debounced there, so many open tabs still mean one pull) and then re-renders
- * the page with the result — see createLiveTick.
+ * the page with the result — see createLiveTick. Both requests are served from
+ * Vercel's cache between pulls: /api/live for 30s, the live page as ISR.
  */
 export function LiveRefresh({ minimal }: { minimal?: boolean }) {
   const router = useRouter();
   useEffect(() => {
     const tick = createLiveTick(
-      () => fetch("/api/live", { cache: "no-store", signal: AbortSignal.timeout(SYNC_TIMEOUT_MS) }),
+      // No `cache: "no-store"` here: the response already says no-store to the
+      // browser, and the request should reach Vercel's CDN as a plain GET so
+      // the tabs share one cached answer (see app/api/live/route.ts).
+      () => fetch("/api/live", { signal: AbortSignal.timeout(SYNC_TIMEOUT_MS) }),
       () => router.refresh(),
     );
     return bindLiveRefresh(document, () => void tick(), 75_000, CATCH_UP_MS);

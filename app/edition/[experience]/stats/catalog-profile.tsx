@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { PenNote } from "@/app/_components/pen";
 import { chromeLink } from "@/app/_components/page-chrome";
 import { compact } from "@/lib/queries/format";

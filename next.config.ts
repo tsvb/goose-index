@@ -16,11 +16,24 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()" },
 ];
 
+// The sitemap renders per request (app/sitemap.ts says why: a build must not
+// open the database). Its rows come from the Data Cache, but laying out every
+// show, song and venue is still a function run for each crawler that asks.
+// Vercel's CDN keeps it for an hour instead, then serves the old copy while it
+// fetches a new one. Next replaces a Cache-Control set here on its own routes;
+// this header is Vercel's alone, so it survives.
+const sitemapHeaders = [
+  { key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" },
+];
+
 const nextConfig: NextConfig = {
   // Don't advertise the framework.
   poweredByHeader: false,
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/sitemap.xml", headers: sitemapHeaders },
+    ];
   },
   // Pin the file-tracing root to this project (a stray lockfile in a parent
   // directory otherwise makes Next infer the wrong workspace root).

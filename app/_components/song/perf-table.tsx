@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { showHref, RETURN_LABEL } from "@/lib/queries/format";
 import type { SongPerf } from "@/lib/queries/songs";
 import { ScrollTable } from "./scroll-table";

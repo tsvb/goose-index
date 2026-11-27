@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { Children } from "react";
 import { PenRule } from "./pen";
 import { clsx } from "./clsx";

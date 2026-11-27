@@ -1,5 +1,5 @@
 import type { Experience } from "@/lib/experience";
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { Container } from "./container";
 import { BANDCAMP_HOME } from "@/lib/bandcamp";
 

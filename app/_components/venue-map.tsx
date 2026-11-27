@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { US_STATE_PATHS, US_VIEWBOX } from "@/lib/us-states";
 import type { StateShows, CountryShows } from "@/lib/queries/dimensions";
 import { chromeLink } from "./page-chrome";

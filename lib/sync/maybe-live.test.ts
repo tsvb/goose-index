@@ -63,7 +63,8 @@ describe("maybeLiveSync", () => {
   it("still reports success when dropping the cache afterward throws", async () => {
     await seedShow();
     vi.resetModules();
-    vi.doMock("@/lib/queries/cache", () => ({
+    vi.doMock("@/lib/queries/cache", async (importOriginal) => ({
+      ...(await importOriginal<typeof import("@/lib/queries/cache")>()),
       revalidateLiveShow: async () => { throw new Error("cache exploded"); },
     }));
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});

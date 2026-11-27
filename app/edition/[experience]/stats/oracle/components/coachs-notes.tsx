@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { formatShortDate, showHref } from "@/lib/queries/format";
 import type { CoachsNoteRow } from "@/lib/queries/discoveries";
 import { isBandcampUrl } from "@/lib/bandcamp";

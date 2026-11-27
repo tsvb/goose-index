@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { SongIndexRow } from "@/lib/queries/songs";
 import { compact, formatShortDate, songHref } from "@/lib/queries/format";
 import { DateTile, PlainTag } from "@/app/_components/yeti";

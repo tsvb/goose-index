@@ -8,8 +8,10 @@ import { blocksToHtml, escapeHtml } from "@/lib/blog/html";
 import { canonicalUrl } from "@/lib/site";
 import { ymd } from "@/lib/queries/format";
 
-// Reads the content directory per request, like the pages do.
-export const dynamic = "force-dynamic";
+// Built once per deploy. Posts live in the repo (content/blog), so the feed can
+// only change when code ships; reading the directory on every request (as this
+// did) spent a function run per feed-reader poll to say the same thing.
+export const dynamic = "force-static";
 
 /** RFC 822 date at UTC midnight — the post date is a calendar date, no time. */
 function pubDate(date: string): string {

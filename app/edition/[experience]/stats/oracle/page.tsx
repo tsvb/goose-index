@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb } from "@/app/_components/doc";
 import { canonicalUrl } from "@/lib/site";

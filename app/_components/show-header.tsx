@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { Container } from "./container";
 import { MapPin } from "./marks";
 import { Doc, Breadcrumb, MetaTable } from "./doc";

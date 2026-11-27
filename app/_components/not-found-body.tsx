@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { Container } from "@/app/_components/container";
 import { PageHead, chromeLink } from "@/app/_components/page-chrome";
 import { clsx } from "@/app/_components/clsx";

@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { useRouter } from "next/navigation";
 import { Container } from "@/app/_components/container";
 import { PageHead, chromeLink } from "@/app/_components/page-chrome";

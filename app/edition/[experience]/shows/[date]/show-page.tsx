@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import type { Metadata, ResolvingMetadata } from "next";

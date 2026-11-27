@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { formatShortDate } from "@/lib/queries/format";
 import type { ShelfRow } from "@/lib/queries/discoveries";
 import type { Experience } from "@/lib/experience";

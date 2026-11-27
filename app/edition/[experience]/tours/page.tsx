@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Doc, Breadcrumb, EntityTable } from "@/app/_components/doc";

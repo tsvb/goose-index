@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { TourRun } from "@/lib/queries/dimensions";
 import type { ShowSummary } from "@/lib/queries/shows";
 import { locationLine, showHref } from "@/lib/queries/format";

@@ -60,8 +60,26 @@ What the app does to keep database traffic low:
   while tonight's setlist updates.
 - `postgres` closes idle sockets after 20s (`db/client.ts`), so a warm Vercel isolate
   cannot hold a connection open on its own.
-- `/sitemap.xml` is ISR (hourly). `robots.ts` disallows `/api/` so crawlers skip the
-  live-sync endpoint.
+- `/sitemap.xml` renders per request (a build opens no database connection), but
+  Vercel's CDN holds it for an hour (`Vercel-CDN-Cache-Control` in `next.config.ts`).
+
+What the app does to keep Vercel function usage low:
+
+- Pages are cached HTML (ISR): `proxy.ts` puts the edition in the path, so no page
+  reads the cookie. `/shows`, `/songs` and `/venues` read their query string and
+  render per request — except when the query holds none of the keys the page reads
+  (none at all, or only `utm_*` and the like), which `proxy.ts` sends to a cached
+  copy (`<page>/_all`).
+- Tonight's show page (`shows/<date>/live`) is cached too, for 60s, and each live
+  pull busts it. `/api/live`, which every open tab polls, is held at Vercel's CDN
+  for 30s. However many people watch a show, that's a page render or two
+  a minute per edition and one `/api/live` run every 30s, not two per tab per tick.
+- `robots.ts` keeps crawlers off `/api/`, `/search` and the browse pages' query
+  strings (`/shows?`, `/songs?`, `/venues?`) — every one of those URLs is a
+  function run, and none is canonical.
+- Links don't prefetch (`app/_components/link.tsx`) except in the site nav: each
+  prefetch is a request through `proxy.ts`, and a list page fired hundreds.
+- `/blog/feed.xml` is built once per deploy.
 
 After the nightly Action writes, it POSTs `/api/revalidate` if `REVALIDATE_SECRET` is
 set on both GitHub and Vercel; without the secret the cache expires on its own within

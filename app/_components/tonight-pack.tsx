@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { Pack, LabelSticker, TonightPoster } from "./yeti";
 import { locationLine, showHref } from "@/lib/queries/format";
 import type { ShowSummary } from "@/lib/queries/shows";

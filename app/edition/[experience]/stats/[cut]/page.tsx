@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
