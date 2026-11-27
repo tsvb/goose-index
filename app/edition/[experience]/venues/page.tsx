@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { Metadata } from "next";
 import { Container } from "@/app/_components/container";
 import { Search } from "@/app/_components/marks";
@@ -12,6 +12,7 @@ import { locationLine, compact } from "@/lib/queries/format";
 import { getExperience, type EditionParams } from "@/lib/experience.server";
 import { canonicalUrl } from "@/lib/site";
 
+// With no query string at all, proxy.ts serves the cached copy in _all/ instead.
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Venues",

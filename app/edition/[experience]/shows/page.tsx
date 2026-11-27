@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/_components/link";
 import type { Metadata } from "next";
 import { AnchorFlash } from "@/app/_components/anchor-flash";
 import { Container } from "@/app/_components/container";
@@ -21,6 +21,7 @@ import { canonicalUrl } from "@/lib/site";
 
 // Reads searchParams (filters, the query), so it renders per request. The
 // edition layout's ISR would otherwise fail it at runtime.
+// With no query string at all, proxy.ts serves the cached copy in _all/ instead.
 export const dynamic = "force-dynamic";
 
 type SearchParams = Promise<{ year?: string; tour?: string; dir?: string; per?: string; page?: string }>;
