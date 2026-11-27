@@ -1,4 +1,5 @@
 import { etToday } from "@/lib/today";
+import { keepConnectsAlive } from "./connect-keepalive";
 import { createLimiter } from "./limit";
 import { formatTimeoutReport, isConnectTimeout, loopLag, startLoopLagMonitor } from "./loop-lag";
 
@@ -58,7 +59,18 @@ export function cacheEnabled(): boolean {
 async function nextCache(): Promise<typeof import("next/cache") | null> {
   if (!cacheEnabled()) return null;
   try {
-    return await import("next/cache");
+    const cache = await import("next/cache");
+    // Inside Next, every connection attempt is held in the request that
+    // started it, so none is left mid-handshake when Vercel suspends the
+    // instance (lib/queries/connect-keepalive.ts says why). Once per process;
+    // every read comes through here before it can open a connection.
+    // Its own guard: a failure here must never switch the query cache off.
+    try {
+      keepConnectsAlive((await import("next/server")).after);
+    } catch {
+      /* connections behave as they did before this existed */
+    }
+    return cache;
   } catch {
     return null;
   }
