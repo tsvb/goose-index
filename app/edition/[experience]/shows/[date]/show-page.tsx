@@ -21,7 +21,7 @@ import { Doc, Breadcrumb, DocSection } from "@/app/_components/doc";
 import {
   formatLongDate,
   formatShortDate,
-  locationLine,
+  showDescription,
   showHref,
   yearOf,
 } from "@/lib/queries/format";
@@ -69,7 +69,6 @@ export async function generateShowMetadata({ params }: Params, parent: Resolving
       ? { title: `No show on ${formatShortDate(date)}`, alternates: { canonical: canonicalUrl(`/shows/${date}`) } }
       : { title: "Show not found" };
   }
-  const where = show.venue ? `${show.venue}, ${locationLine(show.city, show.state, show.country)}` : "";
   // "setlist" is what people search for, so it leads the title — but only once
   // there is one. An upcoming show (or one not logged yet) is titled as a date
   // and a room, not a setlist the page can't show. Same cached query the page
@@ -78,12 +77,10 @@ export async function generateShowMetadata({ params }: Params, parent: Resolving
   const title = [hasSetlist ? "Goose setlist" : "Goose", formatShortDate(date), show.venue]
     .filter(Boolean)
     .join(" · ");
-  const description = hasSetlist
-    ? `Goose setlist for ${formatLongDate(date)}${where ? ` at ${where}` : ""}.`
-    : `Goose${where ? ` at ${where}` : ""} on ${formatLongDate(date)}. No setlist logged yet.`;
+  const description = showDescription(show, hasSetlist);
   // Multi-show dates: canonical includes ?n= only when the resolved show is
   // not the default (order 1), so ?n=1 collapses to /shows/<date>.
-  const path = show.order && show.order > 1 ? `/shows/${date}?n=${show.order}` : `/shows/${date}`;
+  const path = showHref(date, show.order);
   return {
     title,
     description,

@@ -60,6 +60,20 @@ export function showHref(date: string, order?: number | null): string {
   return order && order > 1 ? `/shows/${date}?n=${order}` : `/shows/${date}`;
 }
 
+/** One-sentence description of a show page. Shared by the page's meta
+    description and its MusicEvent JSON-LD so the two can't drift. */
+export function showDescription(
+  show: { date: string; venue: string | null; city: string | null; state: string | null; country: string | null },
+  hasSetlist: boolean,
+): string {
+  const where = show.venue
+    ? [show.venue, locationLine(show.city, show.state, show.country)].filter(Boolean).join(", ")
+    : "";
+  return hasSetlist
+    ? `Goose setlist for ${formatLongDate(show.date)}${where ? ` at ${where}` : ""}.`
+    : `Goose${where ? ` at ${where}` : ""} on ${formatLongDate(show.date)}. No setlist logged yet.`;
+}
+
 /** Parse "m:ss" / "h:mm:ss" track time into seconds, or null. */
 export function trackSeconds(t: string | null): number | null {
   if (!t) return null;

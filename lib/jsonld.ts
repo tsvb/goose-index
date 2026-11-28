@@ -1,6 +1,6 @@
 import type { ShowDetail, SetlistEntry } from "@/lib/queries/shows";
 import type { PostMeta } from "@/lib/blog/posts";
-import { locationLine } from "@/lib/queries/format";
+import { locationLine, showDescription, showHref } from "@/lib/queries/format";
 import { canonicalUrl } from "@/lib/site";
 
 export function showJsonLd(show: ShowDetail, setlist: SetlistEntry[]): object {
@@ -9,7 +9,16 @@ export function showJsonLd(show: ShowDetail, setlist: SetlistEntry[]): object {
     "@context": "https://schema.org",
     "@type": "MusicEvent",
     name: `Goose at ${show.venue ?? "an unknown venue"}`,
+    // The page URL, matching the canonical link (?n= only past the first show
+    // of a multi-show date).
+    url: canonicalUrl(showHref(show.date, show.order)),
+    description: showDescription(show, setlist.length > 0),
+    // The site's shared card — there is no per-show image.
+    image: canonicalUrl("/opengraph-image"),
+    // Date-only, like the source: a show is filed under the night it started,
+    // and no start or end time is logged.
     startDate: show.date,
+    endDate: show.date,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     ...(show.venue
