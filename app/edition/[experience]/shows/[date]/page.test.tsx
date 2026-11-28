@@ -203,6 +203,7 @@ describe("ShowPage title and description", () => {
 
   it("leads with 'Goose setlist' once a setlist is logged", async () => {
     h.setlist = [{ song: "Arcadia" }];
+    h.details = [show(1, 1)];
     const m = await meta();
     expect(m.title).toBe("Goose setlist · Jun 25, 2025 · Venue A");
     expect(m.description).toBe("Goose setlist for Wednesday, June 25, 2025 at Venue A, Port Chester, NY.");
@@ -210,10 +211,21 @@ describe("ShowPage title and description", () => {
 
   it("doesn't promise a setlist the page can't show", async () => {
     h.setlist = [];
+    h.details = [show(1, 1)];
     const m = await meta();
     expect(m.title).toBe("Goose · Jun 25, 2025 · Venue A");
     expect(m.title).not.toContain("setlist");
     expect(m.description).toBe("Goose at Venue A, Port Chester, NY on Wednesday, June 25, 2025. No setlist logged yet.");
+  });
+
+  it("numbers the show on a multi-show date, so same-venue shows don't share a title", async () => {
+    h.setlist = [{ song: "Arcadia" }];
+    h.details = [show(1, 1), show(2, 2)];
+    const m = await generateMetadata({ params: Promise.resolve({ date: "2025-06-25", n: "2" }) }, {} as never);
+    expect(m.title).toBe("Goose setlist · Jun 25, 2025 · Venue A · Show 2 of 2");
+    expect(m.description).toBe(
+      "Goose setlist for Wednesday, June 25, 2025 at Venue A, Port Chester, NY (show 2 of 2 that day).",
+    );
   });
 
   it("drops the venue segment when there's no venue", async () => {

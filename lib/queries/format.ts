@@ -60,18 +60,33 @@ export function showHref(date: string, order?: number | null): string {
   return order && order > 1 ? `/shows/${date}?n=${order}` : `/shows/${date}`;
 }
 
+/** "show 2 of 2" for a show on a multi-show date, else null. `dayOrders` is
+    the show_order of every show logged on that date. Says only what
+    show_order records — a sequence number, not a time of day or a format —
+    and says nothing when the orders can't tell the day's shows apart (the
+    source files some same-day pairs both as show 1). */
+export function showOfDayLabel(order: number | null, dayOrders: (number | null)[]): string | null {
+  if (dayOrders.length < 2 || order == null) return null;
+  const distinct = new Set(dayOrders);
+  if (distinct.has(null) || distinct.size !== dayOrders.length || !distinct.has(order)) return null;
+  return `show ${order} of ${dayOrders.length}`;
+}
+
 /** One-sentence description of a show page. Shared by the page's meta
-    description and its MusicEvent JSON-LD so the two can't drift. */
+    description and its MusicEvent JSON-LD so the two can't drift.
+    `ofDay` is a showOfDayLabel(), for multi-show dates. */
 export function showDescription(
   show: { date: string; venue: string | null; city: string | null; state: string | null; country: string | null },
   hasSetlist: boolean,
+  ofDay: string | null = null,
 ): string {
   const where = show.venue
     ? [show.venue, locationLine(show.city, show.state, show.country)].filter(Boolean).join(", ")
     : "";
+  const which = ofDay ? ` (${ofDay} that day)` : "";
   return hasSetlist
-    ? `Goose setlist for ${formatLongDate(show.date)}${where ? ` at ${where}` : ""}.`
-    : `Goose${where ? ` at ${where}` : ""} on ${formatLongDate(show.date)}. No setlist logged yet.`;
+    ? `Goose setlist for ${formatLongDate(show.date)}${where ? ` at ${where}` : ""}${which}.`
+    : `Goose${where ? ` at ${where}` : ""} on ${formatLongDate(show.date)}${which}. No setlist logged yet.`;
 }
 
 /** Parse "m:ss" / "h:mm:ss" track time into seconds, or null. */

@@ -23,6 +23,7 @@ import {
   formatShortDate,
   showDescription,
   showHref,
+  showOfDayLabel,
   yearOf,
 } from "@/lib/queries/format";
 import { canonicalUrl, entityMetadata } from "@/lib/site";
@@ -56,15 +57,16 @@ async function resolveShow(date: string, n?: string) {
   const details = await getShowDetails(date);
   if (details.length === 0) return null;
   const order = n ? parseInt(n, 10) : null;
-  return (order && details.find((d) => d.order === order)) || details[0];
+  const show = (order && details.find((d) => d.order === order)) || details[0];
+  return { show, ofDay: showOfDayLabel(show.order, details.map((d) => d.order)) };
 }
 
 export async function generateShowMetadata({ params }: Params, parent: ResolvingMetadata): Promise<Metadata> {
   const { date, n } = await params;
-  const show = await resolveShow(date, n);
+  const resolved = await resolveShow(date, n);
   // A shape-valid date with no logged show gets a titled "no show" page;
   // genuine garbage keeps the plain 404 title.
-  if (!show) {
+  if (!resolved) {
     return isValidShowDate(date)
       ? { title: `No show on ${formatShortDate(date)}`, alternates: { canonical: canonicalUrl(`/shows/${date}`) } }
       : { title: "Show not found" };
@@ -73,11 +75,13 @@ export async function generateShowMetadata({ params }: Params, parent: Resolving
   // there is one. An upcoming show (or one not logged yet) is titled as a date
   // and a room, not a setlist the page can't show. Same cached query the page
   // body reads, so this costs no extra round trip.
+  const { show, ofDay } = resolved;
   const hasSetlist = (await getSetlist(show.showId)).length > 0;
-  const title = [hasSetlist ? "Goose setlist" : "Goose", formatShortDate(date), show.venue]
+  // Multi-show dates: both shows would otherwise share a title word for word.
+  const title = [hasSetlist ? "Goose setlist" : "Goose", formatShortDate(date), show.venue, ofDay && ofDay[0].toUpperCase() + ofDay.slice(1)]
     .filter(Boolean)
     .join(" · ");
-  const description = showDescription(show, hasSetlist);
+  const description = showDescription(show, hasSetlist, ofDay);
   // Multi-show dates: canonical includes ?n= only when the resolved show is
   // not the default (order 1), so ?n=1 collapses to /shows/<date>.
   const path = showHref(date, show.order);
@@ -125,7 +129,7 @@ export async function ShowPage({ params, live = false }: Params) {
   });
 
   const experience = await getExperience(params);
-  const ld = showJsonLd(show, setlist);
+  const ld = showJsonLd(show, setlist, details.map((d) => d.order));
 
   const siblings = details.filter((d) => d.showId !== show.showId);
 
