@@ -45,6 +45,26 @@ describe("showJsonLd", () => {
   });
 });
 
+describe("showJsonLd on a multi-show date", () => {
+  it("numbers each show in name and description", () => {
+    const first = showJsonLd({ ...show, order: 1 }, setlist, [1, 2]) as Record<string, unknown>;
+    const second = showJsonLd({ ...show, order: 2 }, setlist, [1, 2]) as Record<string, unknown>;
+    expect(first.name).toBe("Goose at Madison Square Garden (show 1 of 2)");
+    expect(second.name).toBe("Goose at Madison Square Garden (show 2 of 2)");
+    expect(second.description).toBe(
+      "Goose setlist for Saturday, June 28, 2025 at Madison Square Garden, New York, NY (show 2 of 2 that day).",
+    );
+  });
+
+  it("adds nothing on a single-show date, or when the orders can't tell the shows apart", () => {
+    const plain = "Goose at Madison Square Garden";
+    expect((showJsonLd({ ...show, order: 1 }, setlist, [1]) as Record<string, unknown>).name).toBe(plain);
+    // The source files some same-day pairs both as show 1.
+    expect((showJsonLd({ ...show, order: 1 }, setlist, [1, 1]) as Record<string, unknown>).name).toBe(plain);
+    expect((showJsonLd(show, setlist, [null, 2]) as Record<string, unknown>).name).toBe(plain);
+  });
+});
+
 describe("blogPostingJsonLd", () => {
   it("builds a BlogPosting with the canonical URL; keywords only when tagged", () => {
     const meta = { slug: "a-post", title: "A post", date: "2026-07-01", summary: "S.", tags: ["site"] };
