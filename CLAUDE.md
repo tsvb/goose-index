@@ -26,16 +26,18 @@ brew services run postgresql@16
 
 In a Claude Code cloud session (the `goose-index` environment), Postgres 16 is installed
 but not running when the session starts — the setup script creates the role and database,
-applies migrations, and stops the server again. Start it before anything that touches the
+applies migrations, runs `npm run sync`, and stops the server again. Start it before anything that touches the
 database:
 
 ```bash
 service postgresql start
 ```
 
-That database is migrated but empty until `npm run sync` fills it. The setup script copies
-`.env.example` to `.env`, which points at localhost — but the printed target line still
-decides, as above.
+The data is as old as the container: the sync ran once, when it was built, and a failed
+sync only warns rather than blocking the session — so `npm run verify` is what says whether
+the data is there, and `NODE_USE_ENV_PROXY=1 npm run sync` refreshes it (Node's `fetch`
+ignores the session proxy without that flag). The setup script copies `.env.example` to
+`.env`, which points at localhost — but the printed target line still decides, as above.
 
 ## The site's clock
 
