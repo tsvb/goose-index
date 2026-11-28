@@ -22,6 +22,27 @@ describe("showJsonLd", () => {
     const works = ld.workPerformed as { name: string }[];
     expect(works.map((w) => w.name)).toEqual(["Madhuvan", "Hot Tea"]);
   });
+
+  it("carries the fields Google's Event report asks for and the data supports", () => {
+    const ld = showJsonLd(show, setlist) as Record<string, unknown>;
+    expect(ld.endDate).toBe("2025-06-28");
+    expect(ld.url).toBe("https://www.gooseindex.com/shows/2025-06-28");
+    expect(ld.image).toBe("https://www.gooseindex.com/opengraph-image");
+    expect(ld.description).toBe(
+      "Goose setlist for Saturday, June 28, 2025 at Madison Square Garden, New York, NY.",
+    );
+    // No ticket or promoter data exists, so neither is asserted.
+    expect("offers" in ld).toBe(false);
+    expect("organizer" in ld).toBe(false);
+  });
+
+  it("describes an upcoming show without claiming a setlist; ?n= past the first show", () => {
+    const ld = showJsonLd({ ...show, order: 2 }, []) as Record<string, unknown>;
+    expect(ld.description).toBe(
+      "Goose at Madison Square Garden, New York, NY on Saturday, June 28, 2025. No setlist logged yet.",
+    );
+    expect(ld.url).toBe("https://www.gooseindex.com/shows/2025-06-28?n=2");
+  });
 });
 
 describe("blogPostingJsonLd", () => {
